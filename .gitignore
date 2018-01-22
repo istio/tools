@@ -1,0 +1,11 @@
+# Eclipse artifacts
+.project
+.pydevproject
+# Intellij
+*.iml
+.idea/
+# Visual Studio Code
+.vscode/
+vendor
+# vi backups
+*.bak
