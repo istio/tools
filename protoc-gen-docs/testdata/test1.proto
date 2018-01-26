@@ -107,11 +107,17 @@ message HiddenMessage {
     int32 f1 = 1;
 }
 
-// $experimental
+// $class: experimental
 enum ExperimentalEnum {
     E10 = 0;
 }
 
 message ExperimentalField {
-    int32 f1 = 1;   // $experimental
+    int32 f1 = 1;   // $class: experimental
+    int32 f2 = 2;   // $class: experimental and then some trailing stuff
+
+    // some stuff before
+    // $class: alpha
+    // Some stuff after
+    int32 f3 = 4;
 }

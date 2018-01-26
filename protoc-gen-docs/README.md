@@ -102,6 +102,15 @@ tables of contents or indexes. Finally, `$location` indicates the expected URL f
 documentation. This is used to help downstream processing tools to know where to copy
 the documentation, and is used when creating documentation links from other packages to this one.
 
+You can also use the $front_matter annotation to introduce new Jekyll front matter when generating
+Jekyll-friendly HTML. For example:
+
+```
+// $front_matter: order: 10
+```
+
+The above will include the front matter `order: 10` in the generated Jekyll HTML document.
+
 If a comment for an element contains the annotation `$hide_from_docs`,
 then the associated element will be omitted from the output. This is useful when staging the
 introduction of new features that aren't quite ready for use yet. The annotation can appear
@@ -113,13 +122,14 @@ message MyMsg {
 }
 ```
 
-If a comment for an element contains the annotation `$experimental`, 
-then the associated element will be marked with the `experimental` CSS class
-such that it can be colored differently. The annotation can appear anywhere in
-the comment for the element. For example:
+The comment for any element can contain the annotation `$class: <foo>` which is used
+to insert a specific HTML class around the generated element. This is useful to give
+particular styling to particular elements. Common examples of useful classes include
 
 ```proto
 message MyMsg {
-    int32 field1 = 1; // $experimental
+    int32 field1 = 1; // $class: alpha
+    int32 field2 = 2; // $class: beta
+    int32 field3 = 3; // $class: experimental
 }
 ```

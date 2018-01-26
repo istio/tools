@@ -25,42 +25,41 @@ type coreDesc interface {
 	fileDesc() *fileDescriptor
 	qualifiedName() []string
 	isHidden() bool
-	isExperimental() bool
+	class() string
 	location() *descriptor.SourceCodeInfo_Location
 }
 
 // The common data for every descriptor in the model. This implements the coreDesc interface.
 type baseDesc struct {
-	loc          *descriptor.SourceCodeInfo_Location
-	hidden       bool
-	experimental bool
-	file         *fileDescriptor
-	name         []string
+	loc    *descriptor.SourceCodeInfo_Location
+	hidden bool
+	cl     string
+	file   *fileDescriptor
+	name   []string
 }
 
 func newBaseDesc(file *fileDescriptor, path pathVector, qualifiedName []string) baseDesc {
 	loc := file.find(path)
-	experimental := false
+	cl := ""
 	com := ""
 
 	if loc != nil {
+		var newCom string
 		com = loc.GetLeadingComments()
 		if com != "" {
-			experimental = strings.Contains(com, "$experimental")
-			if experimental {
-				com = strings.Replace(com, "$experimental", "", 1)
+			cl, newCom = getClass(com)
+			if cl != "" {
 				clone := *loc
-				clone.LeadingComments = &com
+				clone.LeadingComments = &newCom
 				loc = &clone
 			}
 		} else {
 			com = loc.GetTrailingComments()
 			if com != "" {
-				experimental = strings.Contains(com, "$experimental")
-				if experimental {
-					com = strings.Replace(com, "$experimental", "", 1)
+				cl, newCom = getClass(com)
+				if cl != "" {
 					clone := *loc
-					clone.TrailingComments = &com
+					clone.TrailingComments = &newCom
 					loc = &clone
 				}
 			}
@@ -68,12 +67,34 @@ func newBaseDesc(file *fileDescriptor, path pathVector, qualifiedName []string) 
 	}
 
 	return baseDesc{
-		file:         file,
-		loc:          loc,
-		hidden:       strings.Contains(com, "$hide_from_docs") || strings.Contains(com, "[#not-implemented-hide:]"),
-		experimental: experimental,
-		name:         qualifiedName,
+		file:   file,
+		loc:    loc,
+		hidden: strings.Contains(com, "$hide_from_docs") || strings.Contains(com, "[#not-implemented-hide:]"),
+		cl:     cl,
+		name:   qualifiedName,
 	}
+}
+
+const class = "$class: "
+
+func getClass(com string) (cl string, newCom string) {
+	start := strings.Index(com, class)
+	if start < 0 {
+		return
+	}
+
+	name := start + len(class)
+	end := strings.IndexAny(com[name:], " \t\n") + start + len(class)
+
+	if end < 0 {
+		newCom = com[:start]
+		cl = com[name:]
+	} else {
+		newCom = com[:start] + com[end:]
+		cl = com[name:end]
+	}
+
+	return
 }
 
 func (bd baseDesc) fileDesc() *fileDescriptor {
@@ -88,8 +109,8 @@ func (bd baseDesc) isHidden() bool {
 	return bd.hidden
 }
 
-func (bd baseDesc) isExperimental() bool {
-	return bd.experimental
+func (bd baseDesc) class() string {
+	return bd.cl
 }
 
 func (bd baseDesc) location() *descriptor.SourceCodeInfo_Location {
