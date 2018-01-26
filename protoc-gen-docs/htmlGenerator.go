@@ -480,7 +480,7 @@ func (g *htmlGenerator) generateService(service *serviceDescriptor) {
 			g.emit("<pre id=\"", g.relativeName(method), "\" class=\"", class, "\"><code class=\"language-proto\">rpc ",
 				method.GetName(), "(", g.relativeName(method.input), ") returns (", g.relativeName(method.output), ")")
 		} else {
-			g.emit("<pre id=\"", g.relativeName(method), "\"><code class=\"language-proto'>rpc ",
+			g.emit("<pre id=\"", g.relativeName(method), "\"><code class=\"language-proto\">rpc ",
 				method.GetName(), "(", g.relativeName(method.input), ") returns (", g.relativeName(method.output), ")")
 		}
 		g.emit("</code></pre>")
