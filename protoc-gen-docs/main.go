@@ -80,6 +80,8 @@ func main() {
 				genWarnings = true
 			case "false":
 				genWarnings = false
+			default:
+				croak("Unknown value '%s' for warnings\n", v)
 			}
 		} else if k == "emit_yaml" {
 			switch strings.ToLower(v) {
@@ -87,6 +89,8 @@ func main() {
 				emitYAML = true
 			case "false":
 				emitYAML = false
+			default:
+				croak("Unknown value '%s' for emit_yaml\n", v)
 			}
 		} else {
 			croak("Unknown argument '%s' specified\n", k)
