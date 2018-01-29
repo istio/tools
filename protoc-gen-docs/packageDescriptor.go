@@ -51,7 +51,9 @@ func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto) *
 
 		if loc != nil {
 			if p.loc == nil {
-				p.loc = loc
+				if loc.GetLeadingComments() != "" || loc.GetTrailingComments() != "" {
+					p.loc = loc
+				}
 			}
 
 			if loc.LeadingDetachedComments != nil {
