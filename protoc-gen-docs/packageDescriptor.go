@@ -23,12 +23,12 @@ import (
 // packageDescriptor describes a package, which is a composition of proto files.
 type packageDescriptor struct {
 	baseDesc
-	files       []*fileDescriptor
-	name        string
-	title       string
-	overview    string
-	location    string
-	frontMatter []string
+	files        []*fileDescriptor
+	name         string
+	title        string
+	overview     string
+	homeLocation string
+	frontMatter  []string
 }
 
 const (
@@ -53,6 +53,7 @@ func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto) *
 			if p.loc == nil {
 				if loc.GetLeadingComments() != "" || loc.GetTrailingComments() != "" {
 					p.loc = loc
+					p.file = f
 				}
 			}
 
@@ -67,7 +68,7 @@ func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto) *
 						} else if strings.HasPrefix(l, overview) {
 							p.overview = l[len(overview):]
 						} else if strings.HasPrefix(l, location) {
-							p.location = l[len(location):]
+							p.homeLocation = l[len(location):]
 						} else if strings.HasPrefix(l, frontMatter) {
 							p.frontMatter = append(p.frontMatter, l[len(frontMatter):])
 						}

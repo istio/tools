@@ -22,11 +22,12 @@ import (
 
 // coreDesc is an interface abstracting the abilities shared by all descriptors
 type coreDesc interface {
+	packageDesc() *packageDescriptor
 	fileDesc() *fileDescriptor
 	qualifiedName() []string
 	isHidden() bool
 	class() string
-	location() *descriptor.SourceCodeInfo_Location
+	location() locationDescriptor
 }
 
 // The common data for every descriptor in the model. This implements the coreDesc interface.
@@ -97,6 +98,10 @@ func getClass(com string) (cl string, newCom string) {
 	return
 }
 
+func (bd baseDesc) packageDesc() *packageDescriptor {
+	return bd.file.parent
+}
+
 func (bd baseDesc) fileDesc() *fileDescriptor {
 	return bd.file
 }
@@ -113,6 +118,6 @@ func (bd baseDesc) class() string {
 	return bd.cl
 }
 
-func (bd baseDesc) location() *descriptor.SourceCodeInfo_Location {
-	return bd.loc
+func (bd baseDesc) location() locationDescriptor {
+	return newLocationDescriptor(bd.loc, bd.file)
 }

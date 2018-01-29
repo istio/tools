@@ -19,13 +19,14 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"sort"
 	"strings"
 	"unicode"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+
+	"sort"
 
 	blackfriday "gopkg.in/russross/blackfriday.v2"
 )
@@ -44,8 +45,8 @@ type htmlGenerator struct {
 	mode   outputMode
 
 	// transient state as individual files are processed
-	currentFile *fileDescriptor
-	grouping    bool
+	currentPackage *packageDescriptor
+	grouping       bool
 
 	genWarnings bool
 	emitYAML    bool
@@ -65,35 +66,49 @@ func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, emitYAML 
 }
 
 func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) *plugin.CodeGeneratorResponse {
-	// process each package, we produce one output file per package
+	// process each package; we produce one output file per package
 	response := plugin.CodeGeneratorResponse{}
 
-	filesPerPackage := make(map[*packageDescriptor][]*fileDescriptor)
 	for _, pkg := range g.model.packages {
+		g.currentPackage = pkg
+
+		// anything to output for this package?
+		count := 0
 		for _, file := range pkg.files {
-			if filesToGen[file] {
-				slice := filesPerPackage[pkg]
-				filesPerPackage[pkg] = append(slice, file)
+			if _, ok := filesToGen[file]; ok {
+				count++
 			}
 		}
-	}
 
-	// we now have the minimum set of proto files to include in each output
-	// package doc file. We augment this here with the set of referenced proto files
-	// which don't have location information. So if we don't know where a particular
-	// proto's doc lives on the web, we include its description locally.
-	for _, pkg := range g.model.packages {
-		slice := filesPerPackage[pkg]
+		if count > 0 {
+			// We need to produce a file for this package.
 
-		for _, file := range slice {
-			filesPerPackage[pkg] = includeUnsituatedDependencies(slice, file.dependencies)
-		}
-	}
+			// Decide which types need to be included in the generated file.
+			// This will be all the types in the fileToGen input files, along with any
+			// dependent types which are located in packages that don't have
+			// a known location on the web.
+			messages := make(map[string]*messageDescriptor)
+			enums := make(map[string]*enumDescriptor)
+			services := make(map[string]*serviceDescriptor)
 
-	for _, pkg := range g.model.packages {
-		files := filesPerPackage[pkg]
-		if len(files) > 0 {
-			rf := g.generateFile(pkg, files)
+			for _, file := range pkg.files {
+				if _, ok := filesToGen[file]; ok {
+					for _, m := range file.allMessages {
+						messages[g.relativeName(m)] = m
+						g.includeUnsituatedDependencies(messages, enums, m)
+					}
+
+					for _, e := range file.allEnums {
+						enums[g.relativeName(e)] = e
+					}
+
+					for _, s := range file.services {
+						services[g.relativeName(s)] = s
+					}
+				}
+			}
+
+			rf := g.generateFile(pkg, messages, enums, services)
 			response.File = append(response.File, &rf)
 		}
 	}
@@ -101,82 +116,76 @@ func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) *plu
 	return &response
 }
 
-func includeUnsituatedDependencies(slice []*fileDescriptor, files []*fileDescriptor) []*fileDescriptor {
-	for _, file := range files {
-		if file.parent.location == "" {
-			slice = append(slice, file)
-			slice = includeUnsituatedDependencies(slice, file.dependencies)
+func (g *htmlGenerator) includeUnsituatedDependencies(messages map[string]*messageDescriptor, enums map[string]*enumDescriptor, msg *messageDescriptor) {
+	for _, field := range msg.fields {
+		if m, ok := field.typ.(*messageDescriptor); ok {
+			if field.typ.packageDesc().homeLocation == "" {
+				name := g.relativeName(m)
+				if _, ok := messages[name]; !ok {
+					messages[name] = m
+					g.includeUnsituatedDependencies(messages, enums, msg)
+				}
+			}
+		} else if e, ok := field.typ.(*enumDescriptor); ok {
+			if field.typ.packageDesc().homeLocation == "" {
+				enums[g.relativeName(e)] = e
+			}
 		}
 	}
-
-	return slice
 }
 
-func (g *htmlGenerator) generateFile(pkg *packageDescriptor, files []*fileDescriptor) plugin.CodeGeneratorResponse_File {
+func (g *htmlGenerator) generateFile(pkg *packageDescriptor, messages map[string]*messageDescriptor,
+	enums map[string]*enumDescriptor, services map[string]*serviceDescriptor) plugin.CodeGeneratorResponse_File {
 	g.buffer.Reset()
 	g.generateFileHeader(pkg)
 
-	var enums []string
-	var messages []string
-	var services []string
+	var enumList []string
+	var messageList []string
+	var serviceList []string
 
-	enumMap := make(map[string]*enumDescriptor)
-	messageMap := make(map[string]*messageDescriptor)
-	serviceMap := make(map[string]*serviceDescriptor)
-
-	for _, file := range files {
-		g.currentFile = file
-
-		for _, enum := range file.allEnums {
-			if enum.isHidden() {
-				continue
-			}
-
-			absName := g.absoluteName(enum)
-			known := wellKnownTypes[absName]
-			if known != "" {
-				continue
-			}
-
-			name := g.relativeName(enum)
-			enums = append(enums, name)
-			enumMap[name] = enum
+	for name, enum := range enums {
+		if enum.isHidden() {
+			continue
 		}
-		sort.Strings(enums)
 
-		for _, msg := range file.allMessages {
-			// Don't generate virtual messages for maps.
-			if msg.GetOptions().GetMapEntry() {
-				continue
-			}
-
-			if msg.isHidden() {
-				continue
-			}
-
-			absName := g.absoluteName(msg)
-			known := wellKnownTypes[absName]
-			if known != "" {
-				continue
-			}
-
-			name := g.relativeName(msg)
-			messages = append(messages, name)
-			messageMap[name] = msg
+		absName := g.absoluteName(enum)
+		known := wellKnownTypes[absName]
+		if known != "" {
+			continue
 		}
-		sort.Strings(messages)
 
-		for _, svc := range file.services {
-			if svc.isHidden() {
-				continue
-			}
-
-			name := *svc.Name
-			services = append(services, name)
-			serviceMap[name] = svc
-		}
-		sort.Strings(services)
+		enumList = append(enumList, name)
 	}
+	sort.Strings(enumList)
+
+	for name, msg := range messages {
+		// Don't generate virtual messages for maps.
+		if msg.GetOptions().GetMapEntry() {
+			continue
+		}
+
+		if msg.isHidden() {
+			continue
+		}
+
+		absName := g.absoluteName(msg)
+		known := wellKnownTypes[absName]
+		if known != "" {
+			continue
+		}
+
+		messageList = append(messageList, name)
+	}
+	sort.Strings(messageList)
+
+	for name, svc := range services {
+		if svc.isHidden() {
+			continue
+		}
+
+		serviceList = append(serviceList, name)
+	}
+	sort.Strings(serviceList)
 
 	numKinds := 0
 	if len(enums) > 0 {
@@ -197,9 +206,8 @@ func (g *htmlGenerator) generateFile(pkg *packageDescriptor, files []*fileDescri
 			g.emit("<h2 id=\"Enumerations\">Enumerations</h2>")
 		}
 
-		for _, name := range enums {
-			e := enumMap[name]
-			g.currentFile = e.fileDesc()
+		for _, name := range enumList {
+			e := enums[name]
 			g.generateEnum(e)
 		}
 	}
@@ -209,9 +217,8 @@ func (g *htmlGenerator) generateFile(pkg *packageDescriptor, files []*fileDescri
 			g.emit("<h2 id=\"Messages\">Messages</h2>")
 		}
 
-		for _, name := range messages {
-			message := messageMap[name]
-			g.currentFile = message.fileDesc()
+		for _, name := range messageList {
+			message := messages[name]
 			g.generateMessage(message)
 		}
 	}
@@ -221,9 +228,8 @@ func (g *htmlGenerator) generateFile(pkg *packageDescriptor, files []*fileDescri
 			g.emit("<h2 id=\"Services\">Services</h2>")
 		}
 
-		for _, name := range services {
-			service := serviceMap[name]
-			g.currentFile = service.fileDesc()
+		for _, name := range serviceList {
+			service := services[name]
 			g.generateService(service)
 		}
 	}
@@ -249,8 +255,8 @@ func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor) {
 			g.emit("overview: ", pkg.overview)
 		}
 
-		if pkg.location != "" {
-			g.emit("location: ", pkg.location)
+		if pkg.homeLocation != "" {
+			g.emit("location: ", pkg.homeLocation)
 		}
 
 		g.emit("layout: protoc-gen-docs")
@@ -294,8 +300,7 @@ func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor) {
 		}
 	}
 
-	g.currentFile = pkg.files[0]
-	g.generateComment(pkg.loc, pkg.name)
+	g.generateComment(pkg.location(), pkg.name)
 }
 
 func (g *htmlGenerator) generateFileFooter() {
@@ -333,7 +338,7 @@ func (g *htmlGenerator) generateSectionTrailing() {
 
 func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 	g.generateSectionHeading(message)
-	g.generateComment(message.loc, message.GetName())
+	g.generateComment(message.location(), message.GetName())
 
 	if len(message.fields) > 0 {
 		g.emit("<table>")
@@ -380,7 +385,7 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 			g.emit("<td><code>", g.linkify(field.typ, fieldTypeName), "</code></td>")
 			g.emit("<td>")
 
-			g.generateComment(field.loc, field.GetName())
+			g.generateComment(field.location(), field.GetName())
 
 			g.emit("</td>")
 			g.emit("</tr>")
@@ -414,7 +419,7 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 
 func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 	g.generateSectionHeading(enum)
-	g.generateComment(enum.loc, enum.GetName())
+	g.generateComment(enum.location(), enum.GetName())
 
 	if len(enum.values) > 0 {
 		g.emit("<table>")
@@ -447,7 +452,7 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 			g.emit("<td><code>", name, "</code></td>")
 			g.emit("<td>")
 
-			g.generateComment(v.loc, name)
+			g.generateComment(v.location(), name)
 
 			g.emit("</td>")
 			g.emit("</tr>")
@@ -460,7 +465,7 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 
 func (g *htmlGenerator) generateService(service *serviceDescriptor) {
 	g.generateSectionHeading(service)
-	g.generateComment(service.loc, service.GetName())
+	g.generateComment(service.location(), service.GetName())
 
 	for _, method := range service.methods {
 		if method.isHidden() {
@@ -485,7 +490,7 @@ func (g *htmlGenerator) generateService(service *serviceDescriptor) {
 		}
 		g.emit("</code></pre>")
 
-		g.generateComment(method.loc, method.GetName())
+		g.generateComment(method.location(), method.GetName())
 	}
 
 	g.generateSectionTrailing()
@@ -501,7 +506,7 @@ func (g *htmlGenerator) emit(str ...string) {
 
 var typeLinkPattern = regexp.MustCompile(`\[.*\]\[.*\]`)
 
-func (g *htmlGenerator) generateComment(loc *descriptor.SourceCodeInfo_Location, name string) {
+func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 	com := loc.GetLeadingComments()
 	if com == "" {
 		com = loc.GetTrailingComments()
@@ -583,8 +588,22 @@ func (g *htmlGenerator) generateComment(loc *descriptor.SourceCodeInfo_Location,
 
 // well-known types whose documentation we can refer to
 var wellKnownTypes = map[string]string{
-	"google.protobuf.Duration":  "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration",
-	"google.protobuf.Timestamp": "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Timestamp",
+	"google.protobuf.Duration":    "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#duration",
+	"google.protobuf.Timestamp":   "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#timestamp",
+	"google.protobuf.Any":         "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#any",
+	"google.protobuf.BytesValue":  "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#bytesvalue",
+	"google.protobuf.StringValue": "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#stringvalue",
+	"google.protobuf.BoolValue":   "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#boolvalue",
+	"google.protobuf.Int32Value":  "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#int32value",
+	"google.protobuf.Int64Value":  "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#int64value",
+	"google.protobuf.Uint32Value": "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#uint32value",
+	"google.protobuf.Uint64Value": "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#uint64value",
+	"google.protobuf.FloatValue":  "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#floatvalue",
+	"google.protobuf.DoubleValue": "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#doublevalue",
+	"google.protobuf.Empty":       "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#empty",
+	"google.protobuf.EnumValue":   "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#enumvalue",
+	"google.protobuf.ListValue":   "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#listvalue",
+	"google.protobuf.NullValue":   "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#nullvalue",
 }
 
 func (g *htmlGenerator) linkify(o coreDesc, name string) string {
@@ -601,41 +620,39 @@ func (g *htmlGenerator) linkify(o coreDesc, name string) string {
 		return "<a href=\"" + known + "\">" + name + "</a>"
 	}
 
-	fragment := "#" + dottedName(o)
-
 	if !o.isHidden() {
-		loc := o.fileDesc().parent.location
-		if loc != "" && loc != g.currentFile.parent.location {
-			return "<a href=\"" + loc + fragment + "\">" + name + "</a>"
+		loc := o.packageDesc().homeLocation
+		if loc != "" && loc != g.currentPackage.homeLocation {
+			return "<a href=\"" + loc + "#" + dottedName(o) + "\">" + name + "</a>"
 		}
 	}
 
-	return "<a href=\"" + fragment + "\">" + name + "</a>"
+	return "<a href=\"#" + g.relativeName(o) + "\">" + name + "</a>"
 }
 
-func (g *htmlGenerator) warn(loc *descriptor.SourceCodeInfo_Location, format string, args ...interface{}) {
+func (g *htmlGenerator) warn(loc locationDescriptor, format string, args ...interface{}) {
 	if g.genWarnings {
 		place := ""
-		if loc != nil && len(loc.Span) >= 2 {
-			place = fmt.Sprintf("%s:%d:%d:", g.currentFile.GetName(), loc.Span[0], loc.Span[1])
+		if loc.SourceCodeInfo_Location != nil && len(loc.Span) >= 2 {
+			place = fmt.Sprintf("%s:%d:%d:", loc.file.GetName(), loc.Span[0], loc.Span[1])
 		}
 
-		fmt.Fprintf(os.Stderr, place+" "+format+"\n", args...)
+		fmt.Fprintf(os.Stdout, place+" "+format+"\n", args...)
 	}
 }
 
 func (g *htmlGenerator) relativeName(desc coreDesc) string {
 	typeName := dottedName(desc)
-	if desc.fileDesc().parent == g.currentFile.parent {
+	if desc.packageDesc() == g.currentPackage {
 		return typeName
 	}
 
-	return desc.fileDesc().parent.name + "." + typeName
+	return desc.packageDesc().name + "." + typeName
 }
 
 func (g *htmlGenerator) absoluteName(desc coreDesc) string {
 	typeName := dottedName(desc)
-	return desc.fileDesc().parent.name + "." + typeName
+	return desc.packageDesc().name + "." + typeName
 }
 
 func (g *htmlGenerator) fieldTypeName(field *fieldDescriptor) string {

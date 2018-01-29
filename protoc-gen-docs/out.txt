@@ -1,0 +1,2 @@
+protoc --plugin=./protoc-gen-docs --docs_out=warnings=false,mode=jekyll_html:jekyll/. testdata/test1.proto testdata/test2.proto 	testdata/test3.proto
+protoc --plugin=./protoc-gen-docs --docs_out=warnings=true,mode=html_fragment:fragment/. testdata/test1.proto testdata/test2.proto testdata/test3.proto
