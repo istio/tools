@@ -34,7 +34,9 @@ func newEnumDescriptor(desc *descriptor.EnumDescriptorProto, parent *messageDesc
 	if parent == nil {
 		qualifiedName = []string{desc.GetName()}
 	} else {
-		qualifiedName = append(parent.qualifiedName(), desc.GetName())
+		qualifiedName = make([]string, len(parent.qualifiedName()), len(parent.qualifiedName())+1)
+		copy(qualifiedName, parent.qualifiedName())
+		qualifiedName = append(qualifiedName, desc.GetName())
 	}
 
 	e := &enumDescriptor{
@@ -44,9 +46,13 @@ func newEnumDescriptor(desc *descriptor.EnumDescriptorProto, parent *messageDesc
 
 	e.values = make([]*enumValueDescriptor, 0, len(desc.Value))
 	for i, ev := range desc.Value {
+		nameCopy := make([]string, len(qualifiedName), len(qualifiedName)+1)
+		copy(nameCopy, qualifiedName)
+		nameCopy = append(nameCopy, ev.GetName())
+
 		evd := &enumValueDescriptor{
 			EnumValueDescriptorProto: ev,
-			baseDesc:                 newBaseDesc(file, path.append(enumValuePath, i), append(qualifiedName, ev.GetName())),
+			baseDesc:                 newBaseDesc(file, path.append(enumValuePath, i), nameCopy),
 		}
 		e.values = append(e.values, evd)
 	}

@@ -38,7 +38,9 @@ func newMessageDescriptor(desc *descriptor.DescriptorProto, parent *messageDescr
 	if parent == nil {
 		qualifiedName = []string{desc.GetName()}
 	} else {
-		qualifiedName = append(parent.qualifiedName(), desc.GetName())
+		qualifiedName = make([]string, len(parent.qualifiedName()), len(parent.qualifiedName())+1)
+		copy(qualifiedName, parent.qualifiedName())
+		qualifiedName = append(qualifiedName, desc.GetName())
 	}
 
 	m := &messageDescriptor{
@@ -48,9 +50,13 @@ func newMessageDescriptor(desc *descriptor.DescriptorProto, parent *messageDescr
 	}
 
 	for i, f := range desc.Field {
+		nameCopy := make([]string, len(qualifiedName), len(qualifiedName)+1)
+		copy(nameCopy, qualifiedName)
+		nameCopy = append(nameCopy, f.GetName())
+
 		fd := &fieldDescriptor{
 			FieldDescriptorProto: f,
-			baseDesc:             newBaseDesc(file, path.append(messageFieldPath, i), append(qualifiedName, f.GetName())),
+			baseDesc:             newBaseDesc(file, path.append(messageFieldPath, i), nameCopy),
 		}
 
 		m.fields = append(m.fields, fd)

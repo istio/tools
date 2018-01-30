@@ -40,9 +40,13 @@ func newServiceDescriptor(desc *descriptor.ServiceDescriptorProto, file *fileDes
 	}
 
 	for i, m := range desc.Method {
+		nameCopy := make([]string, len(qualifiedName), len(qualifiedName)+1)
+		copy(nameCopy, qualifiedName)
+		nameCopy = append(nameCopy, m.GetName())
+
 		md := &methodDescriptor{
 			MethodDescriptorProto: m,
-			baseDesc:              newBaseDesc(file, path.append(serviceMethodPath, i), append(qualifiedName, m.GetName())),
+			baseDesc:              newBaseDesc(file, path.append(serviceMethodPath, i), nameCopy),
 		}
 		s.methods = append(s.methods, md)
 	}
