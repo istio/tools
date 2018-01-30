@@ -637,7 +637,7 @@ func (g *htmlGenerator) warn(loc locationDescriptor, format string, args ...inte
 			place = fmt.Sprintf("%s:%d:%d:", loc.file.GetName(), loc.Span[0], loc.Span[1])
 		}
 
-		fmt.Fprintf(os.Stdout, place+" "+format+"\n", args...)
+		fmt.Fprintf(os.Stderr, place+" "+format+"\n", args...)
 	}
 }
 
