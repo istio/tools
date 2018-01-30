@@ -544,9 +544,9 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 			l := lines[i]
 			if strings.HasPrefix(l, "#") {
 				if g.grouping {
-					lines[i] = "##" + l
+					lines[i] = "###" + l
 				} else {
-					lines[i] = "#" + l
+					lines[i] = "##" + l
 				}
 			}
 		}
@@ -554,7 +554,6 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 		// find any type links of the form [name][type] and turn
 		// them into normal HTML links
 		for i := 0; i < len(lines); i++ {
-
 			lines[i] = typeLinkPattern.ReplaceAllStringFunc(lines[i], func(match string) string {
 				end := 0
 				for match[end] != ']' {
@@ -580,7 +579,7 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 	text = strings.Join(lines, "\n")
 
 	// turn the comment from markdown into HTML
-	result := blackfriday.Run([]byte(text))
+	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
 
 	g.buffer.Write(result)
 	g.buffer.WriteByte('\n')
