@@ -341,7 +341,7 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 	g.generateComment(message.location(), message.GetName())
 
 	if len(message.fields) > 0 {
-		g.emit("<table>")
+		g.emit("<table class=\"message-fields\">")
 		g.emit("<tr>")
 		g.emit("<th>Field</th>")
 		g.emit("<th>Type</th>")
@@ -422,7 +422,7 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 	g.generateComment(enum.location(), enum.GetName())
 
 	if len(enum.values) > 0 {
-		g.emit("<table>")
+		g.emit("<table class=\"enum-values\">")
 		g.emit("<tr>")
 		g.emit("<th>Name</th>")
 		g.emit("<th>Description</th>")
