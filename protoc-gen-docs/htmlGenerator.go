@@ -342,11 +342,14 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 
 	if len(message.fields) > 0 {
 		g.emit("<table class=\"message-fields\">")
+		g.emit("<thead>")
 		g.emit("<tr>")
 		g.emit("<th>Field</th>")
 		g.emit("<th>Type</th>")
 		g.emit("<th>Description</th>")
 		g.emit("</tr>")
+		g.emit("</thead>")
+		g.emit("<tbody>")
 
 		var oneof int32 = -1
 		for _, field := range message.fields {
@@ -390,6 +393,7 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 			g.emit("</td>")
 			g.emit("</tr>")
 		}
+		g.emit("</tbody>")
 		g.emit("</table>")
 
 		/*
@@ -423,10 +427,13 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 
 	if len(enum.values) > 0 {
 		g.emit("<table class=\"enum-values\">")
+		g.emit("<thead>")
 		g.emit("<tr>")
 		g.emit("<th>Name</th>")
 		g.emit("<th>Description</th>")
 		g.emit("</tr>")
+		g.emit("</thead>")
+		g.emit("<tbody>")
 
 		for _, v := range enum.values {
 			if v.isHidden() {
@@ -457,6 +464,7 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 			g.emit("</td>")
 			g.emit("</tr>")
 		}
+		g.emit("</tbody>")
 		g.emit("</table>")
 	}
 
