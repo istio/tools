@@ -28,6 +28,18 @@ message Test {
     // This is a preformatted block
     //   That contains stuff
     // ```
+    //
+    // ```go
+    // func MyFunc(x int) {
+    //     return 42
+    // }
+    // ```
+    //
+    //    func MyFunc2(y int) {
+    //        return 31415692
+    //    }
+    //
+    // All done
     repeated string field3 = 3;
 
     string field_four = 4;

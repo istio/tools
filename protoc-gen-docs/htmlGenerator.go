@@ -587,7 +587,7 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 	text = strings.Join(lines, "\n")
 
 	// turn the comment from markdown into HTML
-	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
+	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.FencedCode|blackfriday.AutoHeadingIDs))
 
 	g.buffer.Write(result)
 	g.buffer.WriteByte('\n')
