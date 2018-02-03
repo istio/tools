@@ -267,6 +267,7 @@ func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor) {
 		}
 
 		g.emit("---")
+		g.emit("{% raw %}") // make sure no {{ in the content are treated like Liquid tags
 	} else if g.mode == htmlPage {
 		g.emit("<!DOCTYPE html>")
 		g.emit("<html itemscope itemtype=\"https://schema.org/WebPage\">")
@@ -304,7 +305,9 @@ func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor) {
 }
 
 func (g *htmlGenerator) generateFileFooter() {
-	if g.mode == htmlPage {
+	if g.mode == jekyllHTML {
+		g.emit("{% endraw %}")
+	} else if g.mode == htmlPage {
 		g.emit("</body>")
 		g.emit("</html>")
 	}
