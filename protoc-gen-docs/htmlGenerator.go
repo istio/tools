@@ -29,6 +29,7 @@ import (
 	"sort"
 
 	blackfriday "gopkg.in/russross/blackfriday.v2"
+	"strconv"
 )
 
 type outputMode int
@@ -137,10 +138,8 @@ func (g *htmlGenerator) includeUnsituatedDependencies(messages map[string]*messa
 func (g *htmlGenerator) generateFile(pkg *packageDescriptor, messages map[string]*messageDescriptor,
 	enums map[string]*enumDescriptor, services map[string]*serviceDescriptor) plugin.CodeGeneratorResponse_File {
 	g.buffer.Reset()
-	g.generateFileHeader(pkg)
 
-	var enumList []string
-	var messageList []string
+	var typeList []string
 	var serviceList []string
 
 	for name, enum := range enums {
@@ -154,9 +153,8 @@ func (g *htmlGenerator) generateFile(pkg *packageDescriptor, messages map[string
 			continue
 		}
 
-		enumList = append(enumList, name)
+		typeList = append(typeList, name)
 	}
-	sort.Strings(enumList)
 
 	for name, msg := range messages {
 		// Don't generate virtual messages for maps.
@@ -174,9 +172,9 @@ func (g *htmlGenerator) generateFile(pkg *packageDescriptor, messages map[string
 			continue
 		}
 
-		messageList = append(messageList, name)
+		typeList = append(typeList, name)
 	}
-	sort.Strings(messageList)
+	sort.Strings(typeList)
 
 	for name, svc := range services {
 		if svc.isHidden() {
@@ -188,42 +186,19 @@ func (g *htmlGenerator) generateFile(pkg *packageDescriptor, messages map[string
 	sort.Strings(serviceList)
 
 	numKinds := 0
-	if len(enums) > 0 {
+	if len(typeList) > 0 {
 		numKinds++
 	}
-	if len(messages) > 0 {
-		numKinds++
-	}
-	if len(services) > 0 {
+	if len(serviceList) > 0 {
 		numKinds++
 	}
 
 	// if there's more than one kind of thing, divide the output in groups
 	g.grouping = numKinds > 1
 
-	if len(enums) > 0 {
-		if g.grouping {
-			g.emit("<h2 id=\"Enumerations\">Enumerations</h2>")
-		}
+	g.generateFileHeader(pkg, len(typeList) + len(serviceList))
 
-		for _, name := range enumList {
-			e := enums[name]
-			g.generateEnum(e)
-		}
-	}
-
-	if len(messages) > 0 {
-		if g.grouping {
-			g.emit("<h2 id=\"Messages\">Messages</h2>")
-		}
-
-		for _, name := range messageList {
-			message := messages[name]
-			g.generateMessage(message)
-		}
-	}
-
-	if len(services) > 0 {
+	if len(serviceList) > 0 {
 		if g.grouping {
 			g.emit("<h2 id=\"Services\">Services</h2>")
 		}
@@ -233,6 +208,21 @@ func (g *htmlGenerator) generateFile(pkg *packageDescriptor, messages map[string
 			g.generateService(service)
 		}
 	}
+
+	if len(typeList) > 0 {
+		if g.grouping {
+			g.emit("<h2 id=\"Types\">Types</h2>")
+		}
+
+		for _, name := range typeList {
+			if e, ok := enums[name]; ok {
+				g.generateEnum(e)
+			} else if m, ok := messages[name]; ok {
+				g.generateMessage(m)
+			}
+		}
+	}
+
 	g.generateFileFooter()
 
 	return plugin.CodeGeneratorResponse_File{
@@ -241,7 +231,7 @@ func (g *htmlGenerator) generateFile(pkg *packageDescriptor, messages map[string
 	}
 }
 
-func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor) {
+func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor, numEntries int) {
 	if g.mode == jekyllHTML {
 		g.emit("---")
 
@@ -266,6 +256,7 @@ func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor) {
 			g.emit(fm)
 		}
 
+		g.emit("number_of_entries: ", strconv.Itoa(numEntries))
 		g.emit("---")
 		g.emit("{% raw %}") // make sure no {{ in the content are treated like Liquid tags
 	} else if g.mode == htmlPage {
