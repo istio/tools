@@ -17,6 +17,7 @@ message Test {
     // field1 is a field
     int32 field1 = 1;
 
+    // A comment with {{
     string field2 = 2;
 
     // an array of strings

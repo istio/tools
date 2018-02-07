@@ -19,17 +19,15 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-
-	"sort"
-
 	blackfriday "gopkg.in/russross/blackfriday.v2"
-	"strconv"
 )
 
 type outputMode int
@@ -196,7 +194,7 @@ func (g *htmlGenerator) generateFile(pkg *packageDescriptor, messages map[string
 	// if there's more than one kind of thing, divide the output in groups
 	g.grouping = numKinds > 1
 
-	g.generateFileHeader(pkg, len(typeList) + len(serviceList))
+	g.generateFileHeader(pkg, len(typeList)+len(serviceList))
 
 	if len(serviceList) > 0 {
 		if g.grouping {
@@ -258,7 +256,6 @@ func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor, numEntries in
 
 		g.emit("number_of_entries: ", strconv.Itoa(numEntries))
 		g.emit("---")
-		g.emit("{% raw %}") // make sure no {{ in the content are treated like Liquid tags
 	} else if g.mode == htmlPage {
 		g.emit("<!DOCTYPE html>")
 		g.emit("<html itemscope itemtype=\"https://schema.org/WebPage\">")
@@ -296,9 +293,7 @@ func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor, numEntries in
 }
 
 func (g *htmlGenerator) generateFileFooter() {
-	if g.mode == jekyllHTML {
-		g.emit("{% endraw %}")
-	} else if g.mode == htmlPage {
+	if g.mode == htmlPage {
 		g.emit("</body>")
 		g.emit("</html>")
 	}
@@ -582,6 +577,9 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 
 	// turn the comment from markdown into HTML
 	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.FencedCode|blackfriday.AutoHeadingIDs))
+
+	// prevent any { contained in the markdown from being interpreted as Liquid tags
+	result = bytes.Replace(result, []byte("{"), []byte("&lbrace;"), -1)
 
 	g.buffer.Write(result)
 	g.buffer.WriteByte('\n')
