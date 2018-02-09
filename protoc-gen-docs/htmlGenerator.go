@@ -686,7 +686,7 @@ func (g *htmlGenerator) fieldTypeName(field *fieldDescriptor) string {
 		if msg.GetOptions().GetMapEntry() {
 			keyType := g.fieldTypeName(msg.fields[0])
 			valType := g.linkify(msg.fields[1].typ, g.fieldTypeName(msg.fields[1]))
-			return "map&lt;" + keyType + ", " + valType + "&gt;"
+			return "map&lt;" + keyType + "," + valType + "&gt;"
 		}
 		name = g.relativeName(field.typ)
 
@@ -741,7 +741,7 @@ func (g *htmlGenerator) fieldYAMLTypeName(field *fieldDescriptor) string {
 		if msg.GetOptions().GetMapEntry() {
 			keyType := g.fieldTypeName(msg.fields[0])
 			valType := g.linkify(msg.fields[1].typ, g.fieldTypeName(msg.fields[1]))
-			return "map&lt;" + keyType + ", " + valType + "&gt;"
+			return "map&lt;" + keyType + "," + valType + "&gt;"
 		}
 		name = g.relativeName(field.typ)
 
