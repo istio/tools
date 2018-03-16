@@ -12,6 +12,11 @@ import "testdata/test2.proto";
 import "testdata/test3.proto";
 import "testdata/test4.proto";
 
+/* Contains inferred type information about specific instance of 'checknothing' template. This is passed to
+infrastructure backends during configuration-time through */
+message TypeX {
+}
+
 // Test is a message that I use for testing.
 message Test {
     // field1 is a field

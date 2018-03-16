@@ -531,7 +531,18 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 		for i := 0; i < len(lines); i++ {
 			l := lines[i]
 			if len(l) > pad {
-				lines[i] = l[pad:]
+				skip := 0
+				ch := ' '
+				for skip, ch = range l {
+					if !unicode.IsSpace(ch) {
+						break
+					}
+
+					if skip == pad {
+						break
+					}
+				}
+				lines[i] = l[skip:]
 			}
 		}
 
