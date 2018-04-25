@@ -1,18 +1,54 @@
 
 # What's this for?
 
-protoc-gen-docs is a plugin for the Google protocol buffer compiler to generate
-documentation for any given input protobuf. Run it by building this program and
-putting it in your path with the name `protoc-gen-docs`.
-That word `docs` at the end becomes part of the option string set for the
-protocol compiler, so once the protocol compiler (protoc) is installed
-you can run
+`protoc-gen-docs` is a plugin for the Google protocol buffer compiler to generate
+documentation for any given input protobuf. It runs as a `protoc-gen-` binary that the
+protobuf compiler infers from the `docs_out` flag.
+
+## Build `protoc-gen-docs`
+
+`protoc-gen-docs` is written in Go, so ensure that is installed on your system. You
+can follow the instructions on the [golang website](https://golang.org/doc/install) or
+on Debian or Ubuntu, you can install it from the package manager:
+
+```bash
+sudo apt-get install -y golang
+```
+
+To build, first ensure you have the protocol compiler (protoc) and markdown
+processing library (blackfriday):
+
+```bash
+go get github.com/golang/protobuf/proto && go get -u gopkg.in/russross/blackfriday.v2
+```
+To build, run the following command from this project directory:
+
+```bash
+go build
+```
+
+Then ensure the resulting `protoc-gen-docs` binary is in your `PATH`. A recommended location
+is `$HOME/bin`:
+
+```bash
+cp protoc-gen-docs $HOME/bin
+```
+
+Since the following is often in your `$HOME/.bashrc` file:
+
+```bash
+export PATH=$HOME/bin:$PATH
+```
+
+## Use protoc-gen-docs
+
+Then to generate a page of HTML describing the protobuf defined by file.proto, run
 
 ```bash
 protoc --docs_out=output_directory input_directory/file.proto
 ```
 
-to generate a page of HTML describing the protobuf defined by file.proto.
+
 With that input, the output will be written to
 
 	output_directory/file.pb.html
