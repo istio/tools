@@ -44,6 +44,10 @@ the output. The default is to camel case fields.
 protoc --docs_out=camel_case_fields=false:output_directory input_directory/file.proto
 ```
 
+Using the 'custom_style_sheet' option, you can control the style sheet used when generating full stand-alone
+HTML pages. You provide the URL of the style sheet as parameter, and the URL will be inserted into the generated
+HTML.
+
 You can specify multiple options together by separating them with commas:
 
 ```bash

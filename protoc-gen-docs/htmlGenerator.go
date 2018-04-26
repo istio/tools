@@ -47,22 +47,24 @@ type htmlGenerator struct {
 	currentPackage *packageDescriptor
 	grouping       bool
 
-	genWarnings     bool
-	emitYAML        bool
-	camelCaseFields bool
+	genWarnings      bool
+	emitYAML         bool
+	camelCaseFields  bool
+	customStyleSheet string
 }
 
 const (
 	deprecated = "deprecated "
 )
 
-func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, emitYAML bool, camelCaseFields bool) *htmlGenerator {
+func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, emitYAML bool, camelCaseFields bool, customStyleSheet string) *htmlGenerator {
 	return &htmlGenerator{
-		model:           model,
-		mode:            mode,
-		genWarnings:     genWarnings,
-		emitYAML:        emitYAML,
-		camelCaseFields: camelCaseFields,
+		model:            model,
+		mode:             mode,
+		genWarnings:      genWarnings,
+		emitYAML:         emitYAML,
+		camelCaseFields:  camelCaseFields,
+		customStyleSheet: customStyleSheet,
 	}
 }
 
@@ -277,7 +279,11 @@ func (g *htmlGenerator) generateFileHeader(pkg *packageDescriptor, numEntries in
 			g.emit("<meta name=\"og:description\" content=\"", pkg.overview, "\">")
 		}
 
-		g.emit(htmlStyle)
+		if g.customStyleSheet != "" {
+			g.emit("<link rel=\"stylesheet\" href=\"" + g.customStyleSheet + "\">")
+		} else {
+			g.emit(htmlStyle)
+		}
 
 		g.emit("</head>")
 		g.emit("<body>")
