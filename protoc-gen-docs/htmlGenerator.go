@@ -513,7 +513,7 @@ func (g *htmlGenerator) emit(str ...string) {
 	g.buffer.WriteByte('\n')
 }
 
-var typeLinkPattern = regexp.MustCompile(`\[.*\]\[.*\]`)
+var typeLinkPattern = regexp.MustCompile(`\[[^\]]*\]\[[^\]]*\]`)
 
 func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 	com := loc.GetLeadingComments()
