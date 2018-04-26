@@ -47,20 +47,22 @@ type htmlGenerator struct {
 	currentPackage *packageDescriptor
 	grouping       bool
 
-	genWarnings bool
-	emitYAML    bool
+	genWarnings     bool
+	emitYAML        bool
+	camelCaseFields bool
 }
 
 const (
 	deprecated = "deprecated "
 )
 
-func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, emitYAML bool) *htmlGenerator {
+func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, emitYAML bool, camelCaseFields bool) *htmlGenerator {
 	return &htmlGenerator{
-		model:       model,
-		mode:        mode,
-		genWarnings: genWarnings,
-		emitYAML:    emitYAML,
+		model:           model,
+		mode:            mode,
+		genWarnings:     genWarnings,
+		emitYAML:        emitYAML,
+		camelCaseFields: camelCaseFields,
 	}
 }
 
@@ -346,7 +348,11 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 				continue
 			}
 
-			fieldName := camelCase(*field.Name)
+			fieldName := *field.Name
+			if g.camelCaseFields {
+				camelCase(*field.Name)
+			}
+
 			fieldTypeName := g.fieldTypeName(field)
 
 			class := ""

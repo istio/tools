@@ -60,6 +60,7 @@ func main() {
 	mode := htmlPage
 	genWarnings := true
 	emitYAML := false
+	camelCaseFields := true
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
@@ -92,6 +93,15 @@ func main() {
 			default:
 				croak("Unknown value '%s' for emit_yaml\n", v)
 			}
+		} else if k == "camel_case_fields" {
+			switch strings.ToLower(v) {
+			case "true":
+				camelCaseFields = true
+			case "false":
+				camelCaseFields = false
+			default:
+				croak("Unknown value '%s' for camel_case_fields\n", v)
+			}
 		} else {
 			croak("Unknown argument '%s' specified\n", k)
 		}
@@ -111,7 +121,7 @@ func main() {
 		filesToGen[fd] = true
 	}
 
-	g := newHTMLGenerator(m, mode, genWarnings, emitYAML)
+	g := newHTMLGenerator(m, mode, genWarnings, emitYAML, camelCaseFields)
 	response := g.generateOutput(filesToGen)
 
 	data, err = proto.Marshal(response)

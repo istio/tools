@@ -37,7 +37,14 @@ the following syntax:
 protoc --docs_out=warnings=true:output_directory input_directory/file.proto
 ```
 
-You can specify both the mode and warnings options by separating them with commas:
+Using the `camel_case_fields` option, you can control whether field names are camel cased or not in
+the output. The default is to camel case fields.
+
+```bash
+protoc --docs_out=camel_case_fields=false:output_directory input_directory/file.proto
+```
+
+You can specify multiple options together by separating them with commas:
 
 ```bash
 protoc --docs_out=warnings=true,mode=html_page:output_directory input_directory/file.proto
