@@ -308,9 +308,18 @@ func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) 
 		g.emit("layout: protoc-gen-docs")
 
 		// emit additional custom Jekyll front-matter fields
-		if top != nil {
-			for _, fm := range top.frontMatter() {
-				g.emit(fm)
+		if g.perFile {
+			if top != nil {
+				for _, fm := range top.frontMatter() {
+					g.emit(fm)
+				}
+			}
+		} else {
+			// Front matter may be in any of the package's files.
+			for _, file := range g.currentPackage.files {
+				for _, fm := range file.frontMatter() {
+					g.emit(fm)
+				}
 			}
 		}
 
