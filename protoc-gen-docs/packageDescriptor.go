@@ -29,7 +29,7 @@ type packageDescriptor struct {
 	topMatter *pageTopMatter
 }
 
-func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto) *packageDescriptor {
+func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto, perFile bool) *packageDescriptor {
 	p := &packageDescriptor{
 		name: name,
 	}
@@ -47,7 +47,7 @@ func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto) *
 					p.file = f
 					// Inherit only f's topMatter, don't get title from one file
 				}
-			} else {
+			} else if !perFile {
 				leading := loc.GetLeadingComments()
 				trailing := loc.GetTrailingComments()
 				if leading != "" || trailing != "" {

@@ -53,14 +53,14 @@ type htmlGenerator struct {
 	emitYAML         bool
 	camelCaseFields  bool
 	customStyleSheet string
-	linkByFile       bool
+	perFile          bool
 }
 
 const (
 	deprecated = "deprecated "
 )
 
-func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, emitYAML bool, camelCaseFields bool, customStyleSheet string, linkByFile bool) *htmlGenerator {
+func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, emitYAML bool, camelCaseFields bool, customStyleSheet string, perFile bool) *htmlGenerator {
 	return &htmlGenerator{
 		model:            model,
 		mode:             mode,
@@ -68,7 +68,7 @@ func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, emitYAML 
 		emitYAML:         emitYAML,
 		camelCaseFields:  camelCaseFields,
 		customStyleSheet: customStyleSheet,
-		linkByFile:       linkByFile,
+		perFile:          perFile,
 	}
 }
 
@@ -149,7 +149,7 @@ func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) *plu
 		}
 
 		if count > 0 {
-			if g.linkByFile {
+			if g.perFile {
 				g.generatePerFileOutput(filesToGen, pkg, &response)
 			} else {
 				g.generatePerPackageOutput(filesToGen, pkg, &response)
@@ -161,7 +161,7 @@ func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) *plu
 }
 
 func (g *htmlGenerator) descLocation(desc coreDesc) string {
-	if g.linkByFile {
+	if g.perFile {
 		return desc.fileDesc().homeLocation()
 	}
 	if desc.packageDesc().file != nil {
@@ -251,7 +251,7 @@ func (g *htmlGenerator) generateFile(name string, top *fileDescriptor, messages 
 	// if there's more than one kind of thing, divide the output in groups
 	g.grouping = numKinds > 1
 
-	g.generateFileHeader(name, top, len(typeList)+len(serviceList))
+	g.generateFileHeader(top, len(typeList)+len(serviceList))
 
 	if len(serviceList) > 0 {
 		if g.grouping {
@@ -286,7 +286,8 @@ func (g *htmlGenerator) generateFile(name string, top *fileDescriptor, messages 
 	}
 }
 
-func (g *htmlGenerator) generateFileHeader(name string, top *fileDescriptor, numEntries int) {
+func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) {
+	name := g.currentPackage.name
 	if g.mode == jekyllHTML {
 		g.emit("---")
 
@@ -352,7 +353,7 @@ func (g *htmlGenerator) generateFileHeader(name string, top *fileDescriptor, num
 		}
 	}
 
-	if g.linkByFile {
+	if g.perFile {
 		if top == nil {
 			croak("PANIC: null file %v", name)
 		}
@@ -706,7 +707,7 @@ func (g *htmlGenerator) linkify(o coreDesc, name string) string {
 
 	if !o.isHidden() {
 		var loc string
-		if g.linkByFile {
+		if g.perFile {
 			loc = o.fileDesc().homeLocation()
 		} else if o.packageDesc().file != nil {
 			loc = o.packageDesc().file.homeLocation()
