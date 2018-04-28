@@ -62,6 +62,7 @@ func main() {
 	emitYAML := false
 	camelCaseFields := true
 	customStyleSheet := ""
+	linkByFile := false
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
@@ -105,6 +106,15 @@ func main() {
 			}
 		} else if k == "custom_style_sheet" {
 			customStyleSheet = v
+		} else if k == "link_by_file" {
+			switch strings.ToLower(v) {
+			case "true":
+				linkByFile = true
+			case "false":
+				linkByFile = false
+			default:
+				croak("Unknown value '%s' for link_by_file", v)
+			}
 		} else {
 			croak("Unknown argument '%s' specified\n", k)
 		}
@@ -124,7 +134,7 @@ func main() {
 		filesToGen[fd] = true
 	}
 
-	g := newHTMLGenerator(m, mode, genWarnings, emitYAML, camelCaseFields, customStyleSheet)
+	g := newHTMLGenerator(m, mode, genWarnings, emitYAML, camelCaseFields, customStyleSheet, linkByFile)
 	response := g.generateOutput(filesToGen)
 
 	data, err = proto.Marshal(response)
