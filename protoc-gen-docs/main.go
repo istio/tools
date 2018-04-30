@@ -62,6 +62,7 @@ func main() {
 	emitYAML := false
 	camelCaseFields := true
 	customStyleSheet := ""
+	perFile := false
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
@@ -105,12 +106,21 @@ func main() {
 			}
 		} else if k == "custom_style_sheet" {
 			customStyleSheet = v
+		} else if k == "per_file" {
+			switch strings.ToLower(v) {
+			case "true":
+				perFile = true
+			case "false":
+				perFile = false
+			default:
+				croak("Unknown value '%s' for per_file", v)
+			}
 		} else {
 			croak("Unknown argument '%s' specified\n", k)
 		}
 	}
 
-	m, err := newModel(&request)
+	m, err := newModel(&request, perFile)
 	if err != nil {
 		croak("Unable to create model: %v\n", err)
 	}
@@ -124,7 +134,7 @@ func main() {
 		filesToGen[fd] = true
 	}
 
-	g := newHTMLGenerator(m, mode, genWarnings, emitYAML, camelCaseFields, customStyleSheet)
+	g := newHTMLGenerator(m, mode, genWarnings, emitYAML, camelCaseFields, customStyleSheet, perFile)
 	response := g.generateOutput(filesToGen)
 
 	data, err = proto.Marshal(response)

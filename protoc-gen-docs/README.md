@@ -80,7 +80,7 @@ the output. The default is to camel case fields.
 protoc --docs_out=camel_case_fields=false:output_directory input_directory/file.proto
 ```
 
-Using the 'custom_style_sheet' option, you can control the style sheet used when generating full stand-alone
+Using the `custom_style_sheet` option, you can control the style sheet used when generating full stand-alone
 HTML pages. You provide the URL of the style sheet as parameter, and the URL will be inserted into the generated
 HTML.
 
@@ -89,6 +89,11 @@ You can specify multiple options together by separating them with commas:
 ```bash
 protoc --docs_out=warnings=true,mode=html_page:output_directory input_directory/file.proto
 ```
+
+Using the `per_file` option, you can change the output mode to document protos on a per-file basis. The
+file introduction text is taken from the `pkg` statement just like in the per-package (default) mode.
+In the per-package mode, only one file may document the `pkg`. If there are conflicts, the compiler
+will emit a warning and continue with the first comment it found.
 
 # Writing Docs
 
