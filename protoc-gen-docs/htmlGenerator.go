@@ -365,10 +365,11 @@ func (g *htmlGenerator) generateFileHeader(name string, top *fileDescriptor, num
 		if top == nil {
 			croak("PANIC: null file %v", name)
 		}
-		if top.topMatter == nil {
-			croak("PANIC: per_file mode, file is missing top matter %v", name)
+
+		loc := top.find(newPathVector(packagePath))
+		if loc != nil {
+			g.generateComment(newLocationDescriptor(loc, top), name)
 		}
-		g.generateComment(newLocationDescriptor(top.topMatter.location, top), name)
 	} else {
 		g.generateComment(g.currentPackage.location(), name)
 	}

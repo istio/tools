@@ -27,7 +27,6 @@ type pageTopMatter struct {
 	overview     string
 	homeLocation string
 	frontMatter  []string
-	location     *descriptor.SourceCodeInfo_Location
 }
 
 const (
@@ -80,7 +79,6 @@ func makeTopMatter(name string, loc *descriptor.SourceCodeInfo_Location) *pageTo
 			overview:     overview,
 			homeLocation: homeLocation,
 			frontMatter:  frontMatter,
-			location:     loc,
 		}
 	}
 	return nil
