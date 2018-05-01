@@ -251,7 +251,7 @@ func (g *htmlGenerator) generateFile(name string, top *fileDescriptor, messages 
 	// if there's more than one kind of thing, divide the output in groups
 	g.grouping = numKinds > 1
 
-	g.generateFileHeader(top, len(typeList)+len(serviceList))
+	g.generateFileHeader(name, top, len(typeList)+len(serviceList))
 
 	if len(serviceList) > 0 {
 		if g.grouping {
@@ -286,8 +286,7 @@ func (g *htmlGenerator) generateFile(name string, top *fileDescriptor, messages 
 	}
 }
 
-func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) {
-	name := g.currentPackage.name
+func (g *htmlGenerator) generateFileHeader(name string, top *fileDescriptor, numEntries int) {
 	if g.mode == jekyllHTML {
 		g.emit("---")
 
@@ -365,6 +364,9 @@ func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) 
 	if g.perFile {
 		if top == nil {
 			croak("PANIC: null file %v", name)
+		}
+		if top.topMatter == nil {
+			croak("PANIC: per_file mode, file is missing top matter %v", name)
 		}
 		g.generateComment(newLocationDescriptor(top.topMatter.location, top), name)
 	} else {
