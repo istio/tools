@@ -144,12 +144,12 @@ comment of the form:
 
 ```
 // $title: My Title
-// $overview: My Overview
+// $description: My Overview
 // $location: https://mysite.com/mypage.html
 ```
 
 `$title` provides a title for the generated package documentation. This is used for things like the
-title of the generated HTML. `$overview` is a one-line description of the package, useful for
+title of the generated HTML. `$description` is a one-line description of the package, useful for
 tables of contents or indexes. Finally, `$location` indicates the expected URL for the generated
 documentation. This is used to help downstream processing tools to know where to copy
 the documentation, and is used when creating documentation links from other packages to this one.

@@ -25,6 +25,7 @@ import (
 type pageTopMatter struct {
 	title        string
 	overview     string
+	description  string
 	homeLocation string
 	frontMatter  []string
 	location     *descriptor.SourceCodeInfo_Location
@@ -33,6 +34,7 @@ type pageTopMatter struct {
 const (
 	titleTag       = "$title: "
 	overviewTag    = "$overview: "
+	descriptionTag = "$description: "
 	locationTag    = "$location: "
 	frontMatterTag = "$front_matter: "
 )
@@ -49,6 +51,7 @@ func makeTopMatter(name string, loc *descriptor.SourceCodeInfo_Location) *pageTo
 	hasTopMatter := false
 	title := ""
 	overview := ""
+	description := ""
 	homeLocation := ""
 	var frontMatter []string = nil
 	for _, para := range loc.LeadingDetachedComments {
@@ -61,6 +64,8 @@ func makeTopMatter(name string, loc *descriptor.SourceCodeInfo_Location) *pageTo
 				title = checkSingle(name, title, l, titleTag)
 			} else if strings.HasPrefix(l, overview) {
 				overview = checkSingle(name, overview, l, overviewTag)
+			} else if strings.HasPrefix(l, description) {
+				overview = checkSingle(name, description, l, descriptionTag)
 			} else if strings.HasPrefix(l, locationTag) {
 				homeLocation = checkSingle(name, homeLocation, l, locationTag)
 			} else if strings.HasPrefix(l, frontMatterTag) {
@@ -78,6 +83,7 @@ func makeTopMatter(name string, loc *descriptor.SourceCodeInfo_Location) *pageTo
 		return &pageTopMatter{
 			title:        title,
 			overview:     overview,
+			description:  description,
 			homeLocation: homeLocation,
 			frontMatter:  frontMatter,
 			location:     loc,

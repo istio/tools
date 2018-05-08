@@ -301,6 +301,10 @@ func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) 
 			g.emit("overview: ", top.overview())
 		}
 
+		if top != nil && top.description() != "" {
+			g.emit("overview: ", top.description())
+		}
+
 		if top != nil && top.homeLocation() != "" {
 			g.emit("location: ", top.homeLocation())
 		}
@@ -342,6 +346,9 @@ func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) 
 		if top != nil && top.overview() != "" {
 			g.emit("<meta name=\"description\" content=\"", top.overview(), "\">")
 			g.emit("<meta name=\"og:description\" content=\"", top.overview(), "\">")
+		} else if top != nil && top.description() != "" {
+			g.emit("<meta name=\"description\" content=\"", top.description(), "\">")
+			g.emit("<meta name=\"og:description\" content=\"", top.description(), "\">")
 		}
 
 		if g.customStyleSheet != "" {

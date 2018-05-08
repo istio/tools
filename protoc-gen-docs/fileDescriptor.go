@@ -114,6 +114,13 @@ func (f *fileDescriptor) overview() string {
 	return ""
 }
 
+func (f *fileDescriptor) description() string {
+	if f.topMatter != nil {
+		return f.topMatter.description
+	}
+	return ""
+}
+
 func (f *fileDescriptor) homeLocation() string {
 	if f.topMatter != nil {
 		return f.topMatter.homeLocation
