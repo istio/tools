@@ -28,7 +28,7 @@ type fileDescriptor struct {
 	services     []*serviceDescriptor                               // All services defined in this file
 	dependencies []*fileDescriptor                                  // Files imported by this file
 	locations    map[pathVector]*descriptor.SourceCodeInfo_Location // Provenance
-	topMatter    *pageTopMatter                                     // Title, overview, homeLocation, front_matter
+	topMatter    *annotations                                       // Title, overview, homeLocation, front_matter
 }
 
 func newFileDescriptor(desc *descriptor.FileDescriptorProto, parent *packageDescriptor) *fileDescriptor {
@@ -65,7 +65,10 @@ func newFileDescriptor(desc *descriptor.FileDescriptorProto, parent *packageDesc
 	}
 
 	// Find title/overview/etc content in comments and store it explicitly.
-	f.cacheTopMatter()
+	loc := f.find(newPathVector(packagePath))
+	if loc != nil && loc.LeadingDetachedComments != nil {
+		f.topMatter = extractAnnotations(f.GetName(), loc)
+	}
 
 	// get the transitive close of all messages and enums
 	f.aggregateMessages(f.messages)
@@ -89,15 +92,6 @@ func (f *fileDescriptor) aggregateMessages(messages []*messageDescriptor) {
 
 func (f *fileDescriptor) aggregateEnums(enums []*enumDescriptor) {
 	f.allEnums = append(f.allEnums, enums...)
-}
-
-func (f *fileDescriptor) cacheTopMatter() {
-	// Search above the pkg statement for top matter.
-	loc := f.find(newPathVector(packagePath))
-
-	if loc != nil && loc.LeadingDetachedComments != nil {
-		f.topMatter = makeTopMatter(f.GetName(), loc)
-	}
 }
 
 func (f *fileDescriptor) title() string {

@@ -22,7 +22,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-type pageTopMatter struct {
+type annotations struct {
 	title        string
 	overview     string
 	description  string
@@ -47,8 +47,8 @@ func checkSingle(name string, old string, line string, tag string) string {
 	return result
 }
 
-func makeTopMatter(name string, loc *descriptor.SourceCodeInfo_Location) *pageTopMatter {
-	hasTopMatter := false
+func extractAnnotations(name string, loc *descriptor.SourceCodeInfo_Location) *annotations {
+	hasAnnotations := false
 	title := ""
 	overview := ""
 	description := ""
@@ -65,7 +65,7 @@ func makeTopMatter(name string, loc *descriptor.SourceCodeInfo_Location) *pageTo
 			} else if strings.HasPrefix(l, overview) {
 				overview = checkSingle(name, overview, l, overviewTag)
 			} else if strings.HasPrefix(l, description) {
-				overview = checkSingle(name, description, l, descriptionTag)
+				description = checkSingle(name, description, l, descriptionTag)
 			} else if strings.HasPrefix(l, locationTag) {
 				homeLocation = checkSingle(name, homeLocation, l, locationTag)
 			} else if strings.HasPrefix(l, frontMatterTag) {
@@ -75,12 +75,13 @@ func makeTopMatter(name string, loc *descriptor.SourceCodeInfo_Location) *pageTo
 				empty = true
 			}
 			if !empty {
-				hasTopMatter = true
+				hasAnnotations = true
 			}
 		}
 	}
-	if hasTopMatter {
-		return &pageTopMatter{
+
+	if hasAnnotations {
+		return &annotations{
 			title:        title,
 			overview:     overview,
 			description:  description,
@@ -89,5 +90,6 @@ func makeTopMatter(name string, loc *descriptor.SourceCodeInfo_Location) *pageTo
 			location:     loc,
 		}
 	}
+
 	return nil
 }

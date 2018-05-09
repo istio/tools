@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 // $title: My Title
-// $overview: My Overview
+// $description: My Overview
 // $location: https://mysite.com/mypage.html
 
 // Package-level comment 1

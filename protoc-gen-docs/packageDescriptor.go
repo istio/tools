@@ -26,7 +26,7 @@ type packageDescriptor struct {
 	baseDesc
 	files     []*fileDescriptor
 	name      string
-	topMatter *pageTopMatter
+	topMatter *annotations
 }
 
 func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto, perFile bool) *packageDescriptor {
