@@ -53,7 +53,7 @@ func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto, p
 				if leading != "" || trailing != "" {
 					fmt.Fprintf(os.Stderr, "WARNING: package %v has a conflicting package comment in file %v.\n",
 						name, f.GetName())
-					fmt.Fprintf(os.Stderr, "Previous:\n%v\n%v\nCurrent:\n%v\n%\n", p.loc.GetLeadingComments(), p.loc.GetTrailingComments(), leading, trailing)
+					fmt.Fprintf(os.Stderr, "Previous:\n%v\n%v\nCurrent:\n%v\n%v\n", p.loc.GetLeadingComments(), p.loc.GetTrailingComments(), leading, trailing)
 				}
 			}
 		}

@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-// Package-level comment 2
 package testpkg;
 
 message Test2 {

@@ -62,9 +62,9 @@ func extractAnnotations(name string, loc *descriptor.SourceCodeInfo_Location) *a
 			empty := false
 			if strings.HasPrefix(l, titleTag) {
 				title = checkSingle(name, title, l, titleTag)
-			} else if strings.HasPrefix(l, overview) {
+			} else if strings.HasPrefix(l, overviewTag) {
 				overview = checkSingle(name, overview, l, overviewTag)
-			} else if strings.HasPrefix(l, description) {
+			} else if strings.HasPrefix(l, descriptionTag) {
 				description = checkSingle(name, description, l, descriptionTag)
 			} else if strings.HasPrefix(l, locationTag) {
 				homeLocation = checkSingle(name, homeLocation, l, locationTag)
