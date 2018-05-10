@@ -435,7 +435,7 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 
 			fieldName := *field.Name
 			if g.camelCaseFields {
-				camelCase(*field.Name)
+				fieldName = camelCase(*field.Name)
 			}
 
 			fieldTypeName := g.fieldTypeName(field)
