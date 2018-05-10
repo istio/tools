@@ -302,7 +302,7 @@ func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) 
 		}
 
 		if top != nil && top.description() != "" {
-			g.emit("overview: ", top.description())
+			g.emit("description: ", top.description())
 		}
 
 		if top != nil && top.homeLocation() != "" {
