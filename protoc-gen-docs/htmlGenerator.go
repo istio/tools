@@ -705,6 +705,7 @@ var wellKnownTypes = map[string]string{
 	"google.protobuf.EnumValue":   "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#enumvalue",
 	"google.protobuf.ListValue":   "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#listvalue",
 	"google.protobuf.NullValue":   "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#nullvalue",
+	"google.protobuf.Struct":      "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#struct",
 }
 
 func (g *htmlGenerator) linkify(o coreDesc, name string) string {
