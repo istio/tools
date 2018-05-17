@@ -8,6 +8,7 @@ syntax = "proto3";
 package testpkg;
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
 import "testdata/test2.proto";
 import "testdata/test3.proto";
 import "testdata/test4.proto";
@@ -81,6 +82,9 @@ message Test {
 
     // This is a [Duration][google.protobuf.Duration]
     google.protobuf.Duration duration = 8 [deprecated = true];
+
+    // This is a [Struct][google.protobuf.Struct]
+    google.protobuf.Struct struct = 88;
 
     oneof value {
         string string_value = 9;

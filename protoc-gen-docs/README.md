@@ -54,10 +54,10 @@ With that input, the output will be written to
 	output_directory/file.pb.html
 
 Using the `mode` option, you can control the output format from the plugin. The
-html_page option is the default and produces a fully self-contained HTML page.
-The html_fragment option outputs an HTML fragment that can be used to embed in a
-larger page. Finally, the jekyll_html option outputs an HTML fragment augmented
-with [Jekyll front-matter](https://jekyllrb.com/docs/frontmatter/)
+`html_page` mode is the default and produces a fully self-contained HTML page.
+The `html_fragment` mode outputs an HTML fragment that can be used to embed in a
+larger page. Finally, the `html_fragment_with_front_matter` mode outputs an HTML fragment augmented
+with [front-matter](https://jekyllrb.com/docs/frontmatter/)
 
 You specify the mode option using this syntax:
 
@@ -154,14 +154,14 @@ tables of contents or indexes. Finally, `$location` indicates the expected URL f
 documentation. This is used to help downstream processing tools to know where to copy
 the documentation, and is used when creating documentation links from other packages to this one.
 
-You can also use the $front_matter annotation to introduce new Jekyll front matter when generating
-Jekyll-friendly HTML. For example:
+You can also use the $front_matter annotation to introduce new front matter when generating
+HTML fragment with front-matter. For example:
 
 ```
 // $front_matter: order: 10
 ```
 
-The above will include the front matter `order: 10` in the generated Jekyll HTML document.
+The above will include the front matter `order: 10` in the generated HTML fragment.
 
 If a comment for an element contains the annotation `$hide_from_docs`,
 then the associated element will be omitted from the output. This is useful when staging the
