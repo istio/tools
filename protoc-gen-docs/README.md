@@ -40,14 +40,13 @@ Since the following is often in your `$HOME/.bashrc` file:
 export PATH=$HOME/bin:$PATH
 ```
 
-## Use protoc-gen-docs
+## Using protoc-gen-docs
 
 Then to generate a page of HTML describing the protobuf defined by file.proto, run
 
 ```bash
 protoc --docs_out=output_directory input_directory/file.proto
 ```
-
 
 With that input, the output will be written to
 
@@ -95,7 +94,7 @@ file introduction text is taken from the `pkg` statement just like in the per-pa
 In the per-package mode, only one file may document the `pkg`. If there are conflicts, the compiler
 will emit a warning and continue with the first comment it found.
 
-# Writing Docs
+## Writing docs
 
 Writing documentation for use with protoc-gen-docs is simply a matter of adding comments to elements
 within the input proto file. You can put comments directly above individual elements, or to the
@@ -136,7 +135,7 @@ The first square brackets contain the name of the type to display in the resulti
 square brackets contain the fully qualified name of the type or element being referenced, including the
 package name.
 
-## Annotations
+## Front-matter
 
 Within a proto file, you can insert special comments which provide additional metadata to
 use in producing quality documentation. Within a package, optionally include an unattached
@@ -147,21 +146,22 @@ comment of the form:
 // $description: My Overview
 // $location: https://mysite.com/mypage.html
 ```
-
 `$title` provides a title for the generated package documentation. This is used for things like the
 title of the generated HTML. `$description` is a one-line description of the package, useful for
 tables of contents or indexes. Finally, `$location` indicates the expected URL for the generated
 documentation. This is used to help downstream processing tools to know where to copy
 the documentation, and is used when creating documentation links from other packages to this one.
 
-You can also use the $front_matter annotation to introduce new front matter when generating
-HTML fragment with front-matter. For example:
+Additional lines starting with a $ are inserted as-is in the front-matter portion of generated
+HTML fragments.
 
 ```
-// $front_matter: order: 10
+// $weight: 10
 ```
 
-The above will include the front matter `order: 10` in the generated HTML fragment.
+The above will include the front matter entry `weight: 10` in the generated HTML fragment.
+
+## Hiding elements from the generated docs
 
 If a comment for an element contains the annotation `$hide_from_docs`,
 then the associated element will be omitted from the output. This is useful when staging the
@@ -173,6 +173,8 @@ message MyMsg {
     int32 field1 = 1; // $hide_from_docs
 }
 ```
+
+## Specifying CSS class
 
 The comment for any element can contain the annotation `$class: <foo>` which is used
 to insert a specific HTML class around the generated element. This is useful to give
