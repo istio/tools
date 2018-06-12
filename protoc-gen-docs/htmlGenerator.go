@@ -399,7 +399,7 @@ func (g *htmlGenerator) generateSectionHeading(desc coreDesc) {
 
 	name := g.relativeName(desc)
 
-	g.emit("<", heading, " id=\"", name, "\">", name, "</", heading, ">")
+	g.emit("<", heading, " id=\"", normalizeId(name), "\">", name, "</", heading, ">")
 
 	if class != "" {
 		g.emit("<section class=\"", class, "\">")
@@ -459,9 +459,9 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 			}
 
 			if class != "" {
-				g.emit("<tr id=\"", g.relativeName(field), "\" class=\"", class, "\">")
+				g.emit("<tr id=\"", normalizeId(g.relativeName(field)), "\" class=\"", class, "\">")
 			} else {
-				g.emit("<tr id=\"", g.relativeName(field), "\">")
+				g.emit("<tr id=\"", normalizeId(g.relativeName(field)), "\">")
 			}
 
 			g.emit("<td><code>", fieldName, "</code></td>")
@@ -532,9 +532,9 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 			}
 
 			if class != "" {
-				g.emit("<tr id=\"", g.relativeName(v), "\" class=\"", class, "\">")
+				g.emit("<tr id=\"", normalizeId(g.relativeName(v)), "\" class=\"", class, "\">")
 			} else {
-				g.emit("<tr id=\"", g.relativeName(v), "\">")
+				g.emit("<tr id=\"", normalizeId(g.relativeName(v)), "\">")
 			}
 			g.emit("<td><code>", name, "</code></td>")
 			g.emit("<td>")
@@ -570,10 +570,10 @@ func (g *htmlGenerator) generateService(service *serviceDescriptor) {
 		}
 
 		if class != "" {
-			g.emit("<pre id=\"", g.relativeName(method), "\" class=\"", class, "\"><code class=\"language-proto\">rpc ",
+			g.emit("<pre id=\"", normalizeId(g.relativeName(method)), "\" class=\"", class, "\"><code class=\"language-proto\">rpc ",
 				method.GetName(), "(", g.relativeName(method.input), ") returns (", g.relativeName(method.output), ")")
 		} else {
-			g.emit("<pre id=\"", g.relativeName(method), "\"><code class=\"language-proto\">rpc ",
+			g.emit("<pre id=\"", normalizeId(g.relativeName(method)), "\"><code class=\"language-proto\">rpc ",
 				method.GetName(), "(", g.relativeName(method.input), ") returns (", g.relativeName(method.output), ")")
 		}
 		g.emit("</code></pre>")
@@ -881,6 +881,11 @@ func camelCase(s string) string {
 	}
 
 	return b.String()
+}
+
+func normalizeId(id string) string {
+	id = strings.Replace(id, " ", "-", -1)
+	return strings.Replace(id, ".", "-", -1)
 }
 
 var htmlStyle = `
