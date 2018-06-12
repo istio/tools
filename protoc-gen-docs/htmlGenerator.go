@@ -730,11 +730,11 @@ func (g *htmlGenerator) linkify(o coreDesc, name string) string {
 			loc = o.packageDesc().file.homeLocation()
 		}
 		if loc != "" && (g.currentTopMatterFile == nil || loc != g.currentTopMatterFile.homeLocation()) {
-			return "<a href=\"" + loc + "#" + dottedName(o) + "\">" + name + "</a>"
+			return "<a href=\"" + loc + "#" + normalizeId(dottedName(o)) + "\">" + name + "</a>"
 		}
 	}
 
-	return "<a href=\"#" + g.relativeName(o) + "\">" + name + "</a>"
+	return "<a href=\"#" + normalizeId(g.relativeName(o)) + "\">" + name + "</a>"
 }
 
 func (g *htmlGenerator) warn(loc locationDescriptor, format string, args ...interface{}) {
