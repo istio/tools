@@ -5,9 +5,9 @@ metadata:
 spec:
   storageClassName: ""
   capacity:
-    storage: 10G
+    storage: 1000G
   accessModes:
   - ReadWriteOnce
   gcePersistentDisk:
-    pdName: prom-pd
+    pdName: prometheus-pd
     fsType: ext4
