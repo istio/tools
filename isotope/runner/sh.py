@@ -22,8 +22,8 @@ def run_with_k8s_api(args: List[str],
     proc = run(args)
 
     # Retry while the error is because of connection refusal.
-    while 'getsockopt: connection refused' in proc.stderr:
-        logging.debug('Kubernetes connection refused; retrying...')
+    while 'getsockopt' in proc.stderr:
+        logging.debug('Kubernetes connection failed; retrying...')
         # Wait until `kubectl version` completes, indicating the
         # Kubernetes API is responsive.
         wait.until(
