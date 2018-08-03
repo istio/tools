@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/docker/go-units"
+  packages = ["."]
+  revision = "47565b4f722fb6ceae66b95f853feed578a4a51c"
+  version = "v0.3.3"
+
+[[projects]]
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -26,6 +32,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "67e4f55a94aab566ac1f369816eaf36c45db08e2a08d12b7debfb27caeaf42cd"
+  inputs-digest = "89badf1e30b594f2cdf52d38471be8934c77d367b65df45f437170a6d3bcff31"
   solver-name = "gps-cdcl"
   solver-version = 1
