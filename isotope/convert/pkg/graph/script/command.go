@@ -71,6 +71,8 @@ func parseJSONCommands(b []byte) ([]Command, error) {
 type unmarshallableCommand struct{ Command }
 
 func (c *unmarshallableCommand) UnmarshalJSON(b []byte) error {
+	// This function is called after ghodss/yaml converts YAML to _sanitized_
+	// JSON, so we assume the JSON is valid and does not have leading spaces.
 	isJSONArray := b[0] == '['
 	if isJSONArray {
 		var concurrentCommand ConcurrentCommand
