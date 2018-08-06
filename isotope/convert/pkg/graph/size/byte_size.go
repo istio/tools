@@ -64,10 +64,10 @@ func (z *ByteSize) UnmarshalJSON(b []byte) (err error) {
 
 // FromString converts a string like "10 mb" or "16k" to a ByteSize. See
 // units.RAMInBytes for more details.
-func FromString(s string) (size ByteSize, err error) {
+func FromString(s string) (ByteSize, error) {
 	x, err := units.RAMInBytes(s)
 	if err != nil {
-		return
+		return 0, err
 	}
 	return FromInt64(x)
 }

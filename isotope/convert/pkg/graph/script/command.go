@@ -32,25 +32,24 @@ func commandsToMarshallable(cmds []Command) ([]interface{}, error) {
 	for _, cmd := range cmds {
 		marshallableCmd, err := commandToMarshallable(cmd)
 		if err != nil {
-			return marshallableCmds, err
+			return nil, err
 		}
 		marshallableCmds = append(marshallableCmds, marshallableCmd)
 	}
 	return marshallableCmds, nil
 }
 
-func commandToMarshallable(cmd Command) (marshallable interface{}, err error) {
+func commandToMarshallable(cmd Command) (interface{}, error) {
 	switch cmd := cmd.(type) {
 	case SleepCommand:
-		marshallable = map[string]string{sleepCommandKey: cmd.String()}
+		return map[string]string{sleepCommandKey: cmd.String()}, nil
 	case RequestCommand:
-		marshallable = map[string]RequestCommand{requestCommandKey: cmd}
+		return map[string]RequestCommand{requestCommandKey: cmd}, nil
 	case ConcurrentCommand:
-		marshallable, err = commandsToMarshallable(cmd)
+		return commandsToMarshallable(cmd)
 	default:
-		err = InvalidCommandTypeError{cmd}
+		return nil, InvalidCommandTypeError{cmd}
 	}
-	return
 }
 
 func parseJSONCommands(b []byte) ([]Command, error) {

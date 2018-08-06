@@ -25,18 +25,17 @@ import (
 // g is valid if a ServiceGraph:
 // - Each of its services only makes requests to other defined services.
 // - ConcurrentCommands do not contain other ConcurrentCommands.
-func validate(g ServiceGraph) (err error) {
+func validate(g ServiceGraph) error {
 	svcNames := map[string]bool{}
 	for _, svc := range g.Services {
 		svcNames[svc.Name] = true
 	}
 	for _, svc := range g.Services {
-		err = validateCommands(svc.Script, svcNames)
-		if err != nil {
-			return
+		if err := validateCommands(svc.Script, svcNames); err != nil {
+			return err
 		}
 	}
-	return
+	return nil
 }
 
 func validateCommands(cmds []script.Command, svcNames map[string]bool) error {
@@ -47,8 +46,7 @@ func validateCommands(cmds []script.Command, svcNames map[string]bool) error {
 				return ErrRequestToUndefinedService{cmd.ServiceName}
 			}
 		case script.ConcurrentCommand:
-			err := validateCommands(cmd, svcNames)
-			if err != nil {
+			if err := validateCommands(cmd, svcNames); err != nil {
 				return err
 			}
 			if containsConcurrentCommand([]script.Command(cmd)) {
