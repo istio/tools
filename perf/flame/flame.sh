@@ -6,14 +6,15 @@ WD=$(cd "${WD}" && pwd)
 
 FLAMEDIR="${WD}/FlameGraph"
 
-if ! which c++filt > /dev/null; then
+if ! command -v c++filt > /dev/null; then
     echo "Install c++filt to demangle symbols"
     exit 1
 fi 
 
 cd "${WD}" || exit -1
 
-if [[ ! -d ${FLAMEDIR} ]];then
+if [[ ! -d ${FLAMEDIR} ]]; then
+    echo "Cloning FlameGraph repo in ${WD}"
     git clone https://github.com/brendangregg/FlameGraph
 fi
 
