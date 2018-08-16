@@ -46,8 +46,6 @@ var (
 func main() {
 	flag.Parse()
 
-	log.SetLogLevel(log.Info)
-
 	setMaxProcs()
 	setMaxIdleConnectionsPerHost(*maxIdleConnectionsPerHostFlag)
 
