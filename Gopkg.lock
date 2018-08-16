@@ -104,8 +104,8 @@
 [[projects]]
   name = "istio.io/fortio"
   packages = ["log"]
-  revision = "1e338e499d8ae134dcc32ad63825e7b972158687"
-  version = "v1.0.1"
+  revision = "d13f3b92c63db22136bac4e0896562404bd4ef6e"
+  version = "v1.1.0"
 
 [solve-meta]
   analyzer-name = "dep"
