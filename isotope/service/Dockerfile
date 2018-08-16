@@ -17,7 +17,7 @@ RUN CGO_ENABLED=0 GOOS=linux \
 
 FROM scratch
 COPY --from=builder \
-    /go/src/istio.io/tools/isotope/service/main /usr/local/bin/service
+    /go/src/istio.io/tools/isotope/service/main /usr/local/bin/isotope_service
 
 EXPOSE 8080
-ENTRYPOINT ["/usr/local/bin/service"]
+ENTRYPOINT ["/usr/local/bin/isotope_service"]
