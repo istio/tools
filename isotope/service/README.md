@@ -27,5 +27,8 @@ Captures the following metrics for a Prometheus endpoint:
 
 ## Performance
 
-Running on a GKE cluster with a limit of 1 vCPU and 3.75 gigabytes of memory,
-and logging set to INFO, this service can reach a maximum QPS of 12,000.
+With both a Fortio 1.1.0 client and a single isotope service running in a GKE
+cluster, the client on a n1-highcpu-96 machine sending 96 concurrent requests
+as fast as possible, the service on a n1-standard-4 machine with a limit of 1
+vCPU and 3.75GB RAM, and logging set to INFO, the service reaches a maximum
+QPS of 12,000 - 14,000 before maxing out CPU.
