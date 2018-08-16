@@ -68,7 +68,7 @@ func main() {
 	}
 }
 
-func serveWithPrometheus(defaultHandler http.Handler) (err error) {
+func serveWithPrometheus(defaultHandler http.Handler) error {
 	log.Infof(`exposing Prometheus endpoint "%s"`, promEndpoint)
 	http.Handle(promEndpoint, prometheus.Handler())
 
@@ -77,11 +77,10 @@ func serveWithPrometheus(defaultHandler http.Handler) (err error) {
 
 	addr := fmt.Sprintf(":%d", consts.ServicePort)
 	log.Infof("listening on port %v\n", consts.ServicePort)
-	err = http.ListenAndServe(addr, nil)
-	if err != nil {
-		return
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		return err
 	}
-	return
+	return nil
 }
 
 func setMaxProcs() {
