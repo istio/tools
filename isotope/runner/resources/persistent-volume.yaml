@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: prometheus-persistent-volume
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 10G
+  accessModes:
+  - ReadWriteOnce
+  gcePersistentDisk:
+    pdName: prom-pd
+    fsType: ext4
