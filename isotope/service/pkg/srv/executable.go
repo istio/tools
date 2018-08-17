@@ -1,0 +1,117 @@
+// Copyright 2018 Istio Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this currentFile except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package srv
+
+import (
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"sync"
+	"time"
+
+	multierror "github.com/hashicorp/go-multierror"
+	"istio.io/fortio/log"
+	"istio.io/tools/isotope/convert/pkg/graph/script"
+	"istio.io/tools/isotope/convert/pkg/graph/svctype"
+	"istio.io/tools/isotope/service/pkg/srv/prometheus"
+)
+
+func execute(
+	step interface{},
+	forwardableHeader http.Header,
+	serviceTypes map[string]svctype.ServiceType) error {
+	switch cmd := step.(type) {
+	case script.SleepCommand:
+		executeSleepCommand(cmd)
+	case script.RequestCommand:
+		if err := executeRequestCommand(
+			cmd, forwardableHeader, serviceTypes); err != nil {
+			return err
+		}
+	case script.ConcurrentCommand:
+		if err := executeConcurrentCommand(
+			cmd, forwardableHeader, serviceTypes); err != nil {
+			return err
+		}
+	default:
+		log.Fatalf("unknown command type in script: %T", cmd)
+	}
+}
+
+func executeSleepCommand(cmd script.SleepCommand) {
+	time.Sleep(time.Duration(cmd))
+}
+
+// Execute sends an HTTP request to another service. Assumes DNS is available
+// which maps exe.ServiceName to the relevant URL to reach the service.
+func executeRequestCommand(
+	cmd script.RequestCommand,
+	forwardableHeader http.Header,
+	serviceTypes map[string]svctype.ServiceType) (err error) {
+	destName := cmd.ServiceName
+	destType, ok := serviceTypes[destName]
+	if !ok {
+		err = fmt.Errorf("service %s does not exist", destName)
+		return
+	}
+	response, err := sendRequest(destName, destType, cmd.Size, forwardableHeader)
+	if err != nil {
+		return
+	}
+	prometheus.RecordRequestSent(destName, uint64(cmd.Size))
+	if response.StatusCode == 200 {
+		log.Debugf("%s responded with %s", destName, response.Status)
+	} else {
+		log.Errf("%s responded with %s", destName, response.Status)
+	}
+	if response.StatusCode == http.StatusInternalServerError {
+		err = fmt.Errorf("service %s responded with %s", destName, response.Status)
+	}
+
+	// Necessary for reusing HTTP/1.x "keep-alive" TCP connections.
+	// https://golang.org/pkg/net/http/#Response
+	readAllAndClose(response.Body)
+
+	return
+}
+
+func readAllAndClose(r io.ReadCloser) {
+	io.Copy(ioutil.Discard, r)
+	r.Close()
+}
+
+// executeConcurrentCommand calls each command in exe.Commands asynchronously
+// and waits for each to complete.
+func executeConcurrentCommand(
+	cmd script.ConcurrentCommand,
+	forwardableHeader http.Header,
+	serviceTypes map[string]svctype.ServiceType) (errs error) {
+	numSubCmds := len(cmd)
+	wg := sync.WaitGroup{}
+	wg.Add(numSubCmds)
+	for _, subCmd := range cmd {
+		go func(step interface{}) {
+			defer wg.Done()
+
+			err := execute(step, forwardableHeader, serviceTypes)
+			if err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}(subCmd)
+	}
+	wg.Wait()
+	return
+}
