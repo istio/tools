@@ -6,9 +6,7 @@ import logging
 from runner import cluster, config as cfg, consts, entrypoint, mesh, pipeline
 
 
-def main() -> None:
-    args = parse_args()
-
+def main(args: argparse.Namespace) -> None:
     log_level = getattr(logging, args.log_level)
     logging.basicConfig(level=log_level, format='%(levelname)s\t> %(message)s')
 
@@ -44,4 +42,5 @@ def parse_args() -> argparse.Namespace:
 
 
 if __name__ == '__main__':
-    main()
+    args = parse_args()
+    main(args)
