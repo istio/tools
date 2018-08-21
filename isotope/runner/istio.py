@@ -7,7 +7,6 @@ import tarfile
 import tempfile
 from typing import Any, Dict, Generator
 
-import requests
 import yaml
 
 from . import consts, kubectl, resources, sh, wait
@@ -49,15 +48,9 @@ def get_ingress_gateway_url() -> str:
     return 'http://{}:{}'.format(ip, consts.ISTIO_INGRESS_GATEWAY_PORT)
 
 
-# Adapted from
-# http://docs.python-requests.org/en/latest/user/advanced/#body-content-workflow.
 def _download(archive_url: str, path: str) -> None:
     logging.info('downloading %s', archive_url)
-    with requests.get(archive_url, stream=True) as response:
-        with open(path, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:  # Filter out keep-alive new chunks.
-                    f.write(chunk)
+    sh.run(['curl', '--output', path, archive_url])
 
 
 def _extract(archive_path: str, extracted_dir_path: str) -> str:
