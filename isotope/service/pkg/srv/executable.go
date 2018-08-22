@@ -77,8 +77,9 @@ func executeRequestCommand(
 	} else {
 		log.Errf("%s responded with %s", destName, response.Status)
 	}
-	if response.StatusCode == http.StatusInternalServerError {
-		err = fmt.Errorf("service %s responded with %s", destName, response.Status)
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf(
+			"service %s responded with %s", destName, response.Status)
 	}
 
 	// Necessary for reusing HTTP/1.x "keep-alive" TCP connections.
