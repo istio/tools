@@ -72,11 +72,7 @@ func executeRequestCommand(
 		return
 	}
 	prometheus.RecordRequestSent(destName, uint64(cmd.Size))
-	if response.StatusCode == 200 {
 		log.Debugf("%s responded with %s", destName, response.Status)
-	} else {
-		log.Errf("%s responded with %s", destName, response.Status)
-	}
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf(
 			"service %s responded with %s", destName, response.Status)
