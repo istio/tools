@@ -60,19 +60,18 @@ func executeSleepCommand(cmd script.SleepCommand) {
 func executeRequestCommand(
 	cmd script.RequestCommand,
 	forwardableHeader http.Header,
-	serviceTypes map[string]svctype.ServiceType) (err error) {
+	serviceTypes map[string]svctype.ServiceType) error {
 	destName := cmd.ServiceName
 	destType, ok := serviceTypes[destName]
 	if !ok {
-		err = fmt.Errorf("service %s does not exist", destName)
-		return
+		return fmt.Errorf("service %s does not exist", destName)
 	}
 	response, err := sendRequest(destName, destType, cmd.Size, forwardableHeader)
 	if err != nil {
-		return
+		return err
 	}
 	prometheus.RecordRequestSent(destName, uint64(cmd.Size))
-		log.Debugf("%s responded with %s", destName, response.Status)
+	log.Debugf("%s responded with %s", destName, response.Status)
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf(
 			"service %s responded with %s", destName, response.Status)
@@ -80,11 +79,11 @@ func executeRequestCommand(
 
 	// Necessary for reusing HTTP/1.x "keep-alive" TCP connections.
 	// https://golang.org/pkg/net/http/#Response
-	if err = readAllAndClose(response.Body); err != nil {
-		return
+	if err := readAllAndClose(response.Body); err != nil {
+		return err
 	}
 
-	return
+	return nil
 }
 
 func readAllAndClose(r io.ReadCloser) error {
