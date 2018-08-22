@@ -83,14 +83,18 @@ func executeRequestCommand(
 
 	// Necessary for reusing HTTP/1.x "keep-alive" TCP connections.
 	// https://golang.org/pkg/net/http/#Response
-	readAllAndClose(response.Body)
+	if err = readAllAndClose(response.Body); err != nil {
+		return
+	}
 
 	return
 }
 
-func readAllAndClose(r io.ReadCloser) {
-	io.Copy(ioutil.Discard, r)
-	r.Close()
+func readAllAndClose(r io.ReadCloser) error {
+	if _, err := io.Copy(ioutil.Discard, r); err != nil {
+		return err
+	}
+	return r.Close()
 }
 
 // executeConcurrentCommand calls each command in exe.Commands asynchronously
