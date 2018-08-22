@@ -49,6 +49,7 @@ func execute(
 	default:
 		log.Fatalf("unknown command type in script: %T", cmd)
 	}
+	return nil
 }
 
 func executeSleepCommand(cmd script.SleepCommand) {
