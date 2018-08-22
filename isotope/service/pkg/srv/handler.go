@@ -44,15 +44,15 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	respond := func(status int) {
 		writer.WriteHeader(status)
-		err := request.Write(writer)
-		if err != nil {
+		payloadSize := uint64(h.Service.ResponseSize)
+		payload := make([]byte, payloadSize)
+		if _, err := writer.Write(payload); err != nil {
 			log.Errf("%s", err)
 		}
 
 		stopTime := time.Now()
 		duration := stopTime.Sub(startTime)
-		// TODO: Record size of response payload.
-		prometheus.RecordResponseSent(duration, 0, status)
+		prometheus.RecordResponseSent(duration, payloadSize, status)
 	}
 
 	for _, step := range h.Service.Script {
