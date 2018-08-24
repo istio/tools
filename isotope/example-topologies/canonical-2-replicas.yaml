@@ -1,0 +1,17 @@
+defaults:
+  requestSize: 1 KB
+  responseSize: 1 KB
+  numReplicas: 2
+services:
+- name: a
+- name: b
+- name: c
+  script:
+  - call: a
+  - call: b
+- name: d
+  isEntrypoint: true
+  script:
+  - - call: a
+    - call: c
+  - call: b

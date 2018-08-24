@@ -1,0 +1,9 @@
+services:
+- isEntrypoint: true
+  name: a
+  script:
+  - call: b
+- name: b
+  script:
+  - call: c
+- name: c
