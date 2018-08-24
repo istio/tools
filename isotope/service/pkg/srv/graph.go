@@ -17,10 +17,12 @@ package srv
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 
 	"github.com/ghodss/yaml"
 	"istio.io/fortio/log"
 	"istio.io/tools/isotope/convert/pkg/graph"
+	"istio.io/tools/isotope/convert/pkg/graph/size"
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 )
@@ -28,26 +30,39 @@ import (
 // HandlerFromServiceGraphYAML makes a handler to emulate the service with name
 // serviceName in the service graph represented by the YAML file at path.
 func HandlerFromServiceGraphYAML(
-	path string, serviceName string) (handler Handler, err error) {
+	path string, serviceName string) (Handler, error) {
 
 	serviceGraph, err := serviceGraphFromYAMLFile(path)
 	if err != nil {
-		return
+		return Handler{}, err
 	}
 
 	service, err := extractService(serviceGraph, serviceName)
 	if err != nil {
-		return
+		return Handler{}, err
 	}
 	logService(service)
 
 	serviceTypes := extractServiceTypes(serviceGraph)
 
-	handler = Handler{
-		Service:      service,
-		ServiceTypes: serviceTypes,
+	responsePayload, err := makeRandomByteArray(service.ResponseSize)
+	if err != nil {
+		return Handler{}, err
 	}
-	return
+
+	return Handler{
+		Service:         service,
+		ServiceTypes:    serviceTypes,
+		responsePayload: responsePayload,
+	}, nil
+}
+
+func makeRandomByteArray(n size.ByteSize) ([]byte, error) {
+	arr := make([]byte, n)
+	if _, err := rand.Read(arr); err != nil {
+		return nil, err
+	}
+	return arr, nil
 }
 
 func logService(service svc.Service) error {

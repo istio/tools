@@ -33,8 +33,9 @@ var hostname = os.Getenv("HOSTNAME")
 
 // Handler handles the default endpoint by emulating its Service.
 type Handler struct {
-	Service      svc.Service
-	ServiceTypes map[string]svctype.ServiceType
+	Service         svc.Service
+	ServiceTypes    map[string]svctype.ServiceType
+	responsePayload []byte
 }
 
 func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -44,15 +45,13 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	respond := func(status int) {
 		writer.WriteHeader(status)
-		err := request.Write(writer)
-		if err != nil {
+		if _, err := writer.Write(h.responsePayload); err != nil {
 			log.Errf("%s", err)
 		}
 
 		stopTime := time.Now()
 		duration := stopTime.Sub(startTime)
-		// TODO: Record size of response payload.
-		prometheus.RecordResponseSent(duration, 0, status)
+		prometheus.RecordResponseSent(duration, len(h.responsePayload), status)
 	}
 
 	for _, step := range h.Service.Script {

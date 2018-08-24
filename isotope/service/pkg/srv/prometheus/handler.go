@@ -96,7 +96,7 @@ func RecordRequestSent(destinationService string, size uint64) {
 
 // RecordResponseSent observes the time-to-response duration and size for the
 // HTTP status code.
-func RecordResponseSent(duration time.Duration, size uint64, code int) {
+func RecordResponseSent(duration time.Duration, size int, code int) {
 	strCode := strconv.Itoa(code)
 	serviceRequestDurationSeconds.WithLabelValues(strCode).Observe(
 		duration.Seconds())

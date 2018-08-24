@@ -42,7 +42,10 @@ func sendRequest(
 func buildRequest(
 	url string, size size.ByteSize, requestHeader http.Header) (
 	*http.Request, error) {
-	payload := make([]byte, size)
+	payload, err := makeRandomByteArray(size)
+	if err != nil {
+		return nil, err
+	}
 	request, err := http.NewRequest("GET", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, err

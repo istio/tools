@@ -49,6 +49,7 @@ func execute(
 	default:
 		log.Fatalf("unknown command type in script: %T", cmd)
 	}
+	return nil
 }
 
 func executeSleepCommand(cmd script.SleepCommand) {
@@ -60,37 +61,37 @@ func executeSleepCommand(cmd script.SleepCommand) {
 func executeRequestCommand(
 	cmd script.RequestCommand,
 	forwardableHeader http.Header,
-	serviceTypes map[string]svctype.ServiceType) (err error) {
+	serviceTypes map[string]svctype.ServiceType) error {
 	destName := cmd.ServiceName
 	destType, ok := serviceTypes[destName]
 	if !ok {
-		err = fmt.Errorf("service %s does not exist", destName)
-		return
+		return fmt.Errorf("service %s does not exist", destName)
 	}
 	response, err := sendRequest(destName, destType, cmd.Size, forwardableHeader)
 	if err != nil {
-		return
+		return err
 	}
 	prometheus.RecordRequestSent(destName, uint64(cmd.Size))
-	if response.StatusCode == 200 {
-		log.Debugf("%s responded with %s", destName, response.Status)
-	} else {
-		log.Errf("%s responded with %s", destName, response.Status)
-	}
-	if response.StatusCode == http.StatusInternalServerError {
-		err = fmt.Errorf("service %s responded with %s", destName, response.Status)
+	log.Debugf("%s responded with %s", destName, response.Status)
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf(
+			"service %s responded with %s", destName, response.Status)
 	}
 
 	// Necessary for reusing HTTP/1.x "keep-alive" TCP connections.
 	// https://golang.org/pkg/net/http/#Response
-	readAllAndClose(response.Body)
+	if err := readAllAndClose(response.Body); err != nil {
+		return err
+	}
 
-	return
+	return nil
 }
 
-func readAllAndClose(r io.ReadCloser) {
-	io.Copy(ioutil.Discard, r)
-	r.Close()
+func readAllAndClose(r io.ReadCloser) error {
+	if _, err := io.Copy(ioutil.Discard, r); err != nil {
+		return err
+	}
+	return r.Close()
 }
 
 // executeConcurrentCommand calls each command in exe.Commands asynchronously
