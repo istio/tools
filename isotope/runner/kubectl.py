@@ -60,15 +60,21 @@ def apply_text(json_or_yaml: str, intermediate_file_path: str = None) -> None:
 
 
 @contextlib.contextmanager
-def port_forward(deployment_name: str, deployment_port: int,
+def port_forward(label_key: str, label_value: str, target_port: int,
                  namespace: str) -> Generator[int, None, None]:
-    """Port forwards to a deployment, yielding the chosen open port."""
+    """Port forwards the first pod matching label, yielding the open port."""
+    # TODO: Catch error if label matches zero pods.
+    pod_name = sh.run_kubectl(
+        [
+            'get', 'pod', '-l={}={}'.format(label_key, label_value),
+            '-o=jsonpath={.items[0].metadata.name}', '--namespace', namespace
+        ],
+        check=True).stdout
     local_port = _get_open_port()
     proc = subprocess.Popen(
         [
-            'kubectl', 'port-forward',
-            'deployment/{}'.format(deployment_name), '{}:{}'.format(
-                local_port, deployment_port), '--namespace', namespace
+            'kubectl', 'port-forward', pod_name, '{}:{}'.format(
+                local_port, target_port), '--namespace', namespace
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
@@ -81,7 +87,7 @@ def port_forward(deployment_name: str, deployment_port: int,
         stderr = stderr_bytes.decode('utf-8') if stderr_bytes else ''
         info = ': {}'.format(stderr) if stderr else ''
         msg = 'could not port-forward to {}:{} on local port {}{}'.format(
-            deployment_name, deployment_port, local_port, info)
+            pod_name, target_port, local_port, info)
         raise RuntimeError(msg)
     except subprocess.TimeoutExpired:
         # If proc is still running after 1 second, assume that proc will
