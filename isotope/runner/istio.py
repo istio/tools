@@ -79,19 +79,20 @@ def _install(chart_path: str, namespace: str,
              intermediate_file_path: str) -> None:
     logging.info('installing Helm chart for Istio')
     sh.run_kubectl(['create', 'namespace', namespace])
-    # TODO: Why is it necessary to set the hub and tag when these are already
-    # in the chart?
     istio_yaml = sh.run(
         [
-            'helm', 'template', chart_path, '--namespace', namespace,
-            '--set=global.hub=docker.io/istionightly',
-            '--set=global.tag=nightly-master',
-            '--set=global.proxy.resources.requests.cpu=1000m',
-            '--set=global.proxy.resources.limits.cpu=1000m',
-            '--set=global.proxy.resources.requests.memory=256Mi',
-            '--set=global.proxy.resources.limits.memory=256Mi',
-            '--set=global.defaultResources.requests.cpu=1000m',
-            '--set=global.defaultResources.limits.cpu=1000m'
+            'helm',
+            'template',
+            chart_path,
+            '--namespace',
+            namespace,
+            # TODO: Use a values file, specified in the TOML configuration.
+            # Consider replacing environments with a list of values files, then
+            # each of those values files represents the environment. This code
+            # can apply those against the chart.
+            # '--set=global.proxy.resources.requests.cpu=1000m',
+            # '--set=global.proxy.resources.requests.memory=256Mi',
+            # '--set=global.defaultResources.requests.cpu=1000m',
         ],
         check=True).stdout
     kubectl.apply_text(
