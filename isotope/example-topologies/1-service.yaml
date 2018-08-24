@@ -1,0 +1,6 @@
+defaults:
+  requestSize: 1 KB
+  responseSize: 1 KB
+services:
+- name: a
+  isEntrypoint: true

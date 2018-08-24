@@ -1,0 +1,31 @@
+services:
+- isEntrypoint: true
+  name: svc-0
+  script:
+  - - call: svc-0-0
+    - call: svc-0-1
+    - call: svc-0-2
+- name: svc-0-0
+  script:
+  - - call: svc-0-0-0
+    - call: svc-0-0-1
+    - call: svc-0-0-2
+- name: svc-0-1
+  script:
+  - - call: svc-0-1-0
+    - call: svc-0-1-1
+    - call: svc-0-1-2
+- name: svc-0-2
+  script:
+  - - call: svc-0-2-0
+    - call: svc-0-2-1
+    - call: svc-0-2-2
+- name: svc-0-0-0
+- name: svc-0-0-1
+- name: svc-0-0-2
+- name: svc-0-1-0
+- name: svc-0-1-1
+- name: svc-0-1-2
+- name: svc-0-2-0
+- name: svc-0-2-1
+- name: svc-0-2-2

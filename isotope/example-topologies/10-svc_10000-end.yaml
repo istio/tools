@@ -1,0 +1,24 @@
+defaults:
+  numReplicas: 1000
+services:
+- isEntrypoint: true
+  name: svc-0
+  script:
+  - - call: svc-0-0
+    - call: svc-0-1
+    - call: svc-0-2
+    - call: svc-0-3
+    - call: svc-0-4
+    - call: svc-0-5
+    - call: svc-0-6
+    - call: svc-0-7
+    - call: svc-0-8
+- name: svc-0-0
+- name: svc-0-1
+- name: svc-0-2
+- name: svc-0-3
+- name: svc-0-4
+- name: svc-0-5
+- name: svc-0-6
+- name: svc-0-7
+- name: svc-0-8
