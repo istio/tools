@@ -73,8 +73,8 @@ def port_forward(label_key: str, label_value: str, target_port: int,
     local_port = _get_open_port()
     proc = subprocess.Popen(
         [
-            'kubectl', 'port-forward', pod_name, '{}:{}'.format(
-                local_port, target_port), '--namespace', namespace
+            'kubectl', '--namespace', namespace, 'port-forward', pod_name,
+            '{}:{}'.format(local_port, target_port)
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
