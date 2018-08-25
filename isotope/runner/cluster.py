@@ -75,7 +75,8 @@ def _create_cluster(name: str, zone: str, version: str, machine_type: str,
         check=True)
     sh.run_gcloud(['config', 'set', 'container/cluster', name], check=True)
     sh.run_gcloud(
-        ['container', 'clusters', 'get-credentials', name], check=True)
+        ['container', 'clusters', 'get-credentials', '--zone', zone, name],
+        check=True)
 
 
 def _create_service_graph_node_pool(num_nodes: int, machine_type: str,
