@@ -30,7 +30,7 @@ def set_up_if_not_exists(
 def set_up(project_id: str, name: str, zone: str, version: str,
            service_graph_machine_type: str, service_graph_disk_size_gb: int,
            service_graph_num_nodes: int, client_machine_type: str,
-           client_disk_size_gb: int) -> None:
+           client_disk_size_gb: int, deploy_prometheus=False) -> None:
     """Creates and sets up a GKE cluster.
 
     Args:
@@ -49,11 +49,12 @@ def set_up(project_id: str, name: str, zone: str, version: str,
     _create_cluster(name, zone, version, 'n1-standard-4', 16, 1)
     _create_cluster_role_binding()
 
-    _create_persistent_volume()
-    _initialize_helm()
-    _helm_add_prometheus_operator()
-    prometheus.apply(
-        intermediate_file_path=resources.PROMETHEUS_VALUES_GEN_YAML_PATH)
+    if deploy_prometheus:
+        _create_persistent_volume()
+        _initialize_helm()
+        _helm_add_prometheus_operator()
+        prometheus.apply(
+            intermediate_file_path=resources.PROMETHEUS_VALUES_GEN_YAML_PATH)
 
     _create_service_graph_node_pool(service_graph_num_nodes,
                                     service_graph_machine_type,

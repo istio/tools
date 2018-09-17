@@ -11,6 +11,19 @@ import yaml
 
 from . import consts, kubectl, resources, sh, wait
 
+DAILY_BUILD_URL="https://storage.googleapis.com/istio-prerelease/daily-build"
+
+def convert_archive(archive_url: str) -> str:
+    """Convert symbolic archive into archive url
+
+    """
+    if archive_url.startswith("http"):
+        return archive_url
+
+    full_name = "{}-09-15".format(archive_url)
+    
+    return "{daily}/{full_name}/istio-{full_name}-linux.tar.gz".format(
+        daily=DAILY_BUILD_URL, full_name=full_name)
 
 def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
            archive_url: str, values: str) -> None:
@@ -21,6 +34,10 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
     This downloads and extracts the archive in a temporary directory, then
     installs the resources via `helm template` and `kubectl apply`.
     """
+    archive_url = convert_archive(archive_url)
+
+    print ("Using archive_url", archive_url)
+
     with tempfile.TemporaryDirectory() as tmp_dir_path:
         archive_path = os.path.join(tmp_dir_path, 'istio.tar.gz')
         _download(archive_url, archive_path)

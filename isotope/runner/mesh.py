@@ -51,15 +51,18 @@ def none(entrypoint_service_name: str, entrypoint_service_port: int,
 
 
 def istio(entrypoint_service_name: str, entrypoint_service_namespace: str,
-          archive_url: str, values: str) -> Environment:
+          archive_url: str, values: str, tear_down=False) -> Environment:
     def set_up() -> None:
         istio_lib.set_up(entrypoint_service_name, entrypoint_service_namespace,
                          archive_url, values)
 
+    td = _do_nothing
+    if tear_down:
+        td = istio_lib.tear_down
     return Environment(
         name='istio',
         set_up=set_up,
-        tear_down=istio_lib.tear_down,
+        tear_down=td,
         get_ingress_url=istio_lib.get_ingress_gateway_url)
 
 
@@ -79,4 +82,5 @@ def for_state(name: str, entrypoint_service_name: str,
 
 
 def _do_nothing():
+    print ("empty teardown")
     pass

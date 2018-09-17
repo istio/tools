@@ -23,7 +23,7 @@ def main(args: argparse.Namespace) -> None:
             entrypoint_service_name = entrypoint.extract_name(topology_path)
             mesh_environment = mesh.for_state(
                 env_name, entrypoint_service_name,
-                consts.SERVICE_GRAPH_NAMESPACE, config)
+                consts.SERVICE_GRAPH_NAMESPACE, config, args.helm_values)
             pipeline.run(topology_path, mesh_environment, config.server_image,
                          config.client_image, config.istio_archive_url,
                          config.client_qps, config.client_duration,
