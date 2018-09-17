@@ -13,7 +13,7 @@ from . import consts, kubectl, resources, sh, wait
 
 
 def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
-           archive_url: str) -> None:
+           archive_url: str, values: str) -> None:
     """Installs Istio from the archive URL.
 
     Requires Helm client to be present.
@@ -33,7 +33,8 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
         _install(
             chart_path,
             consts.ISTIO_NAMESPACE,
-            intermediate_file_path=resources.ISTIO_GEN_YAML_PATH)
+            intermediate_file_path=resources.ISTIO_GEN_YAML_PATH,
+            values=values)
 
         _create_ingress_rules(entrypoint_service_name,
                               entrypoint_service_namespace)
@@ -50,7 +51,7 @@ def get_ingress_gateway_url() -> str:
 
 def _download(archive_url: str, path: str) -> None:
     logging.info('downloading %s', archive_url)
-    sh.run(['curl', '--output', path, archive_url])
+    sh.run(['curl', '-L', '--output', path, archive_url])
 
 
 def _extract(archive_path: str, extracted_dir_path: str) -> str:
@@ -76,7 +77,7 @@ def _extract(archive_path: str, extracted_dir_path: str) -> str:
 
 
 def _install(chart_path: str, namespace: str,
-             intermediate_file_path: str) -> None:
+             intermediate_file_path: str, values: str) -> None:
     logging.info('installing Helm chart for Istio')
     sh.run_kubectl(['create', 'namespace', namespace])
     istio_yaml = sh.run(
@@ -86,6 +87,8 @@ def _install(chart_path: str, namespace: str,
             chart_path,
             '--namespace',
             namespace,
+            '--values',
+            values
             # TODO: Use a values file, specified in the TOML configuration.
             # Consider replacing environments with a list of values files, then
             # each of those values files represents the environment. This code

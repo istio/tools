@@ -33,6 +33,7 @@ def main(args: argparse.Namespace) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('config_path', type=str)
+    parser.add_argument('helm_values', type=str)
     parser.add_argument(
         '--log_level',
         type=str,

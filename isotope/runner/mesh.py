@@ -51,10 +51,10 @@ def none(entrypoint_service_name: str, entrypoint_service_port: int,
 
 
 def istio(entrypoint_service_name: str, entrypoint_service_namespace: str,
-          archive_url: str) -> Environment:
+          archive_url: str, values: str) -> Environment:
     def set_up() -> None:
         istio_lib.set_up(entrypoint_service_name, entrypoint_service_namespace,
-                         archive_url)
+                         archive_url, values)
 
     return Environment(
         name='istio',
@@ -65,13 +65,13 @@ def istio(entrypoint_service_name: str, entrypoint_service_namespace: str,
 
 def for_state(name: str, entrypoint_service_name: str,
               entrypoint_service_namespace: str,
-              config: config.RunnerConfig) -> Environment:
+              config: config.RunnerConfig, values: str) -> Environment:
     if name == 'NONE':
         env = none(entrypoint_service_name, consts.SERVICE_PORT,
                    consts.SERVICE_GRAPH_NAMESPACE)
     elif name == 'ISTIO':
         env = istio(entrypoint_service_name, entrypoint_service_namespace,
-                    config.istio_archive_url)
+                    config.istio_archive_url, values)
     else:
         raise ValueError('{} is not a known environment'.format(name))
 
