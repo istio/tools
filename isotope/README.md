@@ -3,47 +3,23 @@
 Isotope (**is**ti**o** **to**pology **pe**rformance) benchmarks Istio against
 various service graph topologies.
 
-## Example Usage
+## Getting Started
 
-```bash
-./run_tests.py isotope.toml
-```
+To run automatic tests in "run_tests.py" and from "runner/", there are
+dependencies that must be installed.
 
-Where "isotope.toml" is a file like:
-
-```toml
-topology_paths = [
-  "example-topologies/100-svc.yaml",
-]
-
-environments = [
-  "NONE",
-  "ISTIO",
-]
-
-[cluster]
-project_id = "my-project-123456"
-name = "my-cluster"
-zone = "us-central1-a"
-version = "1.9.7-gke.5"
-
-[istio]
-archive_url = "https://github.com/istio/istio/releases/download/1.0.0/istio-1.0.0-linux.tar.gz"
-
-[server]
-machine_type = "n1-standard-32"
-num_nodes = 10
-disk_size_gb = 16
-image = "istio/isotope-service:0.1"
-
-[client]
-machine_type = "n1-highcpu-4"
-disk_size_gb = 16
-image = "tahler/fortio:prometheus"
-qps = "max"
-duration = "5m"
-num_concurrent_connections = 64
-```
+1. Clone istio/tools
+1. From the repository root, run `dep ensure`
+1. Install python3
+1. Install pip3
+1. From "isotope/", run `pip3 install -r runner/requirements.txt`
+1. Install gcloud
+1. Install kubectl >= 1.9.7
+1. Install helm >= 2.8.2
+1. Create a PersistentDisk in GCP named "prometheus-pd" with 1000 GB (this
+   matches "runner/resources/persistent-volume.yaml")
+1. Modify "example-config.toml" to match your desired test configuration
+1. From "isotope/", run `./run_tests.py example-config.toml`
 
 ## Repository Structure
 
