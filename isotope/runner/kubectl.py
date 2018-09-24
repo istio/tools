@@ -14,13 +14,14 @@ from . import sh
 
 
 @contextlib.contextmanager
-def manifest(path: str) -> Generator[None, None, None]:
+def manifest(path: str, cleanup=False) -> Generator[None, None, None]:
     """Runs `kubectl apply -f path` on entry and opposing delete on exit."""
     try:
         apply_file(path)
         yield
     finally:
-        delete_file(path)
+        if cleanup:
+            delete_file(path)
 
 
 def apply_file(path: str) -> None:
@@ -66,7 +67,7 @@ def port_forward(label_key: str, label_value: str, target_port: int,
     # TODO: Catch error if label matches zero pods.
     pod_name = sh.run_kubectl(
         [
-            'get', 'pod', '-l={}={}'.format(label_key, label_value),
+            'get', 'pod', '-l{}={}'.format(label_key, label_value),
             '-o=jsonpath={.items[0].metadata.name}', '--namespace', namespace
         ],
         check=True).stdout
