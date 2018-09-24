@@ -18,7 +18,7 @@ global:
   # Default is 10s second
   refreshInterval: 10s
   proxy:
-    image: proxy_debug
+    image: proxyv2
     resources:
       requests:
         cpu: 2000m

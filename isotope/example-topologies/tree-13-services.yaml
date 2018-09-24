@@ -1,6 +1,8 @@
+defaults:
+  numReplicas: 6
 services:
 - isEntrypoint: true
-  name: svc-0
+  name: d
   script:
   - - call: svc-0-0
     - call: svc-0-1

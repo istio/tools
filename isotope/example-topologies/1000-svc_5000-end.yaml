@@ -1,5 +1,5 @@
 defaults:
-  numReplicas: 5
+  numReplicas: 2
 services:
 - isEntrypoint: true
   name: svc-0
