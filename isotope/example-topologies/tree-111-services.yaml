@@ -1,5 +1,5 @@
 defaults:
-  numReplicas: 1
+  numReplicas: 2
   requestSize: 128
   responseSize: 128
 services:

@@ -11,9 +11,22 @@ import yaml
 
 from . import consts, kubectl, resources, sh, wait
 
+DAILY_BUILD_URL="https://storage.googleapis.com/istio-prerelease/daily-build"
+
+def convert_archive(archive_url: str) -> str:
+    """Convert symbolic archive into archive url
+
+    """
+    if archive_url.startswith("http"):
+        return archive_url
+
+    full_name = "{}-09-15".format(archive_url)
+    
+    return "{daily}/{full_name}/istio-{full_name}-linux.tar.gz".format(
+        daily=DAILY_BUILD_URL, full_name=full_name)
 
 def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
-           archive_url: str) -> None:
+           archive_url: str, values: str) -> None:
     """Installs Istio from the archive URL.
 
     Requires Helm client to be present.
@@ -21,6 +34,10 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
     This downloads and extracts the archive in a temporary directory, then
     installs the resources via `helm template` and `kubectl apply`.
     """
+    archive_url = convert_archive(archive_url)
+
+    print ("Using archive_url", archive_url)
+
     with tempfile.TemporaryDirectory() as tmp_dir_path:
         archive_path = os.path.join(tmp_dir_path, 'istio.tar.gz')
         _download(archive_url, archive_path)
@@ -33,7 +50,8 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
         _install(
             chart_path,
             consts.ISTIO_NAMESPACE,
-            intermediate_file_path=resources.ISTIO_GEN_YAML_PATH)
+            intermediate_file_path=resources.ISTIO_GEN_YAML_PATH,
+            values=values)
 
         _create_ingress_rules(entrypoint_service_name,
                               entrypoint_service_namespace)
@@ -50,7 +68,7 @@ def get_ingress_gateway_url() -> str:
 
 def _download(archive_url: str, path: str) -> None:
     logging.info('downloading %s', archive_url)
-    sh.run(['curl', '--output', path, archive_url])
+    sh.run(['curl', '-L', '--output', path, archive_url])
 
 
 def _extract(archive_path: str, extracted_dir_path: str) -> str:
@@ -76,7 +94,7 @@ def _extract(archive_path: str, extracted_dir_path: str) -> str:
 
 
 def _install(chart_path: str, namespace: str,
-             intermediate_file_path: str) -> None:
+             intermediate_file_path: str, values: str) -> None:
     logging.info('installing Helm chart for Istio')
     sh.run_kubectl(['create', 'namespace', namespace])
     istio_yaml = sh.run(
@@ -86,6 +104,8 @@ def _install(chart_path: str, namespace: str,
             chart_path,
             '--namespace',
             namespace,
+            '--values',
+            values
             # TODO: Use a values file, specified in the TOML configuration.
             # Consider replacing environments with a list of values files, then
             # each of those values files represents the environment. This code

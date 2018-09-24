@@ -19,7 +19,7 @@ _MAIN_GO_PATH = os.path.join(_REPO_ROOT, 'convert', 'main.go')
 def run(topology_path: str, env: mesh.Environment, service_image: str,
         client_image: str, istio_archive_url: str, test_qps: Optional[int],
         test_duration: str, test_num_concurrent_connections: int,
-        static_labels: Dict[str, str]) -> None:
+        static_labels: Dict[str, str], deploy_prometheus=False) -> None:
     """Runs a load test on the topology in topology_path with the environment.
 
     Args:
@@ -46,9 +46,10 @@ def run(topology_path: str, env: mesh.Environment, service_image: str,
         'topology_hash': md5.hex(topology_path),
         **static_labels,
     }
-    prometheus.apply(
-        labels,
-        intermediate_file_path=resources.PROMETHEUS_VALUES_GEN_YAML_PATH)
+    if deploy_prometheus:
+      prometheus.apply(
+          labels,
+          intermediate_file_path=resources.PROMETHEUS_VALUES_GEN_YAML_PATH)
 
     with env.context() as ingress_url:
         logging.info('starting test with environment "%s"', env.name)
@@ -136,7 +137,7 @@ def _run_load_test(result_output_path: str, test_target_url: str,
                 for the client to make
     """
     logging.info('starting load test')
-    with kubectl.port_forward(consts.CLIENT_NAME, consts.CLIENT_PORT,
+    with kubectl.port_forward("app", consts.CLIENT_NAME, consts.CLIENT_PORT,
                               consts.DEFAULT_NAMESPACE) as local_port:
         qps = -1 if test_qps is None else test_qps  # -1 indicates max QPS.
         url = ('http://localhost:{}/fortio'
