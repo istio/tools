@@ -1,13 +1,9 @@
 
 #excludeOutboundIPRanges exclude pod ips
 excludeOutboundIPRanges: 
-resources:
-  requests:
-    cpu: 2000m
-    memory: "1G"
-  limits:
-    cpu: 2000m
-    memory: "1G"
+proxy:
+  cpu: "2000m"
+  memory: "512m"
 
 appresources:
   requests:
