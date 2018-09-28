@@ -1,6 +1,6 @@
 
 #excludeOutboundIPRanges exclude pod ips
-excludeOutboundIPRanges: "10.40.0.0/16"
+excludeOutboundIPRanges: 
 resources:
   requests:
     cpu: 2000m
