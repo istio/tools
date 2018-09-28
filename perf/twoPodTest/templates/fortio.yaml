@@ -38,6 +38,8 @@ spec:
         {{- if $.Values.excludeOutboundIPRanges }}
         traffic.sidecar.istio.io/excludeOutboundIPRanges: {{ $.Values.excludeOutboundIPRanges }}
         {{- end }}
+        sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
+        sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
       labels:
         app: {{ $.name }}
     spec:
