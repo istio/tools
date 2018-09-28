@@ -1,0 +1,131 @@
+{{- define "fortio" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.name }}
+spec:
+  ports:
+  - name: http-echo
+    port: 8080
+    protocol: TCP
+  - name: grpc-ping
+    port: 8079
+    protocol: TCP
+  - name: http-echoa
+    port: 8078
+    protocol: TCP
+  - name: grpc-pinga
+    port: 8077
+    protocol: TCP
+  selector:
+    app: {{ $.name }}
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ $.name }}
+  name: {{ $.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ $.name }}
+  template:
+    metadata:
+      annotations:
+        {{- if $.Values.excludeOutboundIPRanges }}
+        traffic.sidecar.istio.io/excludeOutboundIPRanges: {{ $.Values.excludeOutboundIPRanges }}
+        {{- end }}
+      labels:
+        app: {{ $.name }}
+    spec:
+      containers:
+      - name: captured
+        image: {{ $.Values.fortioImage }}
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 8079
+          protocol: TCP
+        resources:
+{{- if $.Values.appresources }}
+{{ toYaml $.Values.appresources | indent 10 }}
+{{- end }}
+      - name: uncaptured
+        image: {{ $.Values.fortioImage }}
+        args:
+        - server
+        - -http-port
+        - "8077"
+        - -grpc-port
+        - "8076"
+        - -redirect-port
+        - "8078"
+        resources:
+{{- if $.Values.appresources }}
+{{ toYaml $.Values.appresources | indent 10 }}
+{{- end }}
+---
+apiVersion: authentication.istio.io/v1alpha1
+kind: Policy
+metadata:
+  name: {{ $.name }}
+spec:
+  targets:
+  - name: {{ $.name }}
+  peers:
+  - mtls:
+      mode: PERMISSIVE
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ $.name }}
+spec:
+  host:  {{ $.name }}
+  trafficPolicy:
+    tls:
+      mode: {{ $.Values.tlsmode }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: fortio
+spec:
+  hosts:
+  - {{ $.name }}.{{ $.Values.domain }}
+  gateways:
+  - {{ $.Values.gateway }}
+  http:
+  - route:
+    - destination:
+        host: {{ $.name }}
+        port:
+          number: 8080
+---
+{{- end }}
+
+{{- $fortioserver := dict "name" "fortioserver" "Values" .Values }}
+{{- template "fortio" $fortioserver }}
+{{- $fortioclient := dict "name" "fortioclient" "Values" .Values }}
+{{- template "fortio" $fortioclient }}
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ .Values.gateway }}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - fortioserver.{{ .Values.domain }}
+    - fortioclient.{{ .Values.domain }}
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+---

@@ -1,0 +1,6 @@
+twoPod Test
+----------
+
+This test measures performance between two pods with and without a sidecar.
+
+It does so with a wide variety of payload sizes and connections.

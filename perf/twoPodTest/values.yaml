@@ -1,0 +1,20 @@
+
+#excludeOutboundIPRanges exclude pod ips
+excludeOutboundIPRanges: "10.40.0.0/16"
+resources:
+  requests:
+    cpu: 2000m
+    memory: "1G"
+  limits:
+    cpu: 2000m
+    memory: "1G"
+
+appresources:
+  requests:
+    cpu: "800m"
+    memory: "1000m"
+
+fortioImage: istio/fortio:latest_release
+tlsmode: ISTIO_MUTUAL
+domain: local
+gateway: fortio-gateway
