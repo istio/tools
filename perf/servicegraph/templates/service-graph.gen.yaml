@@ -1,0 +1,1385 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    istio-injection: enabled
+  name: service-graph
+spec: {}
+status: {}
+---
+apiVersion: v1
+data:
+  service-graph: |
+    services:
+    - isEntrypoint: true
+      name: svc-0
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-0
+            size: 128B
+        - call:
+            service: svc-0-1
+            size: 128B
+        - call:
+            service: svc-0-2
+            size: 128B
+        - call:
+            service: svc-0-3
+            size: 128B
+        - call:
+            service: svc-0-4
+            size: 128B
+        - call:
+            service: svc-0-5
+            size: 128B
+        - call:
+            service: svc-0-6
+            size: 128B
+        - call:
+            service: svc-0-7
+            size: 128B
+        - call:
+            service: svc-0-8
+            size: 128B
+      type: http
+    - name: svc-0-0
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-0-0
+            size: 128B
+      type: http
+    - name: svc-0-1
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-1-0
+            size: 128B
+      type: http
+    - name: svc-0-2
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-2-0
+            size: 128B
+      type: http
+    - name: svc-0-3
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-3-0
+            size: 128B
+      type: http
+    - name: svc-0-4
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-4-0
+            size: 128B
+      type: http
+    - name: svc-0-5
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-5-0
+            size: 128B
+      type: http
+    - name: svc-0-6
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-6-0
+            size: 128B
+      type: http
+    - name: svc-0-7
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-7-0
+            size: 128B
+      type: http
+    - name: svc-0-8
+      numReplicas: 3
+      responseSize: 1KiB
+      script:
+      - - call:
+            service: svc-0-8-0
+            size: 128B
+      type: http
+    - name: svc-0-0-0
+      numReplicas: 3
+      responseSize: 1KiB
+      type: http
+    - name: svc-0-1-0
+      numReplicas: 3
+      responseSize: 1KiB
+      type: http
+    - name: svc-0-2-0
+      numReplicas: 3
+      responseSize: 1KiB
+      type: http
+    - name: svc-0-3-0
+      numReplicas: 3
+      responseSize: 1KiB
+      type: http
+    - name: svc-0-4-0
+      numReplicas: 3
+      responseSize: 1KiB
+      type: http
+    - name: svc-0-5-0
+      numReplicas: 3
+      responseSize: 1KiB
+      type: http
+    - name: svc-0-6-0
+      numReplicas: 3
+      responseSize: 1KiB
+      type: http
+    - name: svc-0-7-0
+      numReplicas: 3
+      responseSize: 1KiB
+      type: http
+    - name: svc-0-8-0
+      numReplicas: 3
+      responseSize: 1KiB
+      type: http
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: service-graph-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-1
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-1
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-1
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-1
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-1
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-2
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-2
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-2
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-2
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-2
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-2
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-3
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-3
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-3
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-3
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-3
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-3
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-4
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-4
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-4
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-4
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-4
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-4
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-5
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-5
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-5
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-5
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-5
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-5
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-6
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-6
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-6
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-6
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-6
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-6
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-7
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-7
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-7
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-7
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-7
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-7
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-8
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-8
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-8
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-8
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-8
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-8
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-0-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-0-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-0-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-0-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-0-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-0-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-1-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-1-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-1-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-1-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-1-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-1-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-2-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-2-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-2-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-2-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-2-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-2-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-3-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-3-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-3-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-3-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-3-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-3-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-4-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-4-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-4-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-4-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-4-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-4-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-5-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-5-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-5-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-5-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-5-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-5-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-6-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-6-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-6-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-6-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-6-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-6-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-7-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-7-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-7-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-7-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-7-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-7-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-8-0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: svc-0-8-0
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        name: svc-0-8-0
+        role: service
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: svc-0-8-0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: service-graph
+  name: svc-0-8-0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+    targetPort: 0
+  selector:
+    name: svc-0-8-0
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: client
+  name: client
+spec:
+  selector:
+    matchLabels:
+      app: client
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: "2018-09-28T18:30:30Z"
+      labels:
+        app: client
+    spec:
+      containers:
+      - args:
+        - server
+        image: tahler/fortio:prometheus
+        name: fortio-client
+        ports:
+        - containerPort: 8080
+        - containerPort: 42422
+        resources: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+  creationTimestamp: "2018-09-28T18:30:30Z"
+  labels:
+    app: client
+  name: client
+spec:
+  ports:
+  - port: 8080
+    targetPort: 0
+  selector:
+    app: client
+status:
+  loadBalancer: {}
