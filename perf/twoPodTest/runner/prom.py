@@ -13,6 +13,7 @@ class Prom(object):
 
     def __init__(self, url, nseconds, end=None, host=None, start=None):
         self.url = url
+        self.nseconds = nseconds
         if start is None:
             end = end or 0
             self.end = calendar.timegm(
@@ -57,6 +58,39 @@ class Prom(object):
         out.update(flatten(self.fetch_memory_by_container(), "mem_MB"))
         return out
 
+    def fetch_by_response_code(self, query):
+        resp = requests.get(self.url + "/api/v1/query_range", {
+            "query": query,
+            "start": self.start,
+            "end": self.end,
+            "step": str(self.nseconds)
+        }, headers=self.headers)
+
+        if not resp.ok:
+            raise Exception(str(resp))
+
+        return resp.json()
+
+    def fetch_num_requests_by_response_code(self, code):
+        data = self.fetch_by_response_code(
+            'sum(rate(istio_requests_total{reporter="destination", response_code="' + str(code) + '"}[' + str(self.nseconds) + 's]))')
+        if len(data["data"]["result"]) > 0:
+            return data["data"]["result"][0]["values"]
+        return []
+
+    def fetch_500s_and_400s(self):
+        res = {}
+        data_404 = self.fetch_num_requests_by_response_code(404)
+        data_503 = self.fetch_num_requests_by_response_code(503)
+        data_504 = self.fetch_num_requests_by_response_code(504)
+        if len(data_404) > 0:
+            res["istio_requests_total_404"] = data_404[len(data_404)-1][1]
+        if len(data_503) > 0:
+            res["istio_requests_total_503"] = data_503[len(data_503)-1][1]
+        if len(data_504) > 0:
+            res["istio_requests_total_504"] = data_504[len(data_504)-1][1]
+        return res
+
 
 def flatten(data, metric):
     res = {}
@@ -83,6 +117,7 @@ def to_megaBytes(m):
 def to_miliCpus(c):
     return int(c * 1000.0)
 
+
 DEPL_MAP = {
     "fortioserver": "fortioserver_deployment",
     "fortioclient": "fortio_deployment"
@@ -100,6 +135,7 @@ def metric_by_deployment_by_container(metric):
     if depl in DEPL_MAP:
         mapped_name = DEPL_MAP[depl]
     return mapped_name + "/" + metric['container_name']
+
 
 # These deployments have columns in the table, so only these are watched.
 Watched_Deployments = set(["istio-pilot", "istio-telemetry",
@@ -162,9 +198,11 @@ def main(argv):
     args = getParser().parse_args(argv)
     p = Prom(args.url, args.nseconds, end=args.end, host=args.host)
     out = p.fetch_cpu_and_mem()
+    resp_out = p.fetch_500s_and_400s()
+    out.update(resp_out)
     indent = None
     if args.indent is not None:
-        indent =  int(args.indent)
+        indent = int(args.indent)
 
     print json.dumps(out, indent=indent)
 
@@ -182,6 +220,7 @@ def getParser():
     parser.add_argument(
         "--indent", help="pretty print json with indent", default=None)
     return parser
+
 
 if __name__ == "__main__":
     import sys
