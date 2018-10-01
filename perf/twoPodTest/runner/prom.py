@@ -162,7 +162,11 @@ def main(argv):
     args = getParser().parse_args(argv)
     p = Prom(args.url, args.nseconds, end=args.end, host=args.host)
     out = p.fetch_cpu_and_mem()
-    print json.dumps(out)
+    indent = None
+    if args.indent is not None:
+        indent =  int(args.indent)
+
+    print json.dumps(out, indent=indent)
 
 
 def getParser():
@@ -175,6 +179,8 @@ def getParser():
         "--end", help="relative time in seconds from now to end collection", type=int, default=0)
     parser.add_argument(
         "--host", help="host header when collection is thru ingress", default=None)
+    parser.add_argument(
+        "--indent", help="pretty print json with indent", default=None)
     return parser
 
 if __name__ == "__main__":
