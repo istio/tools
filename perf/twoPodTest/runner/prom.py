@@ -159,6 +159,64 @@ class Prom(object):
 
         return res
 
+    def fetch_sum_by_metric_name(self, metric, groupby=None):
+        query = 'sum(rate(' + metric + '[' + str(self.nseconds) + 's]))'
+        if groupby is not None:
+            query = query + ' by (' + groupby + ')'
+
+        data = self.fetch_by_query(query)
+        res = {}
+        if len(data["data"]["result"]) > 0:
+            if groupby is not None:
+                for i in range(len(data["data"]["result"])):
+                    res[data["data"]["result"][i]["metric"][groupby]
+                        ] = data["data"]["result"][i]["values"]
+            else:
+                res[""] = data["data"]["result"][0]["values"]
+        return res
+
+    def fetch_histogram_by_metric_name(self, metric, percent, groupby):
+        query = 'histogram_quantile(' + percent + ', sum(rate(' + metric + \
+            '{}[' + str(self.nseconds) + 's])) by (' + \
+            groupby + ', le)) * 1000'
+
+        data = self.fetch_by_query(query)
+        res = {}
+        if len(data["data"]["result"]) > 0:
+            for i in range(len(data["data"]["result"])):
+                res[data["data"]["result"][i]["metric"][groupby]
+                    ] = data["data"]["result"][i]["values"]
+        return res
+
+    def fetch_mixer_traffic_overview(self):
+        res = {}
+        total_mixer_call = self.fetch_sum_by_metric_name(
+            "grpc_server_handled_total")
+        for key, value in total_mixer_call.items():
+            res["grpc_server_handled_total"] = value[len(value)-1][1]
+        total_mixer_call_by_method = self.fetch_sum_by_metric_name(
+            "grpc_server_handled_total", "grpc_method")
+        for key, value in total_mixer_call_by_method.items():
+            res["grpc_server_handled_total_" + key] = value[len(value)-1][1]
+
+        response_durations_5 = self.fetch_histogram_by_metric_name(
+            "grpc_server_handling_seconds_bucket", "0.5", "grpc_method")
+        for key, value in response_durations_5.items():
+            res["grpc_server_handling_seconds_bucket_0.5_" +
+                key] = value[len(value)-1][1]
+        response_durations_9 = self.fetch_histogram_by_metric_name(
+            "grpc_server_handling_seconds_bucket", "0.9", "grpc_method")
+        for key, value in response_durations_9.items():
+            res["grpc_server_handling_seconds_bucket_0.9_" +
+                key] = value[len(value)-1][1]
+        response_durations_99 = self.fetch_histogram_by_metric_name(
+            "grpc_server_handling_seconds_bucket", "0.99", "grpc_method")
+        for key, value in response_durations_99.items():
+            res["grpc_server_handling_seconds_bucket_0.99_" +
+                key] = value[len(value)-1][1]
+
+        return res
+
 
 def flatten(data, metric):
     res = {}
@@ -270,6 +328,8 @@ def main(argv):
     out.update(resp_out)
     mixer_rules = p.fetch_mixer_rules_count()
     out.update(mixer_rules)
+    mixer_overview = p.fetch_mixer_traffic_overview()
+    out.update(mixer_overview)
     indent = None
     if args.indent is not None:
         indent = int(args.indent)
