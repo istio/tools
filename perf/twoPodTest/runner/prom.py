@@ -169,10 +169,17 @@ class Prom(object):
         if len(data["data"]["result"]) > 0:
             if groupby is not None:
                 for i in range(len(data["data"]["result"])):
-                    res[data["data"]["result"][i]["metric"][groupby]
-                        ] = data["data"]["result"][i]["values"]
+                    key = data["data"]["result"][i]["metric"][groupby]
+                    values = data["data"]["result"][i]["values"]
+                    if len(values) > 0:
+                        res[metric + "_" + key] = values[len(values)-1][1]
+                    else:
+                        res[metric + "_" + key] = "0"
             else:
-                res[""] = data["data"]["result"][0]["values"]
+                values = data["data"]["result"][0]["values"]
+                res[metric] = values[len(values)-1][1]
+        else:
+            res[metric] = "0"
         return res
 
     def fetch_histogram_by_metric_name(self, metric, percent, groupby):
@@ -184,37 +191,78 @@ class Prom(object):
         res = {}
         if len(data["data"]["result"]) > 0:
             for i in range(len(data["data"]["result"])):
-                res[data["data"]["result"][i]["metric"][groupby]
-                    ] = data["data"]["result"][i]["values"]
+                key = data["data"]["result"][i]["metric"][groupby]
+                values = data["data"]["result"][i]["values"]
+                if len(values) > 0:
+                    res[metric + "_" + percent + "_" +
+                        key] = values[len(values)-1][1]
+                else:
+                    res[metric + "_" + percent + "_" + key] = "0"
+        return res
+
+    def fetch_server_error_rate(self):
+        query = 'sum(rate(grpc_server_handled_total{grpc_code=~"Unknown|Unimplemented|Internal|DataLoss"}[' + str(
+            self.nseconds) + 's])) by (grpc_method)'
+        data = self.fetch_by_query(query)
+        res = {}
+        if len(data["data"]["result"]) > 0:
+            for i in range(len(data["data"]["result"])):
+                key = data["data"]["result"][i]["metric"]["groupby"]
+                values = data["data"]["result"][i]["values"]
+                if len(values) > 0:
+                    res["grpc_server_handled_total_5xx_" +
+                        key] = values[len(values)-1][1]
+                else:
+                    res["grpc_server_handled_total_5xx_" + key] = "0"
+        else:
+            res["grpc_server_handled_total_5xx"] = "0"
+        return res
+
+    def fetch_non_successes_rate(self):
+        query = 'sum(irate(grpc_server_handled_total{grpc_code!="OK",grpc_service=~".*Mixer"}[' + str(
+            self.nseconds) + 's])) by (grpc_method)'
+        data = self.fetch_by_query(query)
+        res = {}
+        if len(data["data"]["result"]) > 0:
+            for i in range(len(data["data"]["result"])):
+                key = data["data"]["result"][i]["metric"]["groupby"]
+                values = data["data"]["result"][i]["values"]
+                if len(values) > 0:
+                    res["grpc_server_handled_total_4xx_" +
+                        key] = values[len(values)-1][1]
+                else:
+                    res["grpc_server_handled_total_4xx_" + key] = "0"
+        else:
+            res["grpc_server_handled_total_4xx"] = "0"
         return res
 
     def fetch_mixer_traffic_overview(self):
         res = {}
         total_mixer_call = self.fetch_sum_by_metric_name(
             "grpc_server_handled_total")
-        for key, value in total_mixer_call.items():
-            res["grpc_server_handled_total"] = value[len(value)-1][1]
+        res.update(total_mixer_call)
+
         total_mixer_call_by_method = self.fetch_sum_by_metric_name(
             "grpc_server_handled_total", "grpc_method")
-        for key, value in total_mixer_call_by_method.items():
-            res["grpc_server_handled_total_" + key] = value[len(value)-1][1]
+        res.update(total_mixer_call_by_method)
 
         response_durations_5 = self.fetch_histogram_by_metric_name(
             "grpc_server_handling_seconds_bucket", "0.5", "grpc_method")
-        for key, value in response_durations_5.items():
-            res["grpc_server_handling_seconds_bucket_0.5_" +
-                key] = value[len(value)-1][1]
+        res.update(response_durations_5)
+
         response_durations_9 = self.fetch_histogram_by_metric_name(
             "grpc_server_handling_seconds_bucket", "0.9", "grpc_method")
-        for key, value in response_durations_9.items():
-            res["grpc_server_handling_seconds_bucket_0.9_" +
-                key] = value[len(value)-1][1]
+        res.update(response_durations_9)
+
         response_durations_99 = self.fetch_histogram_by_metric_name(
             "grpc_server_handling_seconds_bucket", "0.99", "grpc_method")
-        for key, value in response_durations_99.items():
-            res["grpc_server_handling_seconds_bucket_0.99_" +
-                key] = value[len(value)-1][1]
+        res.update(response_durations_99)
 
+        server_error_rate_5xx = self.fetch_server_error_rate()
+        res.update(server_error_rate_5xx)
+
+        non_successes_rate_4xx = self.fetch_non_successes_rate()
+        res.update(non_successes_rate_4xx)
         return res
 
 
