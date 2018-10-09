@@ -58,7 +58,7 @@ class Prom(object):
         out.update(flatten(self.fetch_memory_by_container(), "mem_MB"))
         return out
 
-    def fetch_by_response_code(self, query):
+    def fetch_by_query(self, query):
         resp = requests.get(self.url + "/api/v1/query_range", {
             "query": query,
             "start": self.start,
@@ -72,7 +72,7 @@ class Prom(object):
         return resp.json()
 
     def fetch_num_requests_by_response_code(self, code):
-        data = self.fetch_by_response_code(
+        data = self.fetch_by_query(
             'sum(rate(istio_requests_total{reporter="destination", response_code="' + str(code) + '"}[' + str(self.nseconds) + 's]))')
         if len(data["data"]["result"]) > 0:
             return data["data"]["result"][0]["values"]
@@ -85,10 +85,184 @@ class Prom(object):
         data_504 = self.fetch_num_requests_by_response_code(504)
         if len(data_404) > 0:
             res["istio_requests_total_404"] = data_404[len(data_404)-1][1]
+        else:
+            res["istio_requests_total_404"] = "0"
         if len(data_503) > 0:
             res["istio_requests_total_503"] = data_503[len(data_503)-1][1]
+        else:
+            res["istio_requests_total_503"] = "0"
         if len(data_504) > 0:
             res["istio_requests_total_504"] = data_504[len(data_504)-1][1]
+        else:
+            res["istio_requests_total_504"] = "0"
+        return res
+
+    def fetch_mixer_rules_count_by_metric_name(self, metric_name):
+        data = self.fetch_by_query(
+            'scalar(topk(1, max(' + metric_name + ') by (configID)))')
+        if len(data["data"]["result"]) > 0:
+            return data["data"]["result"][0]["values"]
+        return []
+
+    def fetch_mixer_rules_count(self):
+        res = {}
+        config_count = self.fetch_mixer_rules_count_by_metric_name(
+            "mixer_config_rule_config_count")
+        config_error_count = self.fetch_mixer_rules_count_by_metric_name(
+            "mixer_config_rule_config_error_count")
+        config_match_error_count = self.fetch_mixer_rules_count_by_metric_name(
+            "mixer_config_rule_config_match_error_count")
+        unsatisfied_action_handler_count = self.fetch_mixer_rules_count_by_metric_name(
+            "mixer_config_unsatisfied_action_handler_count")
+        instance_count = self.fetch_mixer_rules_count_by_metric_name(
+            "mixer_config_instance_config_count")
+        handler_count = self.fetch_mixer_rules_count_by_metric_name(
+            "mixer_config_handler_config_count")
+        attribute_count = self.fetch_mixer_rules_count_by_metric_name(
+            "mixer_config_attribute_count")
+
+        if len(config_count) > 0:
+            res["mixer_config_rule_config_count"] = config_count[len(
+                config_count)-1][1]
+        else:
+            res["mixer_config_rule_config_count"] = "0"
+        if len(config_error_count) > 0:
+            res["mixer_config_rule_config_error_count"] = config_error_count[len(
+                config_error_count)-1][1]
+        else:
+            res["mixer_config_rule_config_error_count"] = "0"
+        if len(config_match_error_count) > 0:
+            res["mixer_config_rule_config_match_error_count"] = config_match_error_count[len(
+                config_match_error_count)-1][1]
+        else:
+            res["mixer_config_rule_config_match_error_count"] = "0"
+        if len(unsatisfied_action_handler_count) > 0:
+            res["mixer_config_unsatisfied_action_handler_count"] = unsatisfied_action_handler_count[len(
+                unsatisfied_action_handler_count)-1][1]
+        else:
+            res["mixer_config_unsatisfied_action_handler_count"] = "0"
+        if len(instance_count) > 0:
+            res["mixer_config_instance_config_count"] = instance_count[len(
+                instance_count)-1][1]
+        else:
+            res["mixer_config_instance_config_count"] = "0"
+        if len(handler_count) > 0:
+            res["mixer_config_handler_config_count"] = handler_count[len(
+                handler_count)-1][1]
+        else:
+            res["mixer_config_handler_config_count"] = "0"
+        if len(attribute_count) > 0:
+            res["mixer_config_attribute_count"] = attribute_count[len(
+                attribute_count)-1][1]
+        else:
+            res["mixer_config_attribute_count"] = "0"
+
+        return res
+
+    def fetch_sum_by_metric_name(self, metric, groupby=None):
+        query = 'sum(rate(' + metric + '[' + str(self.nseconds) + 's]))'
+        if groupby is not None:
+            query = query + ' by (' + groupby + ')'
+
+        data = self.fetch_by_query(query)
+        res = {}
+        if len(data["data"]["result"]) > 0:
+            if groupby is not None:
+                for i in range(len(data["data"]["result"])):
+                    key = data["data"]["result"][i]["metric"][groupby]
+                    values = data["data"]["result"][i]["values"]
+                    if len(values) > 0:
+                        res[metric + "_" + key] = values[len(values)-1][1]
+                    else:
+                        res[metric + "_" + key] = "0"
+            else:
+                values = data["data"]["result"][0]["values"]
+                res[metric] = values[len(values)-1][1]
+        else:
+            res[metric] = "0"
+        return res
+
+    def fetch_histogram_by_metric_name(self, metric, percent, groupby):
+        query = 'histogram_quantile(' + percent + ', sum(rate(' + metric + \
+            '{}[' + str(self.nseconds) + 's])) by (' + \
+            groupby + ', le)) * 1000'
+
+        data = self.fetch_by_query(query)
+        res = {}
+        if len(data["data"]["result"]) > 0:
+            for i in range(len(data["data"]["result"])):
+                key = data["data"]["result"][i]["metric"][groupby]
+                values = data["data"]["result"][i]["values"]
+                if len(values) > 0:
+                    res[metric + "_" + percent + "_" +
+                        key] = values[len(values)-1][1]
+                else:
+                    res[metric + "_" + percent + "_" + key] = "0"
+        return res
+
+    def fetch_server_error_rate(self):
+        query = 'sum(rate(grpc_server_handled_total{grpc_code=~"Unknown|Unimplemented|Internal|DataLoss"}[' + str(
+            self.nseconds) + 's])) by (grpc_method)'
+        data = self.fetch_by_query(query)
+        res = {}
+        if len(data["data"]["result"]) > 0:
+            for i in range(len(data["data"]["result"])):
+                key = data["data"]["result"][i]["metric"]["groupby"]
+                values = data["data"]["result"][i]["values"]
+                if len(values) > 0:
+                    res["grpc_server_handled_total_5xx_" +
+                        key] = values[len(values)-1][1]
+                else:
+                    res["grpc_server_handled_total_5xx_" + key] = "0"
+        else:
+            res["grpc_server_handled_total_5xx"] = "0"
+        return res
+
+    def fetch_non_successes_rate(self):
+        query = 'sum(irate(grpc_server_handled_total{grpc_code!="OK",grpc_service=~".*Mixer"}[' + str(
+            self.nseconds) + 's])) by (grpc_method)'
+        data = self.fetch_by_query(query)
+        res = {}
+        if len(data["data"]["result"]) > 0:
+            for i in range(len(data["data"]["result"])):
+                key = data["data"]["result"][i]["metric"]["groupby"]
+                values = data["data"]["result"][i]["values"]
+                if len(values) > 0:
+                    res["grpc_server_handled_total_4xx_" +
+                        key] = values[len(values)-1][1]
+                else:
+                    res["grpc_server_handled_total_4xx_" + key] = "0"
+        else:
+            res["grpc_server_handled_total_4xx"] = "0"
+        return res
+
+    def fetch_mixer_traffic_overview(self):
+        res = {}
+        total_mixer_call = self.fetch_sum_by_metric_name(
+            "grpc_server_handled_total")
+        res.update(total_mixer_call)
+
+        total_mixer_call_by_method = self.fetch_sum_by_metric_name(
+            "grpc_server_handled_total", "grpc_method")
+        res.update(total_mixer_call_by_method)
+
+        response_durations_5 = self.fetch_histogram_by_metric_name(
+            "grpc_server_handling_seconds_bucket", "0.5", "grpc_method")
+        res.update(response_durations_5)
+
+        response_durations_9 = self.fetch_histogram_by_metric_name(
+            "grpc_server_handling_seconds_bucket", "0.9", "grpc_method")
+        res.update(response_durations_9)
+
+        response_durations_99 = self.fetch_histogram_by_metric_name(
+            "grpc_server_handling_seconds_bucket", "0.99", "grpc_method")
+        res.update(response_durations_99)
+
+        server_error_rate_5xx = self.fetch_server_error_rate()
+        res.update(server_error_rate_5xx)
+
+        non_successes_rate_4xx = self.fetch_non_successes_rate()
+        res.update(non_successes_rate_4xx)
         return res
 
 
@@ -200,6 +374,10 @@ def main(argv):
     out = p.fetch_cpu_and_mem()
     resp_out = p.fetch_500s_and_400s()
     out.update(resp_out)
+    mixer_rules = p.fetch_mixer_rules_count()
+    out.update(mixer_rules)
+    mixer_overview = p.fetch_mixer_traffic_overview()
+    out.update(mixer_overview)
     indent = None
     if args.indent is not None:
         indent = int(args.indent)
