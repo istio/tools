@@ -214,7 +214,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0
 ---
@@ -275,7 +274,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-0
 status:
@@ -337,7 +335,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-1
 status:
@@ -399,7 +396,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-2
 status:
@@ -461,7 +457,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-3
 status:
@@ -523,7 +518,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-4
 status:
@@ -585,7 +579,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-5
 status:
@@ -647,7 +640,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-6
 status:
@@ -709,7 +701,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-7
 status:
@@ -771,7 +762,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-8
 status:
@@ -833,7 +823,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-0-0
 status:
@@ -895,7 +884,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-1-0
 status:
@@ -957,7 +945,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-2-0
 status:
@@ -1019,7 +1006,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-3-0
 status:
@@ -1081,7 +1067,6 @@ spec:
   ports:
   - name: http-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-4-0
 status:
@@ -1141,9 +1126,8 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-5-0
 spec:
   ports:
-  - name: http-web
+  - name: tcp-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-5-0
 status:
@@ -1203,9 +1187,8 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-6-0
 spec:
   ports:
-  - name: http-web
+  - name: tcp-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-6-0
 status:
@@ -1265,9 +1248,8 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-7-0
 spec:
   ports:
-  - name: http-web
+  - name: tcp-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-7-0
 status:
@@ -1327,9 +1309,8 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-8-0
 spec:
   ports:
-  - name: http-web
+  - name: tcp-web
     port: 8080
-    targetPort: 0
   selector:
     name: {{ .Values.serviceNamePrefix }}0-8-0
 status:

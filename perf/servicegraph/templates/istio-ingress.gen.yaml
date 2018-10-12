@@ -21,7 +21,7 @@ spec:
   gateways:
   - entrypoint-gateway
   hosts:
-  - '*'
+  - {{ .Values.serviceNamePrefix }}0.local
   http:
   - route:
     - destination:

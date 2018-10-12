@@ -4,12 +4,12 @@ NAMESPACE=${1:?"namespace"}
 NAMEPREFIX=${2:?"prefix name for service. typically svc-"}
 
 GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-SERVICEHOST="${NAMEPREFIX}0"
+SERVICEHOST="${NAMEPREFIX}0.local"
 
 function run_test() {
   YAML=$(mktemp).yml
   helm -n ${NAMESPACE} template \
-	  --set serviceHost="${NAMEPREFIX}0" \
+	  --set serviceHost="${SERVICEHOST}" \
     --set Namespace="${NAMESPACE}" \
     --set ingress="${GATEWAY_URL}" \
           . > "${YAML}"
