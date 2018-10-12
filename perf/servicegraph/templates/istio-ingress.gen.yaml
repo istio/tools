@@ -25,6 +25,6 @@ spec:
   http:
   - route:
     - destination:
-        host: svc-0
+        host: {{ .Values.serviceNamePrefix }}0
         port:
           number: 8080
