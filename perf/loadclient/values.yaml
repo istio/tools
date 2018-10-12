@@ -1,0 +1,10 @@
+# ingress: 192.168.0.1  point to the external ingress IP
+# This should be done on the command line by --set ingress=<ip_addres>
+
+connections: 8
+qps: 200
+size: 1024
+serviceHost: svc-0.local
+#serviceURL: productpage
+image: tahler/fortio:prometheus
+replicas: 2

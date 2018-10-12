@@ -7,7 +7,7 @@ spec:
     istio: ingressgateway
   servers:
   - hosts:
-    - svc-0.local
+    - {{ .Values.serviceNamePrefix }}0.local
     port:
       name: http
       number: 80

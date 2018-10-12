@@ -1,1 +1,14 @@
 serviceGraphImage: tahler/isotope-service:1
+serviceNamePrefix: svc-
+requestSize: 128B
+responseSize: 1KiB
+replicas: 3
+resources:
+  requests:
+    cpu: 50m
+readinessProbe:
+  httpGet:
+    path: /metrics
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
