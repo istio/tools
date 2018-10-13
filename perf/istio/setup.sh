@@ -33,6 +33,8 @@ function install_istio() {
 
   local FILENAME="${DIRNAME}/${release}.yml"
   helm template --name istio --namespace istio-system \
+    --set global.tag=${release} \
+    --set global.hub=gcr.io/istio-release \
     --values values-istio-test.yaml \
     "${DIRNAME}/${release}" > "${FILENAME}"
 
