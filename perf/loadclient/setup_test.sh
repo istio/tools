@@ -1,5 +1,10 @@
 #!/bin/bash
+WD=$(dirname $0)
+WD=$(cd "${WD}"; pwd)
+cd "${WD}"
+
 set -ex
+
 NAMESPACE=${1:?"namespace"}
 NAMEPREFIX=${2:?"prefix name for service. typically svc-"}
 

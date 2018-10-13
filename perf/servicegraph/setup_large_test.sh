@@ -2,9 +2,11 @@
 
 # This script spins up the standard 20 services per namespace test for as many namespaces
 # as desired.
-
 WD=$(dirname $0)
 WD=$(cd "${WD}"; pwd)
+cd "${WD}"
+
+set -ex
 
 NUM=${1:?"number of namespaces. 20 x this number"}
 
