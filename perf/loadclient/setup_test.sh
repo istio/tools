@@ -15,14 +15,18 @@ function run_test() {
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
-  kubectl create ns "${NAMESPACE}" || true
-  kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite
-
   # remove stdio rules
   kubectl --namespace istio-system delete rules stdio stdiotcp || true
-
-  sleep 5
-  kubectl -n "${NAMESPACE}" apply -f "${YAML}"
+  
+  
+  if [[ -z "${DELETE}" ]];then
+    kubectl create ns "${NAMESPACE}" || true
+    kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite
+    sleep 5
+    kubectl -n "${NAMESPACE}" apply -f "${YAML}"
+  else
+    kubectl -n "${NAMESPACE}" delete -f "${YAML}"
+  fi
 }
 
 run_test

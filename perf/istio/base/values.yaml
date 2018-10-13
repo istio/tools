@@ -2,7 +2,7 @@ healthPort: true
 testHub: docker.io/istionightly
 testTag: nightly-release-1.0
 
-domain: v10.qualistio.org
+domain: v103.qualistio.org
 
 # Namespace where istio control plane is installed.
 istioNamespace: istio-system

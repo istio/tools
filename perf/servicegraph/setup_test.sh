@@ -22,8 +22,13 @@ function run_test() {
   # remove stdio rules
   kubectl --namespace istio-system delete rules stdio stdiotcp || true
 
-  sleep 5
-  kubectl -n "${NAMESPACE}" apply -f "${YAML}"
+  if [[ -z "${DELETE}" ]];then
+    sleep 3
+    kubectl -n "${NAMESPACE}" apply -f "${YAML}"
+  else
+    kubectl -n "${NAMESPACE}" delete -f "${YAML}" || true
+    kubectl delete ns "${NAMESPACE}"
+  fi
 }
 
 run_test

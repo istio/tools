@@ -11,15 +11,15 @@ spec:
   issuerRef:
     name: letsencrypt
     kind: ClusterIssuer
-  commonName: fortiotls.v10.qualistio.org
+  commonName: fortiotls.v103.qualistio.org
   dnsNames:
-  - fortiotls.v10.qualistio.org
+  - fortiotls.v103.qualistio.org
   acme:
     config:
     - http01:
         ingressClass: istio
       domains:
-      - fortiotls.v10.qualistio.org
+      - fortiotls.v103.qualistio.org
 ---
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
@@ -31,17 +31,17 @@ spec:
   issuerRef:
     name: letsencrypt
     kind: ClusterIssuer
-  commonName: fortionoistio.v10.qualistio.org
+  commonName: fortionoistio.v103.qualistio.org
   dnsNames:
-  - fortionoistio.v10.qualistio.org
-  - fortionoistio1.v10.qualistio.org
+  - fortionoistio.v103.qualistio.org
+  - fortionoistio1.v103.qualistio.org
   acme:
     config:
     - http01:
         ingressClass: istio
       domains:
-      - fortionoistio.v10.qualistio.org
-      - fortionoistio1.v10.qualistio.org
+      - fortionoistio.v103.qualistio.org
+      - fortionoistio1.v103.qualistio.org
 ---
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
@@ -53,16 +53,16 @@ spec:
   issuerRef:
     name: letsencrypt
     kind: ClusterIssuer
-  commonName: prom.v10.qualistio.org
+  commonName: prom.v103.qualistio.org
   dnsNames:
-  - prom.v10.qualistio.org
-  - grafana.v10.qualistio.org
-  - kiali.v10.qualistio.org
+  - prom.v103.qualistio.org
+  - grafana.v103.qualistio.org
+  - kiali.v103.qualistio.org
   acme:
     config:
     - http01:
         ingressClass: istio
       domains:
-      - prom.v10.qualistio.org
-      - grafana.v10.qualistio.org
-      - kiali.v10.qualistio.org
+      - prom.v103.qualistio.org
+      - grafana.v103.qualistio.org
+      - kiali.v103.qualistio.org
