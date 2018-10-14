@@ -1100,11 +1100,11 @@ spec:
         name: mock-service
         ports:
         - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
+{{- if .Values.tcpLivenessProbe }}
+        livenessProbe: {{ toJson .Values.tcpLivenessProbe }}
 {{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
+{{- if .Values.tcpReadinessProbe }}
+        readinessProbe: {{ toJson .Values.tcpReadinessProbe }}
 {{- end}}
         resources: {{ toJson .Values.resources }}
         volumeMounts:
@@ -1161,11 +1161,11 @@ spec:
         name: mock-service
         ports:
         - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
+{{- if .Values.tcpLivenessProbe }}
+        livenessProbe: {{ toJson .Values.tcpLivenessProbe }}
 {{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
+{{- if .Values.tcpReadinessProbe }}
+        readinessProbe: {{ toJson .Values.tcpReadinessProbe }}
 {{- end}}
         resources: {{ toJson .Values.resources }}
         volumeMounts:
@@ -1222,11 +1222,11 @@ spec:
         name: mock-service
         ports:
         - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
+{{- if .Values.tcpLivenessProbe }}
+        livenessProbe: {{ toJson .Values.tcpLivenessProbe }}
 {{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
+{{- if .Values.tcpReadinessProbe }}
+        readinessProbe: {{ toJson .Values.tcpReadinessProbe }}
 {{- end}}
         resources: {{ toJson .Values.resources }}
         volumeMounts:
@@ -1283,11 +1283,11 @@ spec:
         name: mock-service
         ports:
         - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
+{{- if .Values.tcpLivenessProbe }}
+        livenessProbe: {{ toJson .Values.tcpLivenessProbe }}
 {{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
+{{- if .Values.tcpReadinessProbe }}
+        readinessProbe: {{ toJson .Values.tcpReadinessProbe }}
 {{- end}}
         resources: {{ toJson .Values.resources }}
         volumeMounts:

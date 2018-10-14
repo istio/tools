@@ -12,3 +12,7 @@ readinessProbe:
     port: 8080
   initialDelaySeconds: 5
   periodSeconds: 5
+
+# tcp does not support permissive mode
+# so readinessProbe
+#tcpReadinessProbe:
