@@ -9,6 +9,7 @@ cd "${WD}"
 set -ex
 
 NUM=${1:?"number of namespaces. 20 x this number"}
+START=${2:-"0"}
 
 # service-graph04 svc04
 CMD=""
@@ -18,8 +19,9 @@ fi
 
 function start_servicegraphs() {
   local nn=${1:?"number of namespaces"}
+  local min=${2:-"0"}
 
-  for ((ii=0; ii<$nn; ii++)) {
+  for ((ii=$min; ii<$nn; ii++)) {
     ns=$(printf 'service-graph%.2d' $ii)
     prefix=$(printf 'svc%.2d-' $ii)
     
@@ -33,4 +35,4 @@ function start_servicegraphs() {
   }
 }
 
-start_servicegraphs "${NUM}"
+start_servicegraphs "${NUM}" "${START}"
