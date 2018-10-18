@@ -12,6 +12,7 @@ global:
   k8sIngressSelector: ingressgateway
 
   proxy:
+    concurrency: 2
     accessLogFile: "/dev/null"
     resources:
       requests:
@@ -80,12 +81,9 @@ gateways:
       name: tcp-iperf-tls
 
 pilot:
-  replicaCount: 1
+  replicaCount: 2
   sidecar: false
-  autoscaleMax: 1
-  #image: gcr.io/istio-release/pilot:release-1.0-20180720-00-11
-  # Override for 0.8 upgrade
-  #image: costinm/pilot:costin-dev
+  autoscaleMax: 3
   env:
     PILOT_PUSH_THROTTLE: 50
     GODEBUG: gctrace=2

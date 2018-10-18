@@ -38,7 +38,9 @@ function install_istio() {
     --values values-istio-test.yaml \
     "${DIRNAME}/${release}" > "${FILENAME}"
 
-  kubectl apply -f "${FILENAME}"
+  if [[ -z "${DRY_RUN}" ]];then
+    kubectl apply -f "${FILENAME}"
+  fi
   
   echo "Wrote file ${FILENAME}"
 }
