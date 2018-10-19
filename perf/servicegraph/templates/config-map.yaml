@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-change
+  namespace: {{ .Values.Namespace }}
+data:
+  cfg.yaml: |
+    apiVersion: networking.istio.io/v1alpha3
+    kind: VirtualService
+    metadata:
+      name: regex-route
+    spec:
+      hosts:
+        - regex.extsvc.com
+      http:
+        - match:
+          - headers:
+              foo:
+                regex: "b.*"
+            source_labels:
+              version: v1
+          route:
+          - destination:
+              host: regex.extsvc.com
+              subset: v2
+            weight: 100
+        - route:
+          - destination:
+              host: regex.extsvc.com
+              subset: v1
+            weight: 100

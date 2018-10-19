@@ -69,6 +69,10 @@ spec:
       annotations:
         sidecar.istio.io/inject: "false"
     spec:
+      volumes:
+      - name: config
+        configMap:
+          name: config-change
       containers:
       - args:
         - /bin/sleep
@@ -76,5 +80,8 @@ spec:
         image: gcr.io/google-containers/hyperkube:v1.12.1
         imagePullPolicy: IfNotPresent
         name: config-change
+        volumeMounts:
+        - name: config
+          mountPath: /data/config
       restartPolicy: Always
       serviceAccount: config-change-service-account
