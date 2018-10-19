@@ -73,15 +73,22 @@ spec:
       - name: config
         configMap:
           name: config-change
+      - name: script
+        configMap:
+          name: script
+          defaultMode: 0744
       containers:
       - args:
+        - /script/run.sh
         - /bin/sleep
         - infinity
         image: gcr.io/google-containers/hyperkube:v1.12.1
         imagePullPolicy: IfNotPresent
         name: config-change
         volumeMounts:
+        - name: script
+          mountPath: /script
         - name: config
-          mountPath: /data/config
+          mountPath: /data
       restartPolicy: Always
       serviceAccount: config-change-service-account

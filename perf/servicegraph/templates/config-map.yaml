@@ -12,7 +12,7 @@ data:
       name: regex-route
     spec:
       hosts:
-        - regex.extsvc.com
+        - regex.{{ .Values.Namespace }}.com
       http:
         - match:
           - headers:
@@ -30,3 +30,20 @@ data:
               host: regex.extsvc.com
               subset: v1
             weight: 100
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: script
+  namespace: {{ .Values.Namespace }}
+data:
+  run.sh: |
+    #!/bin/bash
+
+    while [[ true ]];do
+      kubectl -n {{ .Values.Namespace }} apply -f /data/cfg.yaml
+      sleep {{ .Values.configSleep }}
+
+      kubectl -n {{ .Values.Namespace }} delete -f /data/cfg.yaml
+      sleep {{ .Values.configSleep }}
+    done
