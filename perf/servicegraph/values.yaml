@@ -1,1 +1,20 @@
 serviceGraphImage: tahler/isotope-service:1
+serviceNamePrefix: svc-
+requestSize: 128B
+responseSize: 1KiB
+replicas: 2
+resources:
+  requests:
+    cpu: 50m
+readinessProbe:
+  httpGet:
+    path: /metrics
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+# time between config changes
+configSleep: 120
+# tcp does not support permissive mode
+# so readinessProbe
+#tcpReadinessProbe:

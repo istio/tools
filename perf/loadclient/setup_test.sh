@@ -8,31 +8,29 @@ set -ex
 NAMESPACE=${1:?"namespace"}
 NAMEPREFIX=${2:?"prefix name for service. typically svc-"}
 
-# Get pod ip range, there must be a better way, but this works.
-function ip_range() {
-    kubectl get pods --namespace kube-system -o wide | grep kube-dns | awk '{print $6}'|head -1 | awk -F '.' '{printf "%s.%s.0.0/16\n", $1, $2}'
-}
+GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+SERVICEHOST="${NAMEPREFIX}0.local"
 
 function run_test() {
   YAML=$(mktemp).yml
   helm -n ${NAMESPACE} template \
-	  --set serviceNamePrefix="${NAMEPREFIX}" \
+	  --set serviceHost="${SERVICEHOST}" \
     --set Namespace="${NAMESPACE}" \
+    --set ingress="${GATEWAY_URL}" \
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
-  kubectl create ns "${NAMESPACE}" || true
-  kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite
-
   # remove stdio rules
   kubectl --namespace istio-system delete rules stdio stdiotcp || true
-
+  
+  
   if [[ -z "${DELETE}" ]];then
-    sleep 3
+    kubectl create ns "${NAMESPACE}" || true
+    kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite
+    sleep 5
     kubectl -n "${NAMESPACE}" apply -f "${YAML}"
   else
-    kubectl -n "${NAMESPACE}" delete -f "${YAML}" || true
-    kubectl delete ns "${NAMESPACE}"
+    kubectl -n "${NAMESPACE}" delete -f "${YAML}"
   fi
 }
 
