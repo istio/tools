@@ -1,0 +1,11 @@
+apiVersion: v1
+name: load client
+version: 1.0
+description: Helm chart for loading thru ingress
+keywords:
+  - istio
+  - performance
+  - qualification
+sources:
+  - http://github.com/istio/istio
+engine: gotpl

@@ -1,0 +1,8 @@
+# setup istio with performance parameters.
+Look at istio-test-values.yaml for details
+
+./setup.sh release-1.0-20181018-09-15 
+Would setup istio in the cluster
+
+DRY_RUN=1 ./setup.sh release-1.0-20181018-09-15
+Would only create the tmp/release-1.0-20181018-09-15.yaml deployment file
