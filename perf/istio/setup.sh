@@ -5,7 +5,7 @@ function download() {
   local DIRNAME="$1"
   local release="$2"
 
-  local url="https://storage.googleapis.com/istio-prerelease/daily-build/${release}/gcr.io/istio-${release}-linux.tar.gz"
+  local url="https://storage.googleapis.com/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
   local outfile="${DIRNAME}/istio-${release}.tgz"
     
   if [[ ! -f "${outfile}" ]]; then
@@ -23,20 +23,22 @@ function install_istio() {
 
   if [[ ! -d "${DIRNAME}/${release}" ]];then
       tar -xzf "${outfile}" -C "${DIRNAME}"
-      mv "${DIRNAME}/istio-${release}/install/kubernetes/helm/istio" "${DIRNAME}/${release}"
+      mv "${DIRNAME}/istio-${release}/install/kubernetes/helm" "${DIRNAME}/${release}"
       rm -Rf "${DIRNAME}/istio-${release}"
   fi
 
   kubectl create ns istio-system || true
 
-  kubectl apply -f "${DIRNAME}/${release}/templates/crds.yaml"
+  kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
 
   local FILENAME="${DIRNAME}/${release}.yml"
+
+  helm dep update "${DIRNAME}/${release}/istio" || true
   helm template --name istio --namespace istio-system \
     --set global.tag=${release} \
     --set global.hub=gcr.io/istio-release \
     --values values-istio-test.yaml \
-    "${DIRNAME}/${release}" > "${FILENAME}"
+    "${DIRNAME}/${release}/istio" > "${FILENAME}"
 
   if [[ -z "${DRY_RUN}" ]];then
     kubectl apply -f "${FILENAME}"
