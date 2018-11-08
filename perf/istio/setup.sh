@@ -7,63 +7,78 @@ function download() {
 
   local url="https://storage.googleapis.com/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
   local outfile="${DIRNAME}/istio-${release}.tgz"
-    
+
   if [[ ! -f "${outfile}" ]]; then
     wget -O "${outfile}" "${url}"
   fi
 
-  echo "${outfile}" 
+  echo "${outfile}"
 }
 
 function install_istio() {
   local DIRNAME="${1:?"output dir"}"
   local release="${2:?"release"}"
-  
+
   local outfile="$(download ${DIRNAME} ${release})"
 
   if [[ ! -d "${DIRNAME}/${release}" ]];then
       tar -xzf "${outfile}" -C "${DIRNAME}"
       mv "${DIRNAME}/istio-${release}/install/kubernetes/helm" "${DIRNAME}/${release}"
       rm -Rf "${DIRNAME}/istio-${release}"
+      helm dep update --skip-refresh "${DIRNAME}/${release}/istio"
   fi
 
   kubectl create ns istio-system || true
 
-  kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
+  if [[ -z "${DRY_RUN}" ]];then
+      kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
+  fi
 
   local FILENAME="${DIRNAME}/${release}.yml"
 
   helm dep update "${DIRNAME}/${release}/istio" || true
+
   helm template --name istio --namespace istio-system \
     --set global.tag=${release} \
     --set global.hub=gcr.io/istio-release \
     --values values-istio-test.yaml \
     "${DIRNAME}/${release}/istio" > "${FILENAME}"
 
+  # update prometheus scape interval
+  sed -i 's/scrape_interval: .*$/scrape_interval: 30s/' "${FILENAME}"
+
   if [[ -z "${DRY_RUN}" ]];then
-    kubectl apply -f "${FILENAME}"
+      kubectl apply -f "${FILENAME}"
+
+      # remove stdio rules
+      kubectl --namespace istio-system delete rules stdio stdiotcp || true
   fi
-  
+
   echo "Wrote file ${FILENAME}"
 }
 
 function install_gateways() {
-  helm template base | kubectl -n istio-system apply -f -
+  if [[ -z "${DRY_RUN}" ]]; then
+      helm template base | kubectl -n istio-system apply -f -
+  fi
 }
 
 function install_all_config() {
   local DIRNAME="${1:?"output dir"}"
   local domain=${DNS_DOMAIN:-qualistio.org}
   local OUTFILE="${DIRNAME}/all_config.yaml"
-  
+
   kubectl create ns test || true
 
   kubectl label namespace test istio-injection=enabled || true
+
   helm -n test template \
     --set fortioImage=fortio/fortio:latest \
     --set domain="v103.${domain}" allconfig > "${OUTFILE}"
 
-  kubectl -n test apply -f "${OUTFILE}"
+  if [[ -z "${DRY_RUN}" ]]; then
+      kubectl -n test apply -f "${OUTFILE}"
+  fi
 }
 
 WD=$(dirname $0)
