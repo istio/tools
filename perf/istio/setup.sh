@@ -25,7 +25,7 @@ function install_istio() {
       tar -xzf "${outfile}" -C "${DIRNAME}"
       mv "${DIRNAME}/istio-${release}/install/kubernetes/helm" "${DIRNAME}/${release}"
       rm -Rf "${DIRNAME}/istio-${release}"
-      helm dep update --skip-refresh "${DIRNAME}/${release}/istio"
+      helm dep update "${DIRNAME}/${release}/istio"
   fi
 
   kubectl create ns istio-system || true
@@ -35,8 +35,6 @@ function install_istio() {
   fi
 
   local FILENAME="${DIRNAME}/${release}.yml"
-
-  helm dep update "${DIRNAME}/${release}/istio" || true
 
   helm template --name istio --namespace istio-system \
     --set global.tag=${release} \
