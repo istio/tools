@@ -25,7 +25,7 @@ function install_istio() {
       tar -xzf "${outfile}" -C "${DIRNAME}"
       mv "${DIRNAME}/istio-${release}/install/kubernetes/helm" "${DIRNAME}/${release}"
       rm -Rf "${DIRNAME}/istio-${release}"
-      helm dep update "${DIRNAME}/${release}/istio"
+      helm dep update "${DIRNAME}/${release}/istio" || true
   fi
 
   kubectl create ns istio-system || true
