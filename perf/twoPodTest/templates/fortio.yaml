@@ -131,3 +131,23 @@ spec:
       number: 80
       protocol: HTTP
 ---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: fortio-two-pod
+  namespace: istio-system
+spec:
+  secretName: istio-ingressgateway-certs-fortio-twopod
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+  commonName: fortioclient.{{ .Values.domain }}
+  dnsNames:
+  - fortioclient.{{ .Values.domain }}
+  acme:
+    config:
+    - http01:
+        ingressClass: istio
+      domains:
+      - fortiotls.{{ .Values.domain }}
+-
