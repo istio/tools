@@ -1,6 +1,8 @@
 #/bin/bash
 set -ex
 
+DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org"}
+
 function download() {
   local DIRNAME="$1"
   local release="$2"
@@ -56,8 +58,9 @@ function install_istio() {
 }
 
 function install_gateways() {
+  local domain=${DNS_DOMAIN:-qualistio.org}
   if [[ -z "${DRY_RUN}" ]]; then
-      helm template base | kubectl -n istio-system apply -f -
+      helm template --set domain="${domain}" base | kubectl -n istio-system apply -f -
   fi
 }
 
@@ -72,7 +75,7 @@ function install_all_config() {
 
   helm -n test template \
     --set fortioImage=fortio/fortio:latest \
-    --set domain="v103.${domain}" allconfig > "${OUTFILE}"
+    --set domain="${domain}" allconfig > "${OUTFILE}"
 
   if [[ -z "${DRY_RUN}" ]]; then
       kubectl -n test apply -f "${OUTFILE}"
