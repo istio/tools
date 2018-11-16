@@ -30,7 +30,7 @@ rules:
   resources: ["thirdpartyresources", "thirdpartyresources.extensions", "ingresses", "ingresses/status"]
   verbs: ["*"]
 - apiGroups: [""]
-  resources: ["configmaps"]
+  resources: ["configmaps", "endpoints", "pods", "services", "namespaces", "secrets", "replicationcontrollers"]
   verbs: ["create", "get", "list", "watch", "update"]
 - apiGroups: [""]
   resources: ["endpoints", "pods", "services"]

@@ -14,14 +14,16 @@ POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
 
 def pod_info(filterstr="", namespace="service-graph", multi_ok=True):
-    op = subprocess.check_output(shlex.split(
-        ("kubectl -n {namespace} get pod {filterstr}  -o json".format(namespace=namespace, filterstr=filterstr)
-         )))
+    cmd =  "kubectl -n {namespace} get pod {filterstr}  -o json".format(namespace=namespace, filterstr=filterstr)
+    op = subprocess.check_output(shlex.split(cmd))
     o = json.loads(op)
     items = o['items']
 
     if not multi_ok and len(items) > 1:
         raise Exception("more than one found " + op)
+
+    if len(items) < 1:
+        raise Exception("no pods found with command [" + cmd + "]")
 
     i = items[0]
     return POD(i['metadata']['name'], i['metadata']['namespace'],
@@ -54,6 +56,7 @@ class Fortio(object):
         self.duration = duration
         self.mode = mode
         self.size = size
+        self.ns = os.environ.get("NAMESPACE", "service-graph")
         # bucket resolution in seconds
         self.r = "0.00005"
         self.mixer = mixer
@@ -61,8 +64,8 @@ class Fortio(object):
         self.additional_args = additional_args
         self.filterFn = filterFn
         self.perf_record = perf_record
-        self.server = pod_info("-lapp=" + server)
-        self.client = pod_info("-lapp=" + client)
+        self.server = pod_info("-lapp=" + server, namespace=self.ns)
+        self.client = pod_info("-lapp=" + client, namespace=self.ns)
         self.labels = labels
         self.run_serversidecar = serversidecar
         self.run_clientsidecar = clientsidecar
@@ -156,7 +159,8 @@ def kubecp(from_file, to_file, namespace="service-graph"):
     return run_command_sync(cmd)
 
 
-def kubectl(pod, remote_cmd, runfn=run_command, namespace="service-graph", container=None):
+def kubectl(pod, remote_cmd, runfn=run_command, container=None):
+    namespace = os.environ.get("NAMESPACE", "service-graph")
     c = ""
     if container is not None:
         c = "-c " + container
