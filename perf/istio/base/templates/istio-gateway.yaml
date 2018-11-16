@@ -81,3 +81,69 @@ spec:
         port:
           number: 9090
 ---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: ist
+  namespace: istio-system
+spec:
+  secretName: istio-ingressgateway-certs
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+  commonName: prom.{{ .Values.domain }}
+  dnsNames:
+  - prom.{{ .Values.domain }}
+  - grafana.{{ .Values.domain }}
+  - kiali.{{ .Values.domain }}
+  acme:
+    config:
+    - http01:
+        ingressClass: istio
+      domains:
+      - prom.{{ .Values.domain }}
+      - grafana.{{ .Values.domain }}
+      - kiali.{{ .Values.domain }}
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: test-certs
+  namespace: istio-system
+spec:
+  secretName: istio-ingressgateway-certs-fortiotls
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+  commonName: fortiotls.{{ .Values.domain }}
+  dnsNames:
+  - fortiotls.{{ .Values.domain }}
+  acme:
+    config:
+    - http01:
+        ingressClass: istio
+      domains:
+      - fortiotls.{{ .Values.domain }}
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: fortionoistio
+  namespace: istio-system
+spec:
+  secretName: istio-ingressgateway-certs-fortionoistio
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+  commonName: fortionoistio.{{ .Values.domain }}
+  dnsNames:
+  - fortionoistio.{{ .Values.domain }}
+  - fortionoistio1.{{ .Values.domain }}
+  acme:
+    config:
+    - http01:
+        ingressClass: istio
+      domains:
+      - fortionoistio.{{ .Values.domain }}
+      - fortionoistio1.{{ .Values.domain }}
+
