@@ -38,11 +38,17 @@ function install_istio() {
 
   local FILENAME="${DIRNAME}/${release}.yml"
 
+  opts="--set global.tag=${release}"
+  opts+=" --set global.hub=gcr.io/istio-release"
+
+  if [[ "${MCP}" = "1" ]];then
+      opts+=" --set global.useMCP=true"
+  fi
+
   helm template --name istio --namespace istio-system \
-    --set global.tag=${release} \
-    --set global.hub=gcr.io/istio-release \
-    --values values-istio-test.yaml \
-    "${DIRNAME}/${release}/istio" > "${FILENAME}"
+       ${opts} \
+       --values values-istio-test.yaml \
+       "${DIRNAME}/${release}/istio" > "${FILENAME}"
 
   # update prometheus scape interval
   sed -i 's/scrape_interval: .*$/scrape_interval: 30s/' "${FILENAME}"
