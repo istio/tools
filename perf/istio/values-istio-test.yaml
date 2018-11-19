@@ -8,7 +8,6 @@ global:
   meshExpansionILB: true
   refreshInterval: 30s
   imagePullPolicy: Always
-  configValidation: false
   k8sIngressSelector: ingressgateway
 
   proxy:
