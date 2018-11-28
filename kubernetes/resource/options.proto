@@ -1,0 +1,53 @@
+// Copyright 2018 Istio Authors
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+syntax = "proto2";
+
+package kubernetes.resource;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package="istio.io/tools/kubernetes/resource";
+
+enum Scope {
+    NAMESPACED = 0;
+    CLUSTER = 1;
+}
+
+extend google.protobuf.MessageOptions {
+    // Tags the message as a CRD Spec. This needs to be set to true on the message, to indicate that
+    // a CRD should be generated.
+    optional bool spec = 50000;
+
+    // Scope of the CRD. Defaults to NAMESPACED.
+    optional Scope scope = 50001;
+
+    // The group name for the CRD. If not specified, the package name will be used.
+    optional string group = 50002;
+
+    // The version of the CRD (i.e. v1alpha1, v1alpha2). If not specified v1 will be used.
+    optional string version = 50003;
+
+    // The kind name of the CRD. If not specified, the message name will be used.
+    optional string kind = 50004;
+
+    // The singular name of the CRD. If not specified, the lower-cased value for the kind option will be used.
+    optional string singular = 50005;
+
+    // The plural name of the CRD. If not specified, a horribly pluralized version of the singular option
+    // will be used.
+    optional string plural = 50006;
+
+    // TODO: Labels
+}

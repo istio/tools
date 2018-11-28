@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "kubernetes/resource/options.proto";
+
+package testpkg;
+
+option go_package="istio.io/tools/protoc-gen-crds/testdata";
+
+// BasicMessage is a message that I use for testing.
+message BasicMessage {
+    option (kubernetes.resource.spec) = true;
+    option (kubernetes.resource.scope) = NAMESPACED;
+    option (kubernetes.resource.group) = "config.istio.io";
+    option (kubernetes.resource.version) = "v1alpha1";
+    option (kubernetes.resource.kind) = "basic";
+
+    int32 field_int32 = 1;
+
+    string field_string = 2;
+
+    repeated string field_repeated_string = 3;
+
+    InnerMessage field_message = 4;
+
+    repeated InnerMessage field_repeated_message = 5;
+}
+
+message InnerMessage {
+    bool field_bool = 1;
+}
