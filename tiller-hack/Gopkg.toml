@@ -1,0 +1,27 @@
+[[constraint]]
+  branch = "master"
+  name = "github.com/golang/glog"
+
+[[constraint]]
+  name = "k8s.io/helm"
+  version = "2.11.0"
+
+[[override]]
+  name = "k8s.io/api"
+  version = "kubernetes-1.12.2"
+
+[[override]]
+  name = "k8s.io/apiextensions-apiserver"
+  version = "kubernetes-1.12.2"
+
+[[override]]
+  name = "k8s.io/apimachinery"
+  version = "kubernetes-1.12.2"
+
+[[override]]
+  name = "k8s.io/client-go"
+  version = "9.0.0"
+
+[prune]
+  go-tests = true
+  unused-packages = true
