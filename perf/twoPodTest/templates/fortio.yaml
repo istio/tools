@@ -1,3 +1,26 @@
+{{- define "rbac" }}
+{{- $ruleName := (randAlpha 16) | lower }}
+apiVersion: "rbac.istio.io/v1alpha1"
+kind: ServiceRole
+metadata:
+  name: {{ $ruleName }}
+spec:
+  rules:
+  - services: ["{{ $.name }}.*"]
+    methods: ["*"]
+---
+apiVersion: "rbac.istio.io/v1alpha1"
+kind: ServiceRoleBinding
+metadata:
+  name: {{ $ruleName }}
+spec:
+  subjects:
+  - user: "{{ $.userName }}"
+  roleRef:
+    kind: ServiceRole
+    name: "{{ $ruleName }}"
+{{- end }}
+
 {{- define "fortio" }}
 ---
 apiVersion: v1
@@ -22,6 +45,23 @@ spec:
     app: {{ $.name }}
   type: ClusterIP
 ---
+{{- if $.Values.rbac.enabled }}
+{{- range $i, $e := until ($.Values.rbac.numPolicies|int) }}
+{{- $data := dict "name" $.name "Values" $.Values "userName" (randAlpha 16) }}
+{{- template "rbac" $data }}
+---
+{{- end }}
+{{- $data := dict "name" .name "Values" .Values "ruleName" (randAlphaNum 16) "userName" "*" }}
+  {{- template "rbac" $data }}
+---
+apiVersion: "rbac.istio.io/v1alpha1"
+kind: RbacConfig
+metadata:
+  name: default
+spec:
+  mode: 'ON'
+---
+{{- end }}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -150,4 +190,4 @@ spec:
         ingressClass: istio
       domains:
       - fortiotls.{{ .Values.domain }}
--
+---

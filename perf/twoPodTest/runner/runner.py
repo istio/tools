@@ -152,7 +152,8 @@ def perf(pod, labels, duration=20, runfn=run_command_sync):
     return perf
 
 
-def kubecp(from_file, to_file, namespace="service-graph"):
+def kubecp(from_file, to_file):
+    namespace = os.environ.get("NAMESPACE", "service-graph")
     cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c istio-proxy".format(
         from_file=from_file, to_file=to_file, namespace=namespace)
     print cmd
