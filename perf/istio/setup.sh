@@ -27,6 +27,8 @@ function install_istio() {
       tar -xzf "${outfile}" -C "${DIRNAME}"
       mv "${DIRNAME}/istio-${release}/install/kubernetes/helm" "${DIRNAME}/${release}"
       rm -Rf "${DIRNAME}/istio-${release}"
+      #helm repo add istio.io https://storage.googleapis.com/istio-prerelease/daily-build/master-latest-daily/charts
+      helm init -c 
       helm dep update "${DIRNAME}/${release}/istio" || true
   fi
 
