@@ -11,6 +11,28 @@ spec:
     app: badhealth
   type: ClusterIP
 ---
+{{- if $.Values.rbac.enabled }}
+apiVersion: "rbac.istio.io/v1alpha1"
+kind: ServiceRole
+metadata:
+  name: badhealth
+spec:
+  rules:
+  - services: ["badhealth.*"]
+    methods: ["*"]
+---
+apiVersion: "rbac.istio.io/v1alpha1"
+kind: ServiceRoleBinding
+metadata:
+  name: badhealth
+spec:
+  subjects:
+  - user: "*"
+  roleRef:
+    kind: ServiceRole
+    name: "badhealth"
+---
+{{- end }}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:

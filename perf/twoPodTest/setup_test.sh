@@ -7,6 +7,7 @@ set -ex
 NAMESPACE=${NAMESPACE:?"namespace"}
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
+RBAC_ENABLED="false"
 
 mkdir -p "${TMPDIR}"
 
@@ -17,7 +18,8 @@ function ip_range() {
 
 function run_test() {
   helm -n ${NAMESPACE} template \
-	  --set excludeOutboundIPRanges=$(ip_range) \
+      --set rbac.enabled="${RBAC_ENABLED}" \
+      --set excludeOutboundIPRanges=$(ip_range) \
     --set domain="${DNS_DOMAIN}" \
           . > ${TMPDIR}/twopods.yaml
   echo "Wrote ${TMPDIR}/twopods.yaml"
@@ -26,5 +28,13 @@ function run_test() {
   kubectl --namespace istio-system delete rules stdio stdiotcp || true
   kubectl apply -n ${NAMESPACE} -f ${TMPDIR}/twopods.yaml
 }
+
+for ((i=1; i<=$#; i++)); do
+    case ${!i} in
+        -r|--rbac) ((i++)); RBAC_ENABLED="true"
+        continue
+        ;;
+    esac
+done
 
 run_test
