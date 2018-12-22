@@ -2,16 +2,15 @@
 #excludeOutboundIPRanges exclude pod ips
 excludeOutboundIPRanges: 
 proxy:
-  cpu: "2000m"
+  cpu: "500m"
   memory: "512m"
 
-appresources:
+appresources1:
   requests:
     cpu: "800m"
     memory: "1000m"
 
-fortioImage: istio/fortio:latest_release
-tlsmode: ISTIO_MUTUAL
+fortioImage: fortio/fortio:latest_release
 domain: local
 gateway: fortio-gateway
 rbac:
@@ -21,3 +20,12 @@ rbac:
   # Note: The generated policies will have a random name. One of the policies allows everyone to access fortioserver and
   # the other policies allow a random non exist user to access it.
   numPolicies: 3
+
+server:  # server overrides
+  tlsmode: ISTIO_MUTUAL
+
+client: # client overrides
+  tlsmode: DISABLE
+  inject: "false"
+
+cert: false

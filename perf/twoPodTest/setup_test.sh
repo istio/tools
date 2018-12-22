@@ -3,7 +3,7 @@ WD=$(dirname $0)
 WD=$(cd "${WD}"; pwd)
 cd "${WD}"
 
-set -ex
+set -x
 NAMESPACE=${NAMESPACE:?"namespace"}
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
@@ -27,6 +27,7 @@ function run_test() {
   # remove stdio rules
   kubectl --namespace istio-system delete rules stdio stdiotcp || true
   kubectl apply -n ${NAMESPACE} -f ${TMPDIR}/twopods.yaml
+  echo ${TMPDIR}/twopods.yaml
 }
 
 for ((i=1; i<=$#; i++)); do

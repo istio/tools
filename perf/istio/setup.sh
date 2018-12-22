@@ -7,7 +7,8 @@ function download() {
   local DIRNAME="$1"
   local release="$2"
 
-  local url="https://storage.googleapis.com/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  #local url="https://storage.googleapis.com/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
   local outfile="${DIRNAME}/istio-${release}.tgz"
 
   if [[ ! -f "${outfile}" ]]; then
@@ -27,8 +28,10 @@ function install_istio() {
       tar -xzf "${outfile}" -C "${DIRNAME}"
       mv "${DIRNAME}/istio-${release}/install/kubernetes/helm" "${DIRNAME}/${release}"
       rm -Rf "${DIRNAME}/istio-${release}"
-      #helm repo add istio.io https://storage.googleapis.com/istio-prerelease/daily-build/master-latest-daily/charts
       helm init -c 
+      if [[ ! ${release} =~ release-1.0-* ]];then
+        helm repo add istio.io https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/charts
+      fi
       helm dep update "${DIRNAME}/${release}/istio" || true
   fi
 
