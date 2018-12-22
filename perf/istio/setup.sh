@@ -55,9 +55,12 @@ function install_istio() {
       opts+=" --set global.useMCP=true"
   fi
 
+
+  local values=${VALUES:-values-istio-test.yaml}
+
   helm template --name istio --namespace istio-system \
        ${opts} \
-       --values values-istio-test.yaml \
+       --values ${values} \
        "${DIRNAME}/${release}/istio" > "${FILENAME}"
 
   # update prometheus scape interval
@@ -113,9 +116,9 @@ shift
 
 setup_admin_binding
 install_istio "${WD}/tmp" "${release}" $*
-install_gateways
+#install_gateways
 
-install_all_config "${WD}/tmp"
+#install_all_config "${WD}/tmp"
 
 # Run this after adding a new name for ingress testing
 function AddDNS() {

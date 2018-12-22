@@ -214,9 +214,9 @@ def getParser():
     parser.add_argument(
         "--baseline", help="run baseline for all", type=bool, default=True)
     parser.add_argument(
-        "--serversidecar", help="run serversidecar for all", type=bool, default=True)
+        "--serversidecar", help="run serversidecar for all", type=bool, default=False)
     parser.add_argument(
-        "--clientsidecar", help="run clientsidecar and serversidecar for all", type=bool, default=True,)
+        "--clientsidecar", help="run clientsidecar and serversidecar for all", type=bool, default=True)
     parser.add_argument("--labels", help="extra labels", default=None)
     return parser
 
