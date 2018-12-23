@@ -26,6 +26,6 @@ server:  # server overrides
 
 client: # client overrides
   tlsmode: DISABLE
-  inject: "false"
+  #inject: "false"
 
 cert: false

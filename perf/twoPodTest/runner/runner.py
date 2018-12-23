@@ -73,15 +73,15 @@ class Fortio(object):
         self.run_baseline = baseline
 
     def nosidecar(self, fortio_cmd):
-        return fortio_cmd + "_nosidecars http://{svc}:{port}/echo?size={size}".format(
+        return fortio_cmd + "_base http://{svc}:{port}/echo?size={size}".format(
             svc=self.server.ip, port=self.ports[self.mode]["direct_port"], size=self.size)
 
     def serversidecar(self, fortio_cmd):
-        return fortio_cmd + "_serversidecar http://{svc}:{port}/echo?size={size}".format(
+        return fortio_cmd + "_serveronly http://{svc}:{port}/echo?size={size}".format(
             svc=self.server.ip, port=self.ports[self.mode]["port"], size=self.size)
 
     def bothsidecar(self, fortio_cmd):
-        return fortio_cmd + "_bothsidecars http://{svc}:{port}/echo?size={size}".format(
+        return fortio_cmd + "_both http://{svc}:{port}/echo?size={size}".format(
             svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
 
     def run(self, conn=None, qps=None, size=None, duration=None):
