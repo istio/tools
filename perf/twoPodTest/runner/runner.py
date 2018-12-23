@@ -96,10 +96,10 @@ class Fortio(object):
         labels += "_qps_" + str(qps)
         labels += "_"
         labels += "c_" + str(conn)
-        labels += "_"
-        labels += "mixer" if self.mixer else "nomixer"
-        labels += "_"
-        labels += "mixercache" if self.mixer_cache else "nomixercache"
+        #labels += "_"
+        #labels += "mixer" if self.mixer else "nomixer"
+        #labels += "_"
+        #labels += "mixercache" if self.mixer_cache else "nomixercache"
         labels += "_"
         labels += str(self.size)
 

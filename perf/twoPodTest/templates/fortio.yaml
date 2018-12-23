@@ -89,6 +89,10 @@ spec:
       containers:
       - name: captured
         image: {{ $.Values.fortioImage }}
+{{- if eq $.name "fortioclient" }}
+        args:
+        - report
+{{- end }}
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -101,7 +105,11 @@ spec:
       - name: uncaptured
         image: {{ $.Values.fortioImage }}
         args:
+{{- if eq $.name "fortioclient" }}
+        - report
+{{- else }}
         - server
+{{- end }}
         - -http-port
         - "8077"
         - -grpc-port
