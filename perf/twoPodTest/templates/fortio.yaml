@@ -86,8 +86,14 @@ spec:
       labels:
         app: {{ $.name }}
     spec:
+      volumes:
+      - name: shared-data
+        emptyDir: {}
       containers:
       - name: captured
+        volumeMounts:
+        - name: shared-data
+          mountPath: /var/lib/fortio
         image: {{ $.Values.fortioImage }}
 {{- if eq $.name "fortioclient" }}
         args:
@@ -102,6 +108,14 @@ spec:
 {{- if $.Values.appresources }}
 {{ toYaml $.Values.appresources | indent 10 }}
 {{- end }}
+      - name: shell
+        volumeMounts:
+        - name: shared-data
+          mountPath: /var/lib/fortio
+        image: tutum/curl:trusty
+        args:
+        - /bin/sleep
+        - infinity
       - name: uncaptured
         image: {{ $.Values.fortioImage }}
         args:
