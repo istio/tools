@@ -173,6 +173,17 @@ spec:
       name: http
       number: 80
       protocol: HTTP
+  - hosts:
+    - '*'
+    port:
+      name: https-fortio
+      number: 443
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      privateKey: /etc/istio/ingressgateway-certs/tls.key
+      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+
 ---
 
 
