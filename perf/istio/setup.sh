@@ -33,7 +33,11 @@ function install_istio() {
   kubectl create ns istio-system || true
 
   if [[ -z "${DRY_RUN}" ]];then
-      kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
+      # apply CRD files for istio kinds
+      if [[ -f "${DIRNAME}/${release}/istio/templates/crds.yaml" ]];then
+         kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
+      else
+         kubectl apply -f "${DIRNAME}/${release}/istio-init/files/"
   fi
 
   local FILENAME="${DIRNAME}/${release}.yml"
