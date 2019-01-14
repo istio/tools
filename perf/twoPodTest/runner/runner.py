@@ -1,3 +1,4 @@
+from __future__ import print_function
 import datetime
 import calendar
 import requests
@@ -144,9 +145,9 @@ def perf(pod, labels, duration=20, runfn=run_command_sync):
                                                              filename=filename, duration=duration),
                    runfn=run_command_sync, container="istio-proxy")
 
-    print perf
+    print(perf)
 
-    print kubecp(pod + ":" + filepath + ".perf", filename + ".perf")
+    print(kubecp(pod + ":" + filepath + ".perf", filename + ".perf"))
 
     run_command_sync("./flame.sh " + filename + ".perf")
     return perf
@@ -156,7 +157,7 @@ def kubecp(from_file, to_file):
     namespace = os.environ.get("NAMESPACE", "service-graph")
     cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c istio-proxy".format(
         from_file=from_file, to_file=to_file, namespace=namespace)
-    print cmd
+    print(cmd)
     return run_command_sync(cmd)
 
 
@@ -167,7 +168,7 @@ def kubectl(pod, remote_cmd, runfn=run_command, container=None):
         c = "-c " + container
     cmd = "kubectl --namespace {namespace} exec -i -t {pod} {c} -- {remote_cmd}".format(
         pod=pod, remote_cmd=remote_cmd, c=c, namespace=namespace)
-    print cmd
+    print(cmd)
     return runfn(cmd)
 
 
@@ -178,7 +179,7 @@ def rc(command):
         if output == '' and process.poll() is not None:
             break
         if output:
-            print output.strip() + "\n"
+            print(output.strip() + "\n")
     return process.poll()
 
 
@@ -222,7 +223,7 @@ def getParser():
 
 def main(argv):
     args = getParser().parse_args(argv)
-    print args
+    print(args)
     return run(args)
 
 if __name__ == "__main__":
