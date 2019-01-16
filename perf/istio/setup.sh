@@ -38,6 +38,7 @@ function install_istio() {
          kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
       else
          kubectl apply -f "${DIRNAME}/${release}/istio-init/files/"
+      fi
   fi
 
   local FILENAME="${DIRNAME}/${release}.yml"
