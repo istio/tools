@@ -37,6 +37,10 @@
   name = "github.com/google/uuid"
   version = "1.1.0"
 
+[[override]]
+  name = "k8s.io/gengo"
+  revision = "f8a0810f38afb8478882b3835a615aebfda39afa"
+
 [prune]
   go-tests = true
   unused-packages = true
