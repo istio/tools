@@ -1,3 +1,4 @@
+from __future__ import print_function
 import datetime
 import calendar
 import requests
@@ -382,7 +383,7 @@ def main(argv):
     if args.indent is not None:
         indent = int(args.indent)
 
-    print json.dumps(out, indent=indent)
+    print(json.dumps(out, indent=indent))
 
 
 def getParser():

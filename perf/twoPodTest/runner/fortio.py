@@ -1,3 +1,4 @@
+from __future__ import print_function
 import json
 import os
 import tempfile
@@ -122,33 +123,33 @@ def syncFortio(url, table, selector=None):
                 continue
 
         sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
-        print "Fetching prometheus metrics for", sd,
+        print("Fetching prometheus metrics for", sd, end=' ')
 
         if gd['errorPercent'] > 10:
-            print "... Run resulted in", gd['errorPercent'], "% errors"
+            print("... Run resulted in", gd['errorPercent'], "% errors")
             continue
         # give 30s after start of test
         prom_start = calendar.timegm(sd.utctimetuple()) + 30
         p = prom.Prom("http://prometheus.local", 120, start=prom_start)
         prom_metrics = p.fetch_cpu_and_mem()
         if len(prom_metrics) == 0:
-            print "... Not found"
+            print("... Not found")
             continue
         else:
-            print ""
+            print("")
 
         gd.update(prom_metrics)
         out.write(json.dumps(gd) + "\n")
         cnt += 1
 
     out.close()
-    print "Wrote {} records to {}".format(cnt, datafile)
+    print("Wrote {} records to {}".format(cnt, datafile))
 
     p = subprocess.Popen("bq insert {table} {datafile}".format(
         table=table, datafile=datafile).split())
     ret = p.wait()
-    print p.stdout
-    print p.stderr
+    print(p.stdout)
+    print(p.stderr)
     return ret
 
 
