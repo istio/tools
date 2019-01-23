@@ -93,6 +93,12 @@ function install_all_config() {
   fi
 }
 
+function setup_admin_binding() {
+  kubectl create clusterrolebinding cluster-admin-binding \
+    --clusterrole=cluster-admin \
+    --user=$(gcloud config get-value core/account) || true
+}
+
 WD=$(dirname $0)
 WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
@@ -100,6 +106,7 @@ mkdir -p "${WD}/tmp"
 release="${1:?"release"}"
 shift
 
+setup_admin_binding
 install_istio "${WD}/tmp" "${release}" $*
 install_gateways
 
