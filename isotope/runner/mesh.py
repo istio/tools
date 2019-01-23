@@ -9,6 +9,7 @@ and define three functions:
 
 These three functions make it simple for use in a with-statement.
 """
+from __future__ import print_function
 
 import contextlib
 from typing import Callable, Generator

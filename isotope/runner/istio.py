@@ -1,4 +1,5 @@
 """Functions for manipulating the Istio environment."""
+from __future__ import print_function
 
 import contextlib
 import logging
@@ -36,7 +37,7 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
     """
     archive_url = convert_archive(archive_url)
 
-    print ("Using archive_url", archive_url)
+    print(("Using archive_url", archive_url))
 
     with tempfile.TemporaryDirectory() as tmp_dir_path:
         archive_path = os.path.join(tmp_dir_path, 'istio.tar.gz')
