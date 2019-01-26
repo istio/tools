@@ -25,3 +25,6 @@ testVMServices: 10
 # Will generate envoy RDS for ingress.
 loadTestIngress: 5
 healthCheck: true
+
+certManager: false
+ingress: ingressIP
