@@ -8,6 +8,7 @@ spec:
   selector:
     istio: ingressgateway
   servers:
+{{- if $.Values.certManager }}
   - port:
       number: 443
       name: https-default
@@ -18,6 +19,7 @@ spec:
       privateKey: /etc/istio/ingressgateway-certs/tls.key
     hosts:
     - "*"
+{{- end }}
   - port:
       number: 80
       name: http
@@ -29,6 +31,7 @@ spec:
     - "grafana.local"
     - "kiali.{{ .Values.domain }}"
     - "kiali.local"
+    - "*"
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -81,6 +84,7 @@ spec:
         port:
           number: 9090
 ---
+{{- if $.Values.certManager }}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
@@ -146,4 +150,4 @@ spec:
       domains:
       - fortionoistio.{{ .Values.domain }}
       - fortionoistio1.{{ .Values.domain }}
-
+{{- end }}

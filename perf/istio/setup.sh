@@ -7,7 +7,6 @@ function download() {
   local DIRNAME="$1"
   local release="$2"
 
-  #local url="https://storage.googleapis.com/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
   local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
   local outfile="${DIRNAME}/istio-${release}.tgz"
 
@@ -116,7 +115,7 @@ shift
 
 setup_admin_binding
 install_istio "${WD}/tmp" "${release}" $*
-#install_gateways
+install_gateways
 
 #install_all_config "${WD}/tmp"
 
