@@ -123,7 +123,7 @@ prometheus:
   enabled: true
 
 kiali:
-  enabled: true
+  enabled: false
   tag: latest
 
 certmanager:

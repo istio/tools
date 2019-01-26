@@ -50,7 +50,7 @@ function install_istio() {
   opts="--set global.tag=${release}"
   opts+=" --set global.hub=gcr.io/istio-release"
 
-  if [[ "${MCP}" = "1" ]];then
+  if [[ "${MCP}" != "0" ]];then
       opts+=" --set global.useMCP=true"
   fi
 
