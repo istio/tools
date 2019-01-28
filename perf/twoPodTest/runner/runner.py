@@ -15,7 +15,8 @@ POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
 
 def pod_info(filterstr="", namespace="service-graph", multi_ok=True):
-    cmd =  "kubectl -n {namespace} get pod {filterstr}  -o json".format(namespace=namespace, filterstr=filterstr)
+    cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
+        namespace=namespace, filterstr=filterstr)
     op = subprocess.check_output(shlex.split(cmd))
     o = json.loads(op)
     items = o['items']
@@ -96,6 +97,7 @@ class Fortio(object):
         labels += "_qps_" + str(qps)
         labels += "_"
         labels += "c_" + str(conn)
+        # TODO add mixer labels back
         #labels += "_"
         #labels += "mixer" if self.mixer else "nomixer"
         #labels += "_"
@@ -225,6 +227,7 @@ def main(argv):
     args = getParser().parse_args(argv)
     print(args)
     return run(args)
+
 
 if __name__ == "__main__":
     import sys
