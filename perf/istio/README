@@ -1,23 +1,9 @@
 # setup istio with performance parameters.
 Look at istio-test-values.yaml for details
 
-./setup.sh release-1.0-20181018-09-15 
+DNS_DOMAIN=v11mcp.qualistio.org ./setup.sh release-1.1-20190125-09-16
 Would setup istio in the cluster
 
-DRY_RUN=1 ./setup.sh release-1.0-20181018-09-15
+DRY_RUN=1 DNS_DOMAIN=v11mcp.qualistio.org ./setup.sh release-1.1-20190125-09-16
 Would only create the tmp/release-1.0-20181018-09-15.yaml deployment file
 
-Changes
-1. change scrape interval to 30s
-# sed -i 's/scrape_interval: .*$/scrape_interval: 30s/'
-2. add prometheus metric expiry of 10mins
-
-  metrics_expiration_policy:
-    metrics_expiry_duration: "10m"
-to 
-apiVersion: "config.istio.io/v1alpha2"
-kind: prometheus
-metadata:
-  name: handler
-  namespace: istio-system
-spec:

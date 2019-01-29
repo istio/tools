@@ -15,7 +15,8 @@ POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
 
 def pod_info(filterstr="", namespace="service-graph", multi_ok=True):
-    cmd =  "kubectl -n {namespace} get pod {filterstr}  -o json".format(namespace=namespace, filterstr=filterstr)
+    cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
+        namespace=namespace, filterstr=filterstr)
     op = subprocess.check_output(shlex.split(cmd))
     o = json.loads(op)
     items = o['items']
@@ -73,15 +74,15 @@ class Fortio(object):
         self.run_baseline = baseline
 
     def nosidecar(self, fortio_cmd):
-        return fortio_cmd + "_nosidecars http://{svc}:{port}/echo?size={size}".format(
+        return fortio_cmd + "_base http://{svc}:{port}/echo?size={size}".format(
             svc=self.server.ip, port=self.ports[self.mode]["direct_port"], size=self.size)
 
     def serversidecar(self, fortio_cmd):
-        return fortio_cmd + "_serversidecar http://{svc}:{port}/echo?size={size}".format(
+        return fortio_cmd + "_serveronly http://{svc}:{port}/echo?size={size}".format(
             svc=self.server.ip, port=self.ports[self.mode]["port"], size=self.size)
 
     def bothsidecar(self, fortio_cmd):
-        return fortio_cmd + "_bothsidecars http://{svc}:{port}/echo?size={size}".format(
+        return fortio_cmd + "_both http://{svc}:{port}/echo?size={size}".format(
             svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
 
     def run(self, conn=None, qps=None, size=None, duration=None):
@@ -96,10 +97,11 @@ class Fortio(object):
         labels += "_qps_" + str(qps)
         labels += "_"
         labels += "c_" + str(conn)
-        labels += "_"
-        labels += "mixer" if self.mixer else "nomixer"
-        labels += "_"
-        labels += "mixercache" if self.mixer_cache else "nomixercache"
+        # TODO add mixer labels back
+        #labels += "_"
+        #labels += "mixer" if self.mixer else "nomixer"
+        #labels += "_"
+        #labels += "mixercache" if self.mixer_cache else "nomixercache"
         labels += "_"
         labels += str(self.size)
 
@@ -216,7 +218,7 @@ def getParser():
     parser.add_argument(
         "--serversidecar", help="run serversidecar for all", type=bool, default=True)
     parser.add_argument(
-        "--clientsidecar", help="run clientsidecar and serversidecar for all", type=bool, default=True,)
+        "--clientsidecar", help="run clientsidecar and serversidecar for all", type=bool, default=True)
     parser.add_argument("--labels", help="extra labels", default=None)
     return parser
 
@@ -225,6 +227,7 @@ def main(argv):
     args = getParser().parse_args(argv)
     print(args)
     return run(args)
+
 
 if __name__ == "__main__":
     import sys

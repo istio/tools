@@ -10,27 +10,44 @@ global:
     # destination rules or service annotations.
     enabled: true
 
-
-  ## imagePullSecrets for all ServiceAccount. Must be set for any clustser configured with privte docker registry.
-  # imagePullSecrets:
-  #   - name: "private-registry-key"
-
   # Default is 10s second
   refreshInterval: 10s
   proxy:
     image: proxyv2
     resources:
       requests:
-        cpu: 2000m
-        memory: 1024Mi
+        cpu: 500m
+        memory: 256Mi
 
     # Configures the access log for each sidecar. Setting it to an empty string will
     # disable access log for sidecar.
     accessLogFile: "/dev/null"
+    concurrency: 2
 
     # If set, newly injected sidecars will have core dumps enabled.
     enableCoreDump: true
 
+ingress:
+  enabled: false
+
+gateways:
+  istio-ingressgateway:
+    enabled: true
+    secretVolumes:
+    - name: istio-ingressgateway-certs
+      secretName: istio-ingressgateway-certs
+      mountPath: /etc/istio/ingressgateway-certs
+ 
+    type: LoadBalancer #change to NodePort, ClusterIP or LoadBalancer if need be
+    ports:
+    - port: 80
+      targetPort: 80
+      name: http
+      nodePort: 31380
+    - port: 443
+      name: https
+      nodePort: 31390
+ 
 mixer:
     resources:
       requests:
@@ -40,9 +57,11 @@ mixer:
 pilot:
     resources:
       requests:
-        cpu: 4000m
-        memory: 8096Mi
+        cpu: 2000m
+        memory: 2096Mi
 
 grafana:
     enabled: true
 
+prometheus:
+    enabled: true
