@@ -78,14 +78,27 @@ spec:
         {{- if $.Values.excludeOutboundIPRanges }}
         traffic.sidecar.istio.io/excludeOutboundIPRanges: {{ $.Values.excludeOutboundIPRanges }}
         {{- end }}
+        {{- if $.V.inject }}
+        sidecar.istio.io/inject: "{{ $.V.inject }}"
+        {{- end }}
         sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
         sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
       labels:
         app: {{ $.name }}
     spec:
+      volumes:
+      - name: shared-data
+        emptyDir: {}
       containers:
       - name: captured
+        volumeMounts:
+        - name: shared-data
+          mountPath: /var/lib/fortio
         image: {{ $.Values.fortioImage }}
+{{- if eq $.name "fortioclient" }}
+        args:
+        - report
+{{- end }}
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -95,10 +108,22 @@ spec:
 {{- if $.Values.appresources }}
 {{ toYaml $.Values.appresources | indent 10 }}
 {{- end }}
+      - name: shell
+        volumeMounts:
+        - name: shared-data
+          mountPath: /var/lib/fortio
+        image: tutum/curl:trusty
+        args:
+        - /bin/sleep
+        - infinity
       - name: uncaptured
         image: {{ $.Values.fortioImage }}
         args:
+{{- if eq $.name "fortioclient" }}
+        - report
+{{- else }}
         - server
+{{- end }}
         - -http-port
         - "8077"
         - -grpc-port
@@ -129,7 +154,7 @@ spec:
   host:  {{ $.name }}
   trafficPolicy:
     tls:
-      mode: {{ $.Values.tlsmode }}
+      mode: {{ $.V.tlsmode }}
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -149,9 +174,9 @@ spec:
 ---
 {{- end }}
 
-{{- $fortioserver := dict "name" "fortioserver" "Values" .Values }}
+{{- $fortioserver := dict "name" "fortioserver" "Values" .Values "V" .Values.server}}
 {{- template "fortio" $fortioserver }}
-{{- $fortioclient := dict "name" "fortioclient" "Values" .Values }}
+{{- $fortioclient := dict "name" "fortioclient" "Values" .Values "V" .Values.client }}
 {{- template "fortio" $fortioclient }}
 
 ---
@@ -170,7 +195,21 @@ spec:
       name: http
       number: 80
       protocol: HTTP
+  - hosts:
+    - '*'
+    port:
+      name: https-fortio
+      number: 443
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      privateKey: /etc/istio/ingressgateway-certs/tls.key
+      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+
 ---
+
+
+{{- if $.Values.cert }}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
@@ -190,4 +229,5 @@ spec:
         ingressClass: istio
       domains:
       - fortiotls.{{ .Values.domain }}
----
+      - fortioclient.{{ .Values.domain }}
+{{- end }}

@@ -7,7 +7,7 @@ function download() {
   local DIRNAME="$1"
   local release="$2"
 
-  local url="https://storage.googleapis.com/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
   local outfile="${DIRNAME}/istio-${release}.tgz"
 
   if [[ ! -f "${outfile}" ]]; then
@@ -27,6 +27,10 @@ function install_istio() {
       tar -xzf "${outfile}" -C "${DIRNAME}"
       mv "${DIRNAME}/istio-${release}/install/kubernetes/helm" "${DIRNAME}/${release}"
       rm -Rf "${DIRNAME}/istio-${release}"
+      helm init -c 
+      if [[ ! ${release} =~ release-1.0-* ]];then
+        helm repo add istio.io https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/charts
+      fi
       helm dep update "${DIRNAME}/${release}/istio" || true
   fi
 
@@ -46,13 +50,16 @@ function install_istio() {
   opts="--set global.tag=${release}"
   opts+=" --set global.hub=gcr.io/istio-release"
 
-  if [[ "${MCP}" = "1" ]];then
+  if [[ "${MCP}" != "0" ]];then
       opts+=" --set global.useMCP=true"
   fi
 
+
+  local values=${VALUES:-values-istio-test.yaml}
+
   helm template --name istio --namespace istio-system \
        ${opts} \
-       --values values-istio-test.yaml \
+       --values ${values} \
        "${DIRNAME}/${release}/istio" > "${FILENAME}"
 
   # update prometheus scape interval
@@ -110,7 +117,7 @@ setup_admin_binding
 install_istio "${WD}/tmp" "${release}" $*
 install_gateways
 
-install_all_config "${WD}/tmp"
+#install_all_config "${WD}/tmp"
 
 # Run this after adding a new name for ingress testing
 function AddDNS() {

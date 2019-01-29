@@ -6,6 +6,8 @@ domain: v103.qualistio.org
 
 # Namespace where istio control plane is installed.
 istioNamespace: istio-system
+certManager: false
+
 
 #fortioImage: istio/fortio:latest
 fortioImage: fortio/fortio:latest
