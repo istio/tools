@@ -17,6 +17,7 @@ package kubernetes
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -83,6 +84,8 @@ func ServiceGraphToKubernetesManifests(
 		return nil, err
 	}
 
+	rand.Seed(time.Now().UTC().UnixNano())
+	hasRbacPolicy := false
 	for _, service := range serviceGraph.Services {
 		k8sDeployment, innerErr := makeDeployment(
 			service, serviceNodeSelector, serviceImage,
@@ -103,6 +106,17 @@ func ServiceGraphToKubernetesManifests(
 		if innerErr != nil {
 			return nil, innerErr
 		}
+
+		if service.NumRbacPolicies > 0 {
+			hasRbacPolicy = true
+			var i int32
+			// Generates random RBAC rules for the service.
+			for i = 0; i < service.NumRbacPolicies; i++ {
+				manifests = append(manifests, generateRbacPolicy(service, false /* allowAll */))
+			}
+			// Generates "allow-all" RBAC rule for the service.
+			manifests = append(manifests, generateRbacPolicy(service, true /* allowAll */))
+		}
 	}
 
 	fortioDeployment := makeFortioDeployment(
@@ -114,6 +128,10 @@ func ServiceGraphToKubernetesManifests(
 	fortioService := makeFortioService()
 	if err := appendManifest(fortioService); err != nil {
 		return nil, err
+	}
+
+	if hasRbacPolicy {
+		manifests = append(manifests, generateRbacConfig())
 	}
 
 	yamlDocString := strings.Join(manifests, "---\n")

@@ -45,4 +45,7 @@ type Service struct {
 
 	// Script is sequentially called each time the service is called.
 	Script script.Script `json:"script,omitempty"`
+
+	// NumRbacPolicies is the number of policies generated for each service.
+	NumRbacPolicies int32 `json:"numRbacPolicies"`
 }
