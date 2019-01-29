@@ -1,6 +1,7 @@
 defaults:
   requestSize: 1 KB
   responseSize: 1 KB
+  numRbacPolicies: 3
 services:
 - name: a
 - name: b

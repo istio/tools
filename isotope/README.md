@@ -205,12 +205,14 @@ default: # Optional. Default to empty map.
   requestSize: {{ ByteSize }} # Optional. Default 0.
   responseSize: {{ ByteSize }} # Optional. Default 0.
   script: {{ Script }} # Optional. See below for spec.
+  numRbacPolicies: {{ Int }} # Optional. Number of RBAC policies generated per service. Default 0.
 services: # Required. List of services in the graph.
 - name: {{ ServiceName }}: # Required. Name of the service.
   type: {{ "http" | "grpc" }} # Optional. Default "http".
   responseSize: {{ ByteSize }} # Optional. Default 0.
   errorRate: {{ Percentage }} # Optional. Overrides default.
   script: {{ Script }} # Optional. See below for spec.
+  numRbacPolicies: {{ Int }} # Optional. Number of RBAC policies generated per service, overrides the default numRbacPolicies.
 ```
 
 #### Default
@@ -219,7 +221,7 @@ At the global scope a `default` map may be placed to indicate settings which
 should hold for omitted settings for its current and nested scopes.
 
 Default-able settings include `type`, `script`, `responseSize`,
-`requestSize`, and `errorRate`.
+`requestSize`, `errorRate` and `numRbacPolicies`.
 
 ##### Example
 
@@ -231,6 +233,7 @@ default:
   # responseSize: 0 # Inherited from default.
   # type: "http" # Inherited from default.
   # script: [] # Inherited from default (acts like an echo server).
+  # numRbacPolicies: 0 # Inherited from default.
 services:
 - name: a
   memoryUsage: 80%
