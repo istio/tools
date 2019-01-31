@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -o errexit
 
 MAX_REPLICAS=${MAX_REPLICAS:-100}
 MIN_REPLICAS=${MIN_REPLICAS:-10}
