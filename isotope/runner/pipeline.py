@@ -37,7 +37,8 @@ def run(topology_path: str, env: mesh.Environment, service_image: str,
     """
 
     manifest_path = _gen_yaml(topology_path, service_image,
-                              test_num_concurrent_connections, client_image)
+                              test_num_concurrent_connections, client_image,
+                              env.name)
 
     topology_name = _get_basename_no_ext(topology_path)
     labels = {
@@ -66,7 +67,8 @@ def _get_basename_no_ext(path: str) -> str:
 
 
 def _gen_yaml(topology_path: str, service_image: str,
-              max_idle_connections_per_host: int, client_image: str) -> str:
+              max_idle_connections_per_host: int, client_image: str,
+              env_name: str) -> str:
     """Converts topology_path to Kubernetes manifests.
 
     The neighboring Go command in convert/ handles this operation.
@@ -77,6 +79,7 @@ def _gen_yaml(topology_path: str, service_image: str,
                 passed to the Go command
         client_image: the Docker image which can run a load test (i.e. Fortio);
                 passed to the Go command
+        env_name: the environment name (i.e. "NONE" or "ISTIO")
     """
     logging.info('generating Kubernetes manifests from %s', topology_path)
     service_graph_node_selector = _get_gke_node_selector(
@@ -88,7 +91,8 @@ def _gen_yaml(topology_path: str, service_image: str,
             service_image, '--service-max-idle-connections-per-host',
             str(max_idle_connections_per_host), '--client-image', client_image,
             topology_path, resources.SERVICE_GRAPH_GEN_YAML_PATH,
-            service_graph_node_selector, client_node_selector
+            service_graph_node_selector, client_node_selector,
+            "--environment-name", env_name
         ],
         check=True)
     return resources.SERVICE_GRAPH_GEN_YAML_PATH
