@@ -10,7 +10,7 @@ Creating cpu flame graphs for Istio / Envoy
 4. Function names are sorted left to right.
 
 
-This document shows how to gather perfomance data from within the `istio-proxy` container.
+This document shows how to gather performance data from within the `istio-proxy` container.
 
 Setup Perf tool
 ---------------
