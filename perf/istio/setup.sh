@@ -106,6 +106,13 @@ function setup_admin_binding() {
     --user=$(gcloud config get-value core/account) || true
 }
 
+function inject_workload() {
+  local deployfile="${1:?"specify the workload deployment file"}"
+
+  istioctl kube-inject -f "${deployfile}" -o temp-workload-injected.yaml
+  kubectl apply -f temp-workload-injected.yaml
+}
+
 WD=$(dirname $0)
 WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
@@ -116,6 +123,9 @@ shift
 setup_admin_binding
 install_istio "${WD}/tmp" "${release}" $*
 install_gateways
+if [[ ! -z "${WORKLOAD_FILE}" ]]; then
+  inject_workload "${WORKLOAD_FILE}"
+fi
 
 #install_all_config "${WD}/tmp"
 
