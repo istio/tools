@@ -57,7 +57,8 @@ func ServiceGraphToKubernetesManifests(
 	serviceImage string,
 	serviceMaxIdleConnectionsPerHost int,
 	clientNodeSelector map[string]string,
-	clientImage string) ([]byte, error) {
+	clientImage string,
+	environmentName string) ([]byte, error) {
 	numServices := len(serviceGraph.Services)
 	numManifests := numManifestsPerService*numServices + numConfigMaps
 	manifests := make([]string, 0, numManifests)
@@ -107,7 +108,8 @@ func ServiceGraphToKubernetesManifests(
 			return nil, innerErr
 		}
 
-		if service.NumRbacPolicies > 0 {
+		// Only generates the RBAC rules when Istio is installed.
+		if strings.ToUpper(environmentName) == "ISTIO" && service.NumRbacPolicies > 0 {
 			hasRbacPolicy = true
 			var i int32
 			// Generates random RBAC rules for the service.

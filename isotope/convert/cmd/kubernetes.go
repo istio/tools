@@ -53,6 +53,9 @@ var kubernetesCmd = &cobra.Command{
 		clientImage, err := cmd.PersistentFlags().GetString("client-image")
 		exitIfError(err)
 
+		environmentName, err := cmd.PersistentFlags().GetString("environment-name")
+		exitIfError(err)
+
 		yamlContents, err := ioutil.ReadFile(inPath)
 		exitIfError(err)
 
@@ -61,7 +64,7 @@ var kubernetesCmd = &cobra.Command{
 
 		manifests, err := kubernetes.ServiceGraphToKubernetesManifests(
 			serviceGraph, serviceNodeSelector, serviceImage,
-			serviceMaxIdleConnectionsPerHost, clientNodeSelector, clientImage)
+			serviceMaxIdleConnectionsPerHost, clientNodeSelector, clientImage, environmentName)
 		exitIfError(err)
 
 		exitIfError(writeManifest(outPath, manifests))
@@ -77,6 +80,8 @@ func init() {
 		"maximum number of connections to keep open per host on each service")
 	kubernetesCmd.PersistentFlags().String(
 		"client-image", "", "the image to use for the load testing client job")
+	kubernetesCmd.PersistentFlags().String(
+		"environment-name", "NONE", `the environment name for the test ("NONE" or "ISTIO")`)
 }
 
 func writeManifest(path string, manifest []byte) error {
