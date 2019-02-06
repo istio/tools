@@ -23,4 +23,12 @@ To run the SDS test that goes to Citadel:
 - Run the following command. You may replace release-1.1-20190203-09-16
 in the command to the release to test.
   DNS_DOMAIN=your-example-domain VALUES=values-istio-sds-auth.yaml WORKLOAD_FILE=./workload/httpbin.yaml ./setup.sh release-1.1-20190203-09-16
+
+After running the above script, wait a moment for Istio to be ready. Then view
+the logs of Node Agents. The Node Agents can be listed through
+the command "kubectl get pod -n istio-system | grep nodeagent".
+You should see the following log entries in some of the Node Agents that show
+SDS pushing certificates to the Envoy of the example workload. When a certificate
+issuance or rotation occurs, the following log is generated.
+  "info    SDS: push key/cert pair from node agent to proxy"
 -------------------------
