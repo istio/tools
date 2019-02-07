@@ -171,7 +171,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0
         role: service
@@ -231,7 +233,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-0
         role: service
@@ -292,7 +296,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-1
         role: service
@@ -353,7 +359,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-2
         role: service
@@ -414,7 +422,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-3
         role: service
@@ -475,7 +485,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-4
         role: service
@@ -536,7 +548,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-5
         role: service
@@ -597,7 +611,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-6
         role: service
@@ -658,7 +674,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-7
         role: service
@@ -719,7 +737,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-8
         role: service
@@ -780,7 +800,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-0-0
         role: service
@@ -841,7 +863,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-1-0
         role: service
@@ -902,7 +926,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-2-0
         role: service
@@ -963,7 +989,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-3-0
         role: service
@@ -1024,7 +1052,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-4-0
         role: service
@@ -1085,7 +1115,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-5-0
         role: service
@@ -1146,7 +1178,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-6-0
         role: service
@@ -1207,7 +1241,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-7-0
         role: service
@@ -1268,7 +1304,9 @@ spec:
   template:
     metadata:
       annotations:
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
+{{- end }}
       labels:
         name: {{ .Values.serviceNamePrefix }}0-8-0
         role: service

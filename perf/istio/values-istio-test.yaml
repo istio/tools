@@ -11,10 +11,13 @@ global:
   k8sIngressSelector: ingressgateway
 
   proxy:
+    enableCoreDump: true
     concurrency: 2
-    accessLogFile: "/dev/null"
+    accessLogFile: ""
     resources:
       requests:
+        #cpu: 50m
+        #memory: 56Mi
         cpu: 500m
         memory: 256Mi
 
@@ -82,7 +85,7 @@ gateways:
 pilot:
   replicaCount: 2
   sidecar: false
-  autoscaleMax: 3
+  autoscaleMax: 10
   env:
     PILOT_PUSH_THROTTLE: 50
     GODEBUG: gctrace=2
@@ -90,6 +93,9 @@ pilot:
     requests:
       cpu: 4800m
       memory: 2G
+    limits:
+      cpu: 5800m
+      memory: 12G
 
 ingress:
   enabled: false
@@ -110,6 +116,19 @@ mixer:
     requests:
       cpu: 3800m
       memory: 4G
+    requests:
+      cpu: 5800m
+      memory: 5G
+  telemetry:
+    enabled: true
+    replicaCount: 1
+    autoscaleEnabled: true
+    autoscaleMin: 1
+    autoscaleMax: 15
+    cpu:
+      targetAverageUtilization: 80
+    sessionAffinityEnabled: false
+
 
 tracing:
   enabled: false
@@ -117,7 +136,7 @@ tracing:
     enabled: true
 
 servicegraph:
-  enabled: true
+  enabled: false
 
 prometheus:
   enabled: true

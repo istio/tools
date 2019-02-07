@@ -22,10 +22,13 @@ rbac:
   numPolicies: 3
 
 server:  # server overrides
-  tlsmode: ISTIO_MUTUAL
+  tlsmode: DISABLE
+  #tlsmode: ISTIO_MUTUAL
+  expose: true
 
 client: # client overrides
   tlsmode: DISABLE
   #inject: "false"
+  expose: true
 
 cert: false

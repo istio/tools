@@ -43,7 +43,9 @@ spec:
     protocol: TCP
   selector:
     app: {{ $.name }}
-  type: ClusterIP
+{{- if $.V.expose }}
+  type: LoadBalancer
+{{- end }}
 ---
 {{- if $.Values.rbac.enabled }}
 {{- range $i, $e := until ($.Values.rbac.numPolicies|int) }}
@@ -159,7 +161,7 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: fortio
+  name: {{ $.name }}
 spec:
   hosts:
   - {{ $.name }}.{{ $.Values.domain }}
