@@ -13,8 +13,10 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
+prometheus_scrape: false
+
 # time between config changes
-configSleep: 360
+configSleep: 600
 # tcp does not support permissive mode
 # so readinessProbe
 #tcpReadinessProbe:
