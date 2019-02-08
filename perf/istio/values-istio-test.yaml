@@ -135,3 +135,15 @@ certmanager:
   #commonName: fortiotls.v10.istio.webinf.info
   #certificates:
   #  - "fortiotls.v10.istio.webinf.info"
+
+
+nodeagent:
+  enabled: false
+  image: node-agent-k8s
+  env:
+    CA_PROVIDER: "Citadel"
+    CA_ADDR: "istio-citadel:8060"
+    VALID_TOKEN: true
+    SECRET_GRACE_DURATION: "30m"
+    SECRET_JOB_RUN_INTERVAL: "30s"
+    SECRET_TTL: "1h"
