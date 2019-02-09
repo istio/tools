@@ -26,11 +26,37 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:34e709f36fd4f868fb00dbaf8a6cab4c1ae685832d392874ba9d7c5dec2429d1"
+  digest = "1:3c17479d059888d7bbab326e6753a7c84412bede37e82677afcaf3fea61e1e0d"
   name = "github.com/gogo/protobuf"
   packages = [
+    "gogoproto",
+    "jsonpb",
+    "plugin/compare",
+    "plugin/defaultcheck",
+    "plugin/description",
+    "plugin/embedcheck",
+    "plugin/enumstringer",
+    "plugin/equal",
+    "plugin/face",
+    "plugin/gostring",
+    "plugin/marshalto",
+    "plugin/oneofcheck",
+    "plugin/populate",
+    "plugin/size",
+    "plugin/stringer",
+    "plugin/testgen",
+    "plugin/union",
+    "plugin/unmarshal",
     "proto",
+    "protoc-gen-gogo/descriptor",
+    "protoc-gen-gogo/generator",
+    "protoc-gen-gogo/generator/internal/remap",
+    "protoc-gen-gogo/grpc",
+    "protoc-gen-gogo/plugin",
     "sortkeys",
+    "types",
+    "vanity",
+    "vanity/command",
   ]
   pruneopts = "UT"
   revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
@@ -544,6 +570,12 @@
   input-imports = [
     "github.com/docker/go-units",
     "github.com/ghodss/yaml",
+    "github.com/gogo/protobuf/gogoproto",
+    "github.com/gogo/protobuf/jsonpb",
+    "github.com/gogo/protobuf/proto",
+    "github.com/gogo/protobuf/protoc-gen-gogo/generator",
+    "github.com/gogo/protobuf/protoc-gen-gogo/plugin",
+    "github.com/gogo/protobuf/vanity/command",
     "github.com/golang/glog",
     "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/protoc-gen-go/descriptor",

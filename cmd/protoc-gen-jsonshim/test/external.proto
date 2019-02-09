@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package istio.tools.test;
+
+option go_package = "generated";
+
+message ExternalOneof {
+    uint32 fieldC = 1;
+    oneof fieldD {
+        string name = 2;
+        uint32 number = 3;
+    }
+}
