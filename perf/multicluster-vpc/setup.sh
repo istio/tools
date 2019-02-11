@@ -1,7 +1,7 @@
 export proj="jianfeih-test"
 export zone="us-central1-a"
-export cluster1="cluster-1"
-export cluster2="cluster-2"
+export cluster1="cluster-a"
+export cluster2="cluster-b"
 
 # TODO: now istio-proxy are not ready in remote cluster.
 # might due to the firewall stuff...
@@ -23,11 +23,6 @@ function create_clusters() {
 --num-nodes "4" --network "default" --enable-cloud-logging --enable-cloud-monitoring --enable-ip-alias --async
 }
 
-function setup_kubecontext() {
-	gcloud container clusters get-credentials $cluster1 --zone $zone
-	gcloud container clusters get-credentials $cluster2 --zone $zone
-}
-
 function setup_admin_binding() {
   kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
@@ -35,6 +30,8 @@ function setup_admin_binding() {
 }
 
 function create_cluster_admin() {
+	gcloud container clusters get-credentials $cluster1 --zone $zone
+	gcloud container clusters get-credentials $cluster2 --zone $zone
 	kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
 	setup_admin_binding
 	kubectl config use-context "gke_${proj}_${zone}_${cluster2}"
@@ -117,13 +114,14 @@ helm template install/kubernetes/helm/istio --namespace istio-system \
   kubectl config use-context "gke_${proj}_${zone}_${cluster2}"
 	kubectl create ns istio-system
 	kubectl apply -f ./istio-remote.yaml
-	kubectl label namespace default istio-injection=enacbled
+	kubectl label namespace default istio-injection=enabled
 popd
 }
 
 function register_remote_cluster() {
 pushd tmp/istio-release-1.1-20190209-09-16
 export WORK_DIR=$(pwd)
+kubectl config use-context "gke_${proj}_${zone}_${cluster2}"
 CLUSTER_NAME=$(kubectl config view --minify=true -o "jsonpath={.clusters[].name}")
 # k8s secrete naming requirements.
 CLUSTER_NAME=${CLUSTER_NAME//[_]/.}
@@ -157,6 +155,7 @@ users:
 EOF
 
 # now switch to the master cluster
+kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
 kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${NAMESPACE}
 kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
 
@@ -164,9 +163,16 @@ kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
 popd
 }
 
+# deploy bookinfo in two clusters.
+function deploy_bookinfo() {
+
+}
+
 # TODO: bookinfo is not mentioned in the new guide.
 
 function cleanup() {
 	# delete clusters
 	# delete firewall rules
+	gcloud compute firewall-rules delete istio-multicluster-test-pods -q
+	istio-multicluster-test-pods
 }
