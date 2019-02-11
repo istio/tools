@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortio-server
+  labels:
+    app: fortio-server
+spec:
+  ports:
+  - name: http
+    port: 8080
+  selector:
+    app: fortio-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortio-server
+spec:
+  selector:
+    matchLabels:
+      app: fortio-server
+  template:
+    metadata:
+      labels:
+        app: fortio-server
+    spec:
+      containers:
+      - image: {{ .Values.fortioImage }}
+        imagePullPolicy: IfNotPresent
+        name: fortio-server
+        ports:
+          - containerPort: 8080

@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shell
+spec:
+  selector:
+    matchLabels:
+      app: shell
+  template:
+    metadata:
+      labels:
+        app: shell
+    spec:
+      containers:
+        - name: shell
+          image: {{ .Values.curlImage }}
+          args:
+            - bash
+            - -c
+            - |-
+              while true; do
+                curl -v fortio-server:8080/echo --http1.0
+                sleep .1
+              done
