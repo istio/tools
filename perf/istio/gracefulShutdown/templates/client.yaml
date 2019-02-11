@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+  labels:
+    app: client
+spec:
+  selector:
+    matchLabels:
+      app: client
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+      - name: client
+        image: {{ .Values.fortioImage }}
+        args:
+        - load
+        - -qps
+        - "{{ .Values.qps }}"
+        - -t
+        - "0"
+        - http://httpbin:8000/delay/{{ .Values.connectionDuration }}

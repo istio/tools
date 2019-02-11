@@ -1,0 +1,10 @@
+apiVersion: v1
+name: gracefulShutdown
+version: 1.0
+description: Helm chart for istio gracefulShutdown
+keywords:
+  - istio
+  - performance
+sources:
+  - http://github.com/istio/istio
+engine: gotpl
