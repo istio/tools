@@ -1,13 +1,17 @@
-export proj="jianfeih-test"
-export zone="us-central1-a"
-export cluster1="cluster-a"
-export cluster2="cluster-b"
+# export proj="${proj:-jianfeih-test}"
+# export zone="us-central1-a"
+# export cluster1="cluster-a"
+# export cluster2="cluster-b"
+# export RELEASE="release-1.1-20190209-09-16"
 
-# TODO: now istio-proxy are not ready in remote cluster.
-# might due to the firewall stuff...
-# Remote using pilot pod ip;
-# - --discoveryAddress
-# - 10.8.1.5:15010
+export proj="${proj:-jianfeih-test}"
+export zone="${zone:-us-central1-a}"
+export cluster1="${cluster1:-cluster1}"
+export cluster2="${cluster2:-cluster2}"
+export RELEASE="${RELEASE:-release-1.1-20190209-09-16}"
+
+# TODO: now reviews service not available, able to get xDS config.
+# TODO: cluster1 reviews not ready, need to recreate the secret...? seems buggy...
 
 function create_clusters() {
   scope="https://www.googleapis.com/auth/compute","https://www.googleapis.com/auth/devstorage.read_only",\
@@ -54,14 +58,12 @@ function create_firewall() {
 		--target-tags="${ALL_CLUSTER_NETTAGS}" --quiet
 }
 
-# TODO: reuse.
+# TODO: reuse from perf/istio/setup.sh
 function download() {
   local DIRNAME="$1"
-  local release="$2"
 	rm -rf $DIRNAME && mkdir $DIRNAME
-
-  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
-  local outfile="${DIRNAME}/istio-${release}.tgz"
+  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/release/istio-${RELEASE}-linux.tar.gz"
+  local outfile="${DIRNAME}/istio-${RELEASE}.tgz"
 
   if [[ ! -f "${outfile}" ]]; then
     wget –quiet -O "${outfile}" "${url}"
@@ -72,10 +74,9 @@ function download() {
 
 function install_istio() {
 	kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
-	istio_tar=$(download ./tmp release-1.1-20190209-09-16)
+	istio_tar=$(download ./tmp $RELEASE)
 	tar xf $istio_tar -C ./tmp
-	# TODO remove hardcoding address.
-	pushd tmp/istio-release-1.1-20190209-09-16
+	pushd tmp/istio-${RELEASE}
 	for i in install/kubernetes/helm/istio-init/files/crd*yaml; do kubectl apply -f $i; done
 	helm repo add istio.io "https://storage.googleapis.com/istio-prerelease/daily-build/master-latest-daily/charts"
 	helm dep update install/kubernetes/helm/istio
@@ -86,16 +87,19 @@ function install_istio() {
 	popd
 }
 
-function template_istio_remote() {
+function install_istio_remote() {
 # switch to the master cluster first.
 kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
-pushd tmp/istio-release-1.1-20190209-09-16
+pushd tmp/istio-${RELEASE}
 export PILOT_POD_IP=$(kubectl -n istio-system get pod -l istio=pilot -o jsonpath='{.items[0].status.podIP}')
 export POLICY_POD_IP=$(kubectl -n istio-system get pod -l istio-mixer-type=policy -o jsonpath='{.items[0].status.podIP}')
 # TODO: debug does not exist in 1.1 release...
 # export STATSD_POD_IP=$(kubectl -n istio-system get pod -l istio=statsd-prom-bridge -o jsonpath='{.items[0].status.podIP}')
 # values.yaml mentioned it's deprecated...
 # documentation is outdated then... 
+# TODO(incfly): figure out whether we need statsd after all...
+# --set global.proxy.envoyStatsd.enabled=true \
+# --set global.proxy.envoyStatsd.host=${STATSD_POD_IP} 
 export TELEMETRY_POD_IP=$(kubectl -n istio-system get pod -l istio-mixer-type=telemetry -o jsonpath='{.items[0].status.podIP}')
 export ZIPKIN_POD_IP=$(kubectl -n istio-system get pod -l app=jaeger -o jsonpath='{range .items[*]}{.status.podIP}{end}')
 
@@ -106,20 +110,17 @@ helm template install/kubernetes/helm/istio --namespace istio-system \
 --set global.remotePolicyAddress=${POLICY_POD_IP} \
 --set global.remoteTelemetryAddress=${TELEMETRY_POD_IP} \
 > istio-remote.yaml
-# TODO(incfly): figure out whether we need statsd after all...
-# --set global.proxy.envoyStatsd.enabled=true \
-# --set global.proxy.envoyStatsd.host=${STATSD_POD_IP} 
 
   # switch to the remote cluster.
   kubectl config use-context "gke_${proj}_${zone}_${cluster2}"
 	kubectl create ns istio-system
 	kubectl apply -f ./istio-remote.yaml
 	kubectl label namespace default istio-injection=enabled
-popd
+	popd
 }
 
 function register_remote_cluster() {
-pushd tmp/istio-release-1.1-20190209-09-16
+pushd tmp/istio-${RELEASE}
 export WORK_DIR=$(pwd)
 kubectl config use-context "gke_${proj}_${zone}_${cluster2}"
 CLUSTER_NAME=$(kubectl config view --minify=true -o "jsonpath={.clusters[].name}")
@@ -165,14 +166,34 @@ popd
 
 # deploy bookinfo in two clusters.
 function deploy_bookinfo() {
+	pushd $tmp/istio-${RELEASE}
+	kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
+	kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml
+	kubectl apply -f samples/bookinfo/networking/bookinfo-gateway.yaml
+	kubectl delete deployment reviews-v3
+	kubectl config use-context "gke_${proj}_${zone}_${cluster2}"
+	kc apply -f ../../reviews-v3.yaml
+	popd
+}
 
+function get_verify_url() {
+	kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
+	host=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}') 
+	echo "visting http://${host}/productpage several times to verify."
 }
 
 # TODO: bookinfo is not mentioned in the new guide.
-
 function cleanup() {
-	# delete clusters
-	# delete firewall rules
 	gcloud compute firewall-rules delete istio-multicluster-test-pods -q
-	istio-multicluster-test-pods
+	gcloud container clusters delete ${cluster1} ${cluster2} -q
+}
+
+function do_all() {
+	create_clusters
+	create_cluster_admin
+	create_firewall
+	install_istio
+	install_istio_remote
+	register_remote_cluster
+	deploy_bookinfo
 }
