@@ -1,4 +1,4 @@
-export proj="${proj:-jianfeih-test}"
+export proj="${proj:-istio-testing}"
 export zone="${zone:-us-central1-a}"
 export cluster1="${cluster1:-cluster1}"
 export cluster2="${cluster2:-cluster2}"
@@ -12,11 +12,11 @@ function create_clusters() {
 "https://www.googleapis.com/auth/trace.append"
 	gcloud container clusters create $cluster1 --zone $zone --username "admin" \
 --machine-type "n1-standard-2" --image-type "COS" --disk-size "100" \
---scopes $scope --num-nodes "4" --network "default" --enable-cloud-logging --enable-cloud-monitoring --enable-ip-alias --async
+--scopes $scope --num-nodes "4" --network "default" --enable-cloud-logging --enable-cloud-monitoring --enable-ip-alias
 	gcloud container clusters create $cluster2 --zone $zone --username "admin" \
 --machine-type "n1-standard-2" --image-type "COS" --disk-size "100" \
 --scopes $scope \
---num-nodes "4" --network "default" --enable-cloud-logging --enable-cloud-monitoring --enable-ip-alias --async
+--num-nodes "4" --network "default" --enable-cloud-logging --enable-cloud-monitoring --enable-ip-alias
 }
 
 function setup_admin_binding() {
@@ -54,7 +54,9 @@ function create_firewall() {
 function download() {
   local DIRNAME="$1"
 	rm -rf $DIRNAME && mkdir $DIRNAME
-  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/release/istio-${RELEASE}-linux.tar.gz"
+	https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/
+  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
+	# local url="https://storage.googleapis.com/istio-prerelease/daily-build/release-1.1-20190212-09-16/istio-release-1.1-20190212-09-16-linux.tar.gz"
   local outfile="${DIRNAME}/istio-${RELEASE}.tgz"
 
   if [[ ! -f "${outfile}" ]]; then
@@ -79,9 +81,11 @@ function install_istio() {
 	popd
 }
 
+# TODO: ensure the command succeed with expected output
 function install_istio_remote() {
 kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
 pushd tmp/istio-${RELEASE}
+# Wait for remote to be ready
 export PILOT_POD_IP=$(kubectl -n istio-system get pod -l istio=pilot -o jsonpath='{.items[0].status.podIP}')
 export POLICY_POD_IP=$(kubectl -n istio-system get pod -l istio-mixer-type=policy -o jsonpath='{.items[0].status.podIP}')
 export TELEMETRY_POD_IP=$(kubectl -n istio-system get pod -l istio-mixer-type=telemetry -o jsonpath='{.items[0].status.podIP}')
@@ -148,13 +152,13 @@ EOF
 
 # Deploy bookinfo in two clusters.
 function deploy_bookinfo() {
-	pushd $tmp/istio-${RELEASE}
+	pushd tmp/istio-${RELEASE}
 	kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
 	kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml
 	kubectl apply -f samples/bookinfo/networking/bookinfo-gateway.yaml
 	kubectl delete deployment reviews-v3
 	kubectl config use-context "gke_${proj}_${zone}_${cluster2}"
-	kc apply -f ../../reviews-v3.yaml
+	kubectl apply -f ../../reviews-v3.yaml
 	popd
 }
 
@@ -172,13 +176,14 @@ function cleanup() {
 
 function do_all() {
 	create_clusters
-  sleep 120
 	create_cluster_admin
 	create_firewall
 	install_istio
-	install_istio_remote
+	# Really workaround, remote istio cluster may not be ready.
+	sleep 60 && install_istio_remote
 	register_remote_cluster
 	deploy_bookinfo
+	get_verify_url
 }
 
 if [[ $# -ne 1 ]]; then
