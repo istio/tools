@@ -1,18 +1,10 @@
-# export proj="${proj:-jianfeih-test}"
-# export zone="us-central1-a"
-# export cluster1="cluster-a"
-# export cluster2="cluster-b"
-# export RELEASE="release-1.1-20190209-09-16"
-
 export proj="${proj:-jianfeih-test}"
 export zone="${zone:-us-central1-a}"
 export cluster1="${cluster1:-cluster1}"
 export cluster2="${cluster2:-cluster2}"
 export RELEASE="${RELEASE:-release-1.1-20190209-09-16}"
 
-# TODO: now reviews service not available, able to get xDS config.
-# TODO: cluster1 reviews not ready, need to recreate the secret...? seems buggy...
-
+# We must create clusters sequentially without specifying --async, otherwise will fail.
 function create_clusters() {
   scope="https://www.googleapis.com/auth/compute","https://www.googleapis.com/auth/devstorage.read_only",\
 "https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring",\
@@ -88,18 +80,10 @@ function install_istio() {
 }
 
 function install_istio_remote() {
-# switch to the master cluster first.
 kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
 pushd tmp/istio-${RELEASE}
 export PILOT_POD_IP=$(kubectl -n istio-system get pod -l istio=pilot -o jsonpath='{.items[0].status.podIP}')
 export POLICY_POD_IP=$(kubectl -n istio-system get pod -l istio-mixer-type=policy -o jsonpath='{.items[0].status.podIP}')
-# TODO: debug does not exist in 1.1 release...
-# export STATSD_POD_IP=$(kubectl -n istio-system get pod -l istio=statsd-prom-bridge -o jsonpath='{.items[0].status.podIP}')
-# values.yaml mentioned it's deprecated...
-# documentation is outdated then... 
-# TODO(incfly): figure out whether we need statsd after all...
-# --set global.proxy.envoyStatsd.enabled=true \
-# --set global.proxy.envoyStatsd.host=${STATSD_POD_IP} 
 export TELEMETRY_POD_IP=$(kubectl -n istio-system get pod -l istio-mixer-type=telemetry -o jsonpath='{.items[0].status.podIP}')
 export ZIPKIN_POD_IP=$(kubectl -n istio-system get pod -l app=jaeger -o jsonpath='{range .items[*]}{.status.podIP}{end}')
 
@@ -155,16 +139,14 @@ users:
        token: ${TOKEN}
 EOF
 
-# now switch to the master cluster
-kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
-kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${NAMESPACE}
-kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
-
-# status, the sidecar injector is failing unable to convert the yaml to proto...
-popd
+	# now switch to the master cluster
+	kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
+	kubectl create secret generic ${CLUSTER_NAME} --from-file ${KUBECFG_FILE} -n ${NAMESPACE}
+	kubectl label secret ${CLUSTER_NAME} istio/multiCluster=true -n ${NAMESPACE}
+	popd
 }
 
-# deploy bookinfo in two clusters.
+# Deploy bookinfo in two clusters.
 function deploy_bookinfo() {
 	pushd $tmp/istio-${RELEASE}
 	kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
@@ -179,7 +161,7 @@ function deploy_bookinfo() {
 function get_verify_url() {
 	kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
 	host=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}') 
-	echo "visting http://${host}/productpage several times to verify."
+	echo "visting http://${host}/productpage several times to verify all versions reviews services are available."
 }
 
 # TODO: bookinfo is not mentioned in the new guide.
@@ -190,6 +172,7 @@ function cleanup() {
 
 function do_all() {
 	create_clusters
+  sleep 120
 	create_cluster_admin
 	create_firewall
 	install_istio
@@ -197,3 +180,18 @@ function do_all() {
 	register_remote_cluster
 	deploy_bookinfo
 }
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: ./setup.sh cleanup | setup"
+  return
+fi
+
+case $1 in
+  setup)
+	   do_all
+		 ;;
+
+	cleanup)
+	  cleanup
+		;;
+esac
