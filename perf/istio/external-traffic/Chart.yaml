@@ -1,0 +1,10 @@
+apiVersion: v1
+name: external-traffic
+version: 1.0
+description: Helm chart for istio external-traffic
+keywords:
+  - istio
+  - performance
+sources:
+  - http://github.com/istio/istio
+engine: gotpl

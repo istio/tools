@@ -1,0 +1,3 @@
+fortioImage: fortio/fortio:latest
+
+externalDestination: http://www.google.com

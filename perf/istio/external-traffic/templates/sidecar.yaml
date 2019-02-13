@@ -1,0 +1,10 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Sidecar
+metadata:
+  namespace: allow-external-traffic-a
+  name: allow-external-traffic-a-sidecar
+spec:
+  egress:
+    - hosts:
+        - allow-external-traffic-a/*
+        - allow-external-traffic-b/*

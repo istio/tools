@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-traffic
+  namespace: allow-external-traffic-a
+  labels:
+    app: external-traffic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: external-traffic
+  template:
+    metadata:
+      name: external-traffic
+      labels:
+        app: external-traffic
+    spec:
+      containers:
+        - name: external-traffic
+          image: fortio/fortio:latest_release
+          args:
+           - load
+           - -qps
+           - "1"
+           - -t
+           - "0"
+           - {{ .Values.externalDestination }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cross-namespace-traffic
+  namespace: allow-external-traffic-a
+  labels:
+    app: cross-namespace-traffic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cross-namespace-traffic
+  template:
+    metadata:
+      name: cross-namespace-traffic
+      labels:
+        app: cross-namespace-traffic
+    spec:
+      containers:
+        - name: cross-namespace-traffic
+          image: {{ .Values.fortioImage }}
+          args:
+            - load
+            - -qps
+            - "1"
+            - -t
+            - "0"
+            - http://fortio-server.allow-external-traffic-b.svc.cluster.local:8080
