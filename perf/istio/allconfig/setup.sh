@@ -9,12 +9,14 @@ function install_all_config() {
   local DIRNAME="${1:?"output dir"}"
   local domain=${DNS_DOMAIN:-qualistio.org}
   local OUTFILE="${DIRNAME}/all_config.yaml"
+  local NAMESPACE=test
 
-  kubectl create ns test || true
+  kubectl create ns $NAMESPACE || true
 
-  kubectl label namespace test istio-injection=enabled || true
+  kubectl label namespace $NAMESPACE istio-injection=enabled || true
 
-  helm -n test template \
+  helm -n $NAMESPACE template \
+    --set namespace=$NAMESPACE \
     --set fortioImage=fortio/fortio:latest \
     --set ingress="${GATEWAY_URL}" \
     --set domain="${domain}" . > "${OUTFILE}"

@@ -4,6 +4,10 @@ testTag: nightly-release-1.0
 
 domain: v10.qualistio.org
 
+# Release.Namespace isn't being correctly populated when pre-rendering Helm
+# template, so passing the namespace explicitly.
+namespace: test
+
 # Namespace where istio control plane is installed.
 istioNamespace: istio-system
 
@@ -28,3 +32,7 @@ healthCheck: true
 
 certManager: false
 ingress: ingressIP
+
+# Frequency of how often a rolling restart of Ingress Gateway should be
+# triggered.
+gatewayBounceFreqMins: 15

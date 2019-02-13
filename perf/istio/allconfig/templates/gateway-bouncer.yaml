@@ -1,0 +1,64 @@
+# CronJob that periodically triggers rolling restart of ingressgateway.
+# Used to test graceful shutdown of ingressgateway instances, graceful draining
+# of inflight connections, correctness of readiness checks, etc.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gateway-bouncer
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: gateway-bouncer
+rules:
+  - apiGroups: ["extensions"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: gateway-bouncer
+subjects:
+  - kind: ServiceAccount
+    namespace: {{ .Values.namespace }}
+    name: gateway-bouncer
+roleRef:
+  kind: ClusterRole
+  name: gateway-bouncer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: gateway-bouncer
+  labels:
+    app: gateway-bouncer
+spec:
+  schedule: "*/{{ .Values.gatewayBounceFreqMins }} * * * *" # Every x minutes
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+          labels:
+            app: gateway-bouncer
+        spec:
+          serviceAccountName: gateway-bouncer
+          containers:
+            - name: gateway-bouncer
+              image: gcr.io/istio-release/kubectl:release-1.1-latest-daily
+              command:
+                - bash
+                - -c
+                - |-
+                  #!/bin/bash
+                  echo "Bouncing istio-ingressgateway..."
+                  kubectl \
+                    -n {{ .Values.istioNamespace }} \
+                    patch deployment istio-ingressgateway \
+                    -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+          restartPolicy: OnFailure
+---
