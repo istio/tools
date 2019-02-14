@@ -1,9 +1,7 @@
-# This is used to generate istio.yaml for a stress/load test cluster.
+# This is used to generate istio.yaml for a stress/load test cluster for postsubmits for releases.
 
 global:
   imagePullPolicy: Always
-  #hub: docker.io/istionightly
-  #tag: nightly-release-0.8
   meshExpansion: true
   meshExpansionILB: true
   refreshInterval: 30s
@@ -16,8 +14,6 @@ global:
     accessLogFile: ""
     resources:
       requests:
-        #cpu: 50m
-        #memory: 56Mi
         cpu: 500m
         memory: 256Mi
 
@@ -51,11 +47,11 @@ gateways:
     autoscaleMax: 5
     resources:
       limits:
-        cpu: 6000m
-        memory: 512Mi
+        cpu: 900m 
+        memory: 600Mi
       requests:
-        cpu: 4000m
-        memory: 512Mi
+        cpu: 300m # by default 10m
+        memory: 600Mi # by default 30Mi
     type: LoadBalancer #change to NodePort, ClusterIP or LoadBalancer if need be
     ports:
     - port: 80
@@ -91,11 +87,11 @@ pilot:
     GODEBUG: gctrace=2
   resources:
     requests:
-      cpu: 4800m
-      memory: 2G
+      cpu: 600m # by default 500m
+      memory: 2G # by default 2G
     limits:
-      cpu: 5800m
-      memory: 12G
+      cpu: 900m
+      memory: 2G
 
 ingress:
   enabled: false
@@ -108,17 +104,15 @@ sidecar-injector:
 
 grafana:
   enabled: true
-  #image: gcr.io/istio-release/grafana:release-1.0-20180720-00-11
 
 mixer:
-  #image: gcr.io/istio-release/mixer:release-1.0-20180720-00-11
   resources:
     requests:
-      cpu: 3800m
-      memory: 4G
+      cpu: 100m # default 10m
+      memory: 800Mi # default 30Mi
     limits:
-      cpu: 5800m
-      memory: 5G
+      cpu: 300m
+      memory: 1200Mi
   telemetry:
     enabled: true
     replicaCount: 1
@@ -151,9 +145,6 @@ certmanager:
   commonName: ingress.v10.istio.webinf.info
   certificates:
     - "ingress.v10.istio.webinf.info"
-  #commonName: fortiotls.v10.istio.webinf.info
-  #certificates:
-  #  - "fortiotls.v10.istio.webinf.info"
 
 
 nodeagent:
