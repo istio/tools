@@ -28,7 +28,7 @@ function run_test() {
 
 function start_servicegraphs() {
   local nn=${1:?"number of namespaces"}
-  local min=${2:-"0"}
+  local min=${2:?"from which namespace to start"}
 
   for ((ii=$min; ii<$nn; ii++)) {
     ns=$(printf 'service-graph%.2d' $ii)
