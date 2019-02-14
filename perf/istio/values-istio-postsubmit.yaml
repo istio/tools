@@ -1,0 +1,159 @@
+# This is used to generate istio.yaml for a stress/load test cluster for postsubmits for releases.
+
+global:
+  imagePullPolicy: Always
+  meshExpansion: true
+  meshExpansionILB: true
+  refreshInterval: 30s
+  imagePullPolicy: Always
+  k8sIngressSelector: ingressgateway
+
+  proxy:
+    enableCoreDump: true
+    concurrency: 2
+    accessLogFile: ""
+    resources:
+      requests:
+        cpu: 500m
+        memory: 256Mi
+
+ingress:
+  enabled: false
+
+gateways:
+  istio-ilbgateway:
+    enabled: true
+
+  istio-ingressgateway:
+    meshExpansion: true
+    enabled: true
+    secretVolumes:
+    - name: istio-ingressgateway-certs
+      secretName: istio-ingressgateway-certs
+      mountPath: /etc/istio/ingressgateway-certs
+    - name: istio-ingressgateway-certs-fortiotls
+      secretName: istio-ingressgateway-certs-fortiotls
+      mountPath: /etc/istio/ingressgateway-certs-fortiotls
+    - name: istio-ingressgateway-certs-fortionoistio
+      secretName: istio-ingressgateway-certs-fortionoistio
+      mountPath: /etc/istio/ingressgateway-certs-fortionoistio
+    labels:
+      istio: ingressgateway
+      ver: ingress10
+      app: istio-ingressgateway
+      name: gateway
+    replicas: 3
+    autoscaleMin: 3
+    autoscaleMax: 5
+    resources:
+      limits:
+        cpu: 900m 
+        memory: 600Mi
+      requests:
+        cpu: 300m # by default 10m
+        memory: 600Mi # by default 30Mi
+    type: LoadBalancer #change to NodePort, ClusterIP or LoadBalancer if need be
+    ports:
+    - port: 80
+      targetPort: 80
+      name: http2
+      nodePort: 31380
+    - port: 443
+      name: https
+      nodePort: 31390
+    - port: 31400
+      name: tcp
+    - port: 15011
+      targetPort: 15011
+      name: tcp-pilot-grcp-tls
+    - port: 8060
+      targetPort: 8060
+      name: tcp-citadel-grpc-tls
+    - port: 5201
+      name: tcp-iperf-cont
+    - port: 5202
+      name: tcp-iperfraw
+    - port: 5203
+      name: tcp-iperf
+    - port: 5204
+      name: tcp-iperf-tls
+
+pilot:
+  replicaCount: 2
+  sidecar: false
+  autoscaleMax: 10
+  env:
+    PILOT_PUSH_THROTTLE: 50
+    GODEBUG: gctrace=2
+  resources:
+    requests:
+      cpu: 600m # by default 500m
+      memory: 2G # by default 2G
+    limits:
+      cpu: 900m
+      memory: 2G
+
+ingress:
+  enabled: false
+
+prometheus:
+  enabled: true
+
+sidecar-injector:
+  enabled: true
+
+grafana:
+  enabled: true
+
+mixer:
+  resources:
+    requests:
+      cpu: 100m # default 10m
+      memory: 800Mi # default 30Mi
+    limits:
+      cpu: 300m
+      memory: 1200Mi
+  telemetry:
+    enabled: true
+    replicaCount: 1
+    autoscaleEnabled: true
+    autoscaleMin: 1
+    autoscaleMax: 15
+    cpu:
+      targetAverageUtilization: 80
+    sessionAffinityEnabled: false
+
+
+tracing:
+  enabled: false
+  jaeger:
+    enabled: true
+
+servicegraph:
+  enabled: false
+
+prometheus:
+  enabled: true
+
+kiali:
+  enabled: false
+  tag: latest
+
+certmanager:
+  enabled: true
+  email: mjog@google.com
+  commonName: ingress.v10.istio.webinf.info
+  certificates:
+    - "ingress.v10.istio.webinf.info"
+
+
+nodeagent:
+  enabled: false
+  image: node-agent-k8s
+  env:
+    CA_PROVIDER: "Citadel"
+    CA_ADDR: "istio-citadel:8060"
+    VALID_TOKEN: true
+    SECRET_GRACE_DURATION: "30m"
+    SECRET_JOB_RUN_INTERVAL: "30s"
+    SECRET_TTL: "1h"
