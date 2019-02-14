@@ -1,4 +1,11 @@
-To run this certificate rotation test in which SDS is disabled:
+## Test description
+This is a certificate rotation test with SDS disabled.
+The certificate rotation is tested through creating a number of
+httpbin and sleep workloads (the number of workloads is an input parameter of the script),
+which request for certificates at a customizable interval (e.g., every 1 minute),
+thereby creating the certificate rotation load. 
+
+## To run the certificate rotation test with SDS disabled:
 - Create a GKE cluster and set it as the current cluster.
 Here this test is ran on the cluster *no-sds-cert-rotation-1*
 on GCP project *istio-security-testing*.
@@ -12,13 +19,15 @@ Run the following commands:
   cd ROOT-OF-REPO/perf/istio
   DNS_DOMAIN=your-example-domain VALUES=values-istio-non-sds.yaml ./setup.sh release-1.1-20190208-09-16
 ```  
-You may replace the Istio release in the command to the Istio release to test.
+You may replace the Istio release
+in the command to the Istio release to test.
 After running the above script to deploy Istio, wait a moment for Istio to be ready.
 
-- Deploy an example workload that requests for certificates through SDS:
+- Deploy an example workload that requests for certificates:
 ```
   cd ROOT-OF-REPO/perf/sds-tests/non-sds-1
-  WORKLOAD_FILE=./httpbin.yaml ./setup_test.sh
+  kubectl create ns test-ns
+  NAMESPACE=test-ns NUM=3 ./setup_test.sh
 ```
 Wait a moment for the deployment to be ready. Then view the logs of Node Agents.
 The Node Agents can be listed through
@@ -34,9 +43,17 @@ issuance or rotation occurs, the following log entries are generated.
   info    SDS: push key/cert pair from node agent to proxy
 ```
 
-- After testing, you may delete the Istio and example workload created for this test
-by running:
+- Run the following commands to test mTLS by curl httpbin from sleep 
+(replace the example sleep and httpbin pod names in the example command with
+the pod names in your test). When the command succeeds, `HTTP/1.1 200 OK` should
+be displayed.
 ```
-  ./cleanup.sh
+  kubectl exec -it sleep-6f784fb648-7mvgp -c sleep -- curl -v httpbin:8000/headers
 ```
 
+- After testing, you may delete the Istio and example workload created for this test
+by running the following command. The namespace in the command line is the namespace
+created for testing.
+```
+  NAMESPACE=test-ns ./cleanup.sh
+```
