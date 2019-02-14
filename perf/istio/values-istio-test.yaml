@@ -116,7 +116,7 @@ mixer:
     requests:
       cpu: 3800m
       memory: 4G
-    requests:
+    limits:
       cpu: 5800m
       memory: 5G
   telemetry:
