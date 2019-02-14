@@ -1,0 +1,16 @@
+# ServiceEntries, even in the same namespace, should not block external traffic
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: external-service
+  namespace: allow-external-traffic-a
+spec:
+  hosts:
+    - "google.com"
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP
+    - number: 443
+      name: https
+      protocol: HTTPS
