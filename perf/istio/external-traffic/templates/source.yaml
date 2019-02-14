@@ -22,7 +22,7 @@ spec:
           args:
            - load
            - -qps
-           - "1"
+           - "{{ .Values.qps }}"
            - -t
            - "0"
            - {{ .Values.externalDestination }}
@@ -51,7 +51,7 @@ spec:
           args:
             - load
             - -qps
-            - "1"
+            - "{{ .Values.qps }}"
             - -t
             - "0"
             - http://fortio-server.allow-external-traffic-b.svc.cluster.local:8080

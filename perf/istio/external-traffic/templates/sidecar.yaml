@@ -6,5 +6,4 @@ metadata:
 spec:
   egress:
     - hosts:
-        - allow-external-traffic-a/*
-        - allow-external-traffic-b/*
+      - ~/*

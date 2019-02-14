@@ -14,7 +14,7 @@ function install_all_config() {
 
   INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-  helm template . --set "externalDestination=http://${INGRESS_HOST:?}" > "${OUTFILE}"
+  helm template . --set "externalDestination=http://${INGRESS_HOST:?"Ingress could not be found"}" > "${OUTFILE}"
 
   if [[ -z "${DRY_RUN}" ]]; then
       kubectl apply -f "${OUTFILE}"
