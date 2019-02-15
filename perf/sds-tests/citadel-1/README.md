@@ -5,6 +5,10 @@ httpbin and sleep workloads (the number of workloads is an input parameter of th
 which request for certificates at a customizable interval (e.g., every 1 minute),
 thereby creating the certificate rotation load. 
 
+In this test, *controlPlaneSecurity* is disabled. To enable 
+*controlPlaneSecurity*, set *controlPlaneSecurity* as *true* in
+*ROOT-OF-REPO/perf/istio/values-istio-sds-auth.yaml*.
+
 ## To run the SDS test that goes to Citadel
 - Create a GKE cluster and set it as the current cluster.
 Here this test is ran on the cluster *sds-citadel-cert-rotation-1*
@@ -17,7 +21,7 @@ Let the root directory of this repo be *ROOT-OF-REPO*.
 Run the following commands:
 ```
   cd ROOT-OF-REPO/perf/istio
-  DNS_DOMAIN=your-example-domain VALUES=values-istio-sds-auth.yaml ./setup.sh release-1.1-20190213-09-16
+  DNS_DOMAIN=your-example-domain VALUES=values-istio-sds-auth.yaml ./setup.sh release-1.1-20190214-09-16
 ```  
 You may replace the Istio release
 in the command to the Istio release to test.

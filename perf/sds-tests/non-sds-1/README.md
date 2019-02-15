@@ -5,6 +5,10 @@ httpbin and sleep workloads (the number of workloads is an input parameter of th
 which request for certificates at a customizable interval (e.g., every 1 minute),
 thereby creating the certificate rotation load. 
 
+In this test, *controlPlaneSecurity* is disabled. To enable 
+*controlPlaneSecurity*, set *controlPlaneSecurity* as *true* in
+*ROOT-OF-REPO/perf/istio/values-istio-non-sds.yaml*.
+
 ## To run the certificate rotation test with SDS disabled:
 - Create a GKE cluster and set it as the current cluster.
 Here this test is ran on the cluster *no-sds-cert-rotation-1*

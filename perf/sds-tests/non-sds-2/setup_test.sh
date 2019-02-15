@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -xe
 NAMESPACE=${NAMESPACE:?"specify the namespace for running the test"}
 NUM=${NUM:?"specify the number of httpbin and sleep workloads"}
 
@@ -27,7 +26,7 @@ num_succeed=0
 
 while [ 1 ]
 do
-  sleep_pods=$(kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep)
+  sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep)
   pods=()
 
   while read -r line; do
@@ -40,7 +39,7 @@ do
 
   for pod in "${pods[@]}"
   do
-    resp_code=$(kubectl exec -it "${pod}" -c sleep -- curl -s -o /dev/null -w "%{http_code}" httpbin:8000/headers)
+    resp_code=$(kubectl exec -it -n ${NAMESPACE} "${pod}" -c sleep -- curl -s -o /dev/null -w "%{http_code}" httpbin:8000/headers)
     if [ ${resp_code} = 200 ]; then
       num_succeed=$((num_succeed+1))
     else

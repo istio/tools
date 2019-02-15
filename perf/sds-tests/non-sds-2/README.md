@@ -7,6 +7,10 @@ thereby creating the certificate rotation load. This test also
 periodically delete pods and create pods to test whether Citadel Agent
 properly releases resources and handles new certificate requests.
 
+In this test, *controlPlaneSecurity* is disabled. To enable 
+*controlPlaneSecurity*, set *controlPlaneSecurity* as *true* in
+*ROOT-OF-REPO/perf/istio/values-istio-non-sds.yaml*.
+
 ## To run the certificate rotation test with SDS disabled:
 - Create a GKE cluster and set it as the current cluster.
 Here this test is ran on the cluster *no-sds-cert-rotation-2*
