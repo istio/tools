@@ -16,3 +16,8 @@ TEMP_DEPLOY_NAME="temp_httpbin_sleep_deploy.yaml"
 helm template --set replicas="${NUM}" .. > "${TEMP_DEPLOY_NAME}"
 
 inject_workload ${TEMP_DEPLOY_NAME}
+
+echo "Wait 120 seconds for the deployment to be ready ..."
+sleep 120
+echo "Run curl to test certificate rotations and mTLS"
+source ./collect_stats.sh

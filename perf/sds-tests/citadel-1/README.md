@@ -46,12 +46,17 @@ issuance or rotation occurs, the following log entries are generated.
   info    SDS: push key/cert pair from node agent to proxy
 ```
 
-- Run the following commands to test mTLS by curl httpbin from sleep 
-(replace the example sleep and httpbin pod names in the example command with
-the pod names in your test). When the command succeeds, `HTTP/1.1 200 OK` should
-be displayed.
+- The *setup_test.sh* script will call *collect_stats.sh* to test certificate
+rotations and mTLS by curl httpbin from sleep (you may also execute *collect_stats.sh*
+separately after the deployment). The following output will be displayed.
 ```
-  kubectl exec -it sleep-6f784fb648-7mvgp -c sleep -- curl -v httpbin:8000/headers
+  Out of 1 curl, 1 succeeded.
+  Out of 2 curl, 2 succeeded.
+  Out of 3 curl, 3 succeeded.
+  Out of 4 curl, 4 succeeded.
+  Out of 5 curl, 5 succeeded.
+  Out of 6 curl, 6 succeeded.
+  ...
 ```
 
 - After testing, you may delete the Istio and example workload created for this test
