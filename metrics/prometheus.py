@@ -46,7 +46,7 @@ class Prometheus(object):
         errors = []
         r = self.fetch_value(query.query)
         if query.alarm.in_alarm(r):
-            errors.append('{} ({} total)'.format(
+            errors.append('{} Response: {}'.format(
                 query.alarm.error_message, r))
         if debug:
             print('Testing: %s. Result: %f.' % (query.description, r))
