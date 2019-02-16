@@ -1,0 +1,59 @@
+# A simple 'Hello World' style service running behind the IngressGateway that
+# is configured using standard K8S Ingress with a custom Ingress class defined
+# in Pilot mesh config.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortio-server
+spec:
+  ports:
+  - port: 8080
+    name: http-echo
+  - port: 8079
+    name: grpc-ping
+  selector:
+    app: fortio-server
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: fortio-server
+spec:
+  template:
+    metadata:
+      labels:
+        app: fortio-server
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - name: fortio-server
+        image: {{ .Values.fortioImage }}
+        imagePullPolicy: Always
+        ports:
+         - containerPort: 8080
+         - containerPort: 8079
+        args:
+          - server
+        resources:
+          requests:
+            cpu: 1000m
+            memory: "1G"
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: fortio-server
+  annotations:
+    kubernetes.io/ingress.class: "istio-ingress-{{ .Values.namespace }}"
+spec:
+  rules:
+    - host: "fortio-server.{{ .Values.namespace }}.example.com"
+      http:
+        paths:
+          - path: /.*
+            backend:
+              serviceName: fortio-server
+              servicePort: 8080

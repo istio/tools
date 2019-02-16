@@ -1,0 +1,11 @@
+apiVersion: v1
+name: istio
+version: 1.1.0
+description: Helm chart of the 'Gateway Bouncer' scenario.
+keywords:
+  - istio
+  - ingressgateway
+sources:
+  - http://github.com/istio/istio
+engine: gotpl
+icon: https://istio.io/favicons/android-192x192.png
