@@ -33,6 +33,29 @@ function setup_admin_binding() {
     --user=$(gcloud config get-value core/account) || true
 }
 
+function install_prometheus() {
+  local DIRNAME="$1" # should be like tools/perf/istio/tmp
+
+  # Create GCP SSD Storage class for Prometheus to use. May not work outside GKE
+  kubectl apply -f "${DIRNAME}/../prometheus/ssd-storage-class.yaml"
+
+  helm fetch stable/prometheus-operator --untar --untardir "${DIRNAME}/../prometheus/"
+
+  # Store original context namespace so it can be reset at the end
+  local ORIG_CTX=$(kubectl config current-context)
+  local ORIG_NS=$(kubectl config get-contexts ${ORIG_CTX} --no-headers | tr -s ' ' | cut -d ' ' -f 5)
+  # Prometheus operator chart doesn't respect --namespace, all objects are
+  # deployed to the default namespace.
+  kubectl config set-context $(kubectl config current-context) --namespace=istio-system
+  helm template "${DIRNAME}/../prometheus/prometheus-operator/"\
+    -f "${DIRNAME}/../prometheus/prometheus-operator-values.yaml"\
+    --set-file .Values.prometheus.prometheusSpec.additionalScrapeConfigs="${DIRNAME}/../prometheus/prometheus-scrape-configs.yaml"\
+    | kubectl apply -f -
+
+  # Reset to original context namespace
+  kubectl config set-context ${ORIG_CTX} --namespace=${ORIG_NS}
+}
+
 function install_istio() {
   local DIRNAME="${1:?"output dir"}"
   local release="${2:?"release"}"
@@ -95,6 +118,9 @@ function install_istio() {
 
       # remove stdio rules
       kubectl --namespace istio-system delete rules stdio stdiotcp || true
+
+      install_prometheus ${DIRNAME}
+
   fi
 
   echo "Wrote file ${FILENAME}"
