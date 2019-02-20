@@ -53,7 +53,7 @@ function install_istio() {
   fi
 
 
-  local values=${VALUES:-values-istio-test.yaml}
+  local values=${VALUES:-values.yaml}
 
   helm template --name istio --namespace istio-system \
        ${opts} \
