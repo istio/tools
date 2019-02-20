@@ -100,9 +100,6 @@ pilot:
 ingress:
   enabled: false
 
-prometheus:
-  enabled: true
-
 sidecar-injector:
   enabled: true
 
