@@ -10,15 +10,17 @@ global:
   imagePullPolicy: Always
   k8sIngressSelector: ingressgateway
 
+  controlPlaneSecurityEnabled: true
+
   proxy:
     enableCoreDump: true
     concurrency: 2
     accessLogFile: ""
     resources:
       requests:
-        #cpu: 50m
-        #memory: 56Mi
         cpu: 500m
+        memory: 256Mi
+      limits:
         memory: 256Mi
 
 ingress:
