@@ -1,24 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shell
+  name: http10-client
 spec:
   selector:
     matchLabels:
-      app: shell
+      app: http10-client
   template:
     metadata:
+      annotations:
+        HTTP10: "1"
       labels:
-        app: shell
+        app: http10-client
     spec:
       containers:
-        - name: shell
+        - name: http10-client
           image: {{ .Values.curlImage }}
           args:
             - bash
             - -c
             - |-
               while true; do
-                curl -v fortio-server:8080/echo --http1.0
+                curl -sS  -o /dev/null -w "%{http_code}\n" fortio-server:8080/echo --http1.0
                 sleep .1
               done
