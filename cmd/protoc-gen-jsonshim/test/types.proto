@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package istio.tools.test;
+
+option go_package = "generated";
+
+import "external.proto";
+
+// ensure no MarshalJSON/UnmarshalJSON fuctions are created
+message NoOneof {
+    uint32 fieldA = 1;
+    string fieldB = 2;
+}
+
+// verify simple case: message with oneof
+message SimpleOneof {
+    oneof fieldA {
+        string name = 1;
+        uint32 number = 2;
+    }
+}
+
+// verify nested case: message with nested message with oneof
+message NestedOneof {
+    uint32 fieldA = 1;
+    message Nested {
+        oneof OneOf {
+            string name = 1;
+            uint32 number = 2;
+        }
+    }
+    Nested fieldB = 2;
+}
+
+// verify no MarshalJSON/UnmarshalJSON functions are created for referenced oneof
+message ReferencedOneof {
+    string fieldA = 1;
+    NestedOneof.Nested fieldB = 2;
+}
+
+// verify no MarshalJSON/UnmarshalJSON functions are created for imported oneof
+message ImportedReference {
+    uint32 fieldA = 1;
+    ExternalOneof fieldB = 2;
+}
