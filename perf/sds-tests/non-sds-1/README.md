@@ -27,11 +27,16 @@ You may replace the Istio release
 in the command to the Istio release to test.
 After running the above script to deploy Istio, wait a moment for Istio to be ready.
 
-- Deploy an example workload that requests for certificates:
+- Deploy an example workload that requests for certificates. *RELEASE* variable
+specifies the Istio release. *NAMESPACE* variable specifies the k8s namespace for testing.
+*NUM* variable specifies the number of httpbin and sleep workloads.
+The following example command will deploy 3 httpbin and sleep workloads in
+a namespace called *test-ns*.
+Note: the number of workloads can be ran depends on the size of your cluster.
 ```
   cd ROOT-OF-REPO/perf/sds-tests/non-sds-1
   kubectl create ns test-ns
-  NAMESPACE=test-ns NUM=3 ./setup_test.sh
+  RELEASE=release-1.1-20190208-09-16 NAMESPACE=test-ns NUM=3 ./setup_test.sh
 ```
 Wait a moment for the deployment to be ready. Then view the logs of Node Agents.
 The Node Agents can be listed through

@@ -2,12 +2,21 @@
 
 NAMESPACE=${NAMESPACE:?"specify the namespace for running the test"}
 NUM=${NUM:?"specify the number of httpbin and sleep workloads"}
+RELEASE=${RELEASE:?"specify the Istio release, e.g., release-1.1-20190208-09-16"}
+
+# Download the istioctl
+WD=$(dirname $0)/tmp
+if [[ ! -d "${WD}" ]]; then
+  mkdir $WD
+fi
+wget -O "$WD/istio-${RELEASE}-linux.tar.gz" "https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
+tar xfz ${WD}/istio-${RELEASE}-linux.tar.gz -C $WD
 
 function inject_workload() {
   local deployfile="${1:?"please specify the workload deployment file"}"
   # This test uses perf/istio/values-istio-sds-auth.yaml, in which
   # Istio auto sidecar injector is not enabled.
-  istioctl kube-inject -f "${deployfile}" -o temp-workload-injected.yaml
+  $WD/istio-${RELEASE}/bin/istioctl kube-inject -f "${deployfile}" -o temp-workload-injected.yaml
   kubectl apply -n ${NAMESPACE} -f temp-workload-injected.yaml
 }
 

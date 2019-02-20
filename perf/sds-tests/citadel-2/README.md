@@ -23,20 +23,22 @@ Let the root directory of this repo be *ROOT-OF-REPO*.
 Run the following commands:
 ```
   cd ROOT-OF-REPO/perf/istio
-  DNS_DOMAIN=your-example-domain VALUES=values-istio-sds-auth.yaml ./setup.sh release-1.1-20190213-09-16
+  DNS_DOMAIN=your-example-domain VALUES=values-istio-sds-auth.yaml ./setup.sh release-1.1-20190208-09-16
 ```  
 You may replace the Istio release
 in the command to the Istio release to test.
 After running the above script to deploy Istio, wait a moment for Istio to be ready.
 
 - Deploy workloads that requests for certificates through SDS.
+*RELEASE* variable specifies the Istio release. *NAMESPACE* variable specifies the k8s namespace for testing.
+*NUM* variable specifies the number of httpbin and sleep workloads.
 The following example command will deploy 3 httpbin and sleep workloads in
-a namespace called *test*.
+a namespace called *test-ns*.
 Note: the number of workloads can be ran depends on the size of your cluster.
 ```
   cd ROOT-OF-REPO/perf/sds-tests/citadel-2
   kubectl create ns test-ns
-  NAMESPACE=test-ns NUM=3 ./setup_test.sh
+  RELEASE=release-1.1-20190208-09-16 NAMESPACE=test-ns NUM=3 ./setup_test.sh
 ```
 Wait a moment for the deployment to be ready. Then view the logs of Node Agents.
 The Node Agents can be listed through
