@@ -1,0 +1,80 @@
+# CronJob that periodically takes pilot down and triggers rolling restart of
+# ingressgateway to excersice its readiness checks. The pilot is brought up
+# after some delay, so that the rolling restart can eventually succeed.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: bouncer
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: bouncer
+rules:
+  - apiGroups: ["extensions"]
+    resources: ["deployments", "deployments/scale"]
+    verbs: ["create", "get", "list", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: bouncer
+subjects:
+  - kind: ServiceAccount
+    namespace: {{ .Values.namespace }}
+    name: bouncer
+roleRef:
+  kind: Role
+  name: bouncer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: bouncer
+  labels:
+    app: bouncer
+spec:
+  schedule: "*/{{ .Values.ingressRestartFrequencyMins }} * * * *" # Every x minutes
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+          labels:
+            app: bouncer
+        spec:
+          serviceAccountName: bouncer
+          containers:
+            - name: bouncer
+              image: {{ .Values.kubectlImage }}
+              command:
+                - bash
+                - -c
+                - |-
+                  #!/bin/bash
+                  set -x
+
+                  kubectl \
+                    -n {{ .Values.namespace }} \
+                    scale deployment istio-pilot \
+                    --replicas=0
+
+                  kubectl \
+                    -n {{ .Values.namespace }} \
+                    patch deployment istio-ingress-{{ .Values.namespace }} \
+                    -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+
+                  sleep {{ .Values.pilotDowntimeDurationSec }}
+
+                  kubectl \
+                    -n {{ .Values.namespace }} \
+                    scale deployment istio-pilot \
+                    --replicas=1
+
+          restartPolicy: OnFailure

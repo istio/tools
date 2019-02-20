@@ -1,0 +1,10 @@
+fortioImage: fortio/fortio:latest
+pilotImage: gcr.io/istio-release/pilot:release-1.1-latest-daily
+kubectlImage: gcr.io/istio-release/kubectl:release-1.1-latest-daily
+proxyImage: gcr.io/istio-release/proxyv2:release-1.1-latest-daily
+
+ingressRestartFrequencyMins: 5
+pilotDowntimeDurationSec: 60s
+numOfClientConns: 10
+numOfClientQps: 100
+clientConnTimeoutDuration: 15s

@@ -1,0 +1,53 @@
+# Fortio load generator that simulates external traffic. Communicates with the
+# internal service via external LoadBalancer which IP address is supposed to be
+# passed via a config map.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fortio-client-config
+data:
+  external_addr: istio-ingress-{{ .Values.namespace }}
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: fortio-client
+spec:
+  template:
+    metadata:
+      labels:
+        app: fortio-cli-raw
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - name: fortio-client
+        image: {{ .Values.fortioImage }}
+        imagePullPolicy: Always
+        args:
+          - load
+          - -t
+          - "0"
+          - -abort-on
+          - "-1"
+          - -timeout
+          - "{{ .Values.clientConnTimeoutDuration }}"
+          - -c
+          - "{{ .Values.numOfClientConns }}"
+          - -qps
+          - "{{ .Values.numOfClientQps }}"
+          - -H
+          - "Host: fortio-server.{{ .Values.namespace }}.example.com"
+          - "http://$(EXTERNAL_ADDR)/echo?size=1024"
+        env:
+          - name: EXTERNAL_ADDR
+            valueFrom:
+              configMapKeyRef:
+                name: fortio-client-config
+                key: external_addr
+        resources:
+          requests:
+            cpu: 250m
+            memory: "256m"
