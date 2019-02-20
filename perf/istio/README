@@ -16,3 +16,10 @@ is set as the current cluster.
 - Run the following command. You may replace release-1.1-20190203-09-16
 in the command to the release to test.
   DNS_DOMAIN=your-example-domain ./setup.sh release-1.1-20190203-09-16
+
+------------------------
+To override RELEASE and HELMREPO URLS
+export HELMREPO_URL=https://storage.googleapis.com/istio-release/releases/1.1.0-rc.0/charts/index.yaml
+export RELEASE_URL=https://github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz
+
+DNS_DOMAIN=your-example-domain ./setup.sh release-1.1-20190203-09-16
