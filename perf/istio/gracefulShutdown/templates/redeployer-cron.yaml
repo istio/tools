@@ -1,3 +1,31 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: graceful-shutdown-account
+  namespace: graceful-shutdown
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: graceful-shutdown-role
+rules:
+  - apiGroups: ["extensions"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: graceful-shutdown-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: graceful-shutdown-role
+subjects:
+  - kind: ServiceAccount
+    name: graceful-shutdown-account
+    namespace: graceful-shutdown
+---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -15,6 +43,7 @@ spec:
           labels:
             app: redeployer-httpbin
         spec:
+          serviceAccountName: graceful-shutdown-account
           containers:
             - name: redeployer-httpbin
               image: gcr.io/istio-release/kubectl:release-1.1-latest-daily
@@ -49,6 +78,7 @@ spec:
           labels:
             app: redeployer-pilot
         spec:
+          serviceAccountName: graceful-shutdown-account
           containers:
             - name: redeployer-pilot
               image: gcr.io/istio-release/kubectl:release-1.1-latest-daily
