@@ -6,7 +6,7 @@ function download() {
   local release="$2"
 
   local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
-  if [[ ! -z ${RELEASE_URL} ]];then
+  if [[ ! -z "${RELEASE_URL}" ]];then
     url="${RELEASE_URL}"
   fi
   local outfile="${DIRNAME}/istio-${release}.tgz"
@@ -52,8 +52,12 @@ function install_istio() {
 
   local FILENAME="${DIRNAME}/${release}.yml"
 
-  opts="--set global.tag=${release}"
-  opts+=" --set global.hub=gcr.io/istio-release"
+  # if release_url is not overridden then daily builds require
+  # tag and hub overrides
+  if [[ -z "${RELEASE_URL}" ]];then
+    opts="--set global.tag=${release}"
+    opts+=" --set global.hub=gcr.io/istio-release"
+  fi
 
   if [[ "${MCP}" != "0" ]];then
       opts+=" --set global.useMCP=true"
