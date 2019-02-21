@@ -60,39 +60,3 @@ spec:
                   echo "`date`: redeploying httpbin"
                   force_redeploy httpbin
           restartPolicy: OnFailure
----
-apiVersion: batch/v1beta1
-kind: CronJob
-metadata:
-  name: redeployer-pilot
-  labels:
-    app: redeployer-pilot
-spec:
-  schedule: "*/{{ .Values.pilotRedployMinutes }} * * * *" # Every x minutes
-  jobTemplate:
-    spec:
-      template:
-        metadata:
-          annotations:
-            sidecar.istio.io/inject: "false"
-          labels:
-            app: redeployer-pilot
-        spec:
-          serviceAccountName: graceful-shutdown-account
-          containers:
-            - name: redeployer-pilot
-              image: gcr.io/istio-release/kubectl:release-1.1-latest-daily
-              command:
-                - bash
-                - -c
-                - |-
-                  #!/bin/bash
-                  function force_redeploy() {
-                      kubectl patch deployment "${1:?"deployment"}" \
-                          -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}" \
-                          "${@:2}"
-                  }
-                  echo "`date`: redeploying istio-pilot"
-                  force_redeploy istio-pilot -n istio-system
-          restartPolicy: OnFailure
-
