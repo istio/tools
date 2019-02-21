@@ -162,7 +162,7 @@ kind: Deployment
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0
+  name: {{ .Values.serviceNamePrefix }}0v1
 spec:
   replicas: {{ .Values.replicas }}
   selector:
@@ -177,6 +177,57 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0
         role: service
+        version: v1
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: {{ .Values.serviceNamePrefix }}0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+{{- if .Values.livenessProbe }}
+        livenessProbe: {{ toJson .Values.livenessProbe }}
+{{- end}}
+{{- if .Values.readinessProbe }}
+        readinessProbe: {{ toJson .Values.readinessProbe }}
+{{- end}}
+        resources: {{ toJson .Values.resources }}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0v2
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      name: {{ .Values.serviceNamePrefix }}0
+  template:
+    metadata:
+      annotations:
+{{- if .Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+{{- end }}
+      labels:
+        name: {{ .Values.serviceNamePrefix }}0
+        role: service
+        version: v2
     spec:
       containers:
       - args:
@@ -239,6 +290,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-0
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -302,6 +354,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-1
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -365,6 +418,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-2
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -428,6 +482,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-3
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -491,6 +546,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-4
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -554,6 +610,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-5
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -617,6 +674,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-6
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -680,6 +738,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-7
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -743,6 +802,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-8
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -806,6 +866,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-0-0
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -869,6 +930,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-1-0
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -932,6 +994,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-2-0
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -995,6 +1058,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-3-0
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -1058,6 +1122,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-4-0
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -1121,6 +1186,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-5-0
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -1184,6 +1250,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-6-0
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -1247,6 +1314,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-7-0
         role: service
+        version: v1
     spec:
       containers:
       - args:
@@ -1310,6 +1378,7 @@ spec:
       labels:
         name: {{ .Values.serviceNamePrefix }}0-8-0
         role: service
+        version: v1
     spec:
       containers:
       - args:

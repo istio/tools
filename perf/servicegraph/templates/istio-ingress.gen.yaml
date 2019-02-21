@@ -26,5 +26,29 @@ spec:
   - route:
     - destination:
         host: {{ .Values.serviceNamePrefix }}0
+        subset: all
         port:
           number: 8080
+      weight: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ .Values.serviceNamePrefix }}0
+spec:
+  host: {{ .Values.serviceNamePrefix }}0
+  trafficPolicy:
+    loadBalancer:
+      simple: RANDOM
+  subsets:
+  - name: all
+    labels:
+      name: {{ .Values.serviceNamePrefix }}0
+  - name: v1
+    labels:
+      name: {{ .Values.serviceNamePrefix }}0
+      version: v1
+  - name: v2
+    labels:
+      name: {{ .Values.serviceNamePrefix }}0
+      version: v2

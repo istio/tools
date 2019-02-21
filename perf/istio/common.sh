@@ -6,6 +6,9 @@ function download() {
   local release="$2"
 
   local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  if [[ ! -z "${RELEASE_URL}" ]];then
+    url="${RELEASE_URL}"
+  fi
   local outfile="${DIRNAME}/istio-${release}.tgz"
 
   if [[ ! -f "${outfile}" ]]; then
@@ -27,7 +30,11 @@ function install_istio() {
       rm -Rf "${DIRNAME}/istio-${release}"
       helm init -c 
       if [[ ! ${release} =~ release-1.0-* ]];then
-        helm repo add istio.io https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/charts
+        local helmrepo="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/charts"
+        if [[ ! -z "${HELMREPO_URL}" ]];then
+          helmrepo="${HELMREPO_URL}"
+        fi
+        helm repo add istio.io "${helmrepo}"
       fi
       helm dep update "${DIRNAME}/${release}/istio" || true
   fi
@@ -45,15 +52,19 @@ function install_istio() {
 
   local FILENAME="${DIRNAME}/${release}.yml"
 
-  opts="--set global.tag=${release}"
-  opts+=" --set global.hub=gcr.io/istio-release"
+  # if release_url is not overridden then daily builds require
+  # tag and hub overrides
+  if [[ -z "${RELEASE_URL}" ]];then
+    opts="--set global.tag=${release}"
+    opts+=" --set global.hub=gcr.io/istio-release"
+  fi
 
   if [[ "${MCP}" != "0" ]];then
       opts+=" --set global.useMCP=true"
   fi
 
 
-  local values=${VALUES:-values-istio-test.yaml}
+  local values=${VALUES:-values.yaml}
 
   helm template --name istio --namespace istio-system \
        ${opts} \
