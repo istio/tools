@@ -101,10 +101,12 @@ func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*fileDescriptor]boo
 			messages := make(map[string]*messageDescriptor)
 			enums := make(map[string]*enumDescriptor)
 			services := make(map[string]*serviceDescriptor)
+
 			g.getFileContents(file, messages, enums, services)
 			var filename = path.Base(file.GetName())
 			var extension = path.Ext(filename)
 			var name = filename[0 : len(filename)-len(extension)]
+
 			rf := g.generateFile(name, file, messages, enums, services)
 			response.File = append(response.File, &rf)
 		}
@@ -592,7 +594,7 @@ func (g *htmlGenerator) emit(str ...string) {
 	g.buffer.WriteByte('\n')
 }
 
-var typeLinkPattern = regexp.MustCompile(`\[[^\]]*\]\[[^\]]*\]`)
+var typeLinkPattern = regexp.MustCompile(`\[[^]]*]\[[^]]*]`)
 
 func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 	com := loc.GetLeadingComments()
@@ -608,7 +610,7 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 	lines := strings.Split(text, "\n")
 	if len(lines) > 0 {
 		// Based on the amount of spacing at the start of the first line,
-		// remove that many bytes at the beginning of every line in the comment.
+		// remove that many characters at the beginning of every line in the comment.
 		// This is so we don't inject extra spaces in any preformatted blocks included
 		// in the comments
 		pad := 0
@@ -670,6 +672,8 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 					return "<a href=\"" + l + "\">" + linkName + "</a>"
 				}
 
+				g.warn(loc, "unresolved type link [%s][%s]", linkName, typeName)
+
 				return "*" + linkName + "*"
 			})
 		}
@@ -723,12 +727,14 @@ func (g *htmlGenerator) linkify(o coreDesc, name string) string {
 	}
 
 	if !o.isHidden() {
-		var loc string
-		if g.perFile {
-			loc = o.fileDesc().matter.homeLocation
-		} else if o.packageDesc().file != nil {
+		// is there a file-specific home location?
+		loc := o.fileDesc().matter.homeLocation
+
+		// if there isn't a file-specific home location, see if there's a package-wide location
+		if loc == "" && o.packageDesc().file != nil {
 			loc = o.packageDesc().file.matter.homeLocation
 		}
+
 		if loc != "" && (g.currentFrontMatterProvider == nil || loc != g.currentFrontMatterProvider.matter.homeLocation) {
 			return "<a href=\"" + loc + "#" + normalizeId(dottedName(o)) + "\">" + name + "</a>"
 		}
@@ -744,7 +750,7 @@ func (g *htmlGenerator) warn(loc locationDescriptor, format string, args ...inte
 			place = fmt.Sprintf("%s:%d:%d: ", loc.file.GetName(), loc.Span[0], loc.Span[1])
 		}
 
-		fmt.Fprintf(os.Stderr, place+format+"\n", args...)
+		_, _ = fmt.Fprintf(os.Stderr, place+format+"\n", args...)
 	}
 }
 

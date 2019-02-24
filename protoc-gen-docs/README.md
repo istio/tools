@@ -174,7 +174,7 @@ message MyMsg {
 }
 ```
 
-## Specifying CSS class
+## Specifying a CSS class
 
 The comment for any element can contain the annotation `$class: <foo>` which is used
 to insert a specific HTML class around the generated element. This is useful to give
