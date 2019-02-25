@@ -21,8 +21,9 @@ import (
 	"fmt"
 	"strings"
 
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"istio.io/tools/pkg/protocgen"
+
+	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
 
 // Breaks the comma-separated list of key=value pairs
@@ -44,10 +45,6 @@ func extractParams(parameter string) map[string]string {
 	return m
 }
 
-func main() {
-	protocgen.Generate(generate)
-}
-
 func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	mode := htmlPage
 	genWarnings := true
@@ -55,6 +52,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 	camelCaseFields := true
 	customStyleSheet := ""
 	perFile := false
+	warningsAsErrors := false
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
@@ -107,7 +105,16 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			case "false":
 				perFile = false
 			default:
-				return nil, fmt.Errorf("unknown value '%s' for per_file", v)
+				return nil, fmt.Errorf("unknown value '%s' for per_file\n", v)
+			}
+		} else if k == "warnings_as_errors" {
+			switch strings.ToLower(v) {
+			case "true":
+				warningsAsErrors = true
+			case "false":
+				warningsAsErrors = false
+			default:
+				return nil, fmt.Errorf("unknown value '%s' for warnings_as_errors\n", v)
 			}
 		} else {
 			return nil, fmt.Errorf("unknown argument '%s' specified\n", k)
@@ -116,7 +123,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 
 	m, err := newModel(&request, perFile)
 	if err != nil {
-		return nil, fmt.Errorf("nable to create model: %v\n", err)
+		return nil, fmt.Errorf("unable to create model: %v\n", err)
 	}
 
 	filesToGen := make(map[*fileDescriptor]bool)
@@ -128,6 +135,10 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 		filesToGen[fd] = true
 	}
 
-	g := newHTMLGenerator(m, mode, genWarnings, emitYAML, camelCaseFields, customStyleSheet, perFile)
-	return g.generateOutput(filesToGen), nil
+	g := newHTMLGenerator(m, mode, genWarnings, warningsAsErrors, emitYAML, camelCaseFields, customStyleSheet, perFile)
+	return g.generateOutput(filesToGen)
+}
+
+func main() {
+	protocgen.Generate(generate)
 }

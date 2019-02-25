@@ -40,9 +40,10 @@ const (
 )
 
 type htmlGenerator struct {
-	buffer bytes.Buffer
-	model  *model
-	mode   outputMode
+	buffer      bytes.Buffer
+	model       *model
+	mode        outputMode
+	numWarnings int
 
 	// transient state as individual files are processed
 	currentPackage             *packageDescriptor
@@ -50,6 +51,7 @@ type htmlGenerator struct {
 	grouping                   bool
 
 	genWarnings      bool
+	warningsAsErrors bool
 	emitYAML         bool
 	camelCaseFields  bool
 	customStyleSheet string
@@ -60,11 +62,13 @@ const (
 	deprecated = "deprecated "
 )
 
-func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, emitYAML bool, camelCaseFields bool, customStyleSheet string, perFile bool) *htmlGenerator {
+func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, warningsAsErrors bool, emitYAML bool, camelCaseFields bool,
+	customStyleSheet string, perFile bool) *htmlGenerator {
 	return &htmlGenerator{
 		model:            model,
 		mode:             mode,
 		genWarnings:      genWarnings,
+		warningsAsErrors: warningsAsErrors,
 		emitYAML:         emitYAML,
 		camelCaseFields:  camelCaseFields,
 		customStyleSheet: customStyleSheet,
@@ -134,7 +138,7 @@ func (g *htmlGenerator) generatePerPackageOutput(filesToGen map[*fileDescriptor]
 	response.File = append(response.File, &rf)
 }
 
-func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) *plugin.CodeGeneratorResponse {
+func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) (*plugin.CodeGeneratorResponse, error) {
 	// process each package; we produce one output file per package
 	response := plugin.CodeGeneratorResponse{}
 
@@ -159,7 +163,11 @@ func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) *plu
 		}
 	}
 
-	return &response
+	if g.warningsAsErrors && g.numWarnings > 0 {
+		return nil, fmt.Errorf("treating %d warnings as errors\n", g.numWarnings)
+	}
+
+	return &response, nil
 }
 
 func (g *htmlGenerator) descLocation(desc coreDesc) string {
@@ -751,6 +759,7 @@ func (g *htmlGenerator) warn(loc locationDescriptor, format string, args ...inte
 		}
 
 		_, _ = fmt.Fprintf(os.Stderr, place+format+"\n", args...)
+		g.numWarnings++
 	}
 }
 

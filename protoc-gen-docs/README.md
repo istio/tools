@@ -72,6 +72,14 @@ the following syntax:
 protoc --docs_out=warnings=true:output_directory input_directory/file.proto
 ```
 
+Using the `warnings_as_errors` option, you can make it so any detected warnings will
+be treated as errors. You can use this option with
+the following syntax:
+
+```bash
+protoc --docs_out=warnings=true,warnings_as_errors=true:output_directory input_directory/file.proto
+```
+
 Using the `camel_case_fields` option, you can control whether field names are camel cased or not in
 the output. The default is to camel case fields.
 
