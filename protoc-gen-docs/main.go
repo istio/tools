@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/client9/gospell"
+
 	"istio.io/tools/pkg/protocgen"
 
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -53,6 +55,8 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 	customStyleSheet := ""
 	perFile := false
 	warningsAsErrors := false
+	dictionary := ""
+	customWordList := ""
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
@@ -116,6 +120,10 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			default:
 				return nil, fmt.Errorf("unknown value '%s' for warnings_as_errors\n", v)
 			}
+		} else if k == "dictionary" {
+			dictionary = v
+		} else if k == "custom_word_list" {
+			customWordList = v
 		} else {
 			return nil, fmt.Errorf("unknown argument '%s' specified\n", k)
 		}
@@ -135,7 +143,23 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 		filesToGen[fd] = true
 	}
 
-	g := newHTMLGenerator(m, mode, genWarnings, warningsAsErrors, emitYAML, camelCaseFields, customStyleSheet, perFile)
+	var s *gospell.GoSpell
+
+	if dictionary != "" {
+		s, err = gospell.NewGoSpell(dictionary+".aff", dictionary+".dic")
+		if err != nil {
+			return nil, fmt.Errorf("unable to load dictionary: %v\n", err)
+		}
+
+		if customWordList != "" {
+			_, err = s.AddWordListFile(customWordList)
+			if err != nil {
+				return nil, fmt.Errorf("unable to load custom word list: %v\n", err)
+			}
+		}
+	}
+
+	g := newHTMLGenerator(m, mode, genWarnings, warningsAsErrors, s, emitYAML, camelCaseFields, customStyleSheet, perFile)
 	return g.generateOutput(filesToGen)
 }
 
