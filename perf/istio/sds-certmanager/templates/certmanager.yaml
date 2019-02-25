@@ -1,0 +1,280 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: clusterissuers.certmanager.k8s.io
+  annotations:
+    "helm.sh/hook": crd-install
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+spec:
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: ClusterIssuer
+    plural: clusterissuers
+  scope: Cluster
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: issuers.certmanager.k8s.io
+  annotations:
+    "helm.sh/hook": crd-install
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+spec:
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: Issuer
+    plural: issuers
+  scope: Namespaced
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: certificates.certmanager.k8s.io
+  annotations:
+    "helm.sh/hook": crd-install
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+spec:
+  additionalPrinterColumns:
+    - JSONPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - JSONPath: .spec.secretName
+      name: Secret
+      type: string
+    - JSONPath: .spec.issuerRef.name
+      name: Issuer
+      type: string
+      priority: 1
+    - JSONPath: .status.conditions[?(@.type=="Ready")].message
+      name: Status
+      type: string
+      priority: 1
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+        Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
+  group: certmanager.k8s.io
+  version: v1alpha1
+  scope: Namespaced
+  names:
+    kind: Certificate
+    plural: certificates
+    shortNames:
+      - cert
+      - certs
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: orders.certmanager.k8s.io
+  annotations:
+    "helm.sh/hook": crd-install
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+spec:
+  additionalPrinterColumns:
+    - JSONPath: .status.state
+      name: State
+      type: string
+    - JSONPath: .spec.issuerRef.name
+      name: Issuer
+      type: string
+      priority: 1
+    - JSONPath: .status.reason
+      name: Reason
+      type: string
+      priority: 1
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+        Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: Order
+    plural: orders
+  scope: Namespaced
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: challenges.certmanager.k8s.io
+  annotations:
+    "helm.sh/hook": crd-install
+  labels:
+    app: certmanager
+    chart: certmanager
+    heritage: Tiller
+    release: istio
+spec:
+  additionalPrinterColumns:
+    - JSONPath: .status.state
+      name: State
+      type: string
+    - JSONPath: .spec.dnsName
+      name: Domain
+      type: string
+    - JSONPath: .status.reason
+      name: Reason
+      type: string
+    - JSONPath: .metadata.creationTimestamp
+      description: |-
+        CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+
+        Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata
+      name: Age
+      type: date
+  group: certmanager.k8s.io
+  version: v1alpha1
+  names:
+    kind: Challenge
+    plural: challenges
+  scope: Namespaced
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: certmanager
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: certmanager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: certmanager-{{ .Values.namespace }}
+  labels:
+    app: certmanager
+rules:
+  - apiGroups: ["certmanager.k8s.io"]
+    resources: ["certificates", "certificates/finalizers", "issuers", "clusterissuers", "orders", "orders/finalizers", "challenges"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "events", "services", "pods"]
+    verbs: ["*"]
+  - apiGroups: ["extensions"]
+    resources: ["ingresses"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: certmanager-{{ .Values.namespace }}
+  labels:
+    app: certmanager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: certmanager-{{ .Values.namespace }}
+subjects:
+  - name: certmanager
+    namespace: {{ .Values.namespace }}
+    kind: ServiceAccount
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: certmanager
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: certmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: certmanager
+  template:
+    metadata:
+      labels:
+        app: certmanager
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+    spec:
+      serviceAccountName: certmanager
+      containers:
+      - name: certmanager
+        image: "{{ .Values.certManagerImage }}"
+        imagePullPolicy: Always
+        args:
+        - --cluster-resource-namespace=$(POD_NAMESPACE)
+        - --leader-election-namespace=$(POD_NAMESPACE)
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Issuer
+metadata:
+  name: letsencrypt-staging
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: certmanager
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: mailbox@{{ .Values.ingressDomain }}
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    http01: {}
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Issuer
+metadata:
+  name: letsencrypt
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: certmanager
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: mailbox@{{ .Values.ingressDomain }}
+    privateKeySecretRef:
+      name: letsencrypt
+    http01: {}
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: cert-staging
+  namespace: {{ .Values.namespace }}
+spec:
+  secretName: cert-staging-tls
+  # A newly issued "Let's Encrypt" cert is valid for 90 days since 1 hour ago.
+  # The following directive will trigger renewal every 30 mins.
+  renewBefore: 129510m # (90 days) minus (1 hour) minus (30 mins)
+  issuerRef:
+    name: letsencrypt-staging
+  commonName: {{ .Values.ingressDomain }}
+  dnsNames:
+  - {{ .Values.ingressDomain }}
+  acme:
+    config:
+    - http01:
+        ingressClass: istio-ingress-{{ .Values.namespace }}
+      domains:
+      - {{ .Values.ingressDomain }}

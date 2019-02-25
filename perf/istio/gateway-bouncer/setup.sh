@@ -34,8 +34,8 @@ function install_gateway_bouncer() {
     kubectl -n $NAMESPACE delete configmap fortio-client-config
     kubectl -n $NAMESPACE create configmap fortio-client-config \
       --from-literal=external_addr=$INGRESS_IP
-    kubectl -n $NAMESPACE patch deployment istio-ingress-$NAMESPACE \
-      -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+    kubectl -n $NAMESPACE patch deployment fortio-client \
+      -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
   fi
 }
 
