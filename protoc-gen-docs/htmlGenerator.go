@@ -612,7 +612,7 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 	if com == "" {
 		com = loc.GetTrailingComments()
 		if com == "" {
-			g.warn(loc, "no comment found for %s", name)
+			g.warn(loc, 0, "no comment found for %s", name)
 			return
 		}
 	}
@@ -683,7 +683,7 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 					return "<a href=\"" + l + "\">" + linkName + "</a>"
 				}
 
-				g.warn(loc, "unresolved type link [%s][%s]", linkName, typeName)
+				g.warn(loc, -(len(lines) - i), "unresolved type link [%s][%s]", linkName, typeName)
 
 				return "*" + linkName + "*"
 			})
@@ -693,10 +693,25 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 	text = strings.Join(lines, "\n")
 
 	if g.speller != nil {
-		words := g.speller.Split(text)
-		for _, word := range words {
-			if !g.speller.Spell(word) {
-				g.warn(loc, "%s is mispelled\n", word)
+		preBlock := false
+		for linenum, line := range lines {
+			trimmed := strings.Trim(line, " ")
+			if strings.HasPrefix(trimmed, "```") {
+				preBlock = !preBlock
+				continue
+			}
+
+			if preBlock {
+				continue
+			}
+
+			line := sanitize(line)
+
+			words := g.speller.Split(line)
+			for _, word := range words {
+				if !g.speller.Spell(word) {
+					g.warn(loc, -(len(lines) - linenum), "%s is misspelled", word)
+				}
 			}
 		}
 	}
@@ -709,6 +724,18 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 
 	g.buffer.Write(result)
 	g.buffer.WriteByte('\n')
+}
+
+var stripCodeBlocks = regexp.MustCompile("(`.*`)")
+var stripMarkdownURLs = regexp.MustCompile(`\[.*\]\((.*)\)`)
+var stripHTMLURLs = regexp.MustCompile(`(<a href=".*">)`)
+
+func sanitize(line string) string {
+	// strip out any embedded code blocks and URLs
+	line = stripMarkdownURLs.ReplaceAllString(line, "")
+	line = stripHTMLURLs.ReplaceAllString(line, "")
+	line = stripCodeBlocks.ReplaceAllString(line, "")
+	return line
 }
 
 // well-known types whose documentation we can refer to
@@ -763,11 +790,16 @@ func (g *htmlGenerator) linkify(o coreDesc, name string) string {
 	return "<a href=\"#" + normalizeId(g.relativeName(o)) + "\">" + name + "</a>"
 }
 
-func (g *htmlGenerator) warn(loc locationDescriptor, format string, args ...interface{}) {
+func (g *htmlGenerator) warn(loc locationDescriptor, lineOffset int, format string, args ...interface{}) {
 	if g.genWarnings {
 		place := ""
 		if loc.SourceCodeInfo_Location != nil && len(loc.Span) >= 2 {
-			place = fmt.Sprintf("%s:%d:%d: ", loc.file.GetName(), loc.Span[0], loc.Span[1])
+
+			if lineOffset < 0 {
+				place = fmt.Sprintf("%s:%d: ", loc.file.GetName(), loc.Span[0]+int32(lineOffset)+1)
+			} else {
+				place = fmt.Sprintf("%s:%d:%d: ", loc.file.GetName(), loc.Span[0]+1, loc.Span[1]+1)
+			}
 		}
 
 		_, _ = fmt.Fprintf(os.Stderr, place+format+"\n", args...)
