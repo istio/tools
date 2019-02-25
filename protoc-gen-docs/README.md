@@ -80,6 +80,24 @@ the following syntax:
 protoc --docs_out=warnings=true,warnings_as_errors=true:output_directory input_directory/file.proto
 ```
 
+Using the `dictionary` option, you can enable spell checking of
+extracted documentation. You need to supply the path to a Hunspell-compatible
+pair of dictionary files. Hunspell dictionary files come in pair, a .aff and a
+.dic file, and you need to specify the core name without the extension. So
+for a pair of files called en-US.aff and en-US.dic, supply a dictionary path
+of en-US. You can use this option with the following syntax:
+
+```bash
+protoc --docs_out=warnings=true,warnings_as_errors=true,dictionary=dictionaries/en-US:output_directory input_directory/file.proto
+```
+
+When spell-checking, you can include a custom list of words to augment the dictionary. The list of words is just a plain text file with
+one word per line. You can use this option with the following syntax:
+
+```bash
+protoc --docs_out=warnings=true,warnings_as_errors=true,dictionary=dictionaries/en-US,custom_word_list=mywords.txt:output_directory input_directory/file.proto
+```
+
 Using the `camel_case_fields` option, you can control whether field names are camel cased or not in
 the output. The default is to camel case fields.
 

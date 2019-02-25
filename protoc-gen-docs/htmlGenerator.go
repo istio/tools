@@ -25,6 +25,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/client9/gospell"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -44,6 +45,7 @@ type htmlGenerator struct {
 	model       *model
 	mode        outputMode
 	numWarnings int
+	speller     *gospell.GoSpell
 
 	// transient state as individual files are processed
 	currentPackage             *packageDescriptor
@@ -62,11 +64,12 @@ const (
 	deprecated = "deprecated "
 )
 
-func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, warningsAsErrors bool, emitYAML bool, camelCaseFields bool,
-	customStyleSheet string, perFile bool) *htmlGenerator {
+func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, warningsAsErrors bool, speller *gospell.GoSpell,
+	emitYAML bool, camelCaseFields bool, customStyleSheet string, perFile bool) *htmlGenerator {
 	return &htmlGenerator{
 		model:            model,
 		mode:             mode,
+		speller:          speller,
 		genWarnings:      genWarnings,
 		warningsAsErrors: warningsAsErrors,
 		emitYAML:         emitYAML,
@@ -689,10 +692,19 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 
 	text = strings.Join(lines, "\n")
 
+	if g.speller != nil {
+		words := g.speller.Split(text)
+		for _, word := range words {
+			if !g.speller.Spell(word) {
+				g.warn(loc, "%s is mispelled\n", word)
+			}
+		}
+	}
+
 	// turn the comment from markdown into HTML
 	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.FencedCode|blackfriday.AutoHeadingIDs))
 
-	// prevent any { contained in the markdown from being interpreted as Liquid tags
+	// prevent any { contained in the markdown from being interpreted as Hugo shortcodes
 	result = bytes.Replace(result, []byte("{"), []byte("&lbrace;"), -1)
 
 	g.buffer.Write(result)
