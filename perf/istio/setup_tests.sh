@@ -36,7 +36,7 @@ function delete_test() {
 
 function delete_tests() {
   for test in $1; do
-      delete_test "${test}"
+      delete_test "${test}" || true
   done
 }
 
