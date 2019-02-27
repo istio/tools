@@ -27,3 +27,4 @@ You can also set env variables:
 * `NAMESPACE` to specify a custom namespace for tests
 * `DRY_RUN` to just generate the yaml files without applying
 * `TESTS` space separate list of tests to run. Example: `TESTS="http10 graceful-shutdown"`
+  * Default tests: http10, graceful-shutdown, gateway-bouncer. Optional tests: allconfig.
