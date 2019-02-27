@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 set -ex
 
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org"}

@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 set -ex
 
 NAMESPACE=${NAMESPACE:?"New/existing NAMESPACE to install this scenario into"}
