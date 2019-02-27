@@ -46,7 +46,7 @@ ALL_TESTS="http10 graceful-shutdown gateway-bouncer mysql"
 TESTS="${TESTS:-"$ALL_TESTS"}"
 
 case "$1" in
-   "") echo "Pass one of setup or delete" ;;
   "setup" | "install") setup_tests "${TESTS}" ;;
   "delete" | "remove" | "uninstall") delete_tests "${TESTS}" ;;
+   *) echo "Pass one of setup or delete" ;;
 esac

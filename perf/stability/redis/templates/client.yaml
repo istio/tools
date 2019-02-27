@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-client
+  labels:
+    app: redis-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-client
+  template:
+    metadata:
+      name: redis-client
+      labels:
+        app: redis-client
+    spec:
+      containers:
+        - name: redis-client
+          image: redis:latest
+          args:
+            - sleep
+            - infinity
