@@ -68,7 +68,7 @@ spec:
                   kubectl \
                     -n {{ .Values.namespace }} \
                     patch deployment istio-ingress-{{ .Values.namespace }} \
-                    -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+                    -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
 
                   sleep {{ .Values.pilotDowntimeDurationSec }}
 

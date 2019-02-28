@@ -1,0 +1,41 @@
+# Fortio load generator that simulates external traffic. Communicates with the
+# internal service via external LoadBalancer which IP address is supposed to be
+# passed via a config map.
+# Expects real DNS name and attempts to connect over https (allowing
+# non-trusted certificates so we can use "staging" version of "Let's Encrypt").
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: fortio-client
+spec:
+  template:
+    metadata:
+      labels:
+        app: fortio-cli-raw
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - name: fortio-client
+        image: {{ .Values.fortioImage }}
+        imagePullPolicy: Always
+        args:
+          - load
+          - -t
+          - "0"
+          - -abort-on
+          - "-1"
+          - -timeout
+          - "{{ .Values.clientConnTimeoutDuration }}"
+          - -c
+          - "{{ .Values.numOfClientConns }}"
+          - -qps
+          - "{{ .Values.numOfClientQps }}"
+          - -https-insecure
+          - "https://{{ .Values.ingressDomain }}/echo?size=1024"
+        resources:
+          requests:
+            cpu: 250m
+            memory: "256m"
