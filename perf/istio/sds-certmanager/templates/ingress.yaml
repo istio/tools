@@ -1,6 +1,36 @@
 # IngressGateway setup that is configured to support standard K8S Ingress. The
 # deployment also features a readiness check that should prevent it from
 # receiving traffic until a configuration is delivered from Pilot.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: istio-ingress-{{ .Values.namespace }}-service-account
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: ingressgateway
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: istio-ingress-{{ .Values.namespace }}-sds
+  namespace: {{ .Values.namespace }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: istio-ingress-{{ .Values.namespace }}-sds
+  namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: istio-ingress-{{ .Values.namespace }}-sds
+subjects:
+- kind: ServiceAccount
+  name: istio-ingress-{{ .Values.namespace }}-service-account
 ---
 apiVersion: v1
 kind: Service
@@ -48,8 +78,24 @@ spec:
         sidecar.istio.io/inject: "false"
         scheduler.alpha.kubernetes.io/critical-pod: ""
     spec:
-      terminationGracePeriodSeconds: 120
+      serviceAccountName: istio-ingress-{{ .Values.namespace }}-service-account
       containers:
+        - name: ingress-sds
+          image: "{{ .Values.nodeAgentImage }}"
+          imagePullPolicy: Always
+          env:
+          - name: "ENABLE_WORKLOAD_SDS"
+            value: "false"
+          - name: "ENABLE_INGRESS_GATEWAY_SDS"
+            value: "true"
+          - name: "INGRESS_GATEWAY_NAMESPACE"
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          volumeMounts:
+          - name: ingressgatewaysdsudspath
+            mountPath: /var/run/ingress_gateway
         - name: ingress
           image: {{ .Values.proxyImage }}
           imagePullPolicy: Always
@@ -94,7 +140,7 @@ spec:
             timeoutSeconds: 1
           resources:
             requests:
-              cpu: 10m
+              cpu: 250m
           env:
           - name: POD_NAME
             valueFrom:
@@ -111,13 +157,19 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: status.podIP
+          - name: ISTIO_META_USER_SDS
+            value: "true"
           volumeMounts:
+          - name: sdsudspath
+            mountPath: /var/run/sds
           - name: istio-certs
             mountPath: /etc/certs
             readOnly: true
           - name: ingress-certs
             mountPath: /etc/istio/ingress-certs
             readOnly: true
+          - name: ingressgatewaysdsudspath
+            mountPath: /var/run/ingress_gateway
       volumes:
       - name: istio-certs
         secret:
@@ -127,6 +179,11 @@ spec:
         secret:
           secretName: istio-ingress-certs
           optional: true
+      - name: ingressgatewaysdsudspath
+        emptyDir: {}
+      - name: sdsudspath
+        hostPath:
+          path: /var/run/sds
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -175,3 +232,14 @@ spec:
         name: http
       hosts:
         - "*"
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        serverCertificate: "sds"
+        privateKey: "sds"
+        credentialName: "cert-staging-tls" # must be the same as secret
+      hosts:
+      - "{{ .Values.ingressDomain }}"
