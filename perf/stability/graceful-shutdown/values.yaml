@@ -1,4 +1,7 @@
-connectionDuration: 10 # maximum supported by httpbin is 10s
+# Should be set slightly below TERMINATION_DRAIN_DURATION_SECONDS
+# maximum supported by httpbin is 10s
+connectionDuration: 4 #
+
 qps: 10
 fortioImage: fortio/fortio:latest
 httpbinRedployMinutes: 1
