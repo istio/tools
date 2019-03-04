@@ -360,13 +360,12 @@ def computeMinMaxAvg(d, groupby=None, xform=None, aggregate=True):
               except IndexError as err:
                 # Data about that time is not yet populated.
                 break
-        if not aggregate:
-          s = [xform(i) for i in values]
-        else:
+        if aggregate:
           s = (min(values), sum(values) / len(values), max(values), len(values))
           if xform is not None:
-              s = (xform(s[0]), xform(s[1]), xform(s[2]), s[3])
-
+            s = (xform(s[0]), xform(s[1]), xform(s[2]), s[3])
+        else:
+          s = [xform(i) for i in values]
         summary[group] = s
     return summary
 
