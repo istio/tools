@@ -8,6 +8,7 @@ import argparse
 from datetime import datetime
 import calendar
 import pytz
+import csv
 
 import prom
 
@@ -105,11 +106,32 @@ def converDataToList(txt):
     return lines
 
 
+def output_csv(run_stats, output_file):
+    res = []
+    for stats in run_stats:
+        data = [
+            stats['ActualQPS'],
+            stats['NumThreads'],
+            stats['Labels'].split('_')[-1],
+            stats['p99']/1000,
+            stats['p50']/1000,
+        ]
+        res.append(data)
+    res.sort()
+    header = ['QPS', 'Connections', 'Test', 'p99 (ms)', 'p50 (ms)']
+    with open(output_file, 'w') as out:
+        w = csv.writer(out)
+        w.writerow(header)
+        w.writerows(res)
+
+
 def syncFortio(url, table, selector=None):
     dataurl = url + "/data/"
     data = requests.get(dataurl)
-    fd, datafile = tempfile.mkstemp()
+    fd, fullfile = tempfile.mkstemp()
+    fd, summaryfile = tempfile.mkstemp()
     out = os.fdopen(fd, "wt")
+    stats = []
     cnt = 0
 
     for fl in converDataToList(data.text):
@@ -140,12 +162,16 @@ def syncFortio(url, table, selector=None):
 
         gd.update(prom_metrics)
         out.write(json.dumps(gd) + "\n")
+        stats.append(gd)
         cnt += 1
 
     out.close()
-    print("Wrote {} records to {}".format(cnt, datafile))
+    print("Wrote {} records to {}".format(cnt, fullfile))
 
-    # p = subprocess.Popen("bq insert {table} {datafile}".format(
+    output_csv(stats, summaryfile)
+    print("Wrote summary to {}".format(summaryfile))
+
+    # p = subprocess.Popen("bq insert {table} {fullfile}".format(
     #     table=table, datafile=datafile).split())
     # ret = p.wait()
     # print(p.stdout)
@@ -165,6 +191,7 @@ def getParser():
     parser.add_argument("--selector", help="timestamps to match for import")
     parser.add_argument("url", help="url to fetch fortio json results from")
     return parser
+
 
 if __name__ == "__main__":
     import sys
