@@ -115,10 +115,13 @@ def output_csv(run_stats, output_file):
             stats['Labels'].split('_')[-1],
             stats['p99']/1000,
             stats['p50']/1000,
+            stats['cpu_mili_avg_fortioserver_deployment_proxy'],
+            stats['mem_MB_avg_fortioserver_deployment_proxy'],
         ]
         res.append(data)
     res.sort()
-    header = ['QPS', 'Connections', 'Test', 'p99 (ms)', 'p50 (ms)']
+    header = ['QPS', 'Connections', 'Test',
+              'p99 (ms)', 'p50 (ms)', 'CPU (m)', 'Memory (mb)']
     with open(output_file, 'w') as out:
         w = csv.writer(out)
         w.writerow(header)
@@ -129,7 +132,7 @@ def syncFortio(url, table, selector=None):
     dataurl = url + "/data/"
     data = requests.get(dataurl)
     fd, fullfile = tempfile.mkstemp()
-    fd, summaryfile = tempfile.mkstemp()
+    _, summaryfile = tempfile.mkstemp()
     out = os.fdopen(fd, "wt")
     stats = []
     cnt = 0
@@ -171,11 +174,12 @@ def syncFortio(url, table, selector=None):
     output_csv(stats, summaryfile)
     print("Wrote summary to {}".format(summaryfile))
 
-    # p = subprocess.Popen("bq insert {table} {fullfile}".format(
-    #     table=table, datafile=datafile).split())
-    # ret = p.wait()
-    # print(p.stdout)
-    # print(p.stderr)
+    if table:
+        p = subprocess.Popen("bq insert {table} {fullfile}".format(
+            table=table, datafile=fullfile).split())
+        ret = p.wait()
+        print(p.stdout)
+        print(p.stderr)
     return 0
 
 
@@ -187,7 +191,7 @@ def main(argv):
 def getParser():
     parser = argparse.ArgumentParser("Fetch and upload results to bigQuery")
     parser.add_argument(
-        "--table", help="Name of the BigQuery table to send results to", default="istio_perf_01.perf")
+        "--table", help="Name of the BigQuery table to send results to", default=None)
     parser.add_argument("--selector", help="timestamps to match for import")
     parser.add_argument("url", help="url to fetch fortio json results from")
     return parser
