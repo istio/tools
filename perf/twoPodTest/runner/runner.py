@@ -44,14 +44,14 @@ def run_command_sync(command):
 
 class Fortio(object):
     ports = {
-        "http": {"direct_port": 8077, "port": 8080},
-        "grpc": {"direct_port": 8076, "port": 8079},
+        "http": {"direct_port": 8077, "port": 8080, "ingress": 80},
+        "grpc": {"direct_port": 8076, "port": 8079, "ingress": 80},
         "direct_envoy": {"direct_port": 8076, "port": 8079}
     }
 
     def __init__(self, conn=None, qps=None, size=None, mode="http", duration=240, mixer=True, perf_record=False,
                  mixer_cache=True, server="fortioserver", client="fortioclient", additional_args=None, filterFn=None, labels=None,
-                 baseline=False, serversidecar=True, clientsidecar=False):
+                 baseline=False, serversidecar=True, clientsidecar=False, ingress=None):
         self.runid = str(uuid.uuid4()).partition('-')[0]
         self.conn = conn
         self.qps = qps
@@ -71,6 +71,7 @@ class Fortio(object):
         self.labels = labels
         self.run_serversidecar = serversidecar
         self.run_clientsidecar = clientsidecar
+        self.run_ingress = ingress
         self.run_baseline = baseline
 
     def nosidecar(self, fortio_cmd):
@@ -84,6 +85,10 @@ class Fortio(object):
     def bothsidecar(self, fortio_cmd):
         return fortio_cmd + "_both http://{svc}:{port}/echo?size={size}".format(
             svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
+
+    def ingress(self, fortio_cmd):
+        return fortio_cmd + "_ingress http://{svc}:{port}/echo?size={size}".format(
+            svc=self.run_ingress, port=self.ports[self.mode]["ingress"], size=self.size)
 
     def run(self, conn=None, qps=None, size=None, duration=None):
         conn = conn or self.conn
@@ -110,6 +115,13 @@ class Fortio(object):
 
         fortio_cmd = ("fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} -httpbufferkb=128 " +
                       "-labels {labels}").format(conn=conn, qps=qps, duration=duration, r=self.r, labels=labels)
+
+        if self.run_ingress:
+            p = kubectl(self.client.name, self.ingress(fortio_cmd))
+            if self.perf_record:
+                perf(self.server.name, labels +
+                     "_srv_ingress", duration=40)
+            p.wait()
 
         if self.run_serversidecar:
             p = kubectl(self.client.name, self.serversidecar(fortio_cmd))
@@ -187,7 +199,7 @@ def rc(command):
 
 def run(args):
     fortio = Fortio(size=args.size, duration=args.duration, perf_record=args.perf, labels=args.labels,
-                    baseline=args.baseline, serversidecar=args.serversidecar, clientsidecar=args.clientsidecar)
+                    baseline=args.baseline, serversidecar=args.serversidecar, clientsidecar=args.clientsidecar, ingress=args.ingress)
 
     for conn in args.conn:
         for qps in args.qps:
@@ -219,6 +231,8 @@ def getParser():
         "--serversidecar", help="run serversidecar for all", type=bool, default=True)
     parser.add_argument(
         "--clientsidecar", help="run clientsidecar and serversidecar for all", type=bool, default=True)
+    parser.add_argument(
+        "--ingress", help="run traffic thru ingress", default=None)
     parser.add_argument("--labels", help="extra labels", default=None)
     return parser
 

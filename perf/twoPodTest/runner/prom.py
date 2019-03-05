@@ -38,7 +38,7 @@ class Prom(object):
         }, headers=self.headers)
 
         if not resp.ok:
-            raise Exception(str(resp))
+            raise Exception(str(resp.text))
 
         data = resp.json()
         return computeMinMaxAvg(data, groupby=groupby, xform=xform, aggregate=self.aggregate)
@@ -56,8 +56,10 @@ class Prom(object):
             to_megaBytes)
 
     def fetch_cpu_and_mem(self):
-        out = flatten(self.fetch_cpu_by_container(), "cpu_mili", aggregate=self.aggregate)
-        out.update(flatten(self.fetch_memory_by_container(), "mem_MB", aggregate=self.aggregate))
+        out = flatten(self.fetch_cpu_by_container(),
+                      "cpu_mili", aggregate=self.aggregate)
+        out.update(flatten(self.fetch_memory_by_container(),
+                           "mem_MB", aggregate=self.aggregate))
         return out
 
     def fetch_by_query(self, query):
@@ -269,11 +271,11 @@ def flatten(data, metric, aggregate):
         grp = grp.replace("-", "_")
         grp = grp.replace("/", "_")
         if aggregate:
-          res[metric + "_min_" + grp] = summary[0]
-          res[metric + "_avg_" + grp] = summary[1]
-          res[metric + "_max_" + grp] = summary[2]
+            res[metric + "_min_" + grp] = summary[0]
+            res[metric + "_avg_" + grp] = summary[1]
+            res[metric + "_max_" + grp] = summary[2]
         else:
-          res[metric + '_' + grp] = summary
+            res[metric + '_' + grp] = summary
 
     return res
 
@@ -355,24 +357,26 @@ def computeMinMaxAvg(d, groupby=None, xform=None, aggregate=True):
         for l in lst[1:]:
             v = l['values']
             for idx in range(len(values)):
-              try:
-                values[idx] += float(v[idx][1])
-              except IndexError as err:
-                # Data about that time is not yet populated.
-                break
+                try:
+                    values[idx] += float(v[idx][1])
+                except IndexError as err:
+                    # Data about that time is not yet populated.
+                    break
         if aggregate:
-          s = (min(values), sum(values) / len(values), max(values), len(values))
-          if xform is not None:
-            s = (xform(s[0]), xform(s[1]), xform(s[2]), s[3])
+            s = (min(values), sum(values) /
+                 len(values), max(values), len(values))
+            if xform is not None:
+                s = (xform(s[0]), xform(s[1]), xform(s[2]), s[3])
         else:
-          s = [xform(i) for i in values]
+            s = [xform(i) for i in values]
         summary[group] = s
     return summary
 
 
 def main(argv):
     args = getParser().parse_args(argv)
-    p = Prom(args.url, args.nseconds, end=args.end, host=args.host, aggregate=args.aggregate)
+    p = Prom(args.url, args.nseconds, end=args.end,
+             host=args.host, aggregate=args.aggregate)
     out = p.fetch_cpu_and_mem()
     resp_out = p.fetch_500s_and_400s()
     out.update(resp_out)
@@ -400,7 +404,8 @@ def getParser():
     parser.add_argument(
         "--indent", help="pretty print json with indent", default=None)
     parser.add_argument('--aggregate', dest='aggregate', action='store_true')
-    parser.add_argument('--no-aggregate', dest='aggregate', action='store_false')
+    parser.add_argument('--no-aggregate', dest='aggregate',
+                        action='store_false')
     parser.set_defaults(aggregate=True)
 
     return parser

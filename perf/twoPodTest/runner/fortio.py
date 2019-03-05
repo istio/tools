@@ -81,8 +81,14 @@ def convertData(data):
 def fetch(url):
     data = None
     if url.startswith("http"):
-        d = requests.get(url)
-        data = d.json()
+        try:
+            d = requests.get(url)
+            if d.status_code != 200:
+                return None
+            data = d.json()
+        except Exception:
+            print("Error while fetching from "+url)
+            raise
     else:
         data = json.load(open(url))
 
@@ -93,18 +99,18 @@ def converDataToList(txt):
     idx = 0
     lines = []
 
-    href = 'a href="'
+    marker = '<option value="'
+    # marker = 'a href="' # This used to be the marker in older version of fortio
     while True:
-        idx = txt.find(href, idx)
+        idx = txt.find(marker, idx)
         if idx == -1:
             break
-        startRef = idx + len(href)
+        startRef = idx + len(marker)
         end = txt.find('"', startRef)
         lines.append(txt[startRef:end])
         idx += 1
 
     return lines
-
 
 def output_csv(run_stats, output_file):
     res = []
@@ -127,18 +133,26 @@ def output_csv(run_stats, output_file):
         w.writerow(header)
         w.writerows(res)
 
+# number of seconds to skip after test begins.
+METRICS_START_SKIP_DURATION = 30
+# number of seconds to summarize during test
+METRICS_SUMMARY_DURATION = 180
 
-def syncFortio(url, table, selector=None):
-    dataurl = url + "/data/"
-    data = requests.get(dataurl)
-    fd, fullfile = tempfile.mkstemp()
-    _, summaryfile = tempfile.mkstemp()
+
+def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
+    listurl = url + "/fortio/data/"
+    listdata = requests.get(listurl)
+    fd, datafile = tempfile.mkstemp()
     out = os.fdopen(fd, "wt")
     stats = []
     cnt = 0
 
-    for fl in converDataToList(data.text):
+    dataurl = url + "/data/"
+    data = []
+    for fl in converDataToList(listdata.text):
         gd = fetch(dataurl + fl)
+        if gd is None:
+            continue
         st = gd['StartTime']
         if selector is not None:
             if selector.startswith("^"):
@@ -149,13 +163,18 @@ def syncFortio(url, table, selector=None):
 
         sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
         print("Fetching prometheus metrics for", sd, end=' ')
-
         if gd['errorPercent'] > 10:
             print("... Run resulted in", gd['errorPercent'], "% errors")
             continue
-        # give 30s after start of test
-        prom_start = calendar.timegm(sd.utctimetuple()) + 30
-        p = prom.Prom("http://prometheus.local", 120, start=prom_start)
+        if METRICS_START_SKIP_DURATION > gd['ActualDuration']:
+            print("... {} duration={}s is less than minimum {}s".format(
+                gd["Labels"], gd['ActualDuration'], METRICS_START_SKIP_DURATION))
+            continue
+        prom_start = calendar.timegm(
+            sd.utctimetuple()) + METRICS_START_SKIP_DURATION
+        duration = min(gd['ActualDuration'] -
+                       METRICS_START_SKIP_DURATION, METRICS_SUMMARY_DURATION)
+        p = prom.Prom(promUrl, duration, start=prom_start)
         prom_metrics = p.fetch_cpu_and_mem()
         if len(prom_metrics) == 0:
             print("... Not found")
@@ -164,6 +183,7 @@ def syncFortio(url, table, selector=None):
             print("")
 
         gd.update(prom_metrics)
+        data.append(gd)
         out.write(json.dumps(gd) + "\n")
         stats.append(gd)
         cnt += 1
@@ -171,31 +191,56 @@ def syncFortio(url, table, selector=None):
     out.close()
     print("Wrote {} records to {}".format(cnt, fullfile))
 
-    output_csv(stats, summaryfile)
-    print("Wrote summary to {}".format(summaryfile))
+    if csv is not None:
+        write_csv(csv, data)
 
     if table:
-        p = subprocess.Popen("bq insert {table} {fullfile}".format(
-            table=table, datafile=fullfile).split())
-        ret = p.wait()
-        print(p.stdout)
-        print(p.stderr)
+        return write_table(table, datafile)
+
     return 0
 
+def write_csv(keys, data):
+    fd, datafile = tempfile.mkstemp()
+    out = os.fdopen(fd, "wt")
+    cnt = 0
+    lst = keys.split(',')
+    out.write(keys+"\n")
+
+    for gd in data:
+        row = []
+        for key in lst:
+            row.append(str(gd.get(key, '-')))
+
+        out.write(','.join(row) + "\n")
+
+    out.close()
+    print("Wrote {} records to {}".format(len(data), datafile))
+
+
+def write_table(table, datafile):
+
+    p = subprocess.Popen("bq insert {table} {datafile}".format(
+        table=table, datafile=datafile).split())
+    ret = p.wait()
+    print(p.stdout)
+    print(p.stderr)
+    return ret
 
 def main(argv):
     args = getParser().parse_args(argv)
-    return syncFortio(args.url, args.table, args.selector)
+    return syncFortio(args.url, args.table, args.selector, args.prometheus, args.csv)
 
 
 def getParser():
     parser = argparse.ArgumentParser("Fetch and upload results to bigQuery")
     parser.add_argument(
-        "--table", help="Name of the BigQuery table to send results to", default=None)
+        "--table", help="Name of the BigQuery table to send results to, like istio_perf_01.perf", default=None)
     parser.add_argument("--selector", help="timestamps to match for import")
+    parser.add_argument("--csv", help="columns in the csv file")
     parser.add_argument("url", help="url to fetch fortio json results from")
+    parser.add_argument(
+        "prometheus", help="url to fetch prometheus results from")
     return parser
-
 
 if __name__ == "__main__":
     import sys
