@@ -155,7 +155,7 @@ def syncFortio(url, table, selector=None):
             continue
         # give 30s after start of test
         prom_start = calendar.timegm(sd.utctimetuple()) + 30
-        p = prom.Prom("http://localhost:9090", 120, start=prom_start)
+        p = prom.Prom("http://prometheus.local", 120, start=prom_start)
         prom_metrics = p.fetch_cpu_and_mem()
         if len(prom_metrics) == 0:
             print("... Not found")
