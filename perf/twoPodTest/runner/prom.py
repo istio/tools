@@ -12,7 +12,7 @@ class Prom(object):
     # url: base url for prometheus
     #
 
-    def __init__(self, url, nseconds, end=None, host=None, start=None):
+    def __init__(self, url, nseconds, end=None, host=None, start=None, aggregate=True):
         self.url = url
         self.nseconds = nseconds
         if start is None:
@@ -27,6 +27,7 @@ class Prom(object):
         self.headers = {}
         if host is not None:
             self.headers["Host"] = host
+        self.aggregate = aggregate
 
     def fetch(self, query, groupby=None, xform=None):
         resp = requests.get(self.url + "/api/v1/query_range", {
@@ -40,7 +41,7 @@ class Prom(object):
             raise Exception(str(resp))
 
         data = resp.json()
-        return computeMinMaxAvg(data, groupby=groupby, xform=xform)
+        return computeMinMaxAvg(data, groupby=groupby, xform=xform, aggregate=self.aggregate)
 
     def fetch_cpu_by_container(self):
         return self.fetch(
@@ -55,8 +56,8 @@ class Prom(object):
             to_megaBytes)
 
     def fetch_cpu_and_mem(self):
-        out = flatten(self.fetch_cpu_by_container(), "cpu_mili")
-        out.update(flatten(self.fetch_memory_by_container(), "mem_MB"))
+        out = flatten(self.fetch_cpu_by_container(), "cpu_mili", aggregate=self.aggregate)
+        out.update(flatten(self.fetch_memory_by_container(), "mem_MB", aggregate=self.aggregate))
         return out
 
     def fetch_by_query(self, query):
@@ -85,15 +86,15 @@ class Prom(object):
         data_503 = self.fetch_num_requests_by_response_code(503)
         data_504 = self.fetch_num_requests_by_response_code(504)
         if len(data_404) > 0:
-            res["istio_requests_total_404"] = data_404[len(data_404)-1][1]
+            res["istio_requests_total_404"] = data_404[-1][1]
         else:
             res["istio_requests_total_404"] = "0"
         if len(data_503) > 0:
-            res["istio_requests_total_503"] = data_503[len(data_503)-1][1]
+            res["istio_requests_total_503"] = data_503[-1][1]
         else:
             res["istio_requests_total_503"] = "0"
         if len(data_504) > 0:
-            res["istio_requests_total_504"] = data_504[len(data_504)-1][1]
+            res["istio_requests_total_504"] = data_504[-1][1]
         else:
             res["istio_requests_total_504"] = "0"
         return res
@@ -123,38 +124,31 @@ class Prom(object):
             "mixer_config_attribute_count")
 
         if len(config_count) > 0:
-            res["mixer_config_rule_config_count"] = config_count[len(
-                config_count)-1][1]
+            res["mixer_config_rule_config_count"] = config_count[-1][1]
         else:
             res["mixer_config_rule_config_count"] = "0"
         if len(config_error_count) > 0:
-            res["mixer_config_rule_config_error_count"] = config_error_count[len(
-                config_error_count)-1][1]
+            res["mixer_config_rule_config_error_count"] = config_error_count[-1][1]
         else:
             res["mixer_config_rule_config_error_count"] = "0"
         if len(config_match_error_count) > 0:
-            res["mixer_config_rule_config_match_error_count"] = config_match_error_count[len(
-                config_match_error_count)-1][1]
+            res["mixer_config_rule_config_match_error_count"] = config_match_error_count[-1][1]
         else:
             res["mixer_config_rule_config_match_error_count"] = "0"
         if len(unsatisfied_action_handler_count) > 0:
-            res["mixer_config_unsatisfied_action_handler_count"] = unsatisfied_action_handler_count[len(
-                unsatisfied_action_handler_count)-1][1]
+            res["mixer_config_unsatisfied_action_handler_count"] = unsatisfied_action_handler_count[-1][1]
         else:
             res["mixer_config_unsatisfied_action_handler_count"] = "0"
         if len(instance_count) > 0:
-            res["mixer_config_instance_config_count"] = instance_count[len(
-                instance_count)-1][1]
+            res["mixer_config_instance_config_count"] = instance_count[-1][1]
         else:
             res["mixer_config_instance_config_count"] = "0"
         if len(handler_count) > 0:
-            res["mixer_config_handler_config_count"] = handler_count[len(
-                handler_count)-1][1]
+            res["mixer_config_handler_config_count"] = handler_count[-1][1]
         else:
             res["mixer_config_handler_config_count"] = "0"
         if len(attribute_count) > 0:
-            res["mixer_config_attribute_count"] = attribute_count[len(
-                attribute_count)-1][1]
+            res["mixer_config_attribute_count"] = attribute_count[-1][1]
         else:
             res["mixer_config_attribute_count"] = "0"
 
@@ -173,12 +167,12 @@ class Prom(object):
                     key = data["data"]["result"][i]["metric"][groupby]
                     values = data["data"]["result"][i]["values"]
                     if len(values) > 0:
-                        res[metric + "_" + key] = values[len(values)-1][1]
+                        res[metric + "_" + key] = values[-1][1]
                     else:
                         res[metric + "_" + key] = "0"
             else:
                 values = data["data"]["result"][0]["values"]
-                res[metric] = values[len(values)-1][1]
+                res[metric] = values[-1][1]
         else:
             res[metric] = "0"
         return res
@@ -196,7 +190,7 @@ class Prom(object):
                 values = data["data"]["result"][i]["values"]
                 if len(values) > 0:
                     res[metric + "_" + percent + "_" +
-                        key] = values[len(values)-1][1]
+                        key] = values[-1][1]
                 else:
                     res[metric + "_" + percent + "_" + key] = "0"
         return res
@@ -212,7 +206,7 @@ class Prom(object):
                 values = data["data"]["result"][i]["values"]
                 if len(values) > 0:
                     res["grpc_server_handled_total_5xx_" +
-                        key] = values[len(values)-1][1]
+                        key] = values[-1][1]
                 else:
                     res["grpc_server_handled_total_5xx_" + key] = "0"
         else:
@@ -230,7 +224,7 @@ class Prom(object):
                 values = data["data"]["result"][i]["values"]
                 if len(values) > 0:
                     res["grpc_server_handled_total_4xx_" +
-                        key] = values[len(values)-1][1]
+                        key] = values[-1][1]
                 else:
                     res["grpc_server_handled_total_4xx_" + key] = "0"
         else:
@@ -267,16 +261,19 @@ class Prom(object):
         return res
 
 
-def flatten(data, metric):
+def flatten(data, metric, aggregate):
     res = {}
     for group, summary in data.items():
         # remove - and istio- from group
         grp = group.replace("istio-", "")
         grp = grp.replace("-", "_")
         grp = grp.replace("/", "_")
-        res[metric + "_min_" + grp] = summary[0]
-        res[metric + "_avg_" + grp] = summary[1]
-        res[metric + "_max_" + grp] = summary[2]
+        if aggregate:
+          res[metric + "_min_" + grp] = summary[0]
+          res[metric + "_avg_" + grp] = summary[1]
+          res[metric + "_max_" + grp] = summary[2]
+        else:
+          res[metric + '_' + grp] = summary
 
     return res
 
@@ -327,7 +324,7 @@ def metric_by_deployment(metric):
     return depl
 
 
-def computeMinMaxAvg(d, groupby=None, xform=None):
+def computeMinMaxAvg(d, groupby=None, xform=None, aggregate=True):
     if d['status'] != "success":
         raise Exception("command not successful: " + d['status'] + str(d))
 
@@ -358,20 +355,24 @@ def computeMinMaxAvg(d, groupby=None, xform=None):
         for l in lst[1:]:
             v = l['values']
             for idx in range(len(values)):
+              try:
                 values[idx] += float(v[idx][1])
-
-        s = (min(values), sum(values) / len(values), max(values), len(values))
-        if xform is not None:
+              except IndexError as err:
+                # Data about that time is not yet populated.
+                break
+        if aggregate:
+          s = (min(values), sum(values) / len(values), max(values), len(values))
+          if xform is not None:
             s = (xform(s[0]), xform(s[1]), xform(s[2]), s[3])
-
+        else:
+          s = [xform(i) for i in values]
         summary[group] = s
-
     return summary
 
 
 def main(argv):
     args = getParser().parse_args(argv)
-    p = Prom(args.url, args.nseconds, end=args.end, host=args.host)
+    p = Prom(args.url, args.nseconds, end=args.end, host=args.host, aggregate=args.aggregate)
     out = p.fetch_cpu_and_mem()
     resp_out = p.fetch_500s_and_400s()
     out.update(resp_out)
@@ -398,6 +399,10 @@ def getParser():
         "--host", help="host header when collection is thru ingress", default=None)
     parser.add_argument(
         "--indent", help="pretty print json with indent", default=None)
+    parser.add_argument('--aggregate', dest='aggregate', action='store_true')
+    parser.add_argument('--no-aggregate', dest='aggregate', action='store_false')
+    parser.set_defaults(aggregate=True)
+
     return parser
 
 
