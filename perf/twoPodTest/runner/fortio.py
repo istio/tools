@@ -106,7 +106,7 @@ def converDataToList(txt):
 
 
 def syncFortio(url, table, selector=None):
-    dataurl = url + "/fortio/data/"
+    dataurl = url + "/data/"
     data = requests.get(dataurl)
     fd, datafile = tempfile.mkstemp()
     out = os.fdopen(fd, "wt")
@@ -130,7 +130,7 @@ def syncFortio(url, table, selector=None):
             continue
         # give 30s after start of test
         prom_start = calendar.timegm(sd.utctimetuple()) + 30
-        p = prom.Prom("http://prometheus.local", 120, start=prom_start)
+        p = prom.Prom("http://localhost:9090", 120, start=prom_start)
         prom_metrics = p.fetch_cpu_and_mem()
         if len(prom_metrics) == 0:
             print("... Not found")
@@ -145,12 +145,12 @@ def syncFortio(url, table, selector=None):
     out.close()
     print("Wrote {} records to {}".format(cnt, datafile))
 
-    p = subprocess.Popen("bq insert {table} {datafile}".format(
-        table=table, datafile=datafile).split())
-    ret = p.wait()
-    print(p.stdout)
-    print(p.stderr)
-    return ret
+    # p = subprocess.Popen("bq insert {table} {datafile}".format(
+    #     table=table, datafile=datafile).split())
+    # ret = p.wait()
+    # print(p.stdout)
+    # print(p.stderr)
+    return 0
 
 
 def main(argv):
