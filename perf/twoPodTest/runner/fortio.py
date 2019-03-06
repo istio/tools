@@ -162,7 +162,7 @@ def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
                 continue
 
         sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
-        print("Fetching prometheus metrics for", sd, end=' ')
+        print("Fetching prometheus metrics for", sd, gd["Labels"])
         if gd['errorPercent'] > 10:
             print("... Run resulted in", gd['errorPercent'], "% errors")
             continue

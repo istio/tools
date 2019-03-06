@@ -4,7 +4,7 @@ WD=$(cd "${WD}"; pwd)
 cd "${WD}"
 
 set -x
-NAMESPACE=${NAMESPACE:?"namespace"}
+NAMESPACE="twopods"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
@@ -41,6 +41,6 @@ for ((i=1; i<=$#; i++)); do
         ;;
     esac
 done
-kubectl create ns twopods || true
-kubectl label namespace twopods istio-injection=enabled --overwrite || true
+kubectl create ns ${NAMESPACE} || true
+kubectl label namespace ${NAMESPACE} istio-injection=enabled --overwrite || true
 run_test

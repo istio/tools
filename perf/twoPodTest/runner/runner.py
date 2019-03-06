@@ -87,8 +87,12 @@ class Fortio(object):
             svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
 
     def ingress(self, fortio_cmd):
-        return fortio_cmd + "_ingress http://{svc}:{port}/echo?size={size}".format(
-            svc=self.run_ingress, port=self.ports[self.mode]["ingress"], size=self.size)
+        svc = self.run_ingress
+        if ':' not in svc:
+            svc += ":{port}".format(port=self.ports[self.mode]["ingress"])
+
+        return fortio_cmd + "_ingress http://{svc}/echo?size={size}".format(
+            svc=svc, size=self.size)
 
     def run(self, conn=None, qps=None, size=None, duration=None):
         conn = conn or self.conn
@@ -225,16 +229,25 @@ def getParser():
     parser.add_argument("--server", help="pod ip of the server", default=None)
     parser.add_argument("--perf", help="also run perf and produce flamegraph",
                         default=False, action='store_true')
-    parser.add_argument(
-        "--baseline", help="run baseline for all", type=bool, default=True)
-    parser.add_argument(
-        "--serversidecar", help="run serversidecar for all", type=bool, default=True)
+    define_bool(parser, "baseline", "run baseline for all", False)
+    define_bool(parser, "serversidecar",
+                "run serversidecar-only for all", False)
+
     parser.add_argument(
         "--clientsidecar", help="run clientsidecar and serversidecar for all", type=bool, default=True)
     parser.add_argument(
         "--ingress", help="run traffic thru ingress", default=None)
     parser.add_argument("--labels", help="extra labels", default=None)
     return parser
+
+
+def define_bool(parser, opt, help, default_val):
+    parser.add_argument(
+        "--"+opt, help=help, dest=opt, action='store_true')
+    parser.add_argument(
+        "--no-"+opt, help="do not "+help, dest=opt, action='store_false')
+    val = {opt: default_val}
+    parser.set_defaults(**val)
 
 
 def main(argv):

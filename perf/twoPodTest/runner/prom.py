@@ -6,6 +6,15 @@ import collections
 import os
 import json
 import argparse
+import logging
+import httplib
+
+httplib.HTTPConnection.debuglevel = 1
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+req_log = logging.getLogger('requests.packages.urllib3')
+req_log.setLevel(logging.DEBUG)
+req_log.propagate = True
 
 
 class Prom(object):
@@ -313,7 +322,7 @@ def metric_by_deployment_by_container(metric):
 
 # These deployments have columns in the table, so only these are watched.
 Watched_Deployments = set(["istio-pilot", "istio-telemetry",
-                           "istio-policy", "fortioserver", "fortioclient"])
+                           "istio-policy", "fortioserver", "fortioclient", "istio-ingressgateway"])
 
 # returns deployment_name
 
