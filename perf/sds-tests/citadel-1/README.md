@@ -21,22 +21,21 @@ Let the root directory of this repo be *ROOT-OF-REPO*.
 Run the following commands:
 ```
   cd ROOT-OF-REPO/perf/istio
-  DNS_DOMAIN=your-example-domain VALUES=values-istio-sds-auth.yaml ./setup.sh release-1.1-20190208-09-16
+  DNS_DOMAIN=your-example-domain VALUES=values-istio-sds-auth.yaml ./setup.sh release-1.1-20190221-09-16
 ```  
 You may replace the Istio release
 in the command to the Istio release to test.
 After running the above script to deploy Istio, wait a moment for Istio to be ready.
 
-- Deploy workloads that requests for certificates through SDS.
+- Deploy workloads that request for certificates through SDS.
 *RELEASE* variable specifies the Istio release. *NAMESPACE* variable specifies the k8s namespace for testing.
 *NUM* variable specifies the number of httpbin and sleep workloads.
-The following example command will deploy 3 httpbin and sleep workloads in
+The following example command will deploy 10 httpbin and sleep workloads in
 a namespace called *test-ns*.
 Note: the number of workloads can be ran depends on the size of your cluster.
 ```
   cd ROOT-OF-REPO/perf/sds-tests/citadel-1
-  kubectl create ns test-ns
-  RELEASE=release-1.1-20190208-09-16 NAMESPACE=test-ns NUM=3 ./setup_test.sh
+  RELEASE=release-1.1-20190221-09-16 NAMESPACE=test-ns NUM=10 ./setup_test.sh
 ```
 Wait a moment for the deployment to be ready. Then view the logs of Node Agents.
 The Node Agents can be listed through
@@ -54,7 +53,8 @@ issuance or rotation occurs, the following log entries are generated.
 
 - The *setup_test.sh* script will call *collect_stats.sh* to test certificate
 rotations and mTLS by curl httpbin from sleep (you may also execute *collect_stats.sh*
-separately after the deployment). The following output will be displayed.
+separately after the deployment by run `NAMESPACE=test-ns ./collect_stats.sh`). 
+The following output will be displayed.
 ```
   Out of 1 curl, 1 succeeded.
   Out of 2 curl, 2 succeeded.
