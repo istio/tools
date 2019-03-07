@@ -1,7 +1,7 @@
 apiVersion: v1
-name: gracefulShutdown
+name: graceful-shutdown
 version: 1.0
-description: Helm chart for istio gracefulShutdown
+description: Helm chart for istio graceful-shutdown
 keywords:
   - istio
   - performance

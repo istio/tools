@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 set -ex
 
 source common.sh
