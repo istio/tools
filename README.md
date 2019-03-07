@@ -5,3 +5,7 @@
 [![GoDoc](https://godoc.org/github.com/istio/tools?status.svg)](https://godoc.org/github.com/istio/tools)
 
 This repository contains tools useful in building Istio.
+
+## Performance Testing
+
+See [/perf/istio/README.md](/perf/istio/README.md) for details on how to setup the performance and stability tests.
