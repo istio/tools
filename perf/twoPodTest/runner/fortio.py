@@ -112,6 +112,7 @@ def converDataToList(txt):
 
     return lines
 
+
 def output_csv(run_stats, output_file):
     res = []
     for stats in run_stats:
@@ -132,6 +133,7 @@ def output_csv(run_stats, output_file):
         w = csv.writer(out)
         w.writerow(header)
         w.writerows(res)
+
 
 # number of seconds to skip after test begins.
 METRICS_START_SKIP_DURATION = 30
@@ -189,7 +191,7 @@ def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
         cnt += 1
 
     out.close()
-    print("Wrote {} records to {}".format(cnt, fullfile))
+    print("Wrote {} records to {}".format(cnt, datafile))
 
     if csv is not None:
         write_csv(csv, data)
@@ -198,6 +200,7 @@ def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
         return write_table(table, datafile)
 
     return 0
+
 
 def write_csv(keys, data):
     fd, datafile = tempfile.mkstemp()
@@ -226,6 +229,7 @@ def write_table(table, datafile):
     print(p.stderr)
     return ret
 
+
 def main(argv):
     args = getParser().parse_args(argv)
     return syncFortio(args.url, args.table, args.selector, args.prometheus, args.csv)
@@ -236,11 +240,12 @@ def getParser():
     parser.add_argument(
         "--table", help="Name of the BigQuery table to send results to, like istio_perf_01.perf", default=None)
     parser.add_argument("--selector", help="timestamps to match for import")
-    parser.add_argument("--csv", help="columns in the csv file")
+    parser.add_argument("--csv", help="columns in the csv file", default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
     parser.add_argument("url", help="url to fetch fortio json results from")
     parser.add_argument(
         "prometheus", help="url to fetch prometheus results from")
     return parser
+
 
 if __name__ == "__main__":
     import sys

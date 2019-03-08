@@ -9,12 +9,13 @@ import argparse
 import logging
 import httplib
 
-httplib.HTTPConnection.debuglevel = 1
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
-req_log = logging.getLogger('requests.packages.urllib3')
-req_log.setLevel(logging.DEBUG)
-req_log.propagate = True
+if os.environ.get("DEBUG", "0") != "0":
+    httplib.HTTPConnection.debuglevel = 1
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
+    req_log = logging.getLogger('requests.packages.urllib3')
+    req_log.setLevel(logging.DEBUG)
+    req_log.propagate = True
 
 
 class Prom(object):
