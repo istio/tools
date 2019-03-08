@@ -4,7 +4,7 @@ WD=$(cd "${WD}"; pwd)
 cd "${WD}"
 
 set -x
-NAMESPACE=${NAMESPACE:?"namespace"}
+NAMESPACE="twopods"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
@@ -12,15 +12,19 @@ RBAC_ENABLED="false"
 mkdir -p "${TMPDIR}"
 
 # Get pod ip range, there must be a better way, but this works.
-function ip_range() {
+function pod_ip_range() {
     kubectl get pods --namespace kube-system -o wide | grep kube-dns | awk '{print $6}'|head -1 | awk -F '.' '{printf "%s.%s.0.0/16\n", $1, $2}'
+}
+
+function svc_ip_range() {
+    kubectl -n kube-system get svc kube-dns --no-headers | awk '{print $3}' | awk -F '.' '{printf "%s.%s.0.0/16\n", $1, $2}'
 }
 
 function run_test() {
   helm -n ${NAMESPACE} template \
       --set rbac.enabled="${RBAC_ENABLED}" \
-      --set excludeOutboundIPRanges=$(ip_range) \
-    --set domain="${DNS_DOMAIN}" \
+      --set includeOutboundIPRanges=$(svc_ip_range) \
+      --set domain="${DNS_DOMAIN}" \
           . > ${TMPDIR}/twopods.yaml
   echo "Wrote ${TMPDIR}/twopods.yaml"
 
@@ -37,5 +41,6 @@ for ((i=1; i<=$#; i++)); do
         ;;
     esac
 done
-
+kubectl create ns ${NAMESPACE} || true
+kubectl label namespace ${NAMESPACE} istio-injection=enabled --overwrite || true
 run_test

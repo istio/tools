@@ -25,9 +25,10 @@ function install_istio() {
   local outfile="$(download ${DIRNAME} ${release})"
 
   if [[ ! -d "${DIRNAME}/${release}" ]];then
-      tar -xzf "${outfile}" -C "${DIRNAME}"
-      mv "${DIRNAME}/istio-${release}/install/kubernetes/helm" "${DIRNAME}/${release}"
-      rm -Rf "${DIRNAME}/istio-${release}"
+      DN=$(mktemp -d)
+      tar -xzf "${outfile}" -C "${DN}" --strip-components 1
+      mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
+      rm -Rf ${DN}
       helm init -c 
       if [[ ! ${release} =~ release-1.0-* ]];then
         local helmrepo="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/charts"

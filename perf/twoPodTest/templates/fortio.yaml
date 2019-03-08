@@ -80,6 +80,9 @@ spec:
         {{- if $.Values.excludeOutboundIPRanges }}
         traffic.sidecar.istio.io/excludeOutboundIPRanges: {{ $.Values.excludeOutboundIPRanges }}
         {{- end }}
+        {{- if $.Values.includeOutboundIPRanges }}
+        traffic.sidecar.istio.io/includeOutboundIPRanges: {{ $.Values.includeOutboundIPRanges }}
+        {{- end }}
         {{- if $.V.inject }}
         sidecar.istio.io/inject: "{{ $.V.inject }}"
         {{- end }}
