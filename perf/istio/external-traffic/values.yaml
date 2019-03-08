@@ -1,3 +1,2 @@
 fortioImage: fortio/fortio:latest
-externalDestination: http://www.google.com
 qps: 10

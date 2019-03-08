@@ -28,6 +28,7 @@ function setup_tests() {
   for test in $1; do
     case "${test}" in
       "allconfig") setup_all_config;;
+      "external-traffic") setup_external_traffic;;
       "gateway-bouncer") ${WD}/gateway-bouncer/setup.sh;;
       "sds-certmanager") ${WD}/sds-certmanager/setup.sh;;
       *) setup_test "${test}";;
@@ -41,7 +42,13 @@ function setup_all_config() {
   setup_test "allconfig" "--set ingress=${gateway} --set domain=${domain}"
 }
 
-ALL_TESTS="http10 graceful-shutdown gateway-bouncer"
+function setup_external_traffic() {
+  local gateway=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+  setup_test "external-traffic" "--set externalDestination=${gateway}"
+}
+
+ALL_TESTS="http10 graceful-shutdown gateway-bouncer external-traffic"
 TESTS="${TESTS:-"$ALL_TESTS"}"
 
 case "$1" in
