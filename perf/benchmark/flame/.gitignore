@@ -1,4 +1,3 @@
 FlameGraph
-*.svg
 *.perf
 *.data
