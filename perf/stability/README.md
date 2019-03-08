@@ -15,6 +15,7 @@ You can also set env variables:
 * `TESTS` space separate list of tests to run. Example: `TESTS="http10 graceful-shutdown"`
 
 ### Default Tests
+
 For details on the tests, read the README in each directory.
 
 * http10 - tests http 1.0 support
@@ -23,6 +24,9 @@ For details on the tests, read the README in each directory.
 
 ### Optional Tests
 
+These tests are not enabled by default, but can be added with the `TESTS` variable
+
+* istio-upgrader - disabled by default, as impacts the entire Istio install by redeploying Istio components.
 * allconfig - currently has some bugs
 * sds-certmanager - requires gcloud to configure GCP DNS, and a gcp DNS zone set as env variable DNS_ZONE
 
