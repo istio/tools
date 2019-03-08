@@ -1,33 +1,9 @@
-# Istio Performance/Stability Testing
+# Stability Tests
 
-The intent of these tests is to create a cluster running various different services, with different setups and patterns, to help understand how Istio performs in a real-world scenario.
+This directory providestests that exercise various Istio features to ensure stability.
+                           
+The intent of these tests is to be run continuously for extend periods of time, to ensure features are stable over long periods of time and in real world scenarios, which differentiates them from integration tests.
 
-## Setup Istio
-
-For performance testing, it is recommended to setup Istio with performance oriented values, but it is not required.
-
-### Setup With Performance Parameters
-
-Look at values.yaml for details.
-
-To setup Istio, run `DNS_DOMAIN=your-example-domain ./setup_istio.sh release-1.1-20190125-09-16`.
-
-To just output the deployment file, run `DRY_RUN=1 DNS_DOMAIN=your-example-domain ./setup.sh release-1.1-20190125-09-16`.
-
-You may replace the release in the command to the release to test.
-
-You may also override the Helm repo or release URL:
-
-```bash
-export HELMREPO_URL=https://storage.googleapis.com/istio-release/releases/1.1.0-rc.0/charts/index.yaml
-export RELEASE_URL=https://github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz
-
-DNS_DOMAIN=your-example-domain ./setup.sh release-1.1-20190203-09-16
-```
-
-### Setup With Custom Installation
-
-The performance tests can also run on an existing Istio installation. This can be useful to test out settings or modifications to Istio.
 
 ## Setup Tests
 
@@ -41,9 +17,9 @@ You can also set env variables:
 ### Default Tests
 For details on the tests, read the README in each directory.
 
-* http10
-* graceful-shutdown
-* gateway-bouncer
+* http10 - tests http 1.0 support
+* graceful-shutdown - tests graceful termination of connections when services are terminated.
+* gateway-bouncer - tests gateway readiness features 
 
 ### Optional Tests
 

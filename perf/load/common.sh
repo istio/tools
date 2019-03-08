@@ -35,9 +35,9 @@ function start_servicegraphs() {
     prefix=$(printf 'svc%.2d-' $ii)
     if [[ -z "${DELETE}" ]];then
       ${CMD} run_test "${ns}" "${prefix}"
-      ${CMD} "${WD}/../loadclient/setup_test.sh" "${ns}" "${prefix}"
+      ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}"
     else
-      ${CMD} "${WD}/../loadclient/setup_test.sh" "${ns}" "${prefix}"
+      ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}"
       ${CMD} run_test "${ns}" "${prefix}"
     fi
   }
