@@ -10,6 +10,23 @@ mkdir -p "${WD}/tmp"
 release="${1:?"release"}"
 shift
 
+function download() {
+  local DIRNAME="$1"
+  local release="$2"
+
+  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  if [[ ! -z "${RELEASE_URL}" ]];then
+    url="${RELEASE_URL}"
+  fi
+  local outfile="${DIRNAME}/istio-${release}.tgz"
+
+  if [[ ! -f "${outfile}" ]]; then
+    wget -O "${outfile}" "${url}"
+  fi
+
+  echo "${outfile}"
+}
+
 function setup_admin_binding() {
   kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
