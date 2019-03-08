@@ -8,7 +8,7 @@ One the setup is up and running the following capabilities are exercised:
 
 1. External traffic is simulated by Fortio and will go via external load
 balancer through the IngressGateway (a new LoadBalancer will be created
-automatically by the install script and its external IP address will be used).
+automatically by the install script and its external IP add`ress will be used).
 1. A rolling restart of the IngressGateway will be periodically triggered while
 the corresponding Pilot is down (and eventually brought up), so the readiness
 checks of the IngressGateway can be verified. IngressGateway should not become
