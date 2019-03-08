@@ -7,10 +7,15 @@ import os
 import json
 import argparse
 import logging
-import httplib
+try:
+    # Python 3
+    import http.client as http_client
+except ImportError:
+    # Python 2
+    import httplib as http_client
 
 if os.environ.get("DEBUG", "0") != "0":
-    httplib.HTTPConnection.debuglevel = 1
+    http_client.HTTPConnection.debuglevel = 1
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     req_log = logging.getLogger('requests.packages.urllib3')

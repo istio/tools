@@ -232,9 +232,9 @@ def getParser():
     define_bool(parser, "baseline", "run baseline for all", False)
     define_bool(parser, "serversidecar",
                 "run serversidecar-only for all", False)
+    define_bool(parser, "clientsidecar",
+                "run clientsidecar and serversidecar for all", True)
 
-    parser.add_argument(
-        "--clientsidecar", help="run clientsidecar and serversidecar for all", type=bool, default=True)
     parser.add_argument(
         "--ingress", help="run traffic thru ingress", default=None)
     parser.add_argument("--labels", help="extra labels", default=None)
