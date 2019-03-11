@@ -55,7 +55,7 @@ class Prom(object):
 
     def fetch_cpu_by_container(self):
         return self.fetch(
-            'rate(container_cpu_usage_seconds_total{container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
+            'irate(container_cpu_usage_seconds_total{container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
             metric_by_deployment_by_container,
             to_miliCpus)
 
