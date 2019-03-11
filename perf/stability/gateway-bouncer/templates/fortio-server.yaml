@@ -39,8 +39,8 @@ spec:
           - server
         resources:
           requests:
-            cpu: 1000m
-            memory: "1G"
+            cpu: 50m
+            memory: 128Mi
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
