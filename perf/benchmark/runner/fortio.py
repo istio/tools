@@ -136,7 +136,9 @@ def output_csv(run_stats, output_file):
 
 
 # number of seconds to skip after test begins.
-METRICS_START_SKIP_DURATION = 30
+METRICS_START_SKIP_DURATION = 62
+# number of seconds to skip before test ends.
+METRICS_END_SKIP_DURATION = 30
 # number of seconds to summarize during test
 METRICS_SUMMARY_DURATION = 180
 
@@ -168,14 +170,15 @@ def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
         if gd['errorPercent'] > 10:
             print("... Run resulted in", gd['errorPercent'], "% errors")
             continue
-        if METRICS_START_SKIP_DURATION > gd['ActualDuration']:
+        min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
+        if min_duration > gd['ActualDuration']:
             print("... {} duration={}s is less than minimum {}s".format(
-                gd["Labels"], gd['ActualDuration'], METRICS_START_SKIP_DURATION))
+                gd["Labels"], gd['ActualDuration'], min_duration))
             continue
         prom_start = calendar.timegm(
             sd.utctimetuple()) + METRICS_START_SKIP_DURATION
-        duration = min(gd['ActualDuration'] -
-                       METRICS_START_SKIP_DURATION, METRICS_SUMMARY_DURATION)
+        duration = min(gd['ActualDuration'] - min_duration,
+                       METRICS_SUMMARY_DURATION)
         p = prom.Prom(promUrl, duration, start=prom_start)
         prom_metrics = p.fetch_cpu_and_mem()
         if len(prom_metrics) == 0:
