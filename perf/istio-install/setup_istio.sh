@@ -35,11 +35,12 @@ function setup_admin_binding() {
 
 function install_prometheus() {
   local DIRNAME="$1" # should be like tools/perf/istio/tmp
+  local PROMETHEUS_INSTALL="${DIRNAME}/../../prometheus-install"
 
   # Create GCP SSD Storage class for Prometheus to use. May not work outside GKE
-  kubectl apply -f "${DIRNAME}/../prometheus/ssd-storage-class.yaml"
+  kubectl apply -f "${PROMETHEUS_INSTALL}/ssd-storage-class.yaml"
 
-  helm fetch stable/prometheus-operator --untar --untardir "${DIRNAME}/../prometheus/"
+  helm fetch stable/prometheus-operator --untar --untardir "${PROMETHEUS_INSTALL}"
 
   # Store original context namespace so it can be reset at the end
   local ORIG_CTX=$(kubectl config current-context)
@@ -47,9 +48,9 @@ function install_prometheus() {
   # Prometheus operator chart doesn't respect --namespace, all objects are
   # deployed to the default namespace.
   kubectl config set-context $(kubectl config current-context) --namespace=istio-system
-  helm template "${DIRNAME}/../prometheus/prometheus-operator/"\
-    -f "${DIRNAME}/../prometheus/prometheus-operator-values.yaml"\
-    --set-file .Values.prometheus.prometheusSpec.additionalScrapeConfigs="${DIRNAME}/../prometheus/prometheus-scrape-configs.yaml"\
+  helm template "${PROMETHEUS_INSTALL}/prometheus-operator/"\
+    -f "${PROMETHEUS_INSTALL}/prometheus-operator-values.yaml"\
+    --set-file .Values.prometheus.prometheusSpec.additionalScrapeConfigs="${PROMETHEUS_INSTALL}/prometheus-scrape-configs.yaml"\
     | kubectl apply -f -
 
   # Reset to original context namespace
