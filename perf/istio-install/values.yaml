@@ -107,6 +107,19 @@ sidecar-injector:
 
 grafana:
   enabled: true
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        orgId: 1
+        url: http://istio-prometheus:9090
+        access: proxy
+        isDefault: true
+        jsonData:
+          timeInterval: 5s
+        editable: true
   #image: gcr.io/istio-release/grafana:release-1.0-20180720-00-11
 
 mixer:
@@ -138,7 +151,7 @@ servicegraph:
   enabled: false
 
 prometheus:
-  enabled: true
+  enabled: false
 
 kiali:
   enabled: false
