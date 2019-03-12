@@ -53,6 +53,9 @@ function install_prometheus() {
     --set-file .Values.prometheus.prometheusSpec.additionalScrapeConfigs="${PROMETHEUS_INSTALL}/prometheus-scrape-configs.yaml"\
     | kubectl apply -f -
 
+  # delete grafana pod so it redeploys with new config
+  kubectl delete pod -l app=grafana
+
   # Reset to original context namespace
   kubectl config set-context ${ORIG_CTX} --namespace=${ORIG_NS}
 }
