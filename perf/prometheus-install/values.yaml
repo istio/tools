@@ -1,0 +1,35 @@
+fullnameOverride: "istio"
+alertmanager:
+  enabled: false
+
+grafana:
+  enabled: false
+
+kubeApiServer:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+coreDns:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    scrapeInterval: "30s"
+    storageSpec: 
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          storageClassName: ssd
+          resources:
+            requests:
+              storage: 50Gi
+        selector: {}
+    

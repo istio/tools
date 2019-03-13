@@ -42,22 +42,13 @@ function install_prometheus() {
 
   helm fetch stable/prometheus-operator --untar --untardir "${PROMETHEUS_INSTALL}"
 
-  # Store original context namespace so it can be reset at the end
-  local ORIG_CTX=$(kubectl config current-context)
-  local ORIG_NS=$(kubectl config get-contexts ${ORIG_CTX} --no-headers | tr -s ' ' | cut -d ' ' -f 5)
-  # Prometheus operator chart doesn't respect --namespace, all objects are
-  # deployed to the default namespace.
-  kubectl config set-context $(kubectl config current-context) --namespace=istio-system
-  helm template "${PROMETHEUS_INSTALL}/prometheus-operator/"\
-    -f "${PROMETHEUS_INSTALL}/prometheus-operator-values.yaml"\
-    --set-file .Values.prometheus.prometheusSpec.additionalScrapeConfigs="${PROMETHEUS_INSTALL}/prometheus-scrape-configs.yaml"\
-    | kubectl apply -f -
+  helm template "${PROMETHEUS_INSTALL}/prometheus-operator/" \
+    -f "${PROMETHEUS_INSTALL}/values.yaml" \
+    --set-file .Values.prometheus.prometheusSpec.additionalScrapeConfigs="${PROMETHEUS_INSTALL}/prometheus-scrape-configs.yaml" \
+    | kubectl apply --namespace istio-system -f -
 
   # delete grafana pod so it redeploys with new config
   kubectl delete pod -l app=grafana
-
-  # Reset to original context namespace
-  kubectl config set-context ${ORIG_CTX} --namespace=${ORIG_NS}
 }
 
 function install_istio() {
