@@ -42,10 +42,12 @@ function install_prometheus() {
 
   helm fetch stable/prometheus-operator --untar --untardir "${PROMETHEUS_INSTALL}"
 
+  kubectl create ns istio-prometheus || true
+
   helm template "${PROMETHEUS_INSTALL}/prometheus-operator/" \
+    --namespace istio-prometheus \
     -f "${PROMETHEUS_INSTALL}/values.yaml" \
-    --set-file .Values.prometheus.prometheusSpec.additionalScrapeConfigs="${PROMETHEUS_INSTALL}/prometheus-scrape-configs.yaml" \
-    | kubectl apply --namespace istio-system -f -
+    | kubectl apply --namespace istio-prometheus -f -
 
   # delete grafana pod so it redeploys with new config
   kubectl delete pod -l app=grafana
@@ -131,4 +133,3 @@ function install_gateways() {
 setup_admin_binding
 install_istio "${WD}/tmp" "${release}" $*
 install_gateways
-
