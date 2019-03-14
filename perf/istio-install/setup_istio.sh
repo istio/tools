@@ -46,6 +46,7 @@ function install_prometheus() {
 
   helm template "${PROMETHEUS_INSTALL}/prometheus-operator/" \
     --namespace istio-prometheus \
+    --name prometheus \
     -f "${PROMETHEUS_INSTALL}/values.yaml" \
     | kubectl apply --namespace istio-prometheus -f -
 
