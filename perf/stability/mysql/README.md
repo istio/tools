@@ -1,5 +1,11 @@
 # MySQL Testing
 
+TODO:
+
+- Resources
+- setup test, bash inline in the client container, no more manual script.
+- STRICT without DR will fail.
+
 This tests ensures Istio working with MySQL, with or without mTLS enabled.
 
 The setup consists of two parts
