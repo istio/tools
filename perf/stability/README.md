@@ -1,7 +1,7 @@
 # Stability Tests
 
 This directory providestests that exercise various Istio features to ensure stability.
-                           
+
 The intent of these tests is to be run continuously for extend periods of time, to ensure features are stable over long periods of time and in real world scenarios, which differentiates them from integration tests.
 
 
