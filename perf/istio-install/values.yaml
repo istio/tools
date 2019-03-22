@@ -114,7 +114,7 @@ grafana:
       - name: Prometheus
         type: prometheus
         orgId: 1
-        url: http://istio-prometheus:9090
+        url: http://istio-prometheus.istio-prometheus:9090
         access: proxy
         isDefault: true
         jsonData:
