@@ -276,8 +276,8 @@ spec:
               value: {{ .Values.namespace }}
           resources:
             requests:
-              cpu: 500m
-              memory: 2048Mi
+              cpu: 50m
+              memory: 256Mi
           volumeMounts:
             - name: config-volume
               mountPath: /etc/istio/config

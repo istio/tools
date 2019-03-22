@@ -30,3 +30,7 @@ spec:
         name: fortio-server
         ports:
           - containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
