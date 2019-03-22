@@ -5,3 +5,5 @@ This test ensures that proxies will be shutdown gracefully.
 This is measured by sending many long lasting requests.
 
 When the server is redeployed, traffic should gracefully transition to the new deployment - connections should not be dropped.
+
+It is recommended to also run the `istio-upgrader` test, to ensure connections shutdown gracefully for Istio upgrades.
