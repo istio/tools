@@ -233,7 +233,7 @@ def getParser():
     define_bool(parser, "serversidecar",
                 "run serversidecar-only for all", False)
     define_bool(parser, "clientsidecar",
-          "run clientsidecar and serversidecars", True)
+                "run clientsidecar and serversidecar for all", True)
 
     parser.add_argument(
         "--ingress", help="run traffic thru ingress", default=None)
