@@ -24,3 +24,7 @@ spec:
         - -t
         - "0"
         - http://httpbin:8000/delay/{{ .Values.connectionDuration }}
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi

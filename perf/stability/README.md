@@ -15,12 +15,14 @@ You can also set env variables:
 * `TESTS` space separate list of tests to run. Example: `TESTS="http10 graceful-shutdown"`
 
 ### Default Tests
+
 For details on the tests, read the README in each directory.
 
 * http10 - tests http 1.0 support
 * graceful-shutdown - tests graceful termination of connections when services are terminated.
 * gateway-bouncer - tests gateway readiness features 
 
+With Istio defaults, these test will require around 2 vCPUs and 2GB of memory.
 ### Optional Tests
 
 * allconfig - currently has some bugs

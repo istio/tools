@@ -49,5 +49,5 @@ spec:
                 key: external_addr
         resources:
           requests:
-            cpu: 250m
-            memory: "256m"
+            cpu: 50m
+            memory: 128Mi

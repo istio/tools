@@ -24,3 +24,7 @@ spec:
                 curl -sS  -o /dev/null -w "%{http_code}\n" fortio-server:8080/echo --http1.0
                 sleep .1
               done
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
