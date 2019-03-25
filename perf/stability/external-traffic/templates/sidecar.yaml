@@ -4,5 +4,17 @@ metadata:
   name: {{.Release.Namespace}}-sidecar
 spec:
   egress:
-    - hosts:
-      - ~/*
+  - hosts:
+    - istio-system/istio-telemetry.istio-system
+    - istio-system/istio-mixer.istio-system
+    port:
+      number: 9091
+      name: grpc-mixer
+      protocol: GRPC
+  - hosts:
+    - istio-system/istio-telemetry.istio-system
+    - istio-system/istio-mixer.istio-system
+    port:
+      number: 15004
+      name: grpc-mixer-mtls
+      protocol: GRPC
