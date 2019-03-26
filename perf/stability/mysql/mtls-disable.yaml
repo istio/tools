@@ -4,4 +4,4 @@ metadata:
   name: mysql-nomtls-authn
 spec:
   targets:
-  - name: mysql
+  - name: mysql-server

@@ -4,7 +4,7 @@ metadata:
   name: mysql-mtls-authn
 spec:
   targets:
-  - name: mysql
+  - name: mysql-server
   peers:
   - mtls:
       mode: STRICT
@@ -14,7 +14,7 @@ kind: DestinationRule
 metadata:
   name: mysql-mtls-dr
 spec:
-  host: "mysql"
+  host: "mysql-server"
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL

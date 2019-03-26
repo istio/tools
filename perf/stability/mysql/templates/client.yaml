@@ -15,12 +15,12 @@ spec:
         - bash
         - -c
         - |-
-          sleep 3
-          for i in `seq 1 1000`; do
-            echo "Attempt to connect to server, $i"
-            mysql -uroot -proot -h mysql-server  -P3306  --connect-timeout -e 'show databases;'
-            sleep 1
-          done
+          sleep 3000000
+          # for i in `seq 1 10000`; do
+          #   echo "Attempt to connect to server, $i"
+          #   mysql -uroot -proot -h mysql-server  -P3306  --connect-timeout 3 -e 'show databases;'
+          #   sleep 3
+          # done
         image: mysql
         imagePullPolicy: IfNotPresent
         name: mysql-client

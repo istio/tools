@@ -27,7 +27,7 @@ helm install --name mysql-test .
 Disable mTLS first.
 
 ```bash
-kubectl apply -f mtls-disabled.yaml
+kubectl apply -f mtls-disable.yaml
 ```
 
 Verify client can talk to server whem mTLS is disabled.
@@ -42,6 +42,6 @@ Enable the mTLS and verify connectivity again.
 
 ```bash
 kubectl delete -f mtls-disable.yaml
-kubectl apply -f mtls-enabled.yaml
+kubectl apply -f mtls-enable.yaml
 kubectl  exec   $(kubectl get pod -l app=mysql-client -o jsonpath='{.items[0].metadata.name}')  -- mysql -uroot -proot -h mysql-server  -P3306  -e 'show databases;'
 ```

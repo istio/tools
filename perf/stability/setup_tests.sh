@@ -30,6 +30,7 @@ function setup_tests() {
       "allconfig") setup_all_config;;
       "gateway-bouncer") ${WD}/gateway-bouncer/setup.sh;;
       "sds-certmanager") ${WD}/sds-certmanager/setup.sh;;
+      "mysql") ${WD}/mysql/setup.sh;;
       *) setup_test "${test}";;
     esac
   done
