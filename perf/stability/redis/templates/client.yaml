@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-client
-  labels:
-    app: redis-client
 spec:
   replicas: 1
   selector:
@@ -11,13 +9,20 @@ spec:
       app: redis-client
   template:
     metadata:
-      name: redis-client
       labels:
         app: redis-client
     spec:
       containers:
-        - name: redis-client
+        - name: redis
           image: redis:latest
           args:
-            - sleep
-            - infinity
+            - sh
+            - -c
+            - |-
+              while true; do
+                printf "Pinging master: "
+                redis-cli -h redis-master -a istio --no-auth-warning ping
+                printf "Pinging slave: "
+                redis-cli -h redis-slave -a istio --no-auth-warning ping
+                sleep .5
+              done
