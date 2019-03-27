@@ -43,12 +43,12 @@ spec:
   subsets:
   - name: all
     labels:
-      name: {{ .Values.serviceNamePrefix }}0
+      app: {{ .Values.serviceNamePrefix }}0
   - name: v1
     labels:
-      name: {{ .Values.serviceNamePrefix }}0
+      app: {{ .Values.serviceNamePrefix }}0
       version: v1
   - name: v2
     labels:
-      name: {{ .Values.serviceNamePrefix }}0
+      app: {{ .Values.serviceNamePrefix }}0
       version: v2
