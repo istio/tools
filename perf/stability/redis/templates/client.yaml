@@ -11,18 +11,15 @@ spec:
     metadata:
       labels:
         app: redis-client
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/scheme: "http"
     spec:
       containers:
         - name: redis
-          image: redis:latest
-          args:
-            - sh
-            - -c
-            - |-
-              while true; do
-                printf "Pinging master: "
-                redis-cli -h redis-master -a istio --no-auth-warning ping
-                printf "Pinging slave: "
-                redis-cli -h redis-slave -a istio --no-auth-warning ping
-                sleep .5
-              done
+          image: howardjohn/redis-perf-client
+          imagePullPolicy: Always
+          env:
+            - name: PASSWORD
+              value: istio
