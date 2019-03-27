@@ -26,10 +26,16 @@ spec:
   - route:
     - destination:
         host: {{ .Values.serviceNamePrefix }}0
-        subset: all
+        subset: v1
         port:
           number: 8080
-      weight: 100
+      weight: 30
+    - destination:
+        host: {{ .Values.serviceNamePrefix }}0
+        subset: v2
+        port:
+          number: 8080
+      weight: 70
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
