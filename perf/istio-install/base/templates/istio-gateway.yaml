@@ -80,7 +80,7 @@ spec:
   http:
   - route:
     - destination:
-        host: prometheus.istio-system.svc.cluster.local
+        host: istio-prometheus.istio-prometheus.svc.cluster.local
         port:
           number: 9090
 ---
