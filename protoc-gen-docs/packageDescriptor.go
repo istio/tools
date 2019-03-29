@@ -24,9 +24,8 @@ import (
 // packageDescriptor describes a package, which is a composition of proto files.
 type packageDescriptor struct {
 	baseDesc
-	files     []*fileDescriptor
-	name      string
-	topMatter *frontMatter
+	files []*fileDescriptor
+	name  string
 }
 
 func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto, perFile bool) *packageDescriptor {
@@ -57,8 +56,6 @@ func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto, p
 					_, _ = fmt.Fprintf(os.Stderr, "Previous:\n%v\n%v\nCurrent:\n%v\n%v\n", p.loc.GetLeadingComments(), p.loc.GetTrailingComments(), leading, trailing)
 				}
 			}
-		} else {
-
 		}
 	}
 

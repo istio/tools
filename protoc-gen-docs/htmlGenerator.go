@@ -636,7 +636,7 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 			l := lines[i]
 			if len(l) > pad {
 				skip := 0
-				ch := ' '
+				var ch rune
 				for skip, ch = range l {
 					if !unicode.IsSpace(ch) {
 						break
@@ -688,6 +688,12 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 				return "*" + linkName + "*"
 			})
 		}
+
+		// Replace any < and > in the text with HTML entities to avoid bad HTML output
+		for i := 0; i < len(lines); i++ {
+			lines[i] = strings.Replace(lines[i], "<", "&lt;", -1)
+			lines[i] = strings.Replace(lines[i], ">", "&gt;", -1)
+		}
 	}
 
 	text = strings.Join(lines, "\n")
@@ -718,6 +724,10 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 
 	// turn the comment from markdown into HTML
 	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.FencedCode|blackfriday.AutoHeadingIDs))
+
+	// compensate for an unexpected Blackfriday bug, where it incorrect converts expands the & in HTML entites to &amp;
+	result = bytes.Replace(result, []byte("&amp;lt;"), []byte("&lt;"), -1)
+	result = bytes.Replace(result, []byte("&amp;gt;"), []byte("&gt;"), -1)
 
 	// prevent any { contained in the markdown from being interpreted as Hugo shortcodes
 	result = bytes.Replace(result, []byte("{"), []byte("&lbrace;"), -1)
