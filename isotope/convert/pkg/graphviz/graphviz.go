@@ -106,7 +106,7 @@ const graphvizTemplate = `digraph {
   ];
 
   {{ range .Nodes -}}
-  {{ .Name }} [label=<
+  "{{ .Name }}" [label=<
 <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
   <TR><TD><B>{{ .Name }}</B><BR />Type: {{ .Type }}<BR />Err: {{ .ErrorRate }}</TD></TR>
   {{- range $i, $cmds := .Steps }}
@@ -122,7 +122,7 @@ const graphvizTemplate = `digraph {
   {{ end }}
 
   {{- range .Edges }}
-  {{ .From -}}:{{- .StepIndex }} -> {{ .To }}
+  "{{ .From -}}":{{- .StepIndex }} -> "{{ .To }}"
   {{- end }}
 }
 `
