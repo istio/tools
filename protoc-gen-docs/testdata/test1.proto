@@ -20,7 +20,7 @@ infrastructure backends during configuration-time through */
 message TypeX {
 }
 
-// Test is a message that I use for testing.
+// Test is a message that I use for testing with <some> <funny> <characters>.
 message Test {
     // field1 is a field
     int32 field1 = 1;
