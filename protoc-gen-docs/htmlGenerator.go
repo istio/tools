@@ -663,6 +663,12 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 			}
 		}
 
+		// Replace any < and > in the text with HTML entities to avoid bad HTML output
+		for i := 0; i < len(lines); i++ {
+			lines[i] = strings.Replace(lines[i], "<", "&lt;", -1)
+			lines[i] = strings.Replace(lines[i], ">", "&gt;", -1)
+		}
+
 		// find any type links of the form [name][type] and turn
 		// them into normal HTML links
 		for i := 0; i < len(lines); i++ {
@@ -687,12 +693,6 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 
 				return "*" + linkName + "*"
 			})
-		}
-
-		// Replace any < and > in the text with HTML entities to avoid bad HTML output
-		for i := 0; i < len(lines); i++ {
-			lines[i] = strings.Replace(lines[i], "<", "&lt;", -1)
-			lines[i] = strings.Replace(lines[i], ">", "&gt;", -1)
 		}
 	}
 
