@@ -1,6 +1,14 @@
 apiVersion: "authentication.istio.io/v1alpha1"
 kind: "Policy"
 metadata:
+  name: mysql-server-plaintext-authn
+spec:
+  targets:
+  - name: mysql-server-plaintext
+---
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
   name: mysql-server-mtls-authn
 spec:
   targets:

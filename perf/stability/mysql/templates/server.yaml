@@ -1,10 +1,7 @@
-{{- range $index, $mtlsMode := .Values.server.mtlsModes }}
-{{- $name := printf "%s-%s" "mysql-server" $mtlsMode -}}
----
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: {{ $name }}-volumenclaim
+  name: {{ .Values.Name }}-volumenclaim
 spec:
   accessModes:
     - ReadWriteOnce
@@ -15,18 +12,18 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $name }}
+  name: server-{{ .Values.Name }}
   labels:
-    app: {{ $name }}
+    app: server-{{ .Values.Name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ $name }}
+      app: server-{{ .Values.Name }}
   template:
     metadata:
       labels:
-        app: {{ $name }}
+        app: server-{{ .Values.Name }}
     spec:
       containers:
         - image: mysql:5.6
@@ -43,19 +40,17 @@ spec:
       volumes:
         - name: mysql-persistent-storage
           persistentVolumeClaim:
-            claimName: {{ $name }}-volumenclaim
+            claimName: {{ .Values.Name }}-volumenclaim
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ $name }}
+  name: server-{{ .Values.Name }}
   labels:
-    app: {{ $name }}
+    app: server-{{ .Values.Name }}
 spec:
   type: ClusterIP
   ports:
     - port: 3306
   selector:
-    app: {{ $name }}
-
-{{- end }}
+    app: server-{{ .Values.Name }}

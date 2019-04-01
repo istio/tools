@@ -1,12 +1,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: mysql-client
+  name: client-{{ .Values.Name }}
 spec:
   template:
     metadata:
       labels:
-        app: mysql-client
+        app: client-{{ .Values.Name }}
     spec:
       containers:
       # We sleep first and will execute mysql cli later. This ensures the cli command will
@@ -15,13 +15,14 @@ spec:
         - bash
         - -c
         - |-
-          # sleep 3000000
-          for i in `seq 1 10000`; do
-            echo "Attempt to connect to server, $i"
-            mysql -uroot -proot -h mysql-server  -P3306  --connect-timeout 3 -e 'show databases;'
+          sleep 10
+          while :
+          do
+            echo "attempt to connect to server, $i"
+            mysql -uroot -proot -h server-{{ .Values.Name}}  -P3306  --connect-timeout 3 -e 'show databases;'
             sleep 3
           done
         image: mysql
         imagePullPolicy: IfNotPresent
-        name: mysql-client
+        name: client
   

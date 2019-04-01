@@ -1,2 +1,2 @@
-server:
-  mtlsModes: ["mtls", "plaintex"]
+# The deployment name, can be "mtls" or "plaintext" to denote different security settings.
+Name: "mtls"
