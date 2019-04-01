@@ -1,7 +1,7 @@
 apiVersion: "authentication.istio.io/v1alpha1"
 kind: "Policy"
 metadata:
-  name: mysql-nomtls-authn
+  name: mysql-server-plaintext-authn
 spec:
   targets:
-  - name: mysql-server
+  - name: mysql-server-plaintext

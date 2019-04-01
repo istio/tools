@@ -1,7 +1,10 @@
+{{- range $index, $mtlsMode := .Values.server.mtlsModes }}
+{{- $name := printf "%s-%s" "mysql-server" $mtlsMode -}}
+---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: mysql-volumeclaim
+  name: {{ $name }}-volumenclaim
 spec:
   accessModes:
     - ReadWriteOnce
@@ -12,18 +15,18 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql
+  name: {{ $name }}
   labels:
-    app: mysql-server
+    app: {{ $name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysql-server
+      app: {{ $name }}
   template:
     metadata:
       labels:
-        app: mysql-server
+        app: {{ $name }}
     spec:
       containers:
         - image: mysql:5.6
@@ -40,92 +43,19 @@ spec:
       volumes:
         - name: mysql-persistent-storage
           persistentVolumeClaim:
-            claimName: mysql-volumeclaim
+            claimName: {{ $name }}-volumenclaim
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql-server
+  name: {{ $name }}
   labels:
-    app: mysql-server
+    app: {{ $name }}
 spec:
   type: ClusterIP
   ports:
     - port: 3306
   selector:
-    app: mysql-server
-# kind: PersistentVolumeClaim
-# apiVersion: v1
-# metadata:
-#   name: mysql-pvc
-# spec:
-#   accessModes:
-#     - ReadWriteMany
-#   volumeMode: Filesystem
-#   resources:
-#     requests:
-#       storage: 1Gi
-#   storageClassName: "fast"
-#   selector:
-#     matchLabels:
-#       release: dev
-# ---
-# apiVersion: v1
-# kind: PersistentVolume
-# metadata:
-#   name: tmp-mysql-1
-#   labels:
-#     release: dev
-# spec:
-#   capacity:
-#     storage: 1Gi
-#   volumeMode: Filesystem
-#   persistentVolumeReclaimPolicy: Retain
-#   storageClassName: "fast"
-#   accessModes:
-#     - ReadWriteMany
-#   hostPath:
-#     path: /tmp/mysql
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: mysql-server
-#   labels:
-#     app: mysql-server
-# spec:
-#   selector:
-#     app: mysql-server
-#   ports:
-#   - port: 3306
-#     name: tcp
-#     protocol: TCP
-# ---
-# apiVersion: extensions/v1beta1
-# kind: Deployment
-# metadata:
-#   name: mysql-server
-# spec:
-#   replicas: 1
-#   template:
-#     metadata:
-#       labels:
-#         app: mysql-server
-#     spec:
-#       containers:
-#       - name: mysql
-#         image: mysql:5.7.22
-#         imagePullPolicy: IfNotPresent
-#         env:
-#         - name: MYSQL_ROOT_PASSWORD
-#           value: "root"
-#         ports:
-#         - containerPort: 3306
-#         volumeMounts:
-#         - name: mysql-volume
-#           mountPath: /var/lib/mysql
-#       volumes:
-#       - name: mysql-volume
-#         persistentVolumeClaim:
-#           claimName: mysql-pvc
-#       restartPolicy: Always
+    app: {{ $name }}
+
+{{- end }}

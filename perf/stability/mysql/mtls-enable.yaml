@@ -1,10 +1,10 @@
 apiVersion: "authentication.istio.io/v1alpha1"
 kind: "Policy"
 metadata:
-  name: mysql-mtls-authn
+  name: mysql-server-mtls-authn
 spec:
   targets:
-  - name: mysql-server
+  - name: mysql-server-mtls
   peers:
   - mtls:
       mode: STRICT
@@ -14,7 +14,7 @@ kind: DestinationRule
 metadata:
   name: mysql-mtls-dr
 spec:
-  host: "mysql-server"
+  host: "mysql-server-mtls"
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL

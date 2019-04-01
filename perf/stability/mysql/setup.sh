@@ -10,6 +10,8 @@ source "${WD}/../common_setup.sh"
 setup_test "mysql" "--set namespace=${NAMESPACE:-"mysql"}"
 NAMESPACE="${NAMESPACE:-"mysql"}"
 
+echo $WD
+
 # verify mysql client can reach to server.
 function verify_mysql() {
   kubectl -n ${NAMESPACE} exec ${client_pod} -c mysql-client \
@@ -26,29 +28,4 @@ kubectl -n${NAMESPACE} wait --for=condition=Ready pod/${server_pod}
 # TODO: add a link on istio.io.
 echo "Testing MySQL mTLS is disabled, expect succeed..."
 kubectl -n${NAMESPACE} apply -f mysql/mtls-disable.yaml
-sleep 10
-if verify_mysql; then
-  echo "Succeed"
-else
-  echo "Failed"
-fi
-
-kubectl delete -f mysql/mtls-disable.yaml -n ${NAMESPACE}
-
-echo "Testing MySQL mTLS is enabled, expect succeed..."
-kubectl apply -f mysql/mtls-enable.yaml -n ${NAMESPACE}
-sleep 10
-if verify_mysql; then
-  echo "Succeed"
-else
-  echo "Failed"
-fi
-
-echo "Testing MySQL mTLS is enabled, no destination rule, expect fail..."
-kubectl delete dr mysql-mtls-dr -n ${NAMESPACE}
-sleep 10
-if verify_mysql; then
-  echo "Failed"
-else
-  echo "Succeed"
-fi
+kubectl -n${NAMESPACE} apply -f mysql/mtls-enable.yaml -n ${NAMESPACE}
