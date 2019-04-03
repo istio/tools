@@ -30,6 +30,7 @@ function setup_tests() {
       "allconfig") setup_all_config;;
       "gateway-bouncer") ${WD}/gateway-bouncer/setup.sh;;
       "sds-certmanager") ${WD}/sds-certmanager/setup.sh;;
+      "mysql") ${WD}/mysql/setup.sh;;
       *) setup_test "${test}";;
     esac
   done
@@ -41,7 +42,7 @@ function setup_all_config() {
   setup_test "allconfig" "--set ingress=${gateway} --set domain=${domain}"
 }
 
-ALL_TESTS="http10 graceful-shutdown gateway-bouncer"
+ALL_TESTS="http10 graceful-shutdown gateway-bouncer mysql"
 TESTS="${TESTS:-"$ALL_TESTS"}"
 
 case "$1" in
