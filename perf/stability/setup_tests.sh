@@ -31,6 +31,7 @@ function setup_tests() {
       "external-traffic") setup_external_traffic;;
       "gateway-bouncer") ${WD}/gateway-bouncer/setup.sh;;
       "sds-certmanager") ${WD}/sds-certmanager/setup.sh;;
+      "mysql") ${WD}/mysql/setup.sh;;
       *) setup_test "${test}";;
     esac
   done
@@ -48,7 +49,7 @@ function setup_external_traffic() {
   setup_test "external-traffic" "--set externalDestination=${gateway}"
 }
 
-ALL_TESTS="http10 graceful-shutdown gateway-bouncer external-traffic"
+ALL_TESTS="http10 graceful-shutdown gateway-bouncer mysql external-traffic"
 TESTS="${TESTS:-"$ALL_TESTS"}"
 
 case "$1" in

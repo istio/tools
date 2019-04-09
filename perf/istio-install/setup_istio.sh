@@ -43,12 +43,15 @@ function install_prometheus() {
   helm fetch stable/prometheus-operator --untar --untardir "${PROMETHEUS_INSTALL}"
 
   kubectl create ns istio-prometheus || true
-
+  PROM_OP=tmp/prom-operator.yaml
   helm template "${PROMETHEUS_INSTALL}/prometheus-operator/" \
     --namespace istio-prometheus \
     --name prometheus \
-    -f "${PROMETHEUS_INSTALL}/values.yaml" \
-    | kubectl apply --namespace istio-prometheus -f -
+    -f "${PROMETHEUS_INSTALL}/values.yaml" > "${PROM_OP}"
+
+  echo "${PROM_OP}"
+
+  kubectl apply --namespace istio-prometheus -f "${PROM_OP}"
 
   # delete grafana pod so it redeploys with new config
   kubectl delete pod -l app=grafana
@@ -91,8 +94,9 @@ function install_istio() {
 
   # if release_url is not overridden then daily builds require
   # tag and hub overrides
+
   if [[ -z "${RELEASE_URL}" ]];then
-    opts="--set global.tag=${release}"
+    opts+=" --set global.tag=${release}"
     opts+=" --set global.hub=gcr.io/istio-release"
   fi
 
