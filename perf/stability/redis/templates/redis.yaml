@@ -1,3 +1,5 @@
+# Generated with: helm template stable/redis --set password=istio --name redis
+# No modifications needed to work with Istio
 ---
 # Source: redis/templates/secret.yaml
 apiVersion: v1
