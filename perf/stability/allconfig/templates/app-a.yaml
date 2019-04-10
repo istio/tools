@@ -5,6 +5,7 @@ metadata:
   name: a
   labels:
     app: a
+    release: {{ .Release.Name }}
 spec:
   ports:
   - port: 80
@@ -33,6 +34,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: a
+  labels:
+    release: {{ .Release.Name }}
 spec:
   replicas: 1
   template:
@@ -40,6 +43,7 @@ spec:
       labels:
         app: a
         version: v1
+        release: {{ .Release.Name }}
     spec:
       containers:
       - name: app

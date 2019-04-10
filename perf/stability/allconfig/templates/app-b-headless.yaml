@@ -6,6 +6,7 @@ metadata:
   name: headless
   labels:
     app: b
+    release: {{ .Release.Name }}
 spec:
   clusterIP: None
   ports:
@@ -28,6 +29,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: b
+  labels:
+    release: {{ .Release.Name }}
 spec:
   replicas: 1
   template:
@@ -35,6 +38,7 @@ spec:
       labels:
         app: b
         version: unversioned
+        release: {{ .Release.Name }}
     spec:
       containers:
       - name: app

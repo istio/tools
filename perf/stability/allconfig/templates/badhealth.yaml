@@ -4,6 +4,7 @@ metadata:
   name: badhealth
   labels:
     app: badhealth
+    release: {{ .Release.Name }}
 spec:
   ports:
   - port: 80
@@ -15,11 +16,14 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: badhealth
+  labels:
+    release: {{ .Release.Name }}
 spec:
   replicas: 1
   template:
     metadata:
       labels:
+        release: {{ .Release.Name }}
         app: badhealth
         version: v1
     spec:
@@ -50,12 +54,15 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: badlive
+  labels:
+    release: {{ .Release.Name }}
 spec:
   replicas: 1
   template:
     metadata:
       labels:
         app: badhealth
+        release: {{ .Release.Name }}
         version: v1
     spec:
       containers:

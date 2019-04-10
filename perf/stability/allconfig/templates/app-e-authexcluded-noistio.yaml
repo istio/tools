@@ -7,6 +7,7 @@ metadata:
   name: fake-control
   labels:
     app: fake-control
+    release: {{ .Release.Name }}
 spec:
   ports:
   - port: 80
@@ -35,6 +36,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: e
+  labels:
+    release: {{ .Release.Name }}
 spec:
   replicas: 1
   template:
@@ -42,6 +45,7 @@ spec:
       labels:
         app: fake-control
         version: fake-control
+        release: {{ .Release.Name }}
       annotations:
         sidecar.istio.io/inject: "false"
     spec:
