@@ -24,8 +24,9 @@ jobs:
             git clone https://github.com/istio/istio.git $GOPATH/src/istio.io/istio
             git clone https://github.com/istio-ecosystem/istio-installer.git $GOPATH/src/github.com/istio-ecosystem/istio-installer
       - run:
-          command: (cd $GOPATH/src/github.com/istio-ecosystem; make installer-test)
+          command: make test
       - run:
+          when: always
           command: (cd $GOPATH/src/github.com/istio-ecosystem; make kind-logs)
       - store_test_results:
           path: /workspace/go/out/tests
