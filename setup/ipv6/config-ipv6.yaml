@@ -37,7 +37,7 @@ networking:
 address: '::'
 apiVersion: kubelet.config.k8s.io/v1beta1
 clusterDNS:
-- 2001:470:b16e:4100::10
+- 2001:470:b16e:4100::000A
 clusterDomain: cluster.local
 healthzBindAddress: '::1'
 kind: KubeletConfiguration
