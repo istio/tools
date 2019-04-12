@@ -5,8 +5,6 @@ set -ex
 WD=$(dirname $0)
 WD=$(cd $WD; pwd)
 
-source "${WD}/../common_setup.sh"
-
 command -v gcloud >/dev/null 2>&1 || {
   echo >&2 "This scenario automatically creates necessary DNS-records in order"
   echo >&2 "to get a obtain a TLS certificate from an ACME-compatible issuer."
@@ -32,7 +30,7 @@ else
   echo "The following ingress domain will be configured: ${INGRESS_DOMAIN}"
 fi
 
-setup_test "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-certmanager"} --set ingressDomain=${INGRESS_DOMAIN}"
+${WD}/../setup_test.sh "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-certmanager"} --set ingressDomain=${INGRESS_DOMAIN}"
 
  if [[ -z "${DRY_RUN}" ]]; then
   # Waiting until LoadBalancer is created and retrieving the assigned
