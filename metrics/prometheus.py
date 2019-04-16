@@ -5,7 +5,7 @@ from typing import List
 
 Query = collections.namedtuple(
     'Query',
-    ['description', 'query', 'alarm']
+    ['description', 'query', 'alarm', 'running_query']
 )
 
 Alarm = collections.namedtuple(

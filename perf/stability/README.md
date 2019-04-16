@@ -21,8 +21,10 @@ For details on the tests, read the README in each directory.
 * http10 - tests http 1.0 support
 * graceful-shutdown - tests graceful termination of connections when services are terminated.
 * gateway-bouncer - tests gateway readiness features 
+* redis - installs a Redis setup with master, slave, and client
 
 With Istio defaults, these test will require around 2 vCPUs and 2GB of memory.
+
 ### Optional Tests
 
 These tests are not enabled by default, but can be added with the `TESTS` variable
@@ -30,7 +32,7 @@ These tests are not enabled by default, but can be added with the `TESTS` variab
 * istio-upgrader - disabled by default, as impacts the entire Istio install by redeploying Istio components.
 * allconfig - currently has some bugs
 * sds-certmanager - requires gcloud to configure GCP DNS, and a gcp DNS zone set as env variable DNS_ZONE
-
+  
 ## Deleting Tests
 
 To delete all installed tests, run `./setup_tests.sh delete`.

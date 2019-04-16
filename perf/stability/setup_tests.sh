@@ -42,11 +42,11 @@ function setup_all_config() {
   setup_test "allconfig" "--set ingress=${gateway} --set domain=${domain}"
 }
 
-ALL_TESTS="http10 graceful-shutdown gateway-bouncer mysql"
+ALL_TESTS="http10 graceful-shutdown gateway-bouncer mysql redis"
 TESTS="${TESTS:-"$ALL_TESTS"}"
 
 case "$1" in
-   "") echo "Pass one of setup or delete" ;;
   "setup" | "install") setup_tests "${TESTS}" ;;
   "delete" | "remove" | "uninstall") delete_tests "${TESTS}" ;;
+   *) echo "Pass one of setup or delete" ;;
 esac
