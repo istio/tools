@@ -4,4 +4,4 @@ This test installs an instance of Redis using the [stable/redis](https://github.
 
 The Redis install is generated using `helm template stable/redis --set password=istio --name redis`
 
-Additionally, a simple redis client is created that repeatedly pings the master and slave instance.
+Additionally, a simple redis client is created that repeatedly writes to the master instance, then tries to read that value from the master and slave instance.
