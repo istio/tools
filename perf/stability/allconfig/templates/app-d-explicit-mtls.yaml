@@ -5,6 +5,7 @@ metadata:
   name: d
   labels:
     app: d
+    release: {{ .Release.Name }}
 spec:
   ports:
   - port: 80
@@ -32,6 +33,8 @@ apiVersion: authentication.istio.io/v1alpha1
 kind: Policy
 metadata:
   name: d-explicit-mtls
+  labels:
+    release: {{ .Release.Name }}
 spec:
   targets:
   - name: d
@@ -46,6 +49,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: d
+  labels:
+    release: {{ .Release.Name }}
 spec:
   replicas: 1
   template:
@@ -53,6 +58,7 @@ spec:
       labels:
         app: d
         version: per-svc-auth
+        release: {{ .Release.Name }}
     spec:
       containers:
       - name: app

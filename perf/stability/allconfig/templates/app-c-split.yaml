@@ -4,6 +4,7 @@ kind: Service
 metadata:
   name: c
   labels:
+    release: {{ .Release.Name }}
     app: c
 spec:
   ports:
@@ -32,12 +33,15 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: c-v1
+  labels:
+    release: {{ .Release.Name }}
 spec:
   replicas: 1
   template:
     metadata:
       labels:
         app: c
+        release: {{ .Release.Name }}
         version: v1
     spec:
       containers:
@@ -97,6 +101,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: c-v2
+  labels:
+    release: {{ .Release.Name }}
 spec:
   replicas: 1
   template:
@@ -104,6 +110,7 @@ spec:
       labels:
         app: c
         version: v2
+        release: {{ .Release.Name }}
     spec:
       containers:
       - name: app

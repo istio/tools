@@ -1,0 +1,52 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: /workspace/go/src/istio.io/tools
+    docker:
+      # Image with KIND installed, based on Istio Kind node-image
+      # Should have all tools we need, recreated when we rev the tool versions.
+      - image: istionightly/kind:latest
+        environment:
+          GOPATH: /workspace/go
+          SKIP_CLEANUP: 1
+
+    # Can run multiple images, first is primary, all use localhost
+    steps:
+      - checkout
+      - setup_remote_docker: {}
+      # Only on paid version
+      #    docker_layer_caching: true
+      - run:
+          command: |
+            mkdir -p $GOPATH/src/istio.io
+            mkdir -p $GOPATH/src/github.com/istio-ecosystem
+            git clone https://github.com/istio/istio.git $GOPATH/src/istio.io/istio
+            git clone https://github.com/istio-ecosystem/istio-installer.git $GOPATH/src/github.com/istio-ecosystem/istio-installer
+      - run:
+          command: make test
+      - run:
+          when: always
+          command: (cd $GOPATH/src/github.com/istio-ecosystem; make kind-logs)
+      - store_test_results:
+          path: /workspace/go/out/tests
+      - store_artifacts:
+          path: /workspace/go/out/logs
+
+workflows:
+  version: 2
+  nightly:
+    triggers:
+       - schedule:
+           cron: "0 0 * * *"
+           filters:
+             branches:
+               only:
+                 - master
+                 - dev
+    jobs:
+      - build
+
+  all:
+    jobs:
+      - build
