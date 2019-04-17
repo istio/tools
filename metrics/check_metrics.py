@@ -86,6 +86,21 @@ def istio_requests_sanity(namespace):
     )
 
 
+def stability_query(source, test):
+    total = 'sum(rate(stability_outgoing_requests_total{source="%s"}[5m]))' % source
+    failure = 'sum(rate(stability_outgoing_requests_total{source="%s", succeeded="False"}[5m]))' % source
+    query = Query(
+        '{}: error rate'.format(test),
+        '{}/{}'.format(failure, total),
+        Alarm(
+            lambda errs: errs > 0,
+            'Error rate too high, expected no errors'
+        ),
+        'sum(stability_test_instances{test="%s"})' % test
+    )
+    return query
+
+
 class TestAlarms(unittest.TestCase):
     def test_pilot(self):
         queries = [
@@ -130,15 +145,13 @@ class TestAlarms(unittest.TestCase):
 
     def test_redis(self):
         queries = [
-            Query(
-                'Redis: error rate',
-                'sum(rate(stability_outgoing_requests_total{source="redis-client", succeeded="False"}[5m]))/sum(rate(stability_outgoing_requests_total{source="redis-client"}[5m]))',
-                Alarm(
-                    lambda errs: errs > 0,
-                    'Error rate too high, expected no errors'
-                ),
-                'sum(stability_test_instances{test="redis"})'
-            )
+            stability_query(source='redis-client', test='redis')
+        ]
+        self.run_queries(queries)
+
+    def test_rabbitmq(self):
+        queries = [
+            stability_query(source='rabbitmq-client', test='rabbitmq')
         ]
         self.run_queries(queries)
 

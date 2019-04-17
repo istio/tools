@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq-client
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-client
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/scheme: "http"
+    spec:
+      containers:
+        - name: rabbitmq
+          image: howardjohn/rabbitmq-perf-client
+          imagePullPolicy: Always
+          env:
+            - name: PASSWORD
+              value: istio

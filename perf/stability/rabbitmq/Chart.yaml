@@ -1,0 +1,10 @@
+apiVersion: v1
+name: rabbitmq
+version: 1.0.0
+description: Helm chart for testing rabbitmq on Istio
+keywords:
+  - istio
+  - performance
+sources:
+  - http://github.com/istio/istio
+engine: gotpl
