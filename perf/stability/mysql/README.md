@@ -10,8 +10,8 @@ The setup consists of two parts
 Both of them have Istio sidecar injected. We test the connectivity from client to server by sending
 a few commands from the cli to the server.
 
-How To Run The Test
+## How To Run The Test
 
 ``bash
-TESTS="mysql" bash setup_tests.sh setup
+make mysql
 ```

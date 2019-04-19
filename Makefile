@@ -15,3 +15,5 @@ init: ${GOPATH}/src/istio.io/istio ${GOPATH}/src/github.com/istio-ecosystem/isti
 
 test: init
 	$(MAKE) -C ${GOPATH}/src/github.com/istio-ecosystem/istio-installer test $(MAKEFLAGS)
+
+include perf/stability/stability.mk
