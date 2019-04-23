@@ -13,6 +13,8 @@ global:
     concurrency: 2
     accessLogFile: ""
     resources:
+      limits:
+        memory: 256Mi
       requests:
         cpu: 500m
         memory: 256Mi
@@ -77,6 +79,11 @@ gateways:
       name: tcp-iperf
     - port: 5204
       name: tcp-iperf-tls
+
+policy:
+  resources:
+    limits:
+      memory: 256Mi
 
 pilot:
   replicaCount: 2
