@@ -40,6 +40,8 @@ function start_servicegraphs() {
       ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}"
       ${CMD} run_test "${ns}" "${prefix}"
     fi
+
+    sleep 30
   }
 }
 
