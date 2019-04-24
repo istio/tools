@@ -1,3 +1,4 @@
+# Generated with `helm template stable/rabbitmq --name rabbitmq --set rabbitmq.password=istio --set rabbitmq.username=istio`
 ---
 # Source: rabbitmq/templates/secrets.yaml
 

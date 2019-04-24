@@ -21,6 +21,13 @@ def with_metrics(f, valid=None):
     )
 
 
+def with_metrics_or_fail(f, valid=None):
+    r, success = with_metrics(f, valid)
+    if not success:
+        raise Exception("Function failed")
+    return r, success
+
+
 def setup_client():
     credentials = pika.PlainCredentials(username, password)
     connection = pika.BlockingConnection(
@@ -31,13 +38,13 @@ def setup_client():
 
 
 def send(channel, message):
-    with_metrics(
+    with_metrics_or_fail(
         lambda: channel.basic_publish(
             exchange='',
             routing_key=queue,
             body=message
         ),
-        valid=lambda resp: resp  # Returns true if success
+        valid=None
     )
 
 
@@ -48,17 +55,14 @@ def attempt_decode(s):
 
 
 def receive(channel, expected):
-    with_metrics(
+    with_metrics_or_fail(
         lambda: attempt_decode(
             next(channel.consume(queue, inactivity_timeout=1))[2]),
         valid=lambda resp: resp == expected
     )
 
 
-if __name__ == "__main__":
-    prom_client.report_metrics()
-    prom_client.report_running('rabbitmq')
-
+def run_test():
     pub, succeeded = with_metrics(setup_client)
     if not succeeded:
         logging.error("Failed to setup client")
@@ -73,3 +77,17 @@ if __name__ == "__main__":
         send(pub, message)
         receive(sub, message)
         time.sleep(.5)
+
+
+if __name__ == "__main__":
+    prom_client.report_metrics()
+    prom_client.report_running('rabbitmq')
+
+    time.sleep(10) # Wait for server
+
+    while True:
+        try:
+            run_test()
+        except Exception:
+            logging.warning("Rerunning test due to exception")
+            time.sleep(.5)
