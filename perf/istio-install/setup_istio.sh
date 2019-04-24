@@ -50,7 +50,7 @@ function install_istio() {
         if [[ ! -z "${HELMREPO_URL}" ]];then
           helmrepo="${HELMREPO_URL}"
         fi
-        helm repo add istio.io "${helmrepo}"
+        helm repo add istio.io "${helmrepo}" || true
       fi
       helm dep update "${DIRNAME}/${release}/istio" || true
   fi

@@ -22,3 +22,9 @@ export RELEASE_URL=https://github.com/istio/istio/releases/download/untagged-c41
 
 DNS_DOMAIN=your-example-domain ./setup.sh release-1.1-20190203-09-16
 ```
+
+### Installing release candidates
+```bash
+DNS_DOMAIN=v11mcp.qualistio.org ./setup_istio_release.sh 1.1.4 pre-release
+```
+This option uses pre-release buckets to get builds and charts.
