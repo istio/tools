@@ -80,11 +80,6 @@ gateways:
     - port: 5204
       name: tcp-iperf-tls
 
-policy:
-  resources:
-    limits:
-      memory: 256Mi
-
 pilot:
   replicaCount: 2
   sidecar: false
@@ -113,6 +108,10 @@ grafana:
   enabled: true
 
 mixer:
+  policy:
+    resources:
+      limits:
+        memory: 256Mi
   resources:
     requests:
       cpu: 100m # default 10m
