@@ -1,0 +1,10 @@
+apiVersion: v1
+name: kafka
+version: 1.0.0
+description: Example Helm chart for Kafka on Istio
+keywords:
+  - istio
+  - performance
+sources:
+  - http://github.com/istio/istio
+engine: gotpl

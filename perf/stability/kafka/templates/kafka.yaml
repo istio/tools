@@ -1,0 +1,149 @@
+---
+# Source: kafka/templates/service-brokers.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+    chart: kafka-0.14.5
+    release: kafka
+    heritage: Tiller
+spec:
+  ports:
+  - name: broker
+    port: 19092
+    targetPort: kafka
+  selector:
+    app: kafka
+    release: kafka
+
+---
+# Source: kafka/templates/service-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-headless
+  labels:
+    app: kafka
+    chart: kafka-0.14.5
+    release: kafka
+    heritage: Tiller
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  ports:
+  - name: broker
+    port: 9092
+  clusterIP: None
+  selector:
+    app: kafka
+    release: kafka
+
+---
+# Source: kafka/templates/statefulset.yaml
+
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+    chart: kafka-0.14.5
+    release: kafka
+    heritage: Tiller
+spec:
+  serviceName: kafka-headless
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: OnDelete
+
+  replicas: 3
+  template:
+    metadata:
+      annotations:
+        # sidecar.istio.io/inject: "false"
+      labels:
+        app: kafka
+        release: kafka
+    spec:
+      containers:
+      - name: kafka-broker
+        image: "confluentinc/cp-kafka:5.0.1"
+        imagePullPolicy: "IfNotPresent"
+        livenessProbe:
+          exec:
+            command:
+              - sh
+              - -ec
+              - /usr/bin/jps | /bin/grep -q SupportedKafka
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          tcpSocket:
+            port: kafka
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        ports:
+        - containerPort: 9092
+          name: kafka
+        resources:
+          {}
+
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: KAFKA_HEAP_OPTS
+          value: -Xmx1G -Xms1G
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: "kafka-zookeeper:12181"
+        - name: KAFKA_LOG_DIRS
+          value: "/opt/kafka/data/logs"
+        - name: "KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE"
+          value: "false"
+        - name: "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR"
+          value: "3"
+        - name: KAFKA_JMX_PORT
+          value: "5555"
+        # This is required because the Downward API does not yet support identification of
+        # pod numbering in statefulsets. Thus, we are required to specify a command which
+        # allows us to extract the pod ID for usage as the Kafka Broker ID.
+        # See: https://github.com/kubernetes/kubernetes/issues/31218
+        command:
+        - sh
+        - -exc
+        - |
+          unset KAFKA_PORT && \
+          export KAFKA_BROKER_ID=${POD_NAME##*-} && \
+          export KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${POD_NAME}.kafka-headless.${POD_NAMESPACE}:9092 && \
+          exec /etc/confluent/docker/run
+        volumeMounts:
+        - name: datadir
+          mountPath: "/opt/kafka/data"
+      volumes:
+      terminationGracePeriodSeconds: 60
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+# Source: kafka/charts/zookeeper/templates/config-jmx-exporter.yaml
+

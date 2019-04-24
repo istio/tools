@@ -167,6 +167,12 @@ class TestAlarms(unittest.TestCase):
         ]
         self.run_queries(queries)
 
+    def test_kafka(self):
+        queries = [
+            stability_query(source='kafka-client', test='kafka')
+        ]
+        self.run_queries(queries)
+
     @classmethod
     def setUpClass(self):
         self.prom = setup_promethus()

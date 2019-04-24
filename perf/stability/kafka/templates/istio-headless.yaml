@@ -1,0 +1,13 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: kafka
+spec:
+  hosts:
+  - kafka-0.kafka-headless.{{ .Release.Namespace }}.svc.cluster.local
+  - kafka-1.kafka-headless.{{ .Release.Namespace }}.svc.cluster.local
+  - kafka-2.kafka-headless.{{ .Release.Namespace }}.svc.cluster.local
+  ports:
+  - name: broker
+    number: 9092
+    protocol: TCP

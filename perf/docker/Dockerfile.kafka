@@ -1,0 +1,10 @@
+FROM python:alpine
+
+RUN pip3 install -q kafka-python prometheus_client
+
+ENV ADDRESS kafka:19092
+
+ADD kafka/client.py /client.py
+ADD prom_client.py /prom_client.py
+
+CMD ["python3", "-u", "/client.py"]
