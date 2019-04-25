@@ -1,3 +1,2 @@
-namespace: istio-upgrader
 redployMinutes: 30
 kubectlImage: gcr.io/istio-release/kubectl:master-latest-daily

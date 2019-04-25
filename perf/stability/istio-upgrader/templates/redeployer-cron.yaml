@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.namespace }}-account
-  namespace: {{ .Values.namespace }}
+  name: {{ .Release.Namespace }}-account
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: {{ .Values.namespace }}-role
+  name: {{ .Release.Namespace }}-role
 rules:
   - apiGroups: ["extensions"]
     resources: ["deployments"]
@@ -16,15 +16,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ .Values.namespace }}-role-binding
+  name: {{ .Release.Namespace }}-role-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ .Values.namespace }}-role
+  name: {{ .Release.Namespace }}-role
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.namespace }}-account
-    namespace: {{ .Values.namespace }}
+    name: {{ .Release.Namespace }}-account
+    namespace: {{ .Release.Namespace }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -43,7 +43,7 @@ spec:
           labels:
             app: istio-upgrader
         spec:
-          serviceAccountName: {{ .Values.namespace }}-account
+          serviceAccountName: {{ .Release.Namespace }}-account
           containers:
             - name: istio-upgrader
               image: {{ .Values.kubectlImage }}
