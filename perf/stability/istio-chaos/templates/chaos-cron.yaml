@@ -53,7 +53,7 @@ spec:
                 - -c
                 - |-
                   #!/bin/bash
-                  CHAOS_LEVEL={{ .Values.chaosDurationMinutes }}
+                  CHAOS_LEVEL={{ .Values.chaosLevel }}
                   CHAOS_DURATION={{ .Values.chaosDurationMinutes }}
                   COMPONENTS=({{ .Values.components }})
 
