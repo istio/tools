@@ -8,7 +8,7 @@ ENV ADDRESS redis-master
 ENV SLAVE_PORT 6379
 ENV SLAVE_ADDRESS redis-slave
 
-ADD client.py /client.py
+ADD redis/client.py /client.py
 ADD prom_client.py /prom_client.py
 
 CMD ["python3", "-u", "/client.py"]
