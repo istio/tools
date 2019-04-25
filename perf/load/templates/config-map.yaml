@@ -9,27 +9,26 @@ data:
     apiVersion: networking.istio.io/v1alpha3
     kind: VirtualService
     metadata:
-      name: regex-route
+      name: entrypoint
     spec:
+      gateways:
+      - entrypoint-gateway
       hosts:
-        - regex.{{ .Values.Namespace }}.com
+      - {{ .Values.serviceNamePrefix }}0.local
       http:
-        - match:
-          - headers:
-              foo:
-                regex: "b.*"
-            source_labels:
-              version: v1
-          route:
-          - destination:
-              host: regex.extsvc.com
-              subset: v2
-            weight: 100
-        - route:
-          - destination:
-              host: regex.extsvc.com
-              subset: v1
-            weight: 100
+      - route:
+        - destination:
+            host: {{ .Values.serviceNamePrefix }}0
+            subset: v1
+            port:
+              number: 8080
+          weight: V1_WEIGHT
+        - destination:
+            host: {{ .Values.serviceNamePrefix }}0
+            subset: v2
+            port:
+              number: 8080
+          weight: V2_WEIGHT
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -39,11 +38,11 @@ metadata:
 data:
   run.sh: |
     #!/bin/bash
-
+    # Canary rollout of v2
     while [[ true ]];do
-      kubectl -n {{ .Values.Namespace }} apply -f /data/cfg.yaml
-      sleep {{ .Values.configSleep }}
-
-      kubectl -n {{ .Values.Namespace }} delete -f /data/cfg.yaml
-      sleep {{ .Values.configSleep }}
+      for v1 in 100 70 40 20;do
+        v2=$((100-$v1))
+        sed -e "s/V1_WEIGHT/$v1/" -e "s/V2_WEIGHT/$v2/" /data/cfg.yaml | kubectl -n {{ .Values.Namespace }} apply -f -
+        sleep {{ .Values.configSleep }}
+      done
     done
