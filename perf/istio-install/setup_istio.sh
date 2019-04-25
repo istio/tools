@@ -39,6 +39,13 @@ function install_istio() {
 
   local outfile="$(download ${DIRNAME} ${release})"
 
+  if [[ ! -d "${DIRNAME}/${release}" ]];then
+      DN=$(mktemp -d)
+      tar -xzf "${outfile}" -C "${DN}" --strip-components 1
+      mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
+      rm -Rf ${DN}
+  fi
+
   kubectl create ns istio-system || true
 
   if [[ -z "${DRY_RUN}" ]];then
