@@ -29,6 +29,8 @@ With Istio defaults, these test will require around 2 vCPUs and 2GB of memory.
 
 These tests are not enabled by default, but can be run individually or with `make stability_all`.
 
+* istio-chaos-partial - disabled by default, as impacts the entire Istio install by killing all but one instance of an Istio component (or the single instance if there is only one).
+* istio-chaos-total - disabled by default, as impacts the entire Istio install by scaling Istio components to zero.
 * istio-upgrader - disabled by default, as impacts the entire Istio install by redeploying Istio components.
 * allconfig - currently has some bugs
 * sds-certmanager - requires gcloud to configure GCP DNS, and a gcp DNS zone set as env variable DNS_ZONE

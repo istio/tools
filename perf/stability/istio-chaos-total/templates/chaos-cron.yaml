@@ -29,10 +29,10 @@ subjects:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: istio-chaos
+  name: istio-chaos-total
   namespace: istio-stability-{{ .Values.namespace }}
   labels:
-    app: istio-chaos
+    app: istio-chaos-total
 spec:
   schedule: "*/{{ .Values.chaosIntervalMinutes }} * * * *" # Every x minutes
   jobTemplate:
@@ -42,11 +42,11 @@ spec:
           annotations:
             sidecar.istio.io/inject: "false"
           labels:
-            app: istio-chaos
+            app: istio-chaos-total
         spec:
           serviceAccountName: {{ .Values.namespace }}-account
           containers:
-            - name: istio-chaos
+            - name: istio-chaos-total
               image: {{ .Values.kubectlImage }}
               command:
                 - bash
