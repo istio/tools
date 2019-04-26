@@ -1,0 +1,2 @@
+goImage: golang:1.12
+replicas: 1

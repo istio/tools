@@ -8,7 +8,7 @@ stable_tests = http10 graceful-shutdown gateway-bouncer mysql redis rabbitmq
 standard_tests = http10 graceful-shutdown redis rabbitmq
 
 # Tests that have a special ./setup script in their folder
-extra_setup_tests = mysql sds-certmanager gateway-bouncer allconfig
+extra_setup_tests = mysql sds-certmanager gateway-bouncer allconfig tcp-load
 
 $(standard_tests):
 	$(STABILITY) $@
@@ -19,7 +19,8 @@ $(extra_setup_tests):
 stability: $(stable_tests)
 
 # Extra tests that may be unstable or require additional configuration
-stability_all: stability sds-certmanager allconfig
+# It is recommended to apply these individually, as they may require additional setup
+stability_all: stability sds-certmanager allconfig tcp-load
 
 clean-stability:
 	kubectl get namespaces -oname | grep "istio-stability-" | xargs kubectl delete

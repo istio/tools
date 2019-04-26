@@ -1,0 +1,10 @@
+apiVersion: v1
+name: tcp-load
+version: 1.0.0
+description: Chart to load tcp connections
+keywords:
+  - istio
+  - performance
+sources:
+  - http://github.com/istio/istio
+engine: gotpl

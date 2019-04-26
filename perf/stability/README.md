@@ -32,7 +32,9 @@ These tests are not enabled by default, but can be run individually or with `mak
 * istio-upgrader - disabled by default, as impacts the entire Istio install by redeploying Istio components.
 * allconfig - currently has some bugs
 * sds-certmanager - requires gcloud to configure GCP DNS, and a gcp DNS zone set as env variable DNS_ZONE
-  
+* tcp-load - opens as many tcp connections as possible against the ingress gateway
+
+
 ## Deleting Tests
 
 To delete all installed tests, run `make clean-stability`.

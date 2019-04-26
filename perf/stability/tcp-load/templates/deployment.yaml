@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tcp-client
+spec:
+  selector:
+    matchLabels:
+      app: tcp-client
+  replicas: {{ .Values.replicas }}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: tcp-client
+    spec:
+      containers:
+      - name: tcp-client
+        image: {{ .Values.goImage }}
+        args:
+        - go
+        - run
+        - /script/main.go
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        env:
+        - name: ADDRESS
+          value: {{ .Values.address }}
+        volumeMounts:
+        - name: program-volume
+          mountPath: /script
+      volumes:
+        - name: program-volume
+          configMap:
+            name: tcp-load-script
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tcp-load-script
+data:
+  main.go: |-
+{{ .Files.Get "tcp.go" | indent 4 }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
