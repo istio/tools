@@ -219,7 +219,8 @@ class Prom(object):
         res = {}
         if len(data["data"]["result"]) > 0:
             for i in range(len(data["data"]["result"])):
-                key = data["data"]["result"][i]["metric"]["groupby"]
+                print(data)
+                key = data["data"]["result"][i]["metric"]["grpc_method"]
                 values = data["data"]["result"][i]["values"]
                 if len(values) > 0:
                     res["grpc_server_handled_total_5xx_" +
