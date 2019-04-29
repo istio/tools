@@ -27,19 +27,20 @@ import (
 
 // kubernetesCmd represents the kubernetes command
 var kubernetesCmd = &cobra.Command{
-	Use:   "kubernetes",
+	Use:   "kubernetes [service-graph.yaml]",
 	Short: "Convert service graph YAML to manifests for performance testing",
-	Args:  cobra.ExactArgs(4),
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		inPath := args[0]
-		outPath := args[1]
 
-		serviceNodeSelectorStr := args[2]
+		serviceNodeSelectorStr, err := cmd.PersistentFlags().GetString("service-node-selector")
+		exitIfError(err)
 		serviceNodeSelector, err := extractNodeSelector(
 			serviceNodeSelectorStr)
 		exitIfError(err)
 
-		clientNodeSelectorStr := args[3]
+		clientNodeSelectorStr, err := cmd.PersistentFlags().GetString("client-node-selector")
+		exitIfError(err)
 		clientNodeSelector, err := extractNodeSelector(clientNodeSelectorStr)
 		exitIfError(err)
 
@@ -67,7 +68,7 @@ var kubernetesCmd = &cobra.Command{
 			serviceMaxIdleConnectionsPerHost, clientNodeSelector, clientImage, environmentName)
 		exitIfError(err)
 
-		exitIfError(writeManifest(outPath, manifests))
+		fmt.Println(string(manifests))
 	},
 }
 
@@ -82,6 +83,10 @@ func init() {
 		"client-image", "", "the image to use for the load testing client job")
 	kubernetesCmd.PersistentFlags().String(
 		"environment-name", "NONE", `the environment name for the test ("NONE" or "ISTIO")`)
+	kubernetesCmd.PersistentFlags().String(
+		"client-node-selector", "", "the node selector for client workloads")
+	kubernetesCmd.PersistentFlags().String(
+		"service-node-selector", "", "the node selector for service workloads")
 }
 
 func writeManifest(path string, manifest []byte) error {
@@ -101,7 +106,10 @@ func splitByEquals(s string) (k string, v string, err error) {
 }
 
 func extractNodeSelector(s string) (map[string]string, error) {
-	nodeSelector := make(map[string]string, 1)
+	nodeSelector := map[string]string{}
+	if len(s) == 0 {
+		return nodeSelector, nil
+	}
 	k, v, err := splitByEquals(s)
 	if err != nil {
 		return nodeSelector, err
