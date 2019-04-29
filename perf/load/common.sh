@@ -20,6 +20,7 @@ function run_test() {
 
    # remove stdio rules
   kubectl --namespace istio-system delete rules stdio stdiotcp || true
+  kubectl --namespace istio-ingress delete rules stdio stdiotcp || true
 
    if [[ -z "${DELETE}" ]];then
     sleep 3
