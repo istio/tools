@@ -9,9 +9,6 @@ global:
     enabled: true
     rewriteAppHTTPProbe: true
 
-pilot:
-  traceSampling: 100.0
-
 mixer:
   policy:
     enabled: false

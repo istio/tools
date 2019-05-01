@@ -3,13 +3,14 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: fortio-cli-{{$i}}
+  name: fortio-cli-{{ $i }}
+  namespace: {{ $.Values.namespace }}
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: fortio-cli-v{{$i}}
+        app: fortio-cli-{{$i}}
     spec:
       containers:
       - name: fortio-cli
@@ -23,6 +24,6 @@ spec:
           - "8"
           - -qps
           - "500"
-          - http://fortio-server-{{$i}}.default:8080/echo?size=128
+          - http://fortio-server-{{$i}}:8080/echo?size=128
 ---
 {{end}}
