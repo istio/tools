@@ -1,0 +1,82 @@
+{{range $i := until (int .Values.entries)}}
+
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
+  name: fortio-server-{{$i}}
+spec:
+  peers:
+  - mtls:
+      mode: PERMISSIVE
+  peer_is_optional: true
+  targets:
+  - name: fortio-server-{{$i}}
+    ports:
+    - number: 8080
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: fortio-server-{{$i}}
+spec:
+  host:  fortio-server-{{$i}}.default.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortio-server-{{$i}}
+spec:
+  ports:
+  - port: 8080
+    name: http-echo
+  - port: 8079
+    name: grpc-ping
+  selector:
+    app: fortio-server-{{$i}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortio-server-{{$i}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fortio-server-{{$i}}
+  template:
+    metadata:
+      annotations:
+        # Pointing to the mesh gateway, with tls
+        sidecar.istio.io/controlPlaneAuthPolicy: MUTUAL_TLS
+        sidecar.istio.io/discoveryAddress: istio-pilot.istio-system:15011
+      labels:
+        app: fortio-server-{{$i}}
+        version: v{{$i}}-tls
+    spec:
+      containers:
+      - name: fortio-server
+        image: docker.io/istio/fortio:latest
+        args:
+          - server
+        ports:
+         - containerPort: 8079
+         - name: tcp-health-port
+           containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /status=200
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 10
+        readinessProbe:
+          tcpSocket:
+            port: tcp-health-port
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 10
+---
+{{end}}

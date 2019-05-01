@@ -1,0 +1,26 @@
+global:
+  controlPlaneSecurityEnabled: true
+
+  mtls:
+    enabled: true
+  disablePolicyChecks: true
+
+  sidecarInjectorWebhook:
+    enabled: true
+    rewriteAppHTTPProbe: true
+
+pilot:
+  traceSampling: 100.0
+
+mixer:
+  policy:
+    enabled: false
+
+  telemetry:
+    enabled: true
+ 
+grafana:
+  enabled: true
+
+tracing:
+  enabled: true
