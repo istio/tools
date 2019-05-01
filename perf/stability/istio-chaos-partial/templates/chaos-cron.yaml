@@ -64,13 +64,14 @@ spec:
                       PODS=$(kubectl get pods -n istio-system | grep $COMPONENT | awk '{print $1}')
                       log "Killing all but one instance of $COMPONENT (or the single instance if there is only one)."
 
-                      # If there is more than one instance remove a pod from the list to kill
+                      # If there is more than one instance remove one at random a pod from the list to kill
                       if [ $(kubectl get pods -n istio-system | grep $COMPONENT | wc -l) -gt 1 ]
                       then
-                          PODS=${PODS%${COMPONENT}*}
+                          IFS=$'\n' PODS=($(sort -R <<<"${PODS[*]}")) # Randomise pods array
+                          PODS=${PODS%${COMPONENT}*} # Remove one of the pods
                       fi
 
-                      for POD in $PODS
+                      for POD in ${PODS[@]}
                       do
                           log "Killing $COMPONENT pod $POD..."
                           kubectl delete pod -n istio-system $POD --grace-period=0 --force --wait=false
