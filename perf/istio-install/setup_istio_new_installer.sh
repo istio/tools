@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-DNS_DOMAIN=${DNS_DOMAIN:-local}
+DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org"}
 
 WD=$(dirname $0)
 WD=$(cd $WD; pwd)
@@ -10,7 +10,7 @@ mkdir -p "${WD}/tmp"
 HUB="${1:?"build hub"}"
 TAG="${2:?"build tag"}"
 GOPATH="${GOPATH:?go path is required}"
-INSTALLER="${GOPATH}/src/github.com/istio-ecosystem/istio-installer"
+INSTALLER="${GOPATH}/src/istio.io/installer"
 
 
 function setup_admin_binding() {
@@ -21,7 +21,12 @@ function setup_admin_binding() {
 
 function iop() {
   export HUB=$HUB
-  BASE="${INSTALLER}" HUB=${HUB} TAG=${TAG} ${INSTALLER}/bin/iop $* --values "${WD}/values-new-installer.yaml"
+  BASE="${INSTALLER}" HUB=${HUB} TAG=${TAG} ${INSTALLER}/bin/iop $* \
+    --values "${WD}/values-new-installer.yaml" \
+    --set global.istioNamespace=istio-control \
+    --set global.configNamespace=istio-control \
+    --set global.telemetryNamespace=istio-telemetry \
+    --set global.policyNamespace=istio-policy
 }
 
 function install_istio() {
@@ -76,7 +81,7 @@ function install_istio() {
 function install_gateways() {
   local domain=${DNS_DOMAIN:-qualistio.org}
   if [[ -z "${DRY_RUN}" ]]; then
-      helm template --set domain="${domain}" "${WD}/base" | kubectl -n istio-system apply -f -
+      helm template --set domain="${domain}" "${WD}/base" --set telemetryNamespace=istio-telemetry | kubectl -n istio-system apply -f -
   fi
 }
 
