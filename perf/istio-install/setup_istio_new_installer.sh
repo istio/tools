@@ -70,9 +70,10 @@ function install_istio() {
     kubectl rollout status deployment istio-sidecar-injector -n istio-control --timeout=1m
 
     kubectl apply -f "${DIRNAME}/istio-ingress.yaml"
-    kubectl rollout status deployment ingressgateway -n istio-ingress --timeout=1m
+    kubectl apply -f "${DIRNAME}/telemetry/istio-telemetry.yaml"
+    kubectl apply -f "${DIRNAME}/telemetry/istio-grafana.yaml"
 
-    kubectl apply -f "${DIRNAME}/telemetry/"
+    kubectl rollout status deployment ingressgateway -n istio-ingress --timeout=1m
     kubectl rollout status deployment istio-telemetry -n istio-telemetry --timeout=1m
     kubectl rollout status deployment grafana -n istio-telemetry --timeout=1m
   fi

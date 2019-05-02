@@ -15,8 +15,9 @@ function run_test() {
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
-   kubectl create ns "${ns}" || true
+  kubectl create ns "${ns}" || true
   kubectl label namespace "${ns}" istio-injection=enabled --overwrite
+  kubectl label namespace "${ns}" istio-env=istio-control --overwrite
 
    if [[ -z "${DELETE}" ]];then
     sleep 3
