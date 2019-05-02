@@ -26,11 +26,6 @@ function run_test() {
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
-  # remove stdio rules
-  kubectl --namespace istio-system delete rules stdio stdiotcp || true
-  kubectl --namespace istio-telemetry delete rules stdio stdiotcp || true
-
-  
   if [[ -z "${DELETE}" ]];then
     kubectl create ns "${NAMESPACE}" || true
     kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite

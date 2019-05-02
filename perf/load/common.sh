@@ -18,10 +18,6 @@ function run_test() {
    kubectl create ns "${ns}" || true
   kubectl label namespace "${ns}" istio-injection=enabled --overwrite
 
-   # remove stdio rules
-  kubectl --namespace istio-system delete rules stdio stdiotcp || true
-  kubectl --namespace istio-ingress delete rules stdio stdiotcp || true
-
    if [[ -z "${DELETE}" ]];then
     sleep 3
     kubectl -n "${ns}" apply -f "${YAML}"
