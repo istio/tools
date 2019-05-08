@@ -24,7 +24,6 @@ class Prometheus(object):
             self.headers['Host'] = host
 
     def __del__(self):
-        print('jianfeih debug killing the process')
         os.kill(self.pid, signal.SIGKILL)
 
     def fetch_by_query(self, query: str) -> dict:
