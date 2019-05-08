@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 # this program checks the config push latency for the pilot.
-from prometheus import Query, Alarm, Prometheus
-import subprocess
-import unittest
+import sys
 import os
 import time
 import typing
+import subprocess
+
+cwd = os.getcwd()
+path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '../../../metrics'))
+sys.path.insert(0, path)
+
+from prometheus import Query, Alarm, Prometheus
 import check_metrics
 
 
@@ -32,7 +37,7 @@ def setup_pilot_loadtest(instance, svc_entry: int):
     env = os.environ
     env['HELM_FLAGS'] = helm
     p = subprocess.Popen([
-        '../perf/load/pilot/setup.sh',
+        './setup.sh',
     ], env=env)
     p.wait()
 
@@ -50,10 +55,10 @@ def wait_till_converge(prom: Prometheus):
 def testall():
     prom = setup_promethus()
     print('finished promethus setup', prom.url)
-    setup_pilot_loadtest(1000,500)
+    setup_pilot_loadtest(5,5)
     # ensure version is converged first.
     wait_till_converge(prom)
-    setup_pilot_loadtest(1000,510)
+    setup_pilot_loadtest(5,6)
     start = time.time()
     wait_till_converge(prom)
     print('version converged in %s seconds ' % (time.time() - start))
