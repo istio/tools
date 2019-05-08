@@ -4,7 +4,7 @@ This provides a framework to monitor the long running scenarios through Promethe
 
 ## Setup
 
-Ensure you have all dependencies with `pip3 install -r runner/requirements.txt`.
+Ensure you have all dependencies with `pip3 install -r requirements.txt`.
 
 ## Running Tests
 
