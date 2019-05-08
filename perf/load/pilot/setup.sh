@@ -14,7 +14,7 @@ function setup_test() {
   kubectl create ns "${NAMESPACE}" || true
   kubectl label namespace "${NAMESPACE}" istio-injection=enabled || true
 
-  helm --namespace "${NAMESPACE}" template "${WD}" > "${OUTFILE}"
+  helm --namespace "${NAMESPACE}" "${HELM_FLAGS}" template "${WD}" > "${OUTFILE}"
 
   if [[ -z "${DRY_RUN}" ]]; then
       kubectl --namespace "${NAMESPACE}" apply -f "${OUTFILE}"
