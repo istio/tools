@@ -28,21 +28,12 @@ def envoy_cds_version_count(prom: Prometheus):
 
 
 def setup_pilot_loadtest(instance, svc_entry: int):
-    f = open('pilot-load.yaml', 'w')
+    helm = 'serviceEntries=%d,instances=%d' % (svc_entry, instance)
+    env = os.environ
+    env['HELM_FLAGS'] = helm
     p = subprocess.Popen([
-        '/usr/local/bin/helm',
-        '--namespace',
-        'pilot-load',
-        '--set',
-        'serviceEntries=%d' % svc_entry,
-        '--set',
-        'instances=%d' % instance,
-        'template',
-        '../perf/load/pilot/',
-    ], stdout=f)
-    p.wait()
-    p = subprocess.Popen(
-        ['kubectl', 'apply', '-f', 'pilot-load.yaml', '-n', 'pilot-load'])
+        '../perf/load/pilot/setup.sh',
+    ], env=env)
     p.wait()
 
 
@@ -59,13 +50,13 @@ def wait_till_converge(prom: Prometheus):
 def testall():
     prom = setup_promethus()
     print('finished promethus setup', prom.url)
-    setup_pilot_loadtest(5,5)
-    # # ensure version is converged first.
-    # wait_till_converge(prom)
-    # setup_pilot_loadtest(50,60)
-    # start = time.time()
-    # wait_till_converge(prom)
-    # print('version converged in %s seconds ' % (time.time() - start))
+    setup_pilot_loadtest(1000,500)
+    # ensure version is converged first.
+    wait_till_converge(prom)
+    setup_pilot_loadtest(1000,510)
+    start = time.time()
+    wait_till_converge(prom)
+    print('version converged in %s seconds ' % (time.time() - start))
 
 if __name__ == '__main__':
     testall()
