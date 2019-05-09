@@ -1,5 +1,7 @@
 #!/bin/bash
 
+GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
 function run_test() {
   local ns=${1:?"namespaces"}
   local prefix=${2:?"prefix name for service. typically svc-"}
@@ -9,6 +11,7 @@ function run_test() {
           --set serviceNamePrefix="${prefix}" \
           --set Namespace="${ns}" \
           --set domain="${DNS_DOMAIN}" \
+          --set ingress="${GATEWAY_URL}" \
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
@@ -42,7 +45,7 @@ function start_servicegraphs() {
       ${CMD} run_test "${ns}" "${prefix}"
     fi
 
-    sleep 30
+    sleep 3
   }
 }
 

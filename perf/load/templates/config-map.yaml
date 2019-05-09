@@ -43,6 +43,8 @@ data:
     WD=$(dirname $0)
     WD=$(cd $WD;pwd)
 
+    export INGRESS_IP={{ .Values.ingress }}
+
     ${WD}/rollout.sh &
     ${WD}/rotate.sh {{ .Values.serviceNamePrefix }}0 {{ .Values.domain }} 60m &
     wait
@@ -72,7 +74,7 @@ data:
       local ns=${5:-"istio-system"}
 
       gen=$(printf 'gen%.5d' ${genNo})
-      generate_cert -mode citadel -host "${host}.local,${host}.${domain},${host}-${gen}.local" -duration 30m
+      generate_cert -mode signer -signer-priv=ca.key -signer-cert=ca.cert -host "${host}.local,${host}.${domain},${host}-${gen}.local" -duration 30m
       if [[ $? -ne 0 ]];then
         errs=$((errs+1))
         return
@@ -82,7 +84,27 @@ data:
       if [[ $? -ne 0 ]];then
         errs=$((errs+1))
       fi
+
+      # check if the new certificate is visible
+      # We add generation number in the cert for verification.
+      for ((jj=0; jj<5; j++)) {
+        echo | openssl s_client -connect "${INGRESS_IP}:443" -servername "${host}.local" -CAfile ca.cert | openssl x509 -noout -text  > /tmp/aa
+        grep DNS /tmp/aa
+        if [[ $(grep "${host}-${gen}.local" /tmp/aa) ]];then
+          echo "Found ${host}-${gen}.local"
+          break
+        fi
+
+        echo "Did not find ${host}-${gen}.local"
+        sleep 10
+      }
     }
+
+    # fetch signer cert and key
+    # This is used to sign certificate for rotation.
+    kubectl get secret -n istio-system istio-ca-secret -o yaml > ca.yaml
+    awk '/ca-cert/ {print $2}' ca.yaml | base64 --decode > ca.cert
+    awk '/ca-key/ {print $2}' ca.yaml | base64 --decode > ca.key
 
     while [[ true ]];do
       for ((ii=0; ii<65535; ii++)) {

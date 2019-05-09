@@ -20,3 +20,6 @@ configSleep: 120
 # tcp does not support permissive mode
 # so readinessProbe
 #tcpReadinessProbe:
+
+# ingress should be set correctly
+ingress: 127.0.0.1
