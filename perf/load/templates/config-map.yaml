@@ -59,7 +59,8 @@ data:
       done
     done
   rotate.sh: |
-    set -ex
+    set -x
+    errs=0
     # 1. Issues a new cert using citadel's key
     # 2. Replaces the cert in the secret 
     # 3. The secret is known as "${host}-cert"
@@ -72,8 +73,15 @@ data:
 
       gen=$(printf 'gen%.5d' ${genNo})
       generate_cert -mode citadel -host "${host}.local,${host}.${domain},${host}-${gen}.local" -duration 30m
+      if [[ $? -ne 0 ]];then
+        errs=$((errs+1))
+        return
+      fi
 
       kubectl -n "${ns}" create secret generic "${host}-cert" --from-file=key=priv.pem --from-file=cert=cert.pem  --dry-run -o yaml | kubectl -n "${ns}" apply -f -
+      if [[ $? -ne 0 ]];then
+        errs=$((errs+1))
+      fi
     }
 
     while [[ true ]];do
