@@ -45,7 +45,7 @@ function start_servicegraphs() {
       ${CMD} run_test "${ns}" "${prefix}"
     fi
 
-    sleep 3
+    sleep 30
   }
 }
 
