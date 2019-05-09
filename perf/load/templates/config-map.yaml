@@ -15,6 +15,7 @@ data:
       - entrypoint-gateway
       hosts:
       - {{ .Values.serviceNamePrefix }}0.local
+      - {{ .Values.serviceNamePrefix }}0.{{ .Values.domain }}
       http:
       - route:
         - destination:
@@ -38,6 +39,15 @@ metadata:
 data:
   run.sh: |
     #!/bin/bash
+    set -ex
+    WD=$(dirname $0)
+    WD=$(cd $WD;pwd)
+
+    ${WD}/rollout.sh &
+    ${WD}/rotate.sh {{ .Values.serviceNamePrefix }}0 {{ .Values.domain }} 60m &
+    wait
+  rollout.sh: |
+    #!/bin/bash
     # Canary rollout of v2
     while [[ true ]];do
       for v1 in 100 70 40 20;do
@@ -46,3 +56,28 @@ data:
         sleep {{ .Values.configSleep }}
       done
     done
+  rotate.sh: |
+    set -ex
+    # 1. Issues a new cert using citadel's key
+    # 2. Replaces the cert in the secret 
+    # 3. The secret is known as "${host}-cert"
+    function rotate_cert() {
+      local host=${1:?"hostname"}
+      local domain=${2:?"domain"}
+      local duration=${3:?"valid duration of the cert"}
+      local genNo=${4:?"generation number"}
+      local ns=${5:-"istio-system"}
+
+      gen=$(printf 'gen%.5d' ${genNo})
+      generate_cert -mode citadel -host "${host}.local,${host}.${domain},${host}-${gen}.local" -duration 30m
+
+      kubectl -n "${ns}" create secret generic "${host}-cert" --from-file=key=priv.pem --from-file=cert=cert.pem  --dry-run -o yaml | kubectl -n "${ns}" apply -f -
+    }
+
+    while [[ true ]];do
+      for ((ii=0; ii<65535; ii++)) {
+        rotate_cert $* ${ii}
+        sleep {{ .Values.configSleep }}
+      }
+    done
+

@@ -30,7 +30,14 @@ spec:
         - "0.0001"
         - -H
         - "Host: {{ .Values.serviceHost }}"
+{{- if .Values.https }}
+        - -resolve
+        - {{ .Values.ingress }}
+        - -k
+        - "https://{{ .Values.serviceHost }}/{{ .Values.serviceURL  }}"
+{{- else }}
         - "http://{{ .Values.ingress }}/{{ .Values.serviceURL  }}"
+{{- end }}
         image: {{ .Values.image }}
         name: fortio
         ports:

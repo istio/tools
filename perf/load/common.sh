@@ -8,6 +8,7 @@ function run_test() {
   helm -n ${ns} template \
           --set serviceNamePrefix="${prefix}" \
           --set Namespace="${ns}" \
+          --set domain="${DNS_DOMAIN}" \
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
@@ -40,8 +41,6 @@ function start_servicegraphs() {
       ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}"
       ${CMD} run_test "${ns}" "${prefix}"
     fi
-
-    sleep 30
   }
 }
 

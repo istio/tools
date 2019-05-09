@@ -6,5 +6,7 @@ qps: 50
 size: 1024
 serviceHost: svc-0.local
 #serviceURL: productpage
-image: tahler/fortio:prometheus
+#image: tahler/fortio:prometheus
+image: fortio/fortio
 replicas: 2
+https: false
