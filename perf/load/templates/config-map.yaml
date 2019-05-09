@@ -54,6 +54,8 @@ data:
         v2=$((100-$v1))
         sed -e "s/V1_WEIGHT/$v1/" -e "s/V2_WEIGHT/$v2/" /data/cfg.yaml | kubectl -n {{ .Values.Namespace }} apply -f -
         sleep {{ .Values.configSleep }}
+        # add jitter
+        sleep $[ ( $RANDOM % {{ .Values.configSleep }} )  + 1 ]s
       done
     done
   rotate.sh: |
@@ -78,6 +80,6 @@ data:
       for ((ii=0; ii<65535; ii++)) {
         rotate_cert $* ${ii}
         sleep {{ .Values.configSleep }}
+        sleep $[ ( $RANDOM % {{ .Values.configSleep }} )  + 1 ]s
       }
     done
-
