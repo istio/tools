@@ -40,7 +40,7 @@ function install_istio() {
   mkdir -p ${DIRNAME}/
   mkdir -p ${DIRNAME}/control
   mkdir -p ${DIRNAME}/telemetry
-	cp -aR ${INSTALLER}/crds/ ${DIRNAME}/crds
+	cp -aR ${INSTALLER}/crds/files ${DIRNAME}/crds
 	iop istio-system istio-system-security ${INSTALLER}/security/citadel -t ${opts} > ${DIRNAME}/citadel.yaml
 	iop istio-control istio-config ${INSTALLER}/istio-control/istio-config -t ${opts} > ${DIRNAME}/control/istio-config.yaml
 	iop istio-control istio-discovery ${INSTALLER}/istio-control/istio-discovery -t ${opts} > ${DIRNAME}/control/istio-discovery.yaml
@@ -49,6 +49,7 @@ function install_istio() {
 	iop istio-egress istio-egress ${INSTALLER}/gateways/istio-egress -t ${opts} > ${DIRNAME}/istio-egress.yaml
 	iop istio-telemetry istio-telemetry ${INSTALLER}/istio-telemetry/mixer-telemetry -t ${opts} > ${DIRNAME}/telemetry/istio-telemetry.yaml
 	iop istio-telemetry istio-grafana ${INSTALLER}/istio-telemetry/grafana -t ${opts} > ${DIRNAME}/telemetry/istio-grafana.yaml
+	iop istio-prometheus istio-prometheus ${INSTALLER}/istio-telemetry/prometheus-operator -t ${opts} > ${DIRNAME}/telemetry/istio-prometheus-operator.yaml
 	iop istio-policy istio-policy ${INSTALLER}/istio-policy -t ${opts} > ${DIRNAME}/istio-policy.yaml
 
 
@@ -57,6 +58,8 @@ function install_istio() {
     kubectl create namespace istio-control || true
     kubectl create namespace istio-ingress || true
     kubectl create namespace istio-telemetry || true
+    kubectl create namespace istio-prometheus || true
+    kubectl label ns istio-prometheus istio-injection=disabled --overwrite
 
     kubectl apply -f "${DIRNAME}/crds/"
     kubectl wait --for=condition=Established -f "${DIRNAME}/crds/"
@@ -69,9 +72,13 @@ function install_istio() {
     kubectl rollout status deployment istio-pilot  -n istio-control --timeout=1m
     kubectl rollout status deployment istio-sidecar-injector -n istio-control --timeout=1m
 
+	  curl -s https://raw.githubusercontent.com/coreos/prometheus-operator/master/bundle.yaml | sed "s/namespace: default/namespace: ${PROM_OP_NS}/g" | kubectl apply -f -
+	  kubectl -n ${PROM_OP_NS} wait --for=condition=available --timeout=${WAIT_TIMEOUT} deploy/prometheus-operator
+
     kubectl apply -f "${DIRNAME}/istio-ingress.yaml"
     kubectl apply -f "${DIRNAME}/telemetry/istio-telemetry.yaml"
     kubectl apply -f "${DIRNAME}/telemetry/istio-grafana.yaml"
+    kubectl apply -f "${DIRNAME}/telemetry/istio-prometheus-operator.yaml"
 
     kubectl rollout status deployment ingressgateway -n istio-ingress --timeout=1m
     kubectl rollout status deployment istio-telemetry -n istio-telemetry --timeout=1m
@@ -88,5 +95,5 @@ function install_gateways() {
 
 setup_admin_binding
 install_istio "${WD}/tmp"
-$WD/setup_prometheus.sh "${WD}/tmp"
+# $WD/setup_prometheus.sh "${WD}/tmp"
 install_gateways

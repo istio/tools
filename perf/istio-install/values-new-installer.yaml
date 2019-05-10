@@ -1,6 +1,11 @@
 # This is used to generate istio.yaml for a stress/load test cluster.
 
 global:
+  telemetryNamespace: istio-telemetry
+  configNamespace: istio-control
+  istioNamespace: istio-system
+  policyNamespace: istio-policy
+
   imagePullPolicy: Always
   refreshInterval: 30s
   k8sIngressSelector: ingressgateway
@@ -66,19 +71,20 @@ sidecar-injector:
 
 grafana:
   enabled: true
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: Prometheus
-          type: prometheus
-          orgId: 1
-          url: http://istio-prometheus.istio-prometheus:9090
-          access: proxy
-          isDefault: true
-          jsonData:
-            timeInterval: 5s
-          editable: true
+  prometheusNamespace: istio-prometheus
+  # datasources:
+  #   datasources.yaml:
+  #     apiVersion: 1
+  #     datasources:
+  #       - name: Prometheus
+  #         type: prometheus
+  #         orgId: 1
+  #         url: http://istio-prometheus.istio-prometheus:9090
+  #         access: proxy
+  #         # isDefault: true
+  #         jsonData:
+  #           timeInterval: 5s
+  #         editable: true
 
 mixer:
   telemetry:
@@ -98,6 +104,7 @@ servicegraph:
   enabled: false
 
 prometheus:
+  createPrometheusResource: true
   enabled: false
 
 kiali:
