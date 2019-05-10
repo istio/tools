@@ -25,7 +25,7 @@ spec:
         - -qps
         - "{{ .Values.qps }}"
         - -t
-        - "0"
+        - "{{ .Values.runDuration }}"
         - -r
         - "0.0001"
         - -H
