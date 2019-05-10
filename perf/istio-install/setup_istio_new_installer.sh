@@ -72,8 +72,8 @@ function install_istio() {
     kubectl rollout status deployment istio-pilot  -n istio-control --timeout=1m
     kubectl rollout status deployment istio-sidecar-injector -n istio-control --timeout=1m
 
-	  curl -s https://raw.githubusercontent.com/coreos/prometheus-operator/master/bundle.yaml | sed "s/namespace: default/namespace: ${PROM_OP_NS}/g" | kubectl apply -f -
-	  kubectl -n ${PROM_OP_NS} wait --for=condition=available --timeout=${WAIT_TIMEOUT} deploy/prometheus-operator
+	  curl -s https://raw.githubusercontent.com/coreos/prometheus-operator/master/bundle.yaml | sed "s/namespace: default/namespace: istio-prometheus/g" | kubectl apply -f -
+	  kubectl -n istio-prometheus wait --for=condition=available --timeout=1m deploy/prometheus-operator
 
     kubectl apply -f "${DIRNAME}/istio-ingress.yaml"
     kubectl apply -f "${DIRNAME}/telemetry/istio-telemetry.yaml"
