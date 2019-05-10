@@ -5,7 +5,7 @@ connections: 8
 qps: 50
 size: 1024
 serviceHost: svc-0.local
-runDuration: 500  # 0 means run forever
+runDuration: 0  # 0 means run forever
 #serviceURL: productpage
 #image: tahler/fortio:prometheus
 image: fortio/fortio
