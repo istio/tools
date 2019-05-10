@@ -8,6 +8,8 @@ set -ex
 NAMESPACE=${1:?"namespace"}
 NAMEPREFIX=${2:?"prefix name for service. typically svc-"}
 
+HTTPS=${HTTPS:-"false"}
+
 GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 SERVICEHOST="${NAMEPREFIX}0.local"
 
@@ -17,6 +19,8 @@ function run_test() {
 	  --set serviceHost="${SERVICEHOST}" \
     --set Namespace="${NAMESPACE}" \
     --set ingress="${GATEWAY_URL}" \
+    --set domain="${DNS_DOMAIN}" \
+    --set https="${HTTPS}" \
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
