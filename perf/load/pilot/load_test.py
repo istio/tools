@@ -57,6 +57,7 @@ def testall(start, end):
     wait_till_converge(prom)
     print('version converged in %s seconds ' % (time.time() - start))
 
+
 def init_parser():
     parser = argparse.ArgumentParser(
         description='Program for load test.')
@@ -70,6 +71,7 @@ def init_parser():
         default=[1000,205],
         help='the number of the services and service entries to trigger the push')
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     result = init_parser()
