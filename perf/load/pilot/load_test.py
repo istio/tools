@@ -43,7 +43,6 @@ def wait_till_converge(prom: Prometheus):
         print('envoy version count %d, occurrences with version_count = 1, occurrences = %d' %(count, occurrence))
         if occurrence == 2:
             return
-        print('envoy version not converged yet, count = %s' % count)
         time.sleep(3)
 
 
