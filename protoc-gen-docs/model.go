@@ -28,7 +28,7 @@ type model struct {
 	packages       []*packageDescriptor
 }
 
-func newModel(request *plugin.CodeGeneratorRequest, perFile bool) (*model, error) {
+func newModel(request *plugin.CodeGeneratorRequest, perFile bool) *model {
 	m := &model{
 		allFilesByName: make(map[string]*fileDescriptor, len(request.ProtoFile)),
 	}
@@ -63,7 +63,7 @@ func newModel(request *plugin.CodeGeneratorRequest, perFile bool) (*model, error
 		resolveDependencies(f, m.allFilesByName)
 	}
 
-	return m, nil
+	return m
 }
 
 func packageName(f *descriptor.FileDescriptorProto) string {
