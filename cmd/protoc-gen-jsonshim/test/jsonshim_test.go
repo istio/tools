@@ -8,6 +8,7 @@ import (
 
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
+
 	"istio.io/tools/cmd/protoc-gen-jsonshim/test/generated"
 )
 

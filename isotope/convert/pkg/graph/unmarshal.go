@@ -77,11 +77,11 @@ type serviceGraphJSONMetadata struct {
 
 type defaults struct {
 	Type            svctype.ServiceType `json:"type"`
-	NumReplicas     int32               `json:"numReplicas"`
 	ErrorRate       pct.Percentage      `json:"errorRate"`
 	ResponseSize    size.ByteSize       `json:"responseSize"`
 	Script          script.Script       `json:"script"`
 	RequestSize     size.ByteSize       `json:"requestSize"`
+	NumReplicas     int32               `json:"numReplicas"`
 	NumRbacPolicies int32               `json:"numRbacPolicies"`
 }
 

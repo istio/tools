@@ -19,4 +19,10 @@ test: init
 check-stability:
 	./metrics/check_metrics.py
 
+lint:
+	@scripts/linters.sh
+
+format:
+	@scripts/fmt.sh
+
 include perf/stability/stability.mk
