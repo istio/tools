@@ -16,10 +16,11 @@
 package kubernetes
 
 import (
-	"istio.io/tools/isotope/convert/pkg/consts"
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"istio.io/tools/isotope/convert/pkg/consts"
 )
 
 var fortioClientLabels = map[string]string{"app": "client"}

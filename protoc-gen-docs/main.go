@@ -71,7 +71,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			case "html_fragment_with_front_matter":
 				mode = htmlFragmentWithFrontMatter
 			default:
-				return nil, fmt.Errorf("unsupported output mode of '%s' specified\n", v)
+				return nil, fmt.Errorf("unsupported output mode of '%s' specified", v)
 			}
 		} else if k == "warnings" {
 			switch strings.ToLower(v) {
@@ -80,7 +80,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			case "false":
 				genWarnings = false
 			default:
-				return nil, fmt.Errorf("unknown value '%s' for warnings\n", v)
+				return nil, fmt.Errorf("unknown value '%s' for warnings", v)
 			}
 		} else if k == "emit_yaml" {
 			switch strings.ToLower(v) {
@@ -89,7 +89,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			case "false":
 				emitYAML = false
 			default:
-				return nil, fmt.Errorf("unknown value '%s' for emit_yaml\n", v)
+				return nil, fmt.Errorf("unknown value '%s' for emit_yaml", v)
 			}
 		} else if k == "camel_case_fields" {
 			switch strings.ToLower(v) {
@@ -98,7 +98,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			case "false":
 				camelCaseFields = false
 			default:
-				return nil, fmt.Errorf("unknown value '%s' for camel_case_fields\n", v)
+				return nil, fmt.Errorf("unknown value '%s' for camel_case_fields", v)
 			}
 		} else if k == "custom_style_sheet" {
 			customStyleSheet = v
@@ -109,7 +109,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			case "false":
 				perFile = false
 			default:
-				return nil, fmt.Errorf("unknown value '%s' for per_file\n", v)
+				return nil, fmt.Errorf("unknown value '%s' for per_file", v)
 			}
 		} else if k == "warnings_as_errors" {
 			switch strings.ToLower(v) {
@@ -118,21 +118,18 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			case "false":
 				warningsAsErrors = false
 			default:
-				return nil, fmt.Errorf("unknown value '%s' for warnings_as_errors\n", v)
+				return nil, fmt.Errorf("unknown value '%s' for warnings_as_errors", v)
 			}
 		} else if k == "dictionary" {
 			dictionary = v
 		} else if k == "custom_word_list" {
 			customWordList = v
 		} else {
-			return nil, fmt.Errorf("unknown argument '%s' specified\n", k)
+			return nil, fmt.Errorf("unknown argument '%s' specified", k)
 		}
 	}
 
-	m, err := newModel(&request, perFile)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create model: %v\n", err)
-	}
+	m := newModel(&request, perFile)
 
 	filesToGen := make(map[*fileDescriptor]bool)
 	for _, fileName := range request.FileToGenerate {
@@ -145,16 +142,17 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 
 	var s *gospell.GoSpell
 
+	var err error
 	if dictionary != "" {
 		s, err = gospell.NewGoSpell(dictionary+".aff", dictionary+".dic")
 		if err != nil {
-			return nil, fmt.Errorf("unable to load dictionary: %v\n", err)
+			return nil, fmt.Errorf("unable to load dictionary: %v", err)
 		}
 
 		if customWordList != "" {
 			_, err = s.AddWordListFile(customWordList)
 			if err != nil {
-				return nil, fmt.Errorf("unable to load custom word list: %v\n", err)
+				return nil, fmt.Errorf("unable to load custom word list: %v", err)
 			}
 		}
 	}

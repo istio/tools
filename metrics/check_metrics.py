@@ -27,6 +27,18 @@ def find_prometheus():
     except subprocess.CalledProcessError:
         return "istio-system", "deployment/prometheus"
 
+def setup_promethus():
+    port = os.environ.get("PROM_PORT", "9990")
+    namespace, deployment = find_prometheus()
+    port_forward = subprocess.Popen([
+        'kubectl',
+        '-n', namespace,
+        'port-forward',
+        deployment,
+        '%s:9090' % port
+    ], stdout=subprocess.PIPE)
+    port_forward.stdout.readline()  # Wait for port forward to be ready
+    return Prometheus('http://localhost:%s/' % port, pid=port_forward.pid)
 
 def standard_queries(namespace, cpu_lim=50, mem_lim=64):
     """Standard queries that should be run against all tests."""
@@ -157,19 +169,7 @@ class TestAlarms(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        port = os.environ.get("PROM_PORT", "9990")
-        namespace, deployment = find_prometheus()
-        self.port_forward = subprocess.Popen([
-            'kubectl',
-            '-n', namespace,
-            'port-forward',
-            deployment,
-            '%s:9090' % port
-        ], stdout=subprocess.PIPE)
-
-        self.port_forward.stdout.readline()  # Wait for port forward to be ready
-
-        self.prom = Prometheus('http://localhost:%s/' % port)
+        self.prom = setup_promethus()
 
     @classmethod
     def tearDownClass(self):

@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
+
 	"github.com/google/uuid"
 
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
