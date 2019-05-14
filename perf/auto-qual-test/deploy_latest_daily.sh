@@ -1,3 +1,9 @@
+#!/bin/bash
+set -ex
+
+WD=$(dirname $0)
+WD=$(cd $WD; pwd)
+
 git clone https://github.com/istio/tools
 cd tools/perf/istio-install
 helm init --client-only
