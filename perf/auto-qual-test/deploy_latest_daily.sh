@@ -12,4 +12,4 @@ LATEST_BUILD=$(curl -L https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/
 HELMREPO_URL=https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$LATEST_BUILD/charts/ RELEASE_URL=https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$LATEST_BUILD/istio-$LATEST_BUILD-linux.tar.gz DNS_DOMAIN=v11.qualistio.org ./setup_istio.sh $TARGET_VERSION
 
 # trigger redeploy on services to get new sidecars
-../../bin/redeploy.sh ALL
+${WD}/../../bin/redeploy.sh ALL
