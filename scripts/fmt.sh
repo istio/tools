@@ -18,17 +18,13 @@
 
 set -e
 
-SCRIPTPATH=$( cd "$(dirname "$0")" ; pwd -P )
+SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOTDIR=$(dirname "${SCRIPTPATH}")
 
 # Go format tool to use
 # While 'goimports' is preferred we temporarily use 'gofmt' until https://github.com/golang/go/issues/28200 is resolved
 GO_FMT_TOOL=goimportsdocker
-ROOTDIR=$SCRIPTPATH/..
 cd "$ROOTDIR"
-
-GOPATH=$(cd "$ROOTDIR/../../.."; pwd)
-export GOPATH
-export PATH=$GOPATH/bin:$PATH
 
 PKGS=${PKGS:-"."}
 if [[ -z ${GO_FILES} ]];then
@@ -36,23 +32,10 @@ if [[ -z ${GO_FILES} ]];then
 fi
 
 # need to pin goimports to align with golangci-lint. SHA is from x/tools repo
-GO_IMPORTS_DOCKER="gcr.io/istio-testing/goimports:379209517ffe"
 if [ $GO_FMT_TOOL = "goimportsdocker" ]; then
-  tool="docker run -i --rm \
-    -v $(pwd):/go/src/istio.io/istio \
-    -w /go/src/istio.io/istio ${GO_IMPORTS_DOCKER} /goimports"
+  GO_IMPORTS_DOCKER="gcr.io/istio-testing/goimports:379209517ffe"
+  tool="docker run -i --rm -v "${ROOTDIR}:${ROOTDIR}" -w "${ROOTDIR}" "${GO_IMPORTS_DOCKER}" /goimports"
   fmt_args="-w -local istio.io"
-fi
-
-if [ $GO_FMT_TOOL = "goimports" ]; then
-  go get -u golang.org/x/tools/cmd/goimports
-  tool=${GOPATH}/bin/goimports
-  fmt_args="-w -local istio.io"
-
-  if [[ -d "${tool}" ]];then
-      echo "download golang.org/x/tools/cmd/goimports failed"
-      exit 1
-  fi
 fi
 
 if [ $GO_FMT_TOOL = "gofmt" ]; then
@@ -60,7 +43,6 @@ if [ $GO_FMT_TOOL = "gofmt" ]; then
   fmt_args="-w"
 fi
 
-echo "formatting the source files"
-# shellcheck disable=SC2086
-$tool $fmt_args ${GO_FILES}
+echo "Formatting the source files"
+$tool ${fmt_args} ${GO_FILES}
 exit $?
