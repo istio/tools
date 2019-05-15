@@ -105,6 +105,7 @@ servicegraph:
 
 prometheus:
   createPrometheusResource: true
+  createKubeletMonitor: true
   enabled: false
 
 kiali:

@@ -52,7 +52,6 @@ function install_istio() {
 	iop istio-prometheus istio-prometheus ${INSTALLER}/istio-telemetry/prometheus-operator -t ${opts} > ${DIRNAME}/telemetry/istio-prometheus-operator.yaml
 	iop istio-policy istio-policy ${INSTALLER}/istio-policy -t ${opts} > ${DIRNAME}/istio-policy.yaml
 
-
   if [[ -z "${DRY_RUN}" ]]; then
     kubectl create namespace istio-system || true
     kubectl create namespace istio-control || true
@@ -72,7 +71,7 @@ function install_istio() {
     kubectl rollout status deployment istio-pilot  -n istio-control --timeout=1m
     kubectl rollout status deployment istio-sidecar-injector -n istio-control --timeout=1m
 
-	  curl -s https://raw.githubusercontent.com/coreos/prometheus-operator/master/bundle.yaml | sed "s/namespace: default/namespace: istio-prometheus/g" | kubectl apply -f -
+	  curl -s https://raw.githubusercontent.com/coreos/prometheus-operator/v0.30.0/bundle.yaml | sed "s/namespace: default/namespace: istio-prometheus/g" | kubectl apply -f -
 	  kubectl -n istio-prometheus wait --for=condition=available --timeout=1m deploy/prometheus-operator
 
     kubectl apply -f "${DIRNAME}/istio-ingress.yaml"
