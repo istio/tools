@@ -12,7 +12,7 @@ spec:
           - command:
             - bash
             - "/etc/scripts/deploy_latest_daily.sh"
-            - "1.1"
+            - "release-1.1"
             image: dtzar/helm-kubectl:2.13.1
             imagePullPolicy: IfNotPresent
             name: kubectl
