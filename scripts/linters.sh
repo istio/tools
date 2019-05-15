@@ -16,11 +16,15 @@
 
 set -ex
 
-SCRIPTPATH=$( cd "$(dirname "$0")" ; pwd -P )
+SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOTDIR=$(dirname "${SCRIPTPATH}")
 
-WORKSPACE=$SCRIPTPATH/..
+cd "${ROOTDIR}"
 
-cd "${WORKSPACE}"
+if [[ "$1" == "--fix" ]]
+then
+    FIX="--fix"
+fi
 
 function install_golangcilint() {
     # if you want to update this version, also change the version number in .golangci.yml
@@ -31,7 +35,7 @@ function install_golangcilint() {
 
 function run_golangcilint() {
     echo 'Running golangci-lint ...'
-    env GOGC=25 golangci-lint run -j 1 -v ./...
+    env GOGC=25 golangci-lint run ${FIX} -j 1 -v ./...
 }
 
 install_golangcilint
