@@ -19,13 +19,5 @@ test: init
 check-stability:
 	./metrics/check_metrics.py
 
-lint:
-	@scripts/linters.sh
-
-fixlint:
-	@scripts/linters.sh --fix
-
-format:
-	@scripts/fmt.sh
-
+include Makefile.common.mk
 include perf/stability/stability.mk
