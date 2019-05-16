@@ -46,9 +46,19 @@ spec:
   http:
   - route:
     - destination:
-        host: grafana.istio-system.svc.cluster.local
+        host: grafana.{{ .Values.telemetryNamespace }}.svc.cluster.local
         port:
           number: 3000
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: "grafana"
+spec:
+  host: grafana.istio-system.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: DISABLE
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -63,7 +73,7 @@ spec:
   http:
   - route:
     - destination:
-        host: kiali.istio-system.svc.cluster.local
+        host: kiali.{{ .Values.telemetryNamespace }}.svc.cluster.local
         port:
           number: 20001
 ---
@@ -83,6 +93,16 @@ spec:
         host: istio-prometheus.istio-prometheus.svc.cluster.local
         port:
           number: 9090
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: "prom"
+spec:
+  host: istio-prometheus.istio-prometheus.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: DISABLE
 ---
 {{- if $.Values.certManager }}
 apiVersion: certmanager.k8s.io/v1alpha1

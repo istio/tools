@@ -29,7 +29,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	blackfriday "gopkg.in/russross/blackfriday.v2"
+	"github.com/russross/blackfriday"
 )
 
 type outputMode int
@@ -41,11 +41,12 @@ const (
 )
 
 type htmlGenerator struct {
-	buffer      bytes.Buffer
-	model       *model
-	mode        outputMode
-	numWarnings int
-	speller     *gospell.GoSpell
+	buffer           bytes.Buffer
+	model            *model
+	mode             outputMode
+	numWarnings      int
+	speller          *gospell.GoSpell
+	customStyleSheet string
 
 	// transient state as individual files are processed
 	currentPackage             *packageDescriptor
@@ -56,7 +57,6 @@ type htmlGenerator struct {
 	warningsAsErrors bool
 	emitYAML         bool
 	camelCaseFields  bool
-	customStyleSheet string
 	perFile          bool
 }
 
@@ -79,7 +79,8 @@ func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, warningsA
 	}
 }
 
-func (g *htmlGenerator) getFileContents(file *fileDescriptor, messages map[string]*messageDescriptor, enums map[string]*enumDescriptor, services map[string]*serviceDescriptor) {
+func (g *htmlGenerator) getFileContents(file *fileDescriptor, messages map[string]*messageDescriptor, enums map[string]*enumDescriptor,
+	services map[string]*serviceDescriptor) {
 	for _, m := range file.allMessages {
 		messages[g.relativeName(m)] = m
 		g.includeUnsituatedDependencies(messages, enums, m)
@@ -167,7 +168,7 @@ func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) (*pl
 	}
 
 	if g.warningsAsErrors && g.numWarnings > 0 {
-		return nil, fmt.Errorf("treating %d warnings as errors\n", g.numWarnings)
+		return nil, fmt.Errorf("treating %d warnings as errors", g.numWarnings)
 	}
 
 	return &response, nil
@@ -185,18 +186,19 @@ func (g *htmlGenerator) descLocation(desc coreDesc) string {
 
 func (g *htmlGenerator) includeUnsituatedDependencies(messages map[string]*messageDescriptor, enums map[string]*enumDescriptor, msg *messageDescriptor) {
 	for _, field := range msg.fields {
-		if m, ok := field.typ.(*messageDescriptor); ok {
+		switch f := field.typ.(type) {
+		case *messageDescriptor:
 			// A package without a known documentation location is included in the output.
 			if g.descLocation(field.typ) == "" {
-				name := g.relativeName(m)
+				name := g.relativeName(f)
 				if _, ok := messages[name]; !ok {
-					messages[name] = m
+					messages[name] = f
 					g.includeUnsituatedDependencies(messages, enums, msg)
 				}
 			}
-		} else if e, ok := field.typ.(*enumDescriptor); ok {
+		case *enumDescriptor:
 			if g.descLocation(field.typ) == "" {
-				enums[g.relativeName(e)] = e
+				enums[g.relativeName(f)] = f
 			}
 		}
 	}
@@ -412,7 +414,7 @@ func (g *htmlGenerator) generateSectionHeading(desc coreDesc) {
 
 	name := g.relativeName(desc)
 
-	g.emit("<", heading, " id=\"", normalizeId(name), "\">", name, "</", heading, ">")
+	g.emit("<", heading, " id=\"", normalizeID(name), "\">", name, "</", heading, ">")
 
 	if class != "" {
 		g.emit("<section class=\"", class, "\">")
@@ -464,17 +466,17 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 
 			if field.OneofIndex != nil {
 				if *field.OneofIndex != oneof {
-					class = class + "oneof oneof-start"
+					class += "oneof oneof-start"
 					oneof = *field.OneofIndex
 				} else {
-					class = class + "oneof"
+					class += "oneof"
 				}
 			}
 
 			if class != "" {
-				g.emit("<tr id=\"", normalizeId(g.relativeName(field)), "\" class=\"", class, "\">")
+				g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\" class=\"", class, "\">")
 			} else {
-				g.emit("<tr id=\"", normalizeId(g.relativeName(field)), "\">")
+				g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\">")
 			}
 
 			g.emit("<td><code>", fieldName, "</code></td>")
@@ -488,27 +490,6 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 		}
 		g.emit("</tbody>")
 		g.emit("</table>")
-
-		/*
-			if g.emitYAML {
-				g.emit("<br />")
-
-				g.emit("<table>")
-				g.emit("<tr><th>YAML</th></tr>")
-				g.emit("<tr><td>")
-				g.emit("<pre><code class=\"language-yaml'>")
-
-				for _, field := range message.fields {
-
-					fieldTypeName := g.fieldYAMLTypeName(field)
-					g.emit(camelCase(field.GetName()), ": ", fieldTypeName)
-				}
-
-				g.emit("</code></pre>")
-				g.emit("</td></tr>")
-				g.emit("</table>")
-			}
-		*/
 	}
 
 	g.generateSectionTrailing()
@@ -545,9 +526,9 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 			}
 
 			if class != "" {
-				g.emit("<tr id=\"", normalizeId(g.relativeName(v)), "\" class=\"", class, "\">")
+				g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\" class=\"", class, "\">")
 			} else {
-				g.emit("<tr id=\"", normalizeId(g.relativeName(v)), "\">")
+				g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\">")
 			}
 			g.emit("<td><code>", name, "</code></td>")
 			g.emit("<td>")
@@ -583,10 +564,10 @@ func (g *htmlGenerator) generateService(service *serviceDescriptor) {
 		}
 
 		if class != "" {
-			g.emit("<pre id=\"", normalizeId(g.relativeName(method)), "\" class=\"", class, "\"><code class=\"language-proto\">rpc ",
+			g.emit("<pre id=\"", normalizeID(g.relativeName(method)), "\" class=\"", class, "\"><code class=\"language-proto\">rpc ",
 				method.GetName(), "(", g.relativeName(method.input), ") returns (", g.relativeName(method.output), ")")
 		} else {
-			g.emit("<pre id=\"", normalizeId(g.relativeName(method)), "\"><code class=\"language-proto\">rpc ",
+			g.emit("<pre id=\"", normalizeID(g.relativeName(method)), "\"><code class=\"language-proto\">rpc ",
 				method.GetName(), "(", g.relativeName(method.input), ") returns (", g.relativeName(method.output), ")")
 		}
 		g.emit("</code></pre>")
@@ -793,11 +774,11 @@ func (g *htmlGenerator) linkify(o coreDesc, name string) string {
 		}
 
 		if loc != "" && (g.currentFrontMatterProvider == nil || loc != g.currentFrontMatterProvider.matter.homeLocation) {
-			return "<a href=\"" + loc + "#" + normalizeId(dottedName(o)) + "\">" + name + "</a>"
+			return "<a href=\"" + loc + "#" + normalizeID(dottedName(o)) + "\">" + name + "</a>"
 		}
 	}
 
-	return "<a href=\"#" + normalizeId(g.relativeName(o)) + "\">" + name + "</a>"
+	return "<a href=\"#" + normalizeID(g.relativeName(o)) + "\">" + name + "</a>"
 }
 
 func (g *htmlGenerator) warn(loc locationDescriptor, lineOffset int, format string, args ...interface{}) {
@@ -875,11 +856,11 @@ func (g *htmlGenerator) fieldTypeName(field *fieldDescriptor) string {
 	}
 
 	if field.isRepeated() {
-		name = name + "[]"
+		name += "[]"
 	}
 
 	if field.OneofIndex != nil {
-		name = name + " (oneof)"
+		name += " (oneof)"
 	}
 
 	return name
@@ -952,7 +933,7 @@ func camelCase(s string) string {
 	return b.String()
 }
 
-func normalizeId(id string) string {
+func normalizeID(id string) string {
 	id = strings.Replace(id, " ", "-", -1)
 	return strings.Replace(id, ".", "-", -1)
 }

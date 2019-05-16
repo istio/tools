@@ -52,7 +52,7 @@ func extractFrontMatter(name string, loc *descriptor.SourceCodeInfo_Location) fr
 	overview := ""
 	description := ""
 	homeLocation := ""
-	var extra []string = nil
+	var extra []string
 
 	for _, para := range loc.LeadingDetachedComments {
 		lines := strings.Split(para, "\n")

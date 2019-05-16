@@ -8,6 +8,7 @@ domain: v103.qualistio.org
 istioNamespace: istio-system
 certManager: false
 
+telemetryNamespace: istio-system
 
 #fortioImage: istio/fortio:latest
 fortioImage: fortio/fortio:latest

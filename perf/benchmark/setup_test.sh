@@ -29,7 +29,6 @@ function run_test() {
   echo "Wrote ${TMPDIR}/twopods.yaml"
 
   # remove stdio rules
-  kubectl --namespace istio-system delete rules stdio stdiotcp || true
   kubectl apply -n ${NAMESPACE} -f ${TMPDIR}/twopods.yaml
   echo ${TMPDIR}/twopods.yaml
 }

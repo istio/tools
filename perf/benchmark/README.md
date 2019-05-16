@@ -11,7 +11,7 @@ Before running the tests, create the pods needed. The `DNS_DOMAIN` can be `local
 ```bash
 export NAMESPACE=twopods
 kubectl create namespace $NAMESPACE
-kubectl label namespace $NAMESPACE istio-injection=enabledl
+kubectl label namespace $NAMESPACE istio-injection=enabled
 DNS_DOMAIN=your_domain ./setup_test.sh
 ```
 
