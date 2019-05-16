@@ -12,49 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-type enumDescriptor struct {
+type EnumDescriptor struct {
 	baseDesc
 	*descriptor.EnumDescriptorProto
-	values []*enumValueDescriptor // The values of this enum
+	Values []*EnumValueDescriptor // The values of this enum
 }
 
-type enumValueDescriptor struct {
+type EnumValueDescriptor struct {
 	baseDesc
 	*descriptor.EnumValueDescriptorProto
 }
 
-func newEnumDescriptor(desc *descriptor.EnumDescriptorProto, parent *messageDescriptor, file *fileDescriptor, path pathVector) *enumDescriptor {
+func newEnumDescriptor(desc *descriptor.EnumDescriptorProto, parent *MessageDescriptor, file *FileDescriptor, path pathVector) *EnumDescriptor {
 	var qualifiedName []string
 	if parent == nil {
 		qualifiedName = []string{desc.GetName()}
 	} else {
-		qualifiedName = make([]string, len(parent.qualifiedName()), len(parent.qualifiedName())+1)
-		copy(qualifiedName, parent.qualifiedName())
+		qualifiedName = make([]string, len(parent.QualifiedName()), len(parent.QualifiedName())+1)
+		copy(qualifiedName, parent.QualifiedName())
 		qualifiedName = append(qualifiedName, desc.GetName())
 	}
 
-	e := &enumDescriptor{
+	e := &EnumDescriptor{
 		EnumDescriptorProto: desc,
 		baseDesc:            newBaseDesc(file, path, qualifiedName),
 	}
 
-	e.values = make([]*enumValueDescriptor, 0, len(desc.Value))
+	e.Values = make([]*EnumValueDescriptor, 0, len(desc.Value))
 	for i, ev := range desc.Value {
 		nameCopy := make([]string, len(qualifiedName), len(qualifiedName)+1)
 		copy(nameCopy, qualifiedName)
 		nameCopy = append(nameCopy, ev.GetName())
 
-		evd := &enumValueDescriptor{
+		evd := &EnumValueDescriptor{
 			EnumValueDescriptorProto: ev,
 			baseDesc:                 newBaseDesc(file, path.append(enumValuePath, i), nameCopy),
 		}
-		e.values = append(e.values, evd)
+		e.Values = append(e.Values, evd)
 	}
 
 	return e
