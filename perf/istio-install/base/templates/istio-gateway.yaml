@@ -46,7 +46,7 @@ spec:
   http:
   - route:
     - destination:
-        host: grafana.istio-system.svc.cluster.local
+        host: grafana.{{ .Values.telemetryNamespace }}.svc.cluster.local
         port:
           number: 3000
 ---
@@ -73,7 +73,7 @@ spec:
   http:
   - route:
     - destination:
-        host: kiali.istio-system.svc.cluster.local
+        host: kiali.{{ .Values.telemetryNamespace }}.svc.cluster.local
         port:
           number: 20001
 ---
