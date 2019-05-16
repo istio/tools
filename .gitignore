@@ -127,3 +127,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+tools.code-workspace
