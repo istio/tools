@@ -41,6 +41,9 @@ prometheus:
         namespaces:
           names:
           - istio-system
+          - istio-telemetry
+          - istio-control
+          - istio-ingress
 
       relabel_configs:
       - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
