@@ -1,0 +1,31 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: qual-test-update
+spec:
+  schedule: "0 20 * * 5"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - bash
+            - "/etc/scripts/deploy_latest_daily.sh"
+            - "release-1.1"
+            image: dtzar/helm-kubectl:2.13.1
+            imagePullPolicy: IfNotPresent
+            name: kubectl
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+            - mountPath: /etc/scripts
+              name: scripts
+              readOnly: true
+          volumes:
+          - configMap:
+              name: qual-test-deployer
+            name: scripts
+          restartPolicy: Never
+          serviceAccountName: testrunner

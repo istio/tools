@@ -21,7 +21,7 @@ function download() {
   local outfile="${DIRNAME}/istio-${release}.tgz"
 
   if [[ ! -f "${outfile}" ]]; then
-    wget -O "${outfile}" "${url}"
+    curl -JLo "${outfile}" "${url}"
   fi
 
   echo "${outfile}"
