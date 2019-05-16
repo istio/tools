@@ -52,7 +52,13 @@ function install_istio() {
       # apply CRD files for istio kinds
       if [[ -f "${DIRNAME}/${release}/istio/templates/crds.yaml" ]];then
          kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
+         # By some reason crds are not applied from first attempt.
+         sleep 2
+         kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
       else
+         kubectl apply -f "${DIRNAME}/${release}/istio-init/files/"
+         # By some reason crds are not applied from first attempt.
+         sleep 2
          kubectl apply -f "${DIRNAME}/${release}/istio-init/files/"
       fi
   fi
