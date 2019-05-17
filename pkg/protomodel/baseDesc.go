@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"strings"
@@ -20,14 +20,14 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-// coreDesc is an interface abstracting the abilities shared by all descriptors
-type coreDesc interface {
-	packageDesc() *packageDescriptor
-	fileDesc() *fileDescriptor
-	qualifiedName() []string
-	isHidden() bool
-	class() string
-	location() locationDescriptor
+// CoreDesc is an interface abstracting the abilities shared by all descriptors
+type CoreDesc interface {
+	PackageDesc() *PackageDescriptor
+	FileDesc() *FileDescriptor
+	QualifiedName() []string
+	IsHidden() bool
+	Class() string
+	Location() LocationDescriptor
 }
 
 // The common data for every descriptor in the model. This implements the coreDesc interface.
@@ -35,11 +35,11 @@ type baseDesc struct {
 	loc    *descriptor.SourceCodeInfo_Location
 	hidden bool
 	cl     string
-	file   *fileDescriptor
+	file   *FileDescriptor
 	name   []string
 }
 
-func newBaseDesc(file *fileDescriptor, path pathVector, qualifiedName []string) baseDesc {
+func newBaseDesc(file *FileDescriptor, path pathVector, qualifiedName []string) baseDesc {
 	loc := file.find(path)
 	cl := ""
 	com := ""
@@ -98,26 +98,26 @@ func getClass(com string) (cl string, newCom string) {
 	return
 }
 
-func (bd baseDesc) packageDesc() *packageDescriptor {
-	return bd.file.parent
+func (bd baseDesc) PackageDesc() *PackageDescriptor {
+	return bd.file.Parent
 }
 
-func (bd baseDesc) fileDesc() *fileDescriptor {
+func (bd baseDesc) FileDesc() *FileDescriptor {
 	return bd.file
 }
 
-func (bd baseDesc) qualifiedName() []string {
+func (bd baseDesc) QualifiedName() []string {
 	return bd.name
 }
 
-func (bd baseDesc) isHidden() bool {
+func (bd baseDesc) IsHidden() bool {
 	return bd.hidden
 }
 
-func (bd baseDesc) class() string {
+func (bd baseDesc) Class() string {
 	return bd.cl
 }
 
-func (bd baseDesc) location() locationDescriptor {
+func (bd baseDesc) Location() LocationDescriptor {
 	return newLocationDescriptor(bd.loc, bd.file)
 }

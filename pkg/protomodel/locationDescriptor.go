@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-type locationDescriptor struct {
+type LocationDescriptor struct {
 	*descriptor.SourceCodeInfo_Location
-	file *fileDescriptor
+	File *FileDescriptor
 }
 
-func newLocationDescriptor(desc *descriptor.SourceCodeInfo_Location, file *fileDescriptor) locationDescriptor {
-	return locationDescriptor{
+func newLocationDescriptor(desc *descriptor.SourceCodeInfo_Location, file *FileDescriptor) LocationDescriptor {
+	return LocationDescriptor{
 		SourceCodeInfo_Location: desc,
-		file:                    file,
+		File:                    file,
 	}
 }

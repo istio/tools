@@ -24,6 +24,7 @@ import (
 	"github.com/client9/gospell"
 
 	"istio.io/tools/pkg/protocgen"
+	"istio.io/tools/pkg/protomodel"
 
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
@@ -129,11 +130,11 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 		}
 	}
 
-	m := newModel(&request, perFile)
+	m := protomodel.NewModel(&request, perFile)
 
-	filesToGen := make(map[*fileDescriptor]bool)
+	filesToGen := make(map[*protomodel.FileDescriptor]bool)
 	for _, fileName := range request.FileToGenerate {
-		fd := m.allFilesByName[fileName]
+		fd := m.AllFilesByName[fileName]
 		if fd == nil {
 			return nil, fmt.Errorf("unable to find %s", request.FileToGenerate)
 		}

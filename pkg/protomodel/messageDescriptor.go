@@ -12,40 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-type messageDescriptor struct {
+type MessageDescriptor struct {
 	baseDesc
 	*descriptor.DescriptorProto
-	parent   *messageDescriptor   // The containing message, if any
-	messages []*messageDescriptor // Inner messages, if any
-	enums    []*enumDescriptor    // Inner enums, if any
-	fields   []*fieldDescriptor   // Fields, if any
+	Parent   *MessageDescriptor   // The containing message, if any
+	Messages []*MessageDescriptor // Inner messages, if any
+	Enums    []*EnumDescriptor    // Inner enums, if any
+	Fields   []*FieldDescriptor   // Fields, if any
 }
 
-type fieldDescriptor struct {
+type FieldDescriptor struct {
 	baseDesc
 	*descriptor.FieldDescriptorProto
-	typ coreDesc // Type of data held by this field
+	FieldType CoreDesc // Type of data held by this field
 }
 
-func newMessageDescriptor(desc *descriptor.DescriptorProto, parent *messageDescriptor, file *fileDescriptor, path pathVector) *messageDescriptor {
+func newMessageDescriptor(desc *descriptor.DescriptorProto, parent *MessageDescriptor, file *FileDescriptor, path pathVector) *MessageDescriptor {
 	var qualifiedName []string
 	if parent == nil {
 		qualifiedName = []string{desc.GetName()}
 	} else {
-		qualifiedName = make([]string, len(parent.qualifiedName()), len(parent.qualifiedName())+1)
-		copy(qualifiedName, parent.qualifiedName())
+		qualifiedName = make([]string, len(parent.QualifiedName()), len(parent.QualifiedName())+1)
+		copy(qualifiedName, parent.QualifiedName())
 		qualifiedName = append(qualifiedName, desc.GetName())
 	}
 
-	m := &messageDescriptor{
+	m := &MessageDescriptor{
 		DescriptorProto: desc,
-		parent:          parent,
+		Parent:          parent,
 		baseDesc:        newBaseDesc(file, path, qualifiedName),
 	}
 
@@ -54,25 +54,25 @@ func newMessageDescriptor(desc *descriptor.DescriptorProto, parent *messageDescr
 		copy(nameCopy, qualifiedName)
 		nameCopy = append(nameCopy, f.GetName())
 
-		fd := &fieldDescriptor{
+		fd := &FieldDescriptor{
 			FieldDescriptorProto: f,
 			baseDesc:             newBaseDesc(file, path.append(messageFieldPath, i), nameCopy),
 		}
 
-		m.fields = append(m.fields, fd)
+		m.Fields = append(m.Fields, fd)
 	}
 
 	for i, msg := range desc.NestedType {
-		m.messages = append(m.messages, newMessageDescriptor(msg, m, file, path.append(messageMessagePath, i)))
+		m.Messages = append(m.Messages, newMessageDescriptor(msg, m, file, path.append(messageMessagePath, i)))
 	}
 
 	for i, e := range desc.EnumType {
-		m.enums = append(m.enums, newEnumDescriptor(e, m, file, path.append(messageEnumPath, i)))
+		m.Enums = append(m.Enums, newEnumDescriptor(e, m, file, path.append(messageEnumPath, i)))
 	}
 
 	return m
 }
 
-func (f *fieldDescriptor) isRepeated() bool {
+func (f *FieldDescriptor) IsRepeated() bool {
 	return f.Label != nil && *f.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED
 }
