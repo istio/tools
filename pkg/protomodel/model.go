@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"strings"
@@ -22,15 +22,15 @@ import (
 )
 
 // model represents a resolved in-memory version of all the input protos
-type model struct {
-	allFilesByName map[string]*fileDescriptor
-	allDescByName  map[string]coreDesc
-	packages       []*packageDescriptor
+type Model struct {
+	AllFilesByName map[string]*FileDescriptor
+	AllDescByName  map[string]CoreDesc
+	Packages       []*PackageDescriptor
 }
 
-func newModel(request *plugin.CodeGeneratorRequest, perFile bool) *model {
-	m := &model{
-		allFilesByName: make(map[string]*fileDescriptor, len(request.ProtoFile)),
+func NewModel(request *plugin.CodeGeneratorRequest, perFile bool) *Model {
+	m := &Model{
+		AllFilesByName: make(map[string]*FileDescriptor, len(request.ProtoFile)),
 	}
 
 	// organize files by package
@@ -42,25 +42,25 @@ func newModel(request *plugin.CodeGeneratorRequest, perFile bool) *model {
 	}
 
 	// create all the package descriptors
-	var allFiles []*fileDescriptor
+	var allFiles []*FileDescriptor
 	for pkg, files := range filesByPackage {
 		p := newPackageDescriptor(pkg, files, perFile)
-		m.packages = append(m.packages, p)
+		m.Packages = append(m.Packages, p)
 
-		for _, f := range p.files {
+		for _, f := range p.Files {
 			allFiles = append(allFiles, f)
-			m.allFilesByName[f.GetName()] = f
+			m.AllFilesByName[f.GetName()] = f
 		}
 	}
 
 	// prepare a map of name to descriptor
-	m.allDescByName = createDescMap(allFiles)
+	m.AllDescByName = createDescMap(allFiles)
 
 	// resolve all type references to nice easily used pointers
 	for _, f := range allFiles {
-		resolveFieldTypes(f.messages, m.allDescByName)
-		resolveMethodTypes(f.services, m.allDescByName)
-		resolveDependencies(f, m.allFilesByName)
+		resolveFieldTypes(f.Messages, m.AllDescByName)
+		resolveMethodTypes(f.Services, m.AllDescByName)
+		resolveDependencies(f, m.AllFilesByName)
 	}
 
 	return m
@@ -90,8 +90,8 @@ func packageName(f *descriptor.FileDescriptorProto) string {
 
 // createDescMap builds a map from qualified names to descriptors.
 // The key names for the map come from the input data, which puts a period at the beginning.
-func createDescMap(files []*fileDescriptor) map[string]coreDesc {
-	descMap := make(map[string]coreDesc)
+func createDescMap(files []*FileDescriptor) map[string]CoreDesc {
+	descMap := make(map[string]CoreDesc)
 	for _, f := range files {
 		// The names in this loop are defined by the proto world, not us, so the
 		// package name may be empty.  If so, the dotted package name of X will
@@ -101,78 +101,78 @@ func createDescMap(files []*fileDescriptor) map[string]coreDesc {
 			dottedPkg += "."
 		}
 
-		for _, svc := range f.services {
-			descMap[dottedPkg+dottedName(svc)] = svc
+		for _, svc := range f.Services {
+			descMap[dottedPkg+DottedName(svc)] = svc
 		}
 
-		recordEnums(f.enums, descMap, dottedPkg)
-		recordMessages(f.messages, descMap, dottedPkg)
-		recordServices(f.services, descMap, dottedPkg)
-		resolveFieldTypes(f.messages, descMap)
+		recordEnums(f.Enums, descMap, dottedPkg)
+		recordMessages(f.Messages, descMap, dottedPkg)
+		recordServices(f.Services, descMap, dottedPkg)
+		resolveFieldTypes(f.Messages, descMap)
 	}
 
 	return descMap
 }
 
-func recordMessages(messages []*messageDescriptor, descMap map[string]coreDesc, dottedPkg string) {
+func recordMessages(messages []*MessageDescriptor, descMap map[string]CoreDesc, dottedPkg string) {
 	for _, msg := range messages {
-		descMap[dottedPkg+dottedName(msg)] = msg
+		descMap[dottedPkg+DottedName(msg)] = msg
 
-		recordMessages(msg.messages, descMap, dottedPkg)
-		recordEnums(msg.enums, descMap, dottedPkg)
+		recordMessages(msg.Messages, descMap, dottedPkg)
+		recordEnums(msg.Enums, descMap, dottedPkg)
 
-		for _, f := range msg.fields {
-			descMap[dottedPkg+dottedName(f)] = f
+		for _, f := range msg.Fields {
+			descMap[dottedPkg+DottedName(f)] = f
 		}
 	}
 }
 
-func recordEnums(enums []*enumDescriptor, descMap map[string]coreDesc, dottedPkg string) {
+func recordEnums(enums []*EnumDescriptor, descMap map[string]CoreDesc, dottedPkg string) {
 	for _, e := range enums {
-		descMap[dottedPkg+dottedName(e)] = e
+		descMap[dottedPkg+DottedName(e)] = e
 
-		for _, v := range e.values {
-			descMap[dottedPkg+dottedName(v)] = v
+		for _, v := range e.Values {
+			descMap[dottedPkg+DottedName(v)] = v
 		}
 	}
 }
 
-func recordServices(services []*serviceDescriptor, descMap map[string]coreDesc, dottedPkg string) {
+func recordServices(services []*ServiceDescriptor, descMap map[string]CoreDesc, dottedPkg string) {
 	for _, s := range services {
-		descMap[dottedPkg+dottedName(s)] = s
+		descMap[dottedPkg+DottedName(s)] = s
 
-		for _, m := range s.methods {
-			descMap[dottedPkg+dottedName(m)] = m
+		for _, m := range s.Methods {
+			descMap[dottedPkg+DottedName(m)] = m
 		}
 	}
 }
 
-func resolveFieldTypes(messages []*messageDescriptor, descMap map[string]coreDesc) {
+func resolveFieldTypes(messages []*MessageDescriptor, descMap map[string]CoreDesc) {
 	for _, msg := range messages {
-		for _, field := range msg.fields {
-			field.typ = descMap[field.GetTypeName()]
+		for _, field := range msg.Fields {
+			field.FieldType = descMap[field.GetTypeName()]
 		}
-		resolveFieldTypes(msg.messages, descMap)
+		resolveFieldTypes(msg.Messages, descMap)
 	}
 }
 
-func resolveMethodTypes(services []*serviceDescriptor, descMap map[string]coreDesc) {
+func resolveMethodTypes(services []*ServiceDescriptor, descMap map[string]CoreDesc) {
 	for _, svc := range services {
-		for _, method := range svc.methods {
-			method.input = descMap[method.GetInputType()].(*messageDescriptor)
-			method.output = descMap[method.GetOutputType()].(*messageDescriptor)
+		for _, method := range svc.Methods {
+			method.Input = descMap[method.GetInputType()].(*MessageDescriptor)
+			method.Output = descMap[method.GetOutputType()].(*MessageDescriptor)
 		}
 	}
 }
 
-func resolveDependencies(file *fileDescriptor, filesByName map[string]*fileDescriptor) {
+func resolveDependencies(file *FileDescriptor, filesByName map[string]*FileDescriptor) {
 	for _, desc := range file.Dependency {
 		dep := filesByName[desc]
-		file.dependencies = append(file.dependencies, dep)
+		file.Dependencies = append(file.Dependencies, dep)
 	}
 }
 
-// dottedName returns a dotted representation of the coreDesc's name
-func dottedName(o coreDesc) string {
-	return strings.Join(o.qualifiedName(), ".")
+// DottedName returns a dotted representation of the coreDesc's name
+func DottedName(o CoreDesc) string {
+	return strings.Join(o.QualifiedName(), ".")
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"fmt"
@@ -21,21 +21,21 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-// packageDescriptor describes a package, which is a composition of proto files.
-type packageDescriptor struct {
+// PackageDescriptor describes a package, which is a composition of proto files.
+type PackageDescriptor struct {
 	baseDesc
-	files []*fileDescriptor
-	name  string
+	Files []*FileDescriptor
+	Name  string
 }
 
-func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto, perFile bool) *packageDescriptor {
-	p := &packageDescriptor{
-		name: name,
+func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto, perFile bool) *PackageDescriptor {
+	p := &PackageDescriptor{
+		Name: name,
 	}
 
 	for _, fd := range desc {
 		f := newFileDescriptor(fd, p)
-		p.files = append(p.files, f)
+		p.Files = append(p.Files, f)
 
 		// The package's file is one that documents the package statement.
 		// The first file to do this "wins".

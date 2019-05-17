@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"fmt"
@@ -22,13 +22,13 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-type frontMatter struct {
-	title        string
-	overview     string
-	description  string
-	homeLocation string
-	extra        []string
-	location     *descriptor.SourceCodeInfo_Location
+type FrontMatter struct {
+	Title        string
+	Overview     string
+	Description  string
+	HomeLocation string
+	Extra        []string
+	Location     LocationDescriptor
 }
 
 const (
@@ -47,7 +47,7 @@ func checkSingle(name string, old string, line string, tag string) string {
 	return result
 }
 
-func extractFrontMatter(name string, loc *descriptor.SourceCodeInfo_Location) frontMatter {
+func extractFrontMatter(name string, loc *descriptor.SourceCodeInfo_Location, file *FileDescriptor) FrontMatter {
 	title := ""
 	overview := ""
 	description := ""
@@ -78,12 +78,12 @@ func extractFrontMatter(name string, loc *descriptor.SourceCodeInfo_Location) fr
 		}
 	}
 
-	return frontMatter{
-		title:        title,
-		overview:     overview,
-		description:  description,
-		homeLocation: homeLocation,
-		extra:        extra,
-		location:     loc,
+	return FrontMatter{
+		Title:        title,
+		Overview:     overview,
+		Description:  description,
+		HomeLocation: homeLocation,
+		Extra:        extra,
+		Location:     newLocationDescriptor(loc, file),
 	}
 }
