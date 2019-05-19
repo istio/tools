@@ -12,29 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-type serviceDescriptor struct {
+type ServiceDescriptor struct {
 	baseDesc
 	*descriptor.ServiceDescriptorProto
-	methods []*methodDescriptor // Methods, if any
+	Methods []*MethodDescriptor // Methods, if any
 }
 
-type methodDescriptor struct {
+type MethodDescriptor struct {
 	baseDesc
 	*descriptor.MethodDescriptorProto
-	input  *messageDescriptor
-	output *messageDescriptor
+	Input  *MessageDescriptor
+	Output *MessageDescriptor
 }
 
-func newServiceDescriptor(desc *descriptor.ServiceDescriptorProto, file *fileDescriptor, path pathVector) *serviceDescriptor {
+func newServiceDescriptor(desc *descriptor.ServiceDescriptorProto, file *FileDescriptor, path pathVector) *ServiceDescriptor {
 	qualifiedName := []string{desc.GetName()}
 
-	s := &serviceDescriptor{
+	s := &ServiceDescriptor{
 		ServiceDescriptorProto: desc,
 		baseDesc:               newBaseDesc(file, path, qualifiedName),
 	}
@@ -44,11 +44,11 @@ func newServiceDescriptor(desc *descriptor.ServiceDescriptorProto, file *fileDes
 		copy(nameCopy, qualifiedName)
 		nameCopy = append(nameCopy, m.GetName())
 
-		md := &methodDescriptor{
+		md := &MethodDescriptor{
 			MethodDescriptorProto: m,
 			baseDesc:              newBaseDesc(file, path.append(serviceMethodPath, i), nameCopy),
 		}
-		s.methods = append(s.methods, md)
+		s.Methods = append(s.Methods, md)
 	}
 
 	return s

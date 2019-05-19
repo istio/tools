@@ -12,30 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
-type fileDescriptor struct {
+type FileDescriptor struct {
 	*descriptor.FileDescriptorProto
-	parent       *packageDescriptor
-	allMessages  []*messageDescriptor                               // All the messages defined in this file
-	allEnums     []*enumDescriptor                                  // All the enums defined in this file
-	messages     []*messageDescriptor                               // Top-level messages defined in this file
-	enums        []*enumDescriptor                                  // Top-level enums defined in this file
-	services     []*serviceDescriptor                               // All services defined in this file
-	dependencies []*fileDescriptor                                  // Files imported by this file
+	Parent       *PackageDescriptor
+	AllMessages  []*MessageDescriptor                               // All the messages defined in this file
+	AllEnums     []*EnumDescriptor                                  // All the enums defined in this file
+	Messages     []*MessageDescriptor                               // Top-level messages defined in this file
+	Enums        []*EnumDescriptor                                  // Top-level enums defined in this file
+	Services     []*ServiceDescriptor                               // All services defined in this file
+	Dependencies []*FileDescriptor                                  // Files imported by this file
 	locations    map[pathVector]*descriptor.SourceCodeInfo_Location // Provenance
-	matter       frontMatter                                        // Title, overview, homeLocation, front_matter
+	Matter       FrontMatter                                        // Title, overview, homeLocation, front_matter
 }
 
-func newFileDescriptor(desc *descriptor.FileDescriptorProto, parent *packageDescriptor) *fileDescriptor {
-	f := &fileDescriptor{
+func newFileDescriptor(desc *descriptor.FileDescriptorProto, parent *PackageDescriptor) *FileDescriptor {
+	f := &FileDescriptor{
 		FileDescriptorProto: desc,
 		locations:           make(map[pathVector]*descriptor.SourceCodeInfo_Location, len(desc.GetSourceCodeInfo().GetLocation())),
-		parent:              parent,
+		Parent:              parent,
 	}
 
 	// put all the locations in a map for quick lookup
@@ -51,45 +51,45 @@ func newFileDescriptor(desc *descriptor.FileDescriptorProto, parent *packageDesc
 
 	path := newPathVector(messagePath)
 	for i, md := range desc.MessageType {
-		f.messages = append(f.messages, newMessageDescriptor(md, nil, f, path.append(i)))
+		f.Messages = append(f.Messages, newMessageDescriptor(md, nil, f, path.append(i)))
 	}
 
 	path = newPathVector(enumPath)
 	for i, e := range desc.EnumType {
-		f.enums = append(f.enums, newEnumDescriptor(e, nil, f, path.append(i)))
+		f.Enums = append(f.Enums, newEnumDescriptor(e, nil, f, path.append(i)))
 	}
 
 	path = newPathVector(servicePath)
 	for i, s := range desc.Service {
-		f.services = append(f.services, newServiceDescriptor(s, f, path.append(i)))
+		f.Services = append(f.Services, newServiceDescriptor(s, f, path.append(i)))
 	}
 
 	// Find title/overview/etc content in comments and store it explicitly.
 	loc := f.find(newPathVector(packagePath))
 	if loc != nil && loc.LeadingDetachedComments != nil {
-		f.matter = extractFrontMatter(f.GetName(), loc)
+		f.Matter = extractFrontMatter(f.GetName(), loc, f)
 	}
 
 	// get the transitive close of all messages and enums
-	f.aggregateMessages(f.messages)
-	f.aggregateEnums(f.enums)
+	f.aggregateMessages(f.Messages)
+	f.aggregateEnums(f.Enums)
 
 	return f
 }
 
-func (f *fileDescriptor) find(path pathVector) *descriptor.SourceCodeInfo_Location {
+func (f *FileDescriptor) find(path pathVector) *descriptor.SourceCodeInfo_Location {
 	loc := f.locations[path]
 	return loc
 }
 
-func (f *fileDescriptor) aggregateMessages(messages []*messageDescriptor) {
-	f.allMessages = append(f.allMessages, messages...)
+func (f *FileDescriptor) aggregateMessages(messages []*MessageDescriptor) {
+	f.AllMessages = append(f.AllMessages, messages...)
 	for _, msg := range messages {
-		f.aggregateMessages(msg.messages)
-		f.aggregateEnums(msg.enums)
+		f.aggregateMessages(msg.Messages)
+		f.aggregateEnums(msg.Enums)
 	}
 }
 
-func (f *fileDescriptor) aggregateEnums(enums []*enumDescriptor) {
-	f.allEnums = append(f.allEnums, enums...)
+func (f *FileDescriptor) aggregateEnums(enums []*EnumDescriptor) {
+	f.AllEnums = append(f.AllEnums, enums...)
 }
