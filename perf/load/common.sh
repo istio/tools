@@ -4,6 +4,8 @@ SYSTEM_GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o
 INGRESS_GATEWAY_URL=$(kubectl -n istio-ingress get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
 GATEWAY_URL=${SYSTEM_GATEWAY_URL:-$INGRESS_GATEWAY_URL}
 
+HTTPS=${HTTPS:-"false"}
+
 function run_test() {
   local ns=${1:?"namespaces"}
   local prefix=${2:?"prefix name for service. typically svc-"}
@@ -14,6 +16,7 @@ function run_test() {
           --set Namespace="${ns}" \
           --set domain="${DNS_DOMAIN}" \
           --set ingress="${GATEWAY_URL}" \
+          --set https="${HTTPS}" \
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
