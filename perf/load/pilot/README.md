@@ -16,7 +16,6 @@ changes to the corresponding CDS changes reflected in the Envoy config.
 Several special installation setup is needed.
 
 - Remove Prometheus metrics drop in the config map
-- Update Prometheus scrape interval from 15s to x seconds
 - Ensure the cluster is appropriated provisioned with enough memory
 
 `./load_test.py`, starts large deployment, measure how long it takes for all
@@ -37,13 +36,15 @@ To support large performance testing, many things need to be specially tuned.
     action: drop
   ```
 
-- Run `./load-test.py`
+- Run `./load-test.py`, this polling the stats from Prometheus and prints out the number of the
+workloads seeing "svc-0" in their outbound CDS.
 - In a seperate terminal, delete svc-0, `kubectl delete  deployment/svc-0 svc/svc-0 -npilot-load`.
 - Observe the time elapsed for the `svc-0` to disappear.
 
 ## Notes and TODO
 
-- Ensure prometheus scrape interval is set correctly.
-- `envoy_cluster_manager_cds_version` does not work well when sidecar resource is used.
+- Ensure prometheus scrape interval is set correctly. Default is 15s.
+- We don't use `envoy_cluster_manager_cds_version` because of https://github.com/istio/istio/issues/13994.
+Different clusters does not show the same HASH even after long enough time to converge.
 - Consider to use annotation
   `"sidecar.istio.io/statsInclusionPrefixes": "TBD", "gcr.io/mixologist-142215/proxyv2:suffix4"`
