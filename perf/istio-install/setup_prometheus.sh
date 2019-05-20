@@ -26,6 +26,9 @@ function install_prometheus() {
 
   if [[ -z "${DRY_RUN}" ]]; then
     kubectl apply --namespace istio-prometheus -f "${PROM_OP}"
+    # Retry applying crd.
+    sleep 2
+    kubectl apply --namespace istio-prometheus -f "${PROM_OP}"
 
     # delete grafana pod so it redeploys with new config
     kubectl delete pod -l app=grafana
