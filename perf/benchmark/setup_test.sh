@@ -17,7 +17,7 @@ function pod_ip_range() {
 }
 
 function svc_ip_range() {
-    kubectl -n kube-system get svc kube-dns --no-headers | awk '{print $3}' | awk -F '.' '{printf "%s.%s.0.0/16\n", $1, $2}'
+    kubectl describe pod kube-apiserver -n kube-system | grep 'service-cluster-ip-range' | awk 'NR == 1' | awk -F= '{print $2}'
 }
 
 function run_test() {
