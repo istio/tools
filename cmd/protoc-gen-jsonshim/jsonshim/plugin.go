@@ -63,7 +63,7 @@ func (p *Plugin) Generate(file *generator.FileDescriptor) {
 		p.P(`// MarshalJSON is a custom marshaler supporting oneof fields for `, typeName)
 		p.P(`func (this *`, typeName, `) MarshalJSON() ([]byte, error) {`)
 		p.In()
-		p.P(`str, err := `,marshalerName,`.MarshalToString(this)`)
+		p.P(`str, err := `, marshalerName, `.MarshalToString(this)`)
 		p.P(`return []byte(str), err`)
 		p.Out()
 		p.P(`}`)
@@ -72,7 +72,7 @@ func (p *Plugin) Generate(file *generator.FileDescriptor) {
 		p.P(`// UnmarshalJSON is a custom unmarshaler supporting oneof fields for `, typeName)
 		p.P(`func (this *`, typeName, `) UnmarshalJSON(b []byte) error {`)
 		p.In()
-		p.P(`return `,unmarshalerName,`.Unmarshal(`, bytesPkg.Use(), `.NewReader(b), this)`)
+		p.P(`return `, unmarshalerName, `.Unmarshal(`, bytesPkg.Use(), `.NewReader(b), this)`)
 		p.Out()
 		p.P(`}`)
 

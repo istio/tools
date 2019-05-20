@@ -1,5 +1,11 @@
 #!/bin/bash
 
+SYSTEM_GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
+INGRESS_GATEWAY_URL=$(kubectl -n istio-ingress get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
+GATEWAY_URL=${SYSTEM_GATEWAY_URL:-$INGRESS_GATEWAY_URL}
+
+HTTPS=${HTTPS:-"false"}
+
 function run_test() {
   local ns=${1:?"namespaces"}
   local prefix=${2:?"prefix name for service. typically svc-"}
@@ -8,14 +14,15 @@ function run_test() {
   helm -n ${ns} template \
           --set serviceNamePrefix="${prefix}" \
           --set Namespace="${ns}" \
+          --set domain="${DNS_DOMAIN}" \
+          --set ingress="${GATEWAY_URL}" \
+          --set https="${HTTPS}" \
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
-   kubectl create ns "${ns}" || true
+  kubectl create ns "${ns}" || true
   kubectl label namespace "${ns}" istio-injection=enabled --overwrite
-
-   # remove stdio rules
-  kubectl --namespace istio-system delete rules stdio stdiotcp || true
+  kubectl label namespace "${ns}" istio-env=istio-control --overwrite
 
    if [[ -z "${DELETE}" ]];then
     sleep 3

@@ -1,0 +1,38 @@
+{{ range until (int .Values.instances) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: svc-{{ . }}
+spec:
+  selector:
+    matchLabels:
+      app: svc-{{ . }}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/proxyCPU: 5m
+        sidecar.istio.io/proxyMemory: 128M
+      labels:
+        app: svc-{{ . }}
+    spec:
+      containers:
+      # Kubernetes requires a container
+      # Injector will replace this, giving us a pod with just the proxy
+      - name: istio-proxy
+        image: ignored
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-{{ . }}
+spec:
+  selector:
+    app: svc-{{ . }}
+  ports:
+    {{ range until (int $.Values.ports) }}
+    - port: 89{{.}}
+      name: http-{{.}}
+    {{ end }}
+---
+{{ end }}

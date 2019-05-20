@@ -17,8 +17,9 @@
 package version
 
 import (
-	defaults "istio.io/tools/cmd/kubetype-gen/tests/test_input/positive/defaults"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	defaults "istio.io/tools/cmd/kubetype-gen/tests/test_input/positive/defaults"
 )
 
 //

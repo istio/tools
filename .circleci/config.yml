@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  build:
+  build_turned_off_for_now:
     working_directory: /workspace/go/src/istio.io/tools
     docker:
       # Image with KIND installed, based on Istio Kind node-image
@@ -33,6 +33,42 @@ jobs:
       - store_artifacts:
           path: /workspace/go/out/logs
 
+  build:
+    docker:
+      - image: gcr.io/istio-testing/circleci:2019-04-22
+    environment:
+      GO111MODULE: "on"
+    working_directory: /go/src/istio.io/tools
+    steps:
+      - checkout
+      - run:
+          name: Building
+          command: go build ./...
+
+  lint:
+    docker:
+      - image: gcr.io/istio-testing/circleci:2019-04-22
+    environment:
+      GO111MODULE: "on"
+    working_directory: /go/src/istio.io/tools
+    steps:
+      - checkout
+      - run:
+          name: Linting
+          command: make lint
+
+  test:
+    docker:
+      - image: gcr.io/istio-testing/circleci:2019-04-22
+    environment:
+      GO111MODULE: "on"
+    working_directory: /go/src/istio.io/tools
+    steps:
+      - checkout
+      - run:
+          name: Running unit tests
+          command: go test -race ./...
+
 workflows:
   version: 2
   nightly:
@@ -50,3 +86,5 @@ workflows:
   all:
     jobs:
       - build
+      - lint
+      - test

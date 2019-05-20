@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package protomodel
 
 import (
 	"strconv"
@@ -56,7 +56,7 @@ func newPathVector(v int) pathVector {
 func (pv pathVector) append(v ...int) pathVector {
 	result := pv
 	for _, val := range v {
-		result = result + pathVector(","+strconv.Itoa(val))
+		result += pathVector("," + strconv.Itoa(val))
 	}
 	return result
 }

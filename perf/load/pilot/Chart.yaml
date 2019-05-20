@@ -1,0 +1,11 @@
+apiVersion: v1
+name: pilot
+version: 1.0.0
+description: Helm chart for pilot-loadtest
+keywords:
+  - istio
+  - performance
+  - qualification
+sources:
+  - http://github.com/istio/istio
+engine: gotpl

@@ -19,4 +19,5 @@ test: init
 check-stability:
 	./metrics/check_metrics.py
 
+include Makefile.common.mk
 include perf/stability/stability.mk
