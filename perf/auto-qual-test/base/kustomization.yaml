@@ -1,0 +1,10 @@
+configMapGenerator:
+- name: qual-test-deployer
+  files:
+  - deploy_latest_daily.sh
+  - redeploy.sh
+resources:
+- clusterrolebinding.yaml
+- qual-test-update-job.yaml
+- serviceaccount.yaml
+- qual-test-version.yaml
