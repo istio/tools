@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  TARGET_VERSION: release-1.2
+  DNS_DOMAIN: v12.qualistio.org
+kind: ConfigMap
+metadata:
+  name: qual-test-version
