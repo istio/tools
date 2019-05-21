@@ -7,11 +7,18 @@ WD=$(dirname $0)
 WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
 
-HUB="${1:?"build hub"}"
-TAG="${2:?"build tag"}"
+HUB="${HUB:-"gcr.io/istio-release"}"
+TAG="${1:?"specific build tag or release branch master-latest,release-1.1-latest, release-1.2-latest etc"}"
 GOPATH="${GOPATH:?go path is required}"
 INSTALLER="${GOPATH}/src/istio.io/installer"
 
+if [[ "${TAG}" == *-latest ]];then
+  TAG=$(curl -f -L https://storage.googleapis.com/istio-prerelease/daily-build/${TAG}.txt)
+  if [[ $? -ne 0 ]];then
+    echo "${TAG} branch does not exist"
+    exit 1
+  fi
+fi
 
 function setup_admin_binding() {
   kubectl create clusterrolebinding cluster-admin-binding \
@@ -79,7 +86,7 @@ function install_istio() {
     kubectl apply -f "${DIRNAME}/telemetry/istio-grafana.yaml"
     kubectl apply -f "${DIRNAME}/telemetry/istio-prometheus-operator.yaml"
 
-    kubectl rollout status deployment ingressgateway -n istio-ingress --timeout=1m
+    kubectl rollout status deployment istio-ingressgateway -n istio-ingress --timeout=1m
     kubectl rollout status deployment istio-telemetry -n istio-telemetry --timeout=1m
     kubectl rollout status deployment grafana -n istio-telemetry --timeout=1m
   fi
