@@ -17,24 +17,24 @@ function install_prometheus() {
 
   kubectl create ns istio-prometheus || true
   PROM_OP="${DIRNAME}prom-operator.yaml"
-  PROM_CRDS="${DIRNAME}prom-op-crds.yaml"
-  cd "${PROMETHEUS_INSTALL}/prometheus-operator"
-  ls ./templates/prometheus-operator/crd*.yaml | \
-    sed -n 's/^/-x /p' | \
-    xargs helm template ./ \
-      --namespace istio-prometheus \
-      --name prometheus \
-      -f ${WD}/../prometheus-install/values.yaml > "${PROM_CRDS}"
   helm template "${PROMETHEUS_INSTALL}/prometheus-operator/" \
     --namespace istio-prometheus \
     --name prometheus \
     -f "${WD}/../prometheus-install/values.yaml" > "${PROM_OP}"
 
-  echo "${PROM_CRDS}"
   echo "${PROM_OP}"
 
   if [[ -z "${DRY_RUN}" ]]; then
-    kubectl apply -f "${PROM_CRDS}"
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/alertmanager.crd.yaml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheus.crd.yaml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheusrule.crd.yaml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/servicemonitor.crd.yaml
+
+    kubectl wait --for=condition=Established -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/alertmanager.crd.yaml
+    kubectl wait --for=condition=Established -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheus.crd.yaml
+    kubectl wait --for=condition=Established -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/prometheusrule.crd.yaml
+    kubectl wait --for=condition=Established -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/prometheus-operator-crd/servicemonitor.crd.yaml
+
     kubectl apply --namespace istio-prometheus -f "${PROM_OP}"
 
     # delete grafana pod so it redeploys with new config
