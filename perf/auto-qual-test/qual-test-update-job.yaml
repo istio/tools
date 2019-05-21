@@ -12,7 +12,9 @@ spec:
           - command:
             - bash
             - "/etc/scripts/deploy_latest_daily.sh"
-            - "release-1.1"
+            env:
+            - name: TARGET_VERSION
+              value: release-1.1
             image: dtzar/helm-kubectl:2.13.1
             imagePullPolicy: IfNotPresent
             name: kubectl
@@ -26,6 +28,7 @@ spec:
           volumes:
           - configMap:
               name: qual-test-deployer
+              defaultMode: 0777
             name: scripts
           restartPolicy: Never
           serviceAccountName: testrunner

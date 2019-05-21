@@ -3,93 +3,40 @@ module istio.io/tools
 go 1.12
 
 require (
-	cloud.google.com/go v0.37.4
-	fortio.org/fortio v1.3.1
-	github.com/armon/go-metrics v0.0.0-20190423201044-2801d9688273
-	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
-	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
-	github.com/davecgh/go-spew v1.1.1
 	github.com/docker/go-units v0.3.3
-	github.com/emicklei/go-restful v2.9.3+incompatible
-	github.com/envoyproxy/go-control-plane v0.6.9
-	github.com/fsnotify/fsnotify v1.4.7
+	github.com/getkin/kin-openapi v0.1.1-0.20190507152207-d3180292eead
 	github.com/ghodss/yaml v1.0.0
-	github.com/gogo/googleapis v1.2.0
 	github.com/gogo/protobuf v1.2.1
-	github.com/gogo/status v1.0.3
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef
 	github.com/golang/protobuf v1.2.0
-	github.com/google/btree v1.0.0
-	github.com/google/go-github v15.0.0+incompatible
-	github.com/google/go-querystring v1.0.0
-	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
+	github.com/google/btree v1.0.0 // indirect
+	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/google/uuid v0.0.0-20161128191214-064e2069ce9c
-	github.com/googleapis/gnostic v0.2.0
-	github.com/gorilla/mux v1.7.1
-	github.com/gorilla/websocket v1.4.0
-	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f
-	github.com/grpc-ecosystem/go-grpc-middleware v0.0.0-20190222133341-cfaf5686ec79
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/hashicorp/consul v1.4.4
-	github.com/hashicorp/errwrap v1.0.0
-	github.com/hashicorp/go-cleanhttp v0.5.1
-	github.com/hashicorp/go-immutable-radix v1.0.0
+	github.com/googleapis/gnostic v0.2.0 // indirect
+	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f // indirect
 	github.com/hashicorp/go-multierror v1.0.0
-	github.com/hashicorp/go-rootcerts v1.0.0
-	github.com/hashicorp/golang-lru v0.5.1
-	github.com/hashicorp/serf v0.8.3
-	github.com/howeyc/fsnotify v0.9.0
-	github.com/imdario/mergo v0.3.6
-	github.com/inconshreveable/mousetrap v1.0.0
-	github.com/json-iterator/go v1.1.5
-	github.com/lyft/protoc-gen-validate v0.0.6
-	github.com/matttproud/golang_protobuf_extensions v1.0.1
-	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mitchellh/mapstructure v1.1.2
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
-	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742
-	github.com/natefinch/lumberjack v0.0.0-20170531160350-a96e63847dc3
-	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c
-	github.com/peterbourgon/diskv v2.0.1+incompatible
-	github.com/pkg/errors v0.8.1
-	github.com/pmezard/go-difflib v1.0.0
+	github.com/imdario/mergo v0.3.6 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/json-iterator/go v1.1.5 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
+	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
-	github.com/prometheus/client_model v0.0.0-20190115171406-56726106282f
-	github.com/prometheus/common v0.2.0
-	github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1
-	github.com/prometheus/prom2json v0.0.0-20190416102105-5f40c3582f00
 	github.com/russross/blackfriday v2.0.0+incompatible
-	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95
+	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	github.com/spf13/cobra v0.0.3
-	github.com/spf13/pflag v1.0.2
-	github.com/yl2chen/cidranger v0.0.0-20180214081945-928b519e5268
-	go.opencensus.io v0.20.2
-	go.uber.org/atomic v1.3.2
-	go.uber.org/multierr v1.1.0
-	go.uber.org/zap v1.9.1
-	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
-	golang.org/x/net v0.0.0-20190311183353-d8887717615a
-	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
-	golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
-	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2
-	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
-	golang.org/x/tools v0.0.0-20190312170243-e65039ee4138
-	google.golang.org/appengine v1.5.0
-	google.golang.org/genproto v0.0.0-20190418145605-e7d98fc518a7
-	google.golang.org/grpc v1.20.1
-	gopkg.in/inf.v0 v0.9.1
-	gopkg.in/yaml.v2 v2.2.1
-	istio.io/api v0.0.0-20190423194612-4f931aefdbba
+	github.com/spf13/pflag v1.0.2 // indirect
+	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6 // indirect
+	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2 // indirect
+	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
+	golang.org/x/tools v0.0.0-20190312170243-e65039ee4138 // indirect
+	gopkg.in/inf.v0 v0.9.1 // indirect
 	istio.io/fortio v1.1.0
-	istio.io/istio v0.0.0-20190423230044-1cc5778b17a3
 	k8s.io/api v0.0.0-20190118113203-912cbe2bfef3
-	k8s.io/apiextensions-apiserver v0.0.0-20190223021643-57c81b676ab1
 	k8s.io/apimachinery v0.0.0-20190223001710-c182ff3b9841
 	k8s.io/client-go v8.0.0+incompatible
 	k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6
 	k8s.io/helm v2.12.0+incompatible
-	k8s.io/klog v0.1.0
-	k8s.io/kube-openapi v0.0.0-20190418160015-6b3d3b2d5666
+	k8s.io/klog v0.1.0 // indirect
 )
