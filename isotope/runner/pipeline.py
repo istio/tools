@@ -85,16 +85,20 @@ def _gen_yaml(topology_path: str, service_image: str,
     service_graph_node_selector = _get_gke_node_selector(
         consts.SERVICE_GRAPH_NODE_POOL_NAME)
     client_node_selector = _get_gke_node_selector(consts.CLIENT_NODE_POOL_NAME)
-    sh.run(
+    gen = sh.run(
         [
             'go', 'run', _MAIN_GO_PATH, 'kubernetes', '--service-image',
             service_image, '--service-max-idle-connections-per-host',
             str(max_idle_connections_per_host), '--client-image', client_image,
-            topology_path, resources.SERVICE_GRAPH_GEN_YAML_PATH,
-            service_graph_node_selector, client_node_selector,
-            "--environment-name", env_name
+            "--environment-name", env_name,
+            '--service-node-selector', service_graph_node_selector,
+            '--client-node-selector', client_node_selector,
+            topology_path,
         ],
         check=True)
+    with open(resources.SERVICE_GRAPH_GEN_YAML_PATH, 'w') as f:
+        f.write(gen.stdout)
+
     return resources.SERVICE_GRAPH_GEN_YAML_PATH
 
 
