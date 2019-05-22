@@ -90,11 +90,6 @@ func init() {
 		"service-node-selector", "", "the node selector for service workloads")
 }
 
-func writeManifest(path string, manifest []byte) error {
-	// 0644 allows owner to read/write and others to read.
-	return ioutil.WriteFile(path, manifest, 0644)
-}
-
 func splitByEquals(s string) (k string, v string, err error) {
 	parts := strings.Split(s, "=")
 	if len(parts) != 2 {
