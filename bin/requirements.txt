@@ -1,0 +1,2 @@
+schedule==0.6.0
+requests==2.20.0
