@@ -16,7 +16,11 @@ readinessProbe:
 prometheus_scrape: false
 
 # time between config changes
-configSleep: 360
+configSleep: 120
 # tcp does not support permissive mode
 # so readinessProbe
 #tcpReadinessProbe:
+
+# ingress should be set correctly
+ingress: 127.0.0.1
+https: false

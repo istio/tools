@@ -36,9 +36,10 @@ import (
 	"strings"
 	"time"
 
+	v1 "k8s.io/api/core/v1"
+
 	"github.com/golang/glog"
 
-	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -96,7 +97,7 @@ func BuildClient(kubeconfig string) (*kubernetes.Clientset, error) {
 }
 
 func getConfigmapData(k8sClient *kubernetes.Clientset, configMapName, configMapNamespace string) ([]byte, error) {
-	cfgMap, err := k8sClient.Core().ConfigMaps(configMapNamespace).Get(configMapName, metav1.GetOptions{})
+	cfgMap, err := k8sClient.CoreV1().ConfigMaps(configMapNamespace).Get(configMapName, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("fail to get configmap %s/%s with error: %+v", configMapNamespace, configMapName, err)
 	}
@@ -108,7 +109,7 @@ func getConfigmapData(k8sClient *kubernetes.Clientset, configMapName, configMapN
 }
 
 func makeConfigMapBackup(k8sClient *kubernetes.Clientset, configMapName, configMapNamespace string) error {
-	cfgMap, err := k8sClient.Core().ConfigMaps(configMapNamespace).Get(configMapName, metav1.GetOptions{})
+	cfgMap, err := k8sClient.CoreV1().ConfigMaps(configMapNamespace).Get(configMapName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("fail to get configmap %s/%s with error: %+v", configMapNamespace, configMapName, err)
 	}
@@ -119,7 +120,7 @@ func makeConfigMapBackup(k8sClient *kubernetes.Clientset, configMapName, configM
 	timestamp := strings.Replace(time.Now().Format("2006-01-0215:04:05.999"), "-", "", -1)
 	timestamp = strings.Replace(timestamp, ":", "", -1)
 	bckpCfgMap.ObjectMeta.Name += "." + timestamp + ".backup"
-	_, err = k8sClient.Core().ConfigMaps(configMapNamespace).Create(&bckpCfgMap)
+	_, err = k8sClient.CoreV1().ConfigMaps(configMapNamespace).Create(&bckpCfgMap)
 
 	return err
 }
@@ -170,7 +171,7 @@ func encodeRelease(rls *release.Release) (string, error) {
 }
 
 func updateConfigMap(k8sClient *kubernetes.Clientset, configMapName, configMapNamespace, updatedData string) error {
-	cfgMap, err := k8sClient.Core().ConfigMaps(configMapNamespace).Get(configMapName, metav1.GetOptions{})
+	cfgMap, err := k8sClient.CoreV1().ConfigMaps(configMapNamespace).Get(configMapName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("fail to get configmap %s/%s with error: %+v", configMapNamespace, configMapName, err)
 	}
@@ -186,7 +187,7 @@ func updateConfigMap(k8sClient *kubernetes.Clientset, configMapName, configMapNa
 func restartTiller(k8sClient *kubernetes.Clientset, namespace string) error {
 	selector := labels.SelectorFromSet(labels.Set(map[string]string{"app": "helm", "name": "tiller"}))
 	options := metav1.ListOptions{LabelSelector: selector.String()}
-	pods, err := k8sClient.Core().Pods(namespace).List(options)
+	pods, err := k8sClient.CoreV1().Pods(namespace).List(options)
 	if err != nil {
 		return err
 	}
@@ -194,13 +195,13 @@ func restartTiller(k8sClient *kubernetes.Clientset, namespace string) error {
 		return fmt.Errorf("got unexpected number of tiller pod, failing")
 	}
 	var gracePeriod int64
-	return k8sClient.Core().Pods(namespace).Delete(pods.Items[0].ObjectMeta.Name,
+	return k8sClient.CoreV1().Pods(namespace).Delete(pods.Items[0].ObjectMeta.Name,
 		&metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
 }
 
 func main() {
 	flag.Parse()
-	flag.Set("logtostderr", "true")
+	_ = flag.Set("logtostderr", "true")
 	var err error
 	k8sClient, err := BuildClient(*kubeconfig)
 	if err != nil {

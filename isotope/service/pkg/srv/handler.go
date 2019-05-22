@@ -16,7 +16,6 @@ package srv
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	"istio.io/fortio/log"
@@ -24,12 +23,6 @@ import (
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 	"istio.io/tools/isotope/service/pkg/srv/prometheus"
 )
-
-// pathTracesHeaderKey is the HTTP header key for path tracing. It must be in
-// Train-Case.
-const pathTracesHeaderKey = "Path-Traces"
-
-var hostname = os.Getenv("HOSTNAME")
 
 // Handler handles the default endpoint by emulating its Service.
 type Handler struct {

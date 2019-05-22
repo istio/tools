@@ -23,6 +23,7 @@ import (
 	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
+
 	"istio.io/fortio/log"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
@@ -63,11 +64,11 @@ func executeRequestCommand(
 	forwardableHeader http.Header,
 	serviceTypes map[string]svctype.ServiceType) error {
 	destName := cmd.ServiceName
-	destType, ok := serviceTypes[destName]
+	_, ok := serviceTypes[destName]
 	if !ok {
 		return fmt.Errorf("service %s does not exist", destName)
 	}
-	response, err := sendRequest(destName, destType, cmd.Size, forwardableHeader)
+	response, err := sendRequest(destName, cmd.Size, forwardableHeader)
 	if err != nil {
 		return err
 	}

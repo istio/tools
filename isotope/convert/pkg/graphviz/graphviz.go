@@ -66,9 +66,7 @@ func ServiceGraphToGraph(sg graph.ServiceGraph) (Graph, error) {
 			return Graph{}, err
 		}
 		nodes = append(nodes, node)
-		for _, connection := range connections {
-			edges = append(edges, connection)
-		}
+		edges = append(edges, connections...)
 	}
 	return Graph{
 		Nodes: nodes,
@@ -133,9 +131,7 @@ func getEdgesFromExe(
 	case script.ConcurrentCommand:
 		for _, subCmd := range cmd {
 			subEdges := getEdgesFromExe(subCmd, idx, fromServiceName)
-			for _, e := range subEdges {
-				edges = append(edges, e)
-			}
+			edges = append(edges, subEdges...)
 		}
 	case script.RequestCommand:
 		e := Edge{
@@ -159,9 +155,7 @@ func toGraphvizNode(service svc.Service) (Node, []Edge, error) {
 		steps = append(steps, step)
 
 		stepEdges := getEdgesFromExe(exe, idx, service.Name)
-		for _, e := range stepEdges {
-			edges = append(edges, e)
-		}
+		edges = append(edges, stepEdges...)
 	}
 	n := Node{
 		Name:         service.Name,

@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+// $title: My Title
+// $description: My Overview
+// $location: https://mysite.com/mypage.html
+// $weight: custom weight
+// $front_matter: foo: bar
+
+// Package-level comment 1
+package testpkg;
+
+// Some good words
+// Xsome Xbad xwords
+// `xsome xbad xwords`
+// some `xbad` words
+// some `xbas` xwords
+// some [bad](normallink) normal
+// some [bad][testpkg.TypeY] normal
+// ```
+// doesntmatter
+// ```
+// thismatters
+// this is fine
+message TypeX {
+}
+
+// Comment for this type
+message TypeY {
+
+}
+
+message TypeZ {
+}
