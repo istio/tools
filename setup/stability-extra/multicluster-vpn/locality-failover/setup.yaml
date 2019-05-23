@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: srv-locality-failover
+spec:
+  ports:
+  - port: 8080
+    name: http-echo
+  - port: 8079
+    name: grpc-ping
+  selector:
+    app: srv-locality-failover
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: srv-locality-failover
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: srv-locality-failover
+  template:
+    metadata:
+      labels:
+        app: srv-locality-failover
+    spec:
+      containers:
+      - name: fortio-server
+        image: fortio/fortio:latest
+        imagePullPolicy: Always
+        ports:
+         - containerPort: 8080
+         - containerPort: 8079
+        args:
+          - server
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cli-locality-failover
+spec:
+  ports:
+  - port: 8080
+    name: http-echo
+  selector:
+    app: cli-locality-failover
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cli-locality-failover
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: cli-locality-failover
+  template:
+    metadata:
+      labels:
+        app: cli-locality-failover
+    spec:
+      containers:
+      - name: fortio-client
+        image: fortio/fortio:latest
+        imagePullPolicy: Always
+        args:
+        - load
+        - -t
+        - 0
+        - -abort-on
+        - -1
+        - -allow-initial-errors
+        - -c
+        - 10
+        - -qps
+        - 100
+        - http://srv-locality-failover:8080/debug
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256m
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: outlier
+spec:
+  host: "srv-locality-failover"
+  trafficPolicy:
+    outlierDetection:
+      consecutiveErrors: 7
+      interval: 5m
+      baseEjectionTime: 15m
