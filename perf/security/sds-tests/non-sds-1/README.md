@@ -20,8 +20,8 @@ is set as the current cluster.
 Let the root directory of this repo be *ROOT-OF-REPO*.
 Run the following commands:
 ```
-  cd ROOT-OF-REPO/perf/istio
-  DNS_DOMAIN=your-example-domain VALUES=values-istio-non-sds.yaml ./setup.sh release-1.1-20190221-09-16
+  cd ROOT-OF-REPO/perf/istio-install
+  DNS_DOMAIN=your-example-domain VALUES=values-istio-non-sds.yaml ./setup_istio.sh release-1.1-20190221-09-16
 ```  
 You may replace the Istio release
 in the command to the Istio release to test.
@@ -34,7 +34,7 @@ The following example command will deploy 10 httpbin and sleep workloads in
 a namespace called *test-ns*.
 Note: the number of workloads can be ran depends on the size of your cluster.
 ```
-  cd ROOT-OF-REPO/perf/sds-tests/non-sds-1
+  cd ROOT-OF-REPO/perf/security/sds-tests/non-sds-1
   RELEASE=release-1.1-20190221-09-16 NAMESPACE=test-ns NUM=10 ./setup_test.sh
 ```
 Wait a moment for the deployment to be ready. Then view the logs of Node Agents.
