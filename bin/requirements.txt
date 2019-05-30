@@ -1,2 +1,4 @@
 schedule==0.6.0
 requests==2.20.0
+selenium==3.141.0
+protobuf==3.8.0
