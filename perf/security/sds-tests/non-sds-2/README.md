@@ -32,12 +32,14 @@ After running the above script to deploy Istio, wait a moment for Istio to be re
 - Deploy workloads that request for certificates. *RELEASE* variable
 specifies the Istio release. *NAMESPACE* variable specifies the k8s namespace for testing.
 *NUM* variable specifies the number of httpbin and sleep workloads.
-The following example command will deploy 3 httpbin and sleep workloads in
+*CLUSTER* variable specifies the cluster for running the test
+(the list of clusters can be viewed through "kubectl config get-contexts").
+The following example command will deploy 10 httpbin and sleep workloads in
 a namespace called *test-ns*.
 Note: the number of workloads can be ran depends on the size of your cluster.
 ```
   cd ROOT-OF-REPO/perf/sds-tests/non-sds-2
-  RELEASE=release-1.1-20190221-09-16 NAMESPACE=test-ns NUM=10 ./setup_test.sh
+  RELEASE=release-1.1-20190221-09-16 NAMESPACE=test-ns NUM=10 CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-non-sds-2 ./setup_test.sh
 ```
 Wait a moment for the deployment to be ready. Then view the logs of Node Agents.
 The Node Agents can be listed through
@@ -71,5 +73,5 @@ The following output will be displayed.
 by running the following command. The namespace in the command line is the namespace
 created for testing.
 ```
-  NAMESPACE=test-ns ./cleanup.sh
+  NAMESPACE=test-ns CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-non-sds-2 ./cleanup.sh
 ```
