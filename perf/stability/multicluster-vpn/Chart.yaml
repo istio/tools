@@ -1,0 +1,11 @@
+apiVersion: v1
+name: multicluster-vpn
+version: 1.0
+description: Istio Multicluster (VPN-mode) stability test setup (primary cluster side)
+keywords:
+  - istio
+  - stability
+  - multicluster
+sources:
+  - http://github.com/istio/istio
+engine: gotpl
