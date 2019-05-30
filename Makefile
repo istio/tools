@@ -19,5 +19,12 @@ test: init
 check-stability:
 	./metrics/check_metrics.py
 
+lint:
+	@scripts/check_license.sh
+	@scripts/run_golangci.sh
+
+fmt:
+	@scripts/run_gofmt.sh
+
 include Makefile.common.mk
 include perf/stability/stability.mk
