@@ -1,6 +1,6 @@
 # Istio Performance Benchmarking 
 
-This directory contains customizable scripts to benchmark Istio's performance.
+This directory contains customizable scripts to benchmark Istio's data plane (sidecar proxy) performance.
 
 See the [Istio Performance and Scalability Guide](https://istio.io/docs/concepts/performance-and-scalability/) for performance data against the latest Istio release.  
 
@@ -23,7 +23,7 @@ Also note that **we do not recommend** using the [Istio quickstart install templ
 Run `./install_istio.sh` to install Istio on the cluster.
 
 
-2. Deploy the workloads to measure performance against. Here, `DNS_DOMAIN` is set to local. 
+2. Deploy the workloads to measure performance against. The test environment is two pods (one client, one server), set to communicate over HTTP, with mutual TLS. 
 
 ```bash
 export NAMESPACE=twopods
@@ -104,11 +104,13 @@ python ./runner/fortio.py $FORTIO_CLIENT_URL $PROMETHEUS_URL --csv StartTime,Act
 
 ## 4 - Visualize Results
 
-Use the generated CSV from `fortio.py` to generate a chart. 
+Use the generated CSV from `fortio.py` to generate a latency vs. # connections chart. 
 
 `graph.py <PATH_TO_CSV>`  
 
+This script uses [Bokeh.js] to generate an interactive graph, output as an `html` file. 
+
 By default. this script outputs an `.svg` file to the current directory. Add the `--png` flag to save as a PNG image instead. 
 
-
+`graph.py` can also display CPU and Memory against # connections instead of latency. use the `--cpu` or `--memory` flag to graph that instead. 
 
