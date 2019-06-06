@@ -19,6 +19,7 @@
 # - check: Check the current root certificate lifetime.
 # - transition: Extend the lifetime of the current root certificate.
 # - verify: Check the new workload certificates are generated.
+# This script requires openssl, kubectl and bc.
 
 trustdomain() {
   openssl x509 -in ${1} -noout -issuer | cut -f3 -d'='
@@ -27,10 +28,10 @@ trustdomain() {
 check_secret () {
 	MD5=`kubectl get secret $1 -o yaml -n $2 | sed -n 's/^.*root-cert.pem: //p' | md5sum | awk '{print $1}'`
 	if [ "$ROOT_CERT_MD5" != "$MD5" ]; then
-		echo "  Secret $2.$1 is NOT updated."
+		echo "  Secret $2.$1 is DOES NOT match current root."
 		NOT_UPDATED="$NOT_UPDATED $2.$1"
 	else
-		echo "  Secret $2.$1 is updated."
+		echo "  Secret $2.$1 is matches current root."
 	fi
 }
 
@@ -66,9 +67,9 @@ verify() {
   done
 
   if [ -z $NOT_UPDATED ]; then
-    echo "------All Istio keys and certificates are updated in secret!"
+    echo "------All Istio mutual TLS keys and certificates match with current root!"
   else
-    echo "------The following secrets are not updated: " $NOT_UPDATED
+    echo "------The following secrets do not match current root: " $NOT_UPDATED
   fi
 }
 
