@@ -16,9 +16,10 @@
 
 # This script extends the lifetime of the self-signed Citadel root certificate in the current cluster.
 # It offers the following options:
-# - check: Check the current root certificate lifetime.
+# - check: Check the current root certificate lifetime, and if it is beyond 1 year,
+#   verify the workload certificates match the current root ceritificate.
 # - transition: Extend the lifetime of the current root certificate.
-# - verify: Check the new workload certificates are generated.
+# - verify: Verify the workload certificates match the current root ceritificate.
 # This script requires openssl, kubectl and bc.
 
 trustdomain() {
@@ -28,10 +29,10 @@ trustdomain() {
 check_secret () {
 	MD5=`kubectl get secret $1 -o yaml -n $2 | sed -n 's/^.*root-cert.pem: //p' | md5sum | awk '{print $1}'`
 	if [ "$ROOT_CERT_MD5" != "$MD5" ]; then
-		echo "  Secret $2.$1 is DOES NOT match current root."
+		echo "  Secret $2.$1 DOES NOT match the current root."
 		NOT_UPDATED="$NOT_UPDATED $2.$1"
 	else
-		echo "  Secret $2.$1 is matches current root."
+		echo "  Secret $2.$1 matches the current root."
 	fi
 }
 
@@ -67,7 +68,7 @@ verify() {
   done
 
   if [ -z $NOT_UPDATED ]; then
-    echo "------All Istio mutual TLS keys and certificates match with current root!"
+    echo "------All Istio mutual TLS keys and certificates match the current root!"
   else
     echo "------The following secrets do not match current root: " $NOT_UPDATED
   fi
@@ -102,6 +103,11 @@ Current time is
 ===YOU HAVE ${remainDays} DAYS BEFORE THE ROOT CERT EXPIRES!=====
 
 EOF
+
+  if [ "$remainDays" -gt 365 ]; then
+    verify
+  fi
+
 }
 
 transition() {
