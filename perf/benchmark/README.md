@@ -16,12 +16,27 @@ See the [Istio Performance and Scalability Guide](https://istio.io/docs/concepts
 
 ## 1 - Setup 
 
-1. Install the latest release of Istio. **Note**: as of Istio 1.1.7, we recommend testing with Mixer (both policy and telemetry) turned off, for improved performance.
+1. Install Istio:
 
-Also note that **we do not recommend** using the [Istio quickstart install template](https://istio.io/docs/setup/kubernetes/install/kubernetes/) for any performance benchmarking, as this installation is not tuned for performance. 
+Download a release for your environment, `cd` into the Istio directory  
 
-Run `./install_istio.sh` to install Istio on the cluster.
 
+```bash 
+kubectl create clusterrolebinding cluster-admin-binding \
+    --clusterrole=cluster-admin \
+    --user=$(gcloud config get-value core/account)
+
+kubectl create namespace istio-system
+
+helm template install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
+
+helm template ./install/kubernetes/helm/istio --name istio --namespace istio-system \
+   --values ../values-istio-auth.yaml > istio.yaml
+
+kubectl apply -f istio.yaml 
+```
+
+Wait for all Istio pods to be `Running` and `Ready`: `kubectl get pods -n istio-system`
 
 2. Deploy the workloads to measure performance against. The test environment is two pods (one client, one server), set to communicate over HTTP, with mutual TLS. 
 
