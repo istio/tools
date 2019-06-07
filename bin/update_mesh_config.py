@@ -36,7 +36,7 @@ def update_mesh(infile, update_func):
     update_func(mc)
 
     jj['data']["mesh"] = yaml.dump(mc)
-    print yaml.dump(jj)
+    print(yaml.dump(jj))
 
 
 def enable_mixer(infile, mixer_server):

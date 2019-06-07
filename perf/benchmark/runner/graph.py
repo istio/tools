@@ -49,6 +49,7 @@ def generate_chart(csvs, metric):
 
     # 5. create chart 
     p = build_chart(title, metric, c, series)  
+    show(p)
     print("HTML graph saved at %s" %  f)
 
 # returns pandas DF 
@@ -78,7 +79,14 @@ def get_series(df, metric):
     c = list(rows.NumThreads)
     c.sort()
     print(c)
+    
+    useries = {}
+    for k, v in series.items():
+        if len(v) > 0: 
+            useries[k] = v 
+    series = useries 
     print(series)
+
     return c, series 
 
 def build_chart(title, metric, c, series): 
@@ -114,7 +122,7 @@ def build_chart(title, metric, c, series):
 
 def main(argv):
     args = getParser().parse_args(argv)
-    return generate_chart(args.metric, args.csvs) 
+    return generate_chart(args.csvs, args.metric) 
 
 
 def getParser():
