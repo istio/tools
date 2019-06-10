@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+// $location: https://foo.com/bar.html
+
+package testpkg2;
+
+// Test3 is a message that I use for testing.
+message Test3 {
+    // field1 is a field
+    int32 field1 = 1;
+
+    // an array of strings
+    repeated string str = 2;
+
+    double field3 = 3;
+    float field4 = 4;
+    fixed32 field5 = 5;
+    sfixed32 field6 = 6;
+    sint32 field7 = 7;
+    uint32 field8 = 8;
+
+    enum Nested {
+        ONE = 0;
+        TWO = 1;
+        THREE = 2;
+    }
+
+    oneof OneofField {
+        string oneoffield1 = 9;
+        string oneoffield2 = 10;
+    }
+
+    message Test3Nested {
+        string nested1 = 1;
+        double nested2 = 2;
+    }
+
+    // first line of comment.
+    //
+    // second line of comment.
+    map<string, Test3_Value> mapField = 11;
+
+    reserved 12;
+
+    string deprecate = 13 [deprecated=true];
+
+    Test3Nested test3Nested = 14;
+
+    AEnum aEnum = 15;
+
+    MessageOneOf messageOneOfField = 16;
+}
+
+message Test3_Value {
+    string field1 = 1;
+    int32 field2 = 2;
+}
+
+enum AEnum {
+    ONE = 0;
+    TWO = 1;
+    THREE = 2;
+}
+
+message MessageOneOf {
+    oneof port {
+        // Valid port number
+        uint32 number = 1;
+        // $hide_from_docs
+        string name = 2;
+    }
+
+}

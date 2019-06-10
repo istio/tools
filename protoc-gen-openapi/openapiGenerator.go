@@ -16,9 +16,12 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"os"
+	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -34,15 +37,12 @@ type openapiGenerator struct {
 	// transient state as individual files are processed
 	currentPackage             *protomodel.PackageDescriptor
 	currentFrontMatterProvider *protomodel.FileDescriptor
-
-	schemas map[*protomodel.MessageDescriptor]*openapi3.Schema
 }
 
 func newOpenAPIGenerator(model *protomodel.Model, mode bool) *openapiGenerator {
 	return &openapiGenerator{
-		model:   model,
-		mode:    mode,
-		schemas: make(map[*protomodel.MessageDescriptor]*openapi3.Schema),
+		model: model,
+		mode:  mode,
 	}
 }
 
@@ -109,95 +109,156 @@ func (g *openapiGenerator) generatePerPackageOutput(filesToGen map[*protomodel.F
 	response.File = append(response.File, &rf)
 }
 
-type allSchemas struct {
-	Schemas []*openapi3.Schema
-}
-
 // Generate an OpenAPI spec for a collection of cross-linked files.
 func (g *openapiGenerator) generateFile(name string,
 	_ *protomodel.FileDescriptor,
 	messages map[string]*protomodel.MessageDescriptor,
-	_ map[string]*protomodel.EnumDescriptor,
+	enums map[string]*protomodel.EnumDescriptor,
 	_ map[string]*protomodel.ServiceDescriptor) plugin.CodeGeneratorResponse_File {
 
-	for _, message := range messages {
-		s := openapi3.NewSchema()
-		g.schemas[message] = s
+	allSchemas := make(map[string]*openapi3.SchemaRef)
 
-		for _, field := range message.Fields {
-			s.WithProperty(field.GetName(), g.fieldType(field))
+	for _, message := range messages {
+		if message.Parent == nil {
+			g.generateMessage(message, allSchemas)
 		}
 	}
 
-	var schemas allSchemas
-	for _, schema := range g.schemas {
-		schemas.Schemas = append(schemas.Schemas, schema)
+	for _, enum := range enums {
+		// when there is no parent to the enum.
+		if len(enum.QualifiedName()) == 1 {
+			g.generateEnum(enum, allSchemas)
+		}
 	}
 
+	c := openapi3.NewComponents()
+	c.Schemas = allSchemas
+
 	g.buffer.Reset()
-	b, _ := yaml.Marshal(&schemas)
+	b, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "unable to marshall the output of %v to json", name)
+	}
 	g.buffer.Write(b)
 
 	return plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(name + ".yaml"),
+		Name:    proto.String(name + ".json"),
 		Content: proto.String(g.buffer.String()),
 	}
 }
 
+func (g *openapiGenerator) generateMessage(message *protomodel.MessageDescriptor, allSchemas map[string]*openapi3.SchemaRef) {
+	if o := g.generateMessageSchema(message); o != nil {
+		allSchemas[g.absoluteName(message)] = o.NewRef()
+	}
+}
+
+func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDescriptor) *openapi3.Schema {
+	// skip MapEntry message because we handle map using the map's repeated field.
+	if message.GetOptions().GetMapEntry() {
+		return nil
+	}
+	o := openapi3.NewObjectSchema()
+	o.Description = g.generateDescription(message)
+	oneof := make(map[int32][]*openapi3.Schema)
+	for _, field := range message.Fields {
+		// skip deprecated field as it is not supported by Kubernetes yet.
+		if field.GetOptions().GetDeprecated() {
+			continue
+		}
+		if field.OneofIndex == nil {
+			o.WithProperty(field.GetName(), g.fieldType(field))
+		} else {
+			oneof[*field.OneofIndex] = append(oneof[*field.OneofIndex], g.fieldType(field))
+		}
+	}
+	for k, v := range oneof {
+		o.WithProperty(message.GetOneofDecl()[k].GetName(), openapi3.NewOneOfSchema(v...))
+	}
+	return o
+}
+
+func (g *openapiGenerator) generateEnum(enum *protomodel.EnumDescriptor, allSchemas map[string]*openapi3.SchemaRef) {
+	o := g.generateEnumSchema(enum)
+	allSchemas[g.absoluteName(enum)] = o.NewRef()
+}
+
+func (g *openapiGenerator) generateEnumSchema(enum *protomodel.EnumDescriptor) *openapi3.Schema {
+	o := openapi3.NewStringSchema()
+	o.Description = g.generateDescription(enum)
+	values := enum.GetValue()
+	enumNames := make([]string, len(values))
+	for i, v := range values {
+		enumNames[i] = v.GetName()
+	}
+	o.WithEnum(enumNames)
+	return o
+}
+
+func (g *openapiGenerator) absoluteName(desc protomodel.CoreDesc) string {
+	typeName := protomodel.DottedName(desc)
+	return desc.PackageDesc().Name + "." + typeName
+}
+
+// converts the first section of the leading comment or the description of the proto
+// to a single line of description.
+func (g *openapiGenerator) generateDescription(desc protomodel.CoreDesc) string {
+	c := strings.TrimSpace(desc.Location().GetLeadingComments())
+	t := strings.Split(c, "\n")[0]
+	return strings.Join(strings.Fields(t), " ")
+}
+
 func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *openapi3.Schema {
+	var schema *openapi3.Schema
+	var isMap bool
 	switch *field.Type {
 	case descriptor.FieldDescriptorProto_TYPE_FLOAT, descriptor.FieldDescriptorProto_TYPE_DOUBLE:
-		return openapi3.NewFloat64Schema()
+		schema = openapi3.NewFloat64Schema()
 
 	case descriptor.FieldDescriptorProto_TYPE_INT32, descriptor.FieldDescriptorProto_TYPE_SINT32, descriptor.FieldDescriptorProto_TYPE_SFIXED32:
-		return openapi3.NewInt32Schema()
+		schema = openapi3.NewInt32Schema()
 
 	case descriptor.FieldDescriptorProto_TYPE_INT64, descriptor.FieldDescriptorProto_TYPE_SINT64, descriptor.FieldDescriptorProto_TYPE_SFIXED64:
-		return openapi3.NewInt64Schema()
+		schema = openapi3.NewInt64Schema()
 
 	case descriptor.FieldDescriptorProto_TYPE_UINT64, descriptor.FieldDescriptorProto_TYPE_FIXED64:
-		return openapi3.NewInt64Schema()
+		schema = openapi3.NewInt64Schema()
 
 	case descriptor.FieldDescriptorProto_TYPE_UINT32, descriptor.FieldDescriptorProto_TYPE_FIXED32:
-		return openapi3.NewInt32Schema()
+		schema = openapi3.NewInt32Schema()
 
 	case descriptor.FieldDescriptorProto_TYPE_BOOL:
-		return openapi3.NewBoolSchema()
+		schema = openapi3.NewBoolSchema()
 
 	case descriptor.FieldDescriptorProto_TYPE_STRING:
-		return openapi3.NewStringSchema()
+		schema = openapi3.NewStringSchema()
 
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-		/*
-			msg := field.FieldType.(*protomodel.MessageDescriptor)
-			if msg.GetOptions().GetMapEntry() {
-				keyType := g.fieldTypeName(msg.Fields[0])
-				valType := g.linkify(msg.Fields[1].FieldType, g.fieldTypeName(msg.Fields[1]))
-				return "map&lt;" + keyType + ",&nbsp;" + valType + "&gt;"
-			}
-			name = g.relativeName(field.FieldType)
-		*/
-		return nil
+		msg := field.FieldType.(*protomodel.MessageDescriptor)
+		if msg.GetOptions().GetMapEntry() {
+			isMap = true
+			schema = openapi3.NewObjectSchema().WithAdditionalProperties(g.fieldType(msg.Fields[1]))
+		} else {
+			schema = g.generateMessageSchema(msg)
+		}
 
 	case descriptor.FieldDescriptorProto_TYPE_BYTES:
-		return openapi3.NewBytesSchema()
+		schema = openapi3.NewBytesSchema()
 
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
-		return openapi3.NewInt64Schema()
+		enum := field.FieldType.(*protomodel.EnumDescriptor)
+		schema = g.generateEnumSchema(enum)
 	}
 
-	return nil
-	/*
-		if field.IsRepeated() {
-			name += "[]"
-		}
+	if field.IsRepeated() && !isMap {
+		schema = openapi3.NewArraySchema().WithItems(schema)
+	}
 
-		if field.OneofIndex != nil {
-			name += " (oneof)"
-		}
+	if schema != nil {
+		schema.Description = g.generateDescription(field)
+	}
 
-		return name
-	*/
+	return schema
 }
 
 func (g *openapiGenerator) relativeName(desc protomodel.CoreDesc) string {
