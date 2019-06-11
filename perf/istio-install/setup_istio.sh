@@ -8,6 +8,15 @@ WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
 
 release="${1:?"release"}"
+
+if [[ "${release}" == *-latest ]];then
+  release=$(curl -f -L https://storage.googleapis.com/istio-prerelease/daily-build/${release}.txt)
+  if [[ $? -ne 0 ]];then
+    echo "${release} branch does not exist"
+    exit 1
+  fi
+fi
+
 shift
 
 function download() {
