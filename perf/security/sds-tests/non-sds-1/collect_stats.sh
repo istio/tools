@@ -27,10 +27,10 @@ do
     if [ ${resp_code} = 200 ]; then
       num_succeed=$((num_succeed+1))
     else
-      echo "curl from the pod ${pod} failed"
+      echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") curl from the pod ${pod} failed, response code $resp_code"
     fi
     num_curl=$((num_curl+1))
-    echo "Out of ${num_curl} curl, ${num_succeed} succeeded."
+    echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
     sleep 1
   done
 
