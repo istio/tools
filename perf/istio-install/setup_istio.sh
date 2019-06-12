@@ -90,8 +90,9 @@ function install_istio() {
 
   if [[ -z "${DRY_RUN}" ]];then
       kubectl apply -f "${FILENAME}"
-
-      "$WD/setup_prometheus.sh" ${DIRNAME}
+      if [[ -z "${SKIP_PROMETHEUS}" ]];then
+          "$WD/setup_prometheus.sh" ${DIRNAME}
+      fi
   fi
 
   echo "Wrote file ${FILENAME}"
