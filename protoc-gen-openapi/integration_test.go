@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package test
+package main
 
 import (
 	"bytes"
@@ -83,8 +83,9 @@ func TestOpenAPIGeneration(t *testing.T) {
 }
 
 func protocOpenAPI(t *testing.T, args []string) {
-	cmd := exec.Command("protoc", "--plugin=../protoc-gen-openapi")
+	cmd := exec.Command("protoc", "--plugin=protoc-gen-openapi="+os.Args[0])
 	cmd.Args = append(cmd.Args, args...)
+	cmd.Env = append(os.Environ(), "RUN_AS_PROTOC_GEN_OPENAPI=1")
 	out, err := cmd.CombinedOutput()
 	if len(out) > 0 || err != nil {
 		t.Log("RUNNING: ", strings.Join(cmd.Args, " "))
@@ -94,5 +95,14 @@ func protocOpenAPI(t *testing.T, args []string) {
 	}
 	if err != nil {
 		t.Fatalf("protoc: %v", err)
+	}
+}
+
+func init() {
+	// when "RUN_AS_PROTOC_GEN_OPENAPI" is set, we use the protoc-gen-openapi directly
+	// for the test scenarios.
+	if os.Getenv("RUN_AS_PROTOC_GEN_OPENAPI") != "" {
+		main()
+		os.Exit(0)
 	}
 }
