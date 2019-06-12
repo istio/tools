@@ -49,19 +49,6 @@ or
 ```
   RELEASETYPE=pre-release RELEASE=1.1.7 NAMESPACE=test-ns NUM=10 CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-citadel-1 ./setup_test.sh
 ```
-Wait a moment for the deployment to be ready. Then view the logs of Node Agents.
-The Node Agents can be listed through
-the command:
-```
- kubectl get pod -n istio-system | grep nodeagent
-``` 
-You should see the following log entries in some of the Node Agents that show
-SDS pushing certificates to the Envoy of the example workload. When a certificate
-issuance or rotation occurs, the following log entries are generated.
-```
-  info    SDS: push root cert from node agent to proxy
-  info    SDS: push key/cert pair from node agent to proxy
-```
 
 - The *setup_test.sh* script will call *collect_stats.sh* to test certificate
 rotations and mTLS by curl httpbin from sleep (you may also execute *collect_stats.sh*
