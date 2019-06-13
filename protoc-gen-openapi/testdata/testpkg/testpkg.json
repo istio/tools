@@ -115,7 +115,7 @@
       "type": "object"
     },
     "testpkg.TypeX": {
-      "description": "Some good words",
+      "description": "Some good words Xsome Xbad xwords `xsome xbad xwords` some `xbad` words some `xbas` xwords some [bad](normallink) normal some [bad][testpkg.TypeY] normal ``` doesntmatter ``` thismatters this is fine",
       "type": "object"
     },
     "testpkg.TypeY": {

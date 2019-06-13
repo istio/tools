@@ -204,7 +204,11 @@ func (g *openapiGenerator) absoluteName(desc protomodel.CoreDesc) string {
 // to a single line of description.
 func (g *openapiGenerator) generateDescription(desc protomodel.CoreDesc) string {
 	c := strings.TrimSpace(desc.Location().GetLeadingComments())
-	t := strings.Split(c, "\n")[0]
+	t := strings.Split(c, "\n\n")[0]
+	// omit the comment that starts with `$`
+	if strings.HasPrefix(t, "$") {
+		return ""
+	}
 	return strings.Join(strings.Fields(t), " ")
 }
 

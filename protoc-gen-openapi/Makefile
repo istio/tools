@@ -7,7 +7,7 @@ build:
 run:
 	rm -fr out
 	mkdir out
-	protoc --plugin=./protoc-gen-openapi --openapi_out=mode=true:out/. -Itest/testdata test/testdata/testpkg/test1.proto test/testdata/testpkg/test2.proto test/testdata/testpkg/test6.proto test/testdata/testpkg2/test3.proto
+	protoc --plugin=./protoc-gen-openapi --openapi_out=mode=true:out/. -Itestdata testdata/testpkg/test1.proto testdata/testpkg/test2.proto testdata/testpkg/test6.proto testdata/testpkg2/test3.proto
 
 gotest:
 	go test
