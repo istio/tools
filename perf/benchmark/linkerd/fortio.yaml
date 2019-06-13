@@ -1,0 +1,200 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: fortioclient
+  name: fortioclient
+  namespace: twopods
+spec:
+  selector:
+    matchLabels:
+      app: fortioclient
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: fortioclient
+    spec:
+      containers:
+      - args:
+        - report
+        image: fortio/fortio:latest_release
+        imagePullPolicy: IfNotPresent
+        name: captured
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 8079
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/fortio
+          name: shared-data
+      - args:
+        - /bin/sleep
+        - infinity
+        image: tutum/curl:trusty
+        imagePullPolicy: IfNotPresent
+        name: shell
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/fortio
+          name: shared-data
+      - args:
+        - report
+        - -http-port
+        - "8077"
+        - -grpc-port
+        - "8076"
+        - -redirect-port
+        - "8078"
+        image: fortio/fortio:latest_release
+        imagePullPolicy: IfNotPresent
+        name: uncaptured
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: shared-data
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: fortioserver
+  name: fortioserver
+  namespace: twopods
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fortioserver
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: fortioserver
+    spec:
+      containers:
+      - image: fortio/fortio:latest_release
+        imagePullPolicy: IfNotPresent
+        name: captured
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        - containerPort: 8079
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/fortio
+          name: shared-data
+      - args:
+        - /bin/sleep
+        - infinity
+        image: tutum/curl:trusty
+        imagePullPolicy: IfNotPresent
+        name: shell
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/fortio
+          name: shared-data
+      - args:
+        - server
+        - -http-port
+        - "8077"
+        - -grpc-port
+        - "8076"
+        - -redirect-port
+        - "8078"
+        image: fortio/fortio:latest_release
+        imagePullPolicy: IfNotPresent
+        name: uncaptured
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: shared-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortioclient
+  namespace: twopods
+spec:
+  ports:
+  - name: http-echo
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: grpc-ping
+    port: 8079
+    protocol: TCP
+    targetPort: 8079
+  - name: http-echoa
+    port: 8078
+    protocol: TCP
+    targetPort: 8078
+  - name: grpc-pinga
+    port: 8077
+    protocol: TCP
+    targetPort: 8077
+  selector:
+    app: fortioclient
+  sessionAffinity: None
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortioserver
+  namespace: twopods
+spec:
+  clusterIP: 10.4.29.218
+  ports:
+  - name: http-echo
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: grpc-ping
+    port: 8079
+    protocol: TCP
+    targetPort: 8079
+  - name: http-echoa
+    port: 8078
+    protocol: TCP
+    targetPort: 8078
+  - name: grpc-pinga
+    port: 8077
+    protocol: TCP
+    targetPort: 8077
+  selector:
+    app: fortioserver
+  sessionAffinity: None
+  type: ClusterIP

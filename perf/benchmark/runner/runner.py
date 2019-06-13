@@ -51,7 +51,7 @@ class Fortio(object):
 
     def __init__(self, conn=None, qps=None, size=None, mode="http", duration=240, mixer=True, perf_record=False,
                  mixer_cache=True, server="fortioserver", client="fortioclient", additional_args=None, filterFn=None, labels=None,
-                 baseline=False, serversidecar=True, clientsidecar=False, ingress=None):
+                 baseline=False, serversidecar=True, clientsidecar=False, ingress=None, linkerd=False):
         self.runid = str(uuid.uuid4()).partition('-')[0]
         self.conn = conn
         self.qps = qps
@@ -73,6 +73,8 @@ class Fortio(object):
         self.run_clientsidecar = clientsidecar
         self.run_ingress = ingress
         self.run_baseline = baseline
+
+        self.run_linkerd = linkerd
 
     def nosidecar(self, fortio_cmd):
         return fortio_cmd + "_base http://{svc}:{port}/echo?size={size}".format(
@@ -114,6 +116,10 @@ class Fortio(object):
         labels += "_"
         labels += str(self.size)
 
+        mesh="istio"
+        if self.run_linkerd:
+            mesh="linkerd"
+
         if self.labels is not None:
             labels += "_" + self.labels
 
@@ -123,20 +129,20 @@ class Fortio(object):
         if self.run_ingress:
             p = kubectl(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
-                perf(self.server.name, labels +
+                perf(mesh, self.server.name, labels +
                      "_srv_ingress", duration=40)
             p.wait()
 
         if self.run_serversidecar:
             p = kubectl(self.client.name, self.serversidecar(fortio_cmd))
             if self.perf_record:
-                perf(self.server.name, labels + "_srv_serveronly", duration=40)
+                perf(mesh, self.server.name, labels + "_srv_serveronly", duration=40)
             p.wait()
 
         if self.run_clientsidecar:
             p = kubectl(self.client.name, self.bothsidecar(fortio_cmd))
             if self.perf_record:
-                perf(self.server.name, labels +
+                perf(mesh, self.server.name, labels +
                      "_srv_bothsidecars", duration=40)
             p.wait()
 
@@ -150,30 +156,30 @@ PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
 
 
-def perf(pod, labels, duration=20, runfn=run_command_sync):
+def perf (mesh, pod, labels, duration=20, runfn=run_command_sync):
     filename = labels + "_perf.data"
     filepath = PERFWD + filename
     perfpath = PERFWD + PERFSH
 
     # copy executable over
-    kubecp(PERFSH, pod + ":" + perfpath)
+    kubecp(mesh, PERFSH, pod + ":" + perfpath)
 
     perf = kubectl(pod,
                    "{perf_cmd} {filename} {duration}".format(perf_cmd=perfpath,
                                                              filename=filename, duration=duration),
-                   runfn=run_command_sync, container="istio-proxy")
+                   runfn=run_command_sync, container=mesh+"-proxy")
 
     print(perf)
 
-    print(kubecp(pod + ":" + filepath + ".perf", filename + ".perf"))
+    print(kubecp(mesh, pod + ":" + filepath + ".perf", filename + ".perf"))
 
     run_command_sync("./flame.sh " + filename + ".perf")
     return perf
 
 
-def kubecp(from_file, to_file):
+def kubecp(mesh, from_file, to_file):
     namespace = os.environ.get("NAMESPACE", "service-graph")
-    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c istio-proxy".format(
+    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c" + mesh +"-proxy".format(
         from_file=from_file, to_file=to_file, namespace=namespace)
     print(cmd)
     return run_command_sync(cmd)
@@ -229,6 +235,8 @@ def getParser():
     parser.add_argument("--server", help="pod ip of the server", default=None)
     parser.add_argument("--perf", help="also run perf and produce flamegraph",
                         default=False, action='store_true')
+    parser.add_argument("--linkerd", help="linkerd mode",
+                        default=False, action='store_true')
     define_bool(parser, "baseline", "run baseline for all", False)
     define_bool(parser, "serversidecar",
                 "run serversidecar-only for all", False)
@@ -237,6 +245,7 @@ def getParser():
 
     parser.add_argument(
         "--ingress", help="run traffic thru ingress", default=None)
+
     parser.add_argument("--labels", help="extra labels", default=None)
     return parser
 

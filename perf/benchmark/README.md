@@ -4,6 +4,8 @@ This directory contains Python scripts to benchmark Istio's data plane performan
 
 See the [Istio Performance and Scalability Guide](https://istio.io/docs/concepts/performance-and-scalability/) for performance data against the latest Istio release.  
 
+For instructions on how to run these scripts with Linkerd, see the [linkerd/](linkerd/) directory. 
+
 ## Prerequisites 
 
 1. [Python3](https://docs.python-guide.org/starting/installation/#installation-guides) 
@@ -26,7 +28,7 @@ CLUSTER_NAME=<any-name>
 
 ```bash
 ISTIO_RELEASE="release-1.2-latest"  # or any Istio release
-DNS_DOMAIN=local ./setup_istio.sh $ISTIO_RELEASE
+DNS_DOMAIN=local ../istio-install/setup_istio.sh $ISTIO_RELEASE
 ```
 
 Wait for all Istio pods to be `Running` and `Ready`:
@@ -71,7 +73,7 @@ The test has three sidecar modes:
 python runner/runner.py <conn> <qps> <duration> --OPTIONAL-FLAGS
 ```
 
-Where:
+Required fields:
 - `conn` = number of concurrent connections 
 - `qps` = queries per second for each connection 
 - `duration` = number of seconds to run each test for  (min: 92 seconds)
@@ -79,10 +81,12 @@ Where:
 Optional flags:
 
 ```
+  -h, --help          show this help message and exit
   --size SIZE         size of the payload
   --client CLIENT     where to run the test from
   --server SERVER     pod ip of the server
   --perf              also run perf and produce flamegraph
+  --linkerd LINKERD   linkerd mode
   --baseline          run baseline for all
   --no-baseline       do not run baseline for all
   --serversidecar     run serversidecar-only for all
@@ -129,7 +133,7 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
 
 ```bash 
 kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-python ../../bin/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -
+python ../../bin/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f /tmp/meshconfig.yaml
 ```
 
 2. Run `runner.py`, in any sidecar mode, with the `--labels=nomixer` flag.
@@ -138,7 +142,7 @@ python ../../bin/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kube
 
 ```bash 
 kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-python ../../../bin/update_mesh_config.py enable_mixer /tmp/meshconfig.yaml  | kubectl -n istio-system apply -
+python ../../bin/update_mesh_config.py enable_mixer /tmp/meshconfig.yaml  | kubectl -n istio-system apply -
 ```
 
 ## Gather Result Metrics 
@@ -162,7 +166,7 @@ export PROMETHEUS_URL=http://localhost:9090
 3. Run `fortio.py`: 
 
 ```bash 
-python ./runner/fortio.py $FORTIO_CLIENT_URL $PROMETHEUS_URL --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
+python ./runner/fortio.py $FORTIO_CLIENT_URL --prometheus=$PROMETHEUS_URL --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
 ```
 
 This script will generate two output files (one JSON, one CSV), both containing the same result metrics: Queries Per Second (QPS) attained, latency, and CPU/Memory usage. 
@@ -176,13 +180,23 @@ The `graph.py` script uses the output CSV file from `fortio.py` to generate a [B
 runner/graph.py <PATH_TO_CSV> <METRIC>
 ```
 
-Metrics options:
+Options: 
 
-- `p50` (latency, 50th percentile)
-- `p90` (latency, 90th percentile)
-- `p99` (latency, 99th percentile)
-- `mem` (server sidecar's max memory usage)
-- `cpu` (server sidecar's max CPU usage)
+```
+python ./runner/graph.py --help
+usage: Service Mesh Performance Graph Generator [-h] [--xaxis XAXIS]
+                                                [--mesh MESH]
+                                                csv metric
+
+positional arguments:
+  csv            csv file
+  metric         y-axis: one of: p50, p90, p99, mem, cpu
+
+optional arguments:
+  -h, --help     show this help message and exit
+  --xaxis XAXIS  one of: connections, qps
+  --mesh MESH    which service mesh tool: istio, linkerd
+```
 
 ### Example Output 
 

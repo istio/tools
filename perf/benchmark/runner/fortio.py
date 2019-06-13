@@ -143,7 +143,7 @@ METRICS_END_SKIP_DURATION = 30
 METRICS_SUMMARY_DURATION = 180
 
 
-def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
+def syncFortio(url, table, selector=None, promUrl="", csv=None):
     listurl = url + "/fortio/data/"
     listdata = requests.get(listurl)
     fd, datafile = tempfile.mkstemp()
@@ -165,29 +165,31 @@ def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
             elif selector not in gd["Labels"]:
                 continue
 
-        sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
-        print("Fetching prometheus metrics for", sd, gd["Labels"])
-        if gd['errorPercent'] > 10:
-            print("... Run resulted in", gd['errorPercent'], "% errors")
-            continue
-        min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
-        if min_duration > gd['ActualDuration']:
-            print("... {} duration={}s is less than minimum {}s".format(
-                gd["Labels"], gd['ActualDuration'], min_duration))
-            continue
-        prom_start = calendar.timegm(
-            sd.utctimetuple()) + METRICS_START_SKIP_DURATION
-        duration = min(gd['ActualDuration'] - min_duration,
-                       METRICS_SUMMARY_DURATION)
-        p = prom.Prom(promUrl, duration, start=prom_start)
-        prom_metrics = p.fetch_cpu_and_mem()
-        if len(prom_metrics) == 0:
-            print("... Not found")
-            continue
-        else:
-            print("")
+        if promUrl: 
+            sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
+            print("Fetching prometheus metrics for", sd, gd["Labels"])
+            if gd['errorPercent'] > 10:
+                print("... Run resulted in", gd['errorPercent'], "% errors")
+                continue
+            min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
+            if min_duration > gd['ActualDuration']:
+                print("... {} duration={}s is less than minimum {}s".format(
+                    gd["Labels"], gd['ActualDuration'], min_duration))
+                continue
+            prom_start = calendar.timegm(
+                sd.utctimetuple()) + METRICS_START_SKIP_DURATION
+            duration = min(gd['ActualDuration'] - min_duration,
+                        METRICS_SUMMARY_DURATION)
+            p = prom.Prom(promUrl, duration, start=prom_start)
+            prom_metrics = p.fetch_cpu_and_mem()
+            if len(prom_metrics) == 0:
+                print("... Not found")
+                continue
+            else:
+                print("")
 
-        gd.update(prom_metrics)
+            gd.update(prom_metrics)
+
         data.append(gd)
         out.write(json.dumps(gd) + "\n")
         stats.append(gd)
@@ -224,7 +226,7 @@ def write_csv(keys, data):
 
 
 def write_table(table, datafile):
-
+    print("table: %s, datafile: %s" % (table, datafile))
     p = subprocess.Popen("bq insert {table} {datafile}".format(
         table=table, datafile=datafile).split())
     ret = p.wait()
@@ -246,7 +248,7 @@ def getParser():
     parser.add_argument("--csv", help="columns in the csv file", default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
     parser.add_argument("url", help="url to fetch fortio json results from")
     parser.add_argument(
-        "prometheus", help="url to fetch prometheus results from")
+        "--prometheus", help="url to fetch prometheus results from. if blank, will only output Fortio metrics.", default="")
     return parser
 
 
