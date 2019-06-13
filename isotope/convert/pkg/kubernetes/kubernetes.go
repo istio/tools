@@ -22,12 +22,13 @@ import (
 	"time"
 
 	"github.com/ghodss/yaml"
-	"istio.io/tools/isotope/convert/pkg/consts"
-	"istio.io/tools/isotope/convert/pkg/graph"
-	"istio.io/tools/isotope/convert/pkg/graph/svc"
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"istio.io/tools/isotope/convert/pkg/consts"
+	"istio.io/tools/isotope/convert/pkg/graph"
+	"istio.io/tools/isotope/convert/pkg/graph/svc"
 )
 
 const (
@@ -88,28 +89,22 @@ func ServiceGraphToKubernetesManifests(
 	rand.Seed(time.Now().UTC().UnixNano())
 	hasRbacPolicy := false
 	for _, service := range serviceGraph.Services {
-		k8sDeployment, innerErr := makeDeployment(
+		k8sDeployment := makeDeployment(
 			service, serviceNodeSelector, serviceImage,
 			serviceMaxIdleConnectionsPerHost)
-		if innerErr != nil {
-			return nil, innerErr
-		}
-		innerErr = appendManifest(k8sDeployment)
+		innerErr := appendManifest(k8sDeployment)
 		if innerErr != nil {
 			return nil, innerErr
 		}
 
-		k8sService, innerErr := makeService(service)
-		if innerErr != nil {
-			return nil, innerErr
-		}
+		k8sService := makeService(service)
 		innerErr = appendManifest(k8sService)
 		if innerErr != nil {
 			return nil, innerErr
 		}
 
 		// Only generates the RBAC rules when Istio is installed.
-		if strings.ToUpper(environmentName) == "ISTIO" && service.NumRbacPolicies > 0 {
+		if strings.EqualFold(environmentName, "ISTIO") && service.NumRbacPolicies > 0 {
 			hasRbacPolicy = true
 			var i int32
 			// Generates random RBAC rules for the service.
@@ -178,7 +173,7 @@ func makeConfigMap(
 	return
 }
 
-func makeService(service svc.Service) (k8sService apiv1.Service, err error) {
+func makeService(service svc.Service) (k8sService apiv1.Service) {
 	k8sService.APIVersion = "v1"
 	k8sService.Kind = "Service"
 	k8sService.ObjectMeta.Name = service.Name
@@ -193,7 +188,7 @@ func makeService(service svc.Service) (k8sService apiv1.Service, err error) {
 func makeDeployment(
 	service svc.Service, nodeSelector map[string]string,
 	serviceImage string, serviceMaxIdleConnectionsPerHost int) (
-	k8sDeployment appsv1.Deployment, err error) {
+	k8sDeployment appsv1.Deployment) {
 	k8sDeployment.APIVersion = "apps/v1"
 	k8sDeployment.Kind = "Deployment"
 	k8sDeployment.ObjectMeta.Name = service.Name

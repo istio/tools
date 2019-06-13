@@ -17,7 +17,6 @@ function delete_test() {
   fi
 }
 
-
 function delete_tests() {
   for test in $1; do
       delete_test "${test}" || true
@@ -42,7 +41,7 @@ function setup_all_config() {
   setup_test "allconfig" "--set ingress=${gateway} --set domain=${domain}"
 }
 
-ALL_TESTS="http10 graceful-shutdown gateway-bouncer mysql redis"
+ALL_TESTS="http10 graceful-shutdown gateway-bouncer mysql redis rabbitmq"
 TESTS="${TESTS:-"$ALL_TESTS"}"
 
 case "$1" in

@@ -8,6 +8,15 @@ WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
 
 release="${1:?"release"}"
+
+if [[ "${release}" == *-latest ]];then
+  release=$(curl -f -L https://storage.googleapis.com/istio-prerelease/daily-build/${release}.txt)
+  if [[ $? -ne 0 ]];then
+    echo "${release} branch does not exist"
+    exit 1
+  fi
+fi
+
 shift
 
 function download() {
@@ -21,7 +30,7 @@ function download() {
   local outfile="${DIRNAME}/istio-${release}.tgz"
 
   if [[ ! -f "${outfile}" ]]; then
-    wget -O "${outfile}" "${url}"
+    curl -JLo "${outfile}" "${url}"
   fi
 
   echo "${outfile}"
@@ -44,15 +53,6 @@ function install_istio() {
       tar -xzf "${outfile}" -C "${DN}" --strip-components 1
       mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
       rm -Rf ${DN}
-      helm init -c
-      if [[ ! ${release} =~ release-1.0-* ]];then
-        local helmrepo="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/charts"
-        if [[ ! -z "${HELMREPO_URL}" ]];then
-          helmrepo="${HELMREPO_URL}"
-        fi
-        helm repo add istio.io "${helmrepo}"
-      fi
-      helm dep update "${DIRNAME}/${release}/istio" || true
   fi
 
   kubectl create ns istio-system || true
@@ -88,17 +88,11 @@ function install_istio() {
        --values ${values} \
        "${DIRNAME}/${release}/istio" > "${FILENAME}"
 
-  # update prometheus scape interval
-  sed -i 's/scrape_interval: .*$/scrape_interval: 30s/' "${FILENAME}"
-
   if [[ -z "${DRY_RUN}" ]];then
       kubectl apply -f "${FILENAME}"
-
-      # remove stdio rules
-      kubectl --namespace istio-system delete rules stdio stdiotcp || true
-
-      "$WD/setup_prometheus.sh" ${DIRNAME}
-
+      if [[ -z "${SKIP_PROMETHEUS}" ]];then
+          "$WD/setup_prometheus.sh" ${DIRNAME}
+      fi
   fi
 
   echo "Wrote file ${FILENAME}"

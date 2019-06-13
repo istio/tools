@@ -10,7 +10,6 @@ global:
   imagePullPolicy: Always
   k8sIngressSelector: ingressgateway
 
-  controlPlaneSecurityEnabled: true
 
   proxy:
     enableCoreDump: true
@@ -23,6 +22,19 @@ global:
       limits:
         memory: 256Mi
 
+  mtls:
+    # Default setting for service-to-service mtls. Can be set explicitly using
+    # destination rules or service annotations.
+    enabled: true
+
+  # 1.1.5 sds.enabled requires controlPlaneSecurity to be disabled.
+  controlPlaneSecurityEnabled: false
+  sds:
+    enabled: true
+    udsPath: "unix:/var/run/sds/uds_path"
+    useNormalJwt: true
+
+
 ingress:
   enabled: false
 
@@ -32,6 +44,8 @@ gateways:
 
   istio-ingressgateway:
     meshExpansion: true
+    sds:
+      enabled: true
     enabled: true
     secretVolumes:
     - name: istio-ingressgateway-certs
@@ -169,12 +183,12 @@ certmanager:
 
 
 nodeagent:
-  enabled: false
+  enabled: true
   image: node-agent-k8s
   env:
     CA_PROVIDER: "Citadel"
     CA_ADDR: "istio-citadel:8060"
     VALID_TOKEN: true
-    SECRET_GRACE_DURATION: "30m"
+    SECRET_GRACE_DURATION: "10m"
     SECRET_JOB_RUN_INTERVAL: "30s"
-    SECRET_TTL: "1h"
+    SECRET_TTL: "20m"
