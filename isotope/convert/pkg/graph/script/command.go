@@ -25,6 +25,7 @@ type Command interface{}
 const (
 	sleepCommandKey   = "sleep"
 	requestCommandKey = "call"
+	processCommandKey = "process"
 )
 
 func commandsToMarshallable(cmds []Command) ([]interface{}, error) {
@@ -47,6 +48,8 @@ func commandToMarshallable(cmd Command) (interface{}, error) {
 		return map[string]RequestCommand{requestCommandKey: cmd}, nil
 	case ConcurrentCommand:
 		return commandsToMarshallable(cmd)
+	case ProcessCommand:
+		return map[string]ProcessCommand{processCommandKey: cmd}, nil
 	default:
 		return nil, InvalidCommandTypeError{cmd}
 	}
@@ -97,6 +100,11 @@ func (c *unmarshallableCommand) UnmarshalJSON(b []byte) error {
 			if err != nil {
 				return err
 			}
+		case processCommandKey:
+			c.Command, err = parseProcessCommandFromJSONMap(b)
+			if err != nil {
+				return err
+			}
 		default:
 			return UnknownCommandKeyError{key}
 		}
@@ -116,6 +124,18 @@ func parseJSONCommandKey(b []byte) (s string, err error) {
 	}
 	// Should only loop once, setting s to the single command key in the map.
 	for s = range m {
+	}
+	return
+}
+
+// b must contain a single key whose value is an unmarshallable ProcessCommand.
+func parseProcessCommandFromJSONMap(b []byte) (cmd ProcessCommand, err error) {
+	var m map[string]ProcessCommand
+	err = json.Unmarshal(b, &m)
+	if err != nil {
+		return
+	}
+	for _, cmd = range m {
 	}
 	return
 }

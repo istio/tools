@@ -37,6 +37,8 @@ func execute(
 	switch cmd := step.(type) {
 	case script.SleepCommand:
 		executeSleepCommand(cmd)
+	case script.ProcessCommand:
+		executeProcessCommand(cmd)
 	case script.RequestCommand:
 		if err := executeRequestCommand(
 			cmd, forwardableHeader, serviceTypes); err != nil {
@@ -55,6 +57,11 @@ func execute(
 
 func executeSleepCommand(cmd script.SleepCommand) {
 	time.Sleep(time.Duration(cmd))
+}
+
+func executeProcessCommand(cmd script.ProcessCommand) {
+	fmt.Println(time.Duration(cmd.Dist.Rand() * 10e8))
+	time.Sleep(time.Duration(cmd.Dist.Rand() * 10e8))
 }
 
 // Execute sends an HTTP request to another service. Assumes DNS is available
