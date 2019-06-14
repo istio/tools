@@ -17,26 +17,64 @@ package script
 import (
 	"encoding/json"
 	"time"
+	"github.com/jmcvetta/randutil"
+	"istio.io/fortio/log"
+	"strconv"
 )
 
 // SleepCommand describes a command to pause for a duration.
-type SleepCommand time.Duration
+type SleepCommand []randutil.Choice
 
 // UnmarshalJSON converts a JSON object to a SleepCommand.
 func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
-	var durationStr string
-	err = json.Unmarshal(b, &durationStr)
+	var probDistribution map[string]int
+
+	err = json.Unmarshal(b, &probDistribution)
 	if err != nil {
 		return
 	}
-	duration, err := time.ParseDuration(durationStr)
-	if err != nil {
-		return
+
+	ret := make(SleepCommand, 0, len(probDistribution))
+	totalPercentage := 0
+
+	for timeString, percentage := range probDistribution {
+		duration, err := time.ParseDuration(timeString)
+
+		if err != nil {
+			return err
+		}
+
+		
+		ret = append(ret, randutil.Choice{percentage, duration})
+		totalPercentage += percentage
 	}
-	*c = SleepCommand(duration)
+
+	if totalPercentage != 100 {
+		log.Fatalf("Total Percentage does not equal 100.")
+	}
+
+	*c = ret
 	return
 }
 
 func (c SleepCommand) String() string {
-	return time.Duration(c).String()
+	ret := ": "
+	for idx, item := range c {
+		if idx == 0 {
+			ret += "{"
+		}
+
+		ret += "'" + item.Item.(time.Duration).String() + "': "
+		ret += (strconv.Itoa(item.Weight))
+
+		if (idx + 1) < len(c) {
+			ret += ", "
+		} else if (idx + 1) == len(c) {
+			ret += "}"
+		}
+
+		
+	}
+
+	return ret
 }

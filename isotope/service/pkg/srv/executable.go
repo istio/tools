@@ -23,6 +23,7 @@ import (
 	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
+	"github.com/jmcvetta/randutil"
 
 	"istio.io/fortio/log"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
@@ -36,6 +37,7 @@ func execute(
 	serviceTypes map[string]svctype.ServiceType) error {
 	switch cmd := step.(type) {
 	case script.SleepCommand:
+		fmt.Println(cmd)
 		executeSleepCommand(cmd)
 	case script.RequestCommand:
 		if err := executeRequestCommand(
@@ -54,7 +56,13 @@ func execute(
 }
 
 func executeSleepCommand(cmd script.SleepCommand) {
-	time.Sleep(time.Duration(cmd))
+	result, err := randutil.WeightedChoice(cmd)
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Println(result.Item)
+    time.Sleep(time.Duration(result.Item.(time.Duration)))
 }
 
 // Execute sends an HTTP request to another service. Assumes DNS is available
