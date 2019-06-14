@@ -57,12 +57,12 @@ func execute(
 
 func executeSleepCommand(cmd script.SleepCommand) {
 	result, err := randutil.WeightedChoice(cmd)
-    if err != nil {
-        panic(err)
-    }
+	if err != nil {
+		panic(err)
+	}
 
-    fmt.Println(result.Item)
-    time.Sleep(time.Duration(result.Item.(time.Duration)))
+	fmt.Println(result.Item)
+	time.Sleep(result.Item.(time.Duration))
 }
 
 // Execute sends an HTTP request to another service. Assumes DNS is available

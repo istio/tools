@@ -16,10 +16,10 @@ package script
 
 import (
 	"encoding/json"
-	"testing"
-	"time"
 	"github.com/jmcvetta/randutil"
 	"reflect"
+	"testing"
+	"time"
 )
 
 func TestSleepCommand_UnmarshalJSON(t *testing.T) {
@@ -30,7 +30,7 @@ func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 	}{
 		{
 			[]byte(`{"100ms": 100}`),
-			SleepCommand([]randutil.Choice{randutil.Choice{100, 100 * time.Millisecond}}),
+			SleepCommand([]randutil.Choice{{100, 100 * time.Millisecond}}),
 			nil,
 		},
 	}
@@ -50,7 +50,7 @@ func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 
 			for timeString, percentage := range probDistribution {
 				duration, _ := time.ParseDuration(timeString)
-				
+
 				command = append(command, randutil.Choice{percentage, duration})
 			}
 

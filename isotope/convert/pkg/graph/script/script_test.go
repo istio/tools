@@ -16,10 +16,10 @@ package script
 
 import (
 	"encoding/json"
+	"github.com/jmcvetta/randutil"
 	"reflect"
 	"testing"
 	"time"
-	"github.com/jmcvetta/randutil"
 )
 
 func TestScript_UnmarshalJSON(t *testing.T) {
@@ -38,7 +38,7 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 		{
 			[]byte(`[{"sleep": {"1s": 100}}]`),
 			Script{
-				SleepCommand([]randutil.Choice{randutil.Choice{100, 1 * time.Second}}),
+				SleepCommand([]randutil.Choice{{100, 1 * time.Second}}),
 			},
 			nil,
 		},
@@ -46,7 +46,7 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 			[]byte(`[{"call": "A"}, {"sleep": {"10ms": 100}}]`),
 			Script{
 				RequestCommand{ServiceName: "A"},
-				SleepCommand([]randutil.Choice{randutil.Choice{100, 10 * time.Millisecond}}),
+				SleepCommand([]randutil.Choice{{100, 10 * time.Millisecond}}),
 			},
 			nil,
 		},
@@ -57,7 +57,7 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 					RequestCommand{ServiceName: "A"},
 					RequestCommand{ServiceName: "B"},
 				},
-				SleepCommand([]randutil.Choice{randutil.Choice{100, 10 * time.Millisecond}}),
+				SleepCommand([]randutil.Choice{{100, 10 * time.Millisecond}}),
 			},
 			nil,
 		},

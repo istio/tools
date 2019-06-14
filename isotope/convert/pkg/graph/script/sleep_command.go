@@ -16,10 +16,10 @@ package script
 
 import (
 	"encoding/json"
-	"time"
 	"github.com/jmcvetta/randutil"
 	"istio.io/fortio/log"
 	"strconv"
+	"time"
 )
 
 // SleepCommand describes a command to pause for a duration.
@@ -44,7 +44,6 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 			return err
 		}
 
-		
 		ret = append(ret, randutil.Choice{percentage, duration})
 		totalPercentage += percentage
 	}
@@ -73,7 +72,6 @@ func (c SleepCommand) String() string {
 			ret += "}"
 		}
 
-		
 	}
 
 	return ret

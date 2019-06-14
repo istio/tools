@@ -118,7 +118,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ErrorRate:    0.0001,
 				ResponseSize: 10240,
 				Script: []script.Command{
-					script.SleepCommand([]randutil.Choice{randutil.Choice{100, 100 * time.Millisecond}}),
+					script.SleepCommand([]randutil.Choice{{100, 100 * time.Millisecond}}),
 				},
 			},
 			{
@@ -159,7 +159,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 							Size:        1024,
 						},
 					}),
-					script.SleepCommand([]randutil.Choice{randutil.Choice{100, 100 * time.Millisecond}}),
+					script.SleepCommand([]randutil.Choice{{100, 100 * time.Millisecond}}),
 					script.RequestCommand{
 						ServiceName: "b",
 						Size:        1024,

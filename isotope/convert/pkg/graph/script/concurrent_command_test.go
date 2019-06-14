@@ -16,10 +16,10 @@ package script
 
 import (
 	"encoding/json"
+	"github.com/jmcvetta/randutil"
 	"reflect"
 	"testing"
 	"time"
-	"github.com/jmcvetta/randutil"
 )
 
 func TestConcurrentCommand_UnmarshalJSON(t *testing.T) {
@@ -36,7 +36,7 @@ func TestConcurrentCommand_UnmarshalJSON(t *testing.T) {
 		{
 			[]byte(`[{"sleep": {"1s": 100}}]`),
 			ConcurrentCommand{
-				SleepCommand([]randutil.Choice{randutil.Choice{100, 1 * time.Second}}),
+				SleepCommand([]randutil.Choice{{100, 1 * time.Second}}),
 			},
 			nil,
 		},
@@ -44,7 +44,7 @@ func TestConcurrentCommand_UnmarshalJSON(t *testing.T) {
 			[]byte(`[{"call": "A"}, {"sleep": {"10ms": 100}}]`),
 			ConcurrentCommand{
 				RequestCommand{ServiceName: "A"},
-				SleepCommand([]randutil.Choice{randutil.Choice{100, 10 * time.Millisecond}}),
+				SleepCommand([]randutil.Choice{{100, 10 * time.Millisecond}}),
 			},
 			nil,
 		},

@@ -134,7 +134,7 @@ var (
 			ErrorRate:    0.1,
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
-				script.SleepCommand([]randutil.Choice{randutil.Choice{100, 100 * time.Millisecond}}),
+				script.SleepCommand([]randutil.Choice{{100, 100 * time.Millisecond}}),
 			}),
 		},
 		{
@@ -145,7 +145,7 @@ var (
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
 				script.RequestCommand{ServiceName: "a", Size: 1024},
-				script.SleepCommand([]randutil.Choice{randutil.Choice{100, 10 * time.Millisecond}}),
+				script.SleepCommand([]randutil.Choice{{100, 10 * time.Millisecond}}),
 			}),
 		},
 		{
@@ -159,7 +159,7 @@ var (
 					script.RequestCommand{ServiceName: "a", Size: 516},
 					script.RequestCommand{ServiceName: "b", Size: 516},
 				},
-				script.SleepCommand([]randutil.Choice{randutil.Choice{100, 10 * time.Millisecond}}),
+				script.SleepCommand([]randutil.Choice{{100, 10 * time.Millisecond}}),
 			}),
 		},
 	}}
