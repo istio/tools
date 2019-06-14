@@ -99,6 +99,27 @@ Each step in the script includes a command.
 ###### Sleep
 
 `sleep`: Pauses for a duration. Useful for simulating processing time.
+One needs to provide a probability distribution for this command.
+
+#### Examples
+
+Pause all requests by 100 ms:
+
+```yaml
+script:
+  - sleep: {100ms: 100}
+```
+
+Pause 50\% of the request by 1sec and 50\% of the request by 50ms:
+
+```yaml
+script:
+  - sleep: {1s: 50, 50ms: 50}
+```
+
+The percentages should sum upto 100 otherwise
+the program would generate an error and crash.
+
 
 ```yaml
 sleep: {{ Duration }}
