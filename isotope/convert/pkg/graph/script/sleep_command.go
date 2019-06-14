@@ -16,10 +16,11 @@ package script
 
 import (
 	"encoding/json"
-	"github.com/jmcvetta/randutil"
-	"istio.io/fortio/log"
 	"strconv"
 	"time"
+
+	"github.com/jmcvetta/randutil"
+	"istio.io/fortio/log"
 )
 
 // SleepCommand describes a command to pause for a duration.

@@ -16,10 +16,11 @@ package script
 
 import (
 	"encoding/json"
-	"github.com/jmcvetta/randutil"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/jmcvetta/randutil"
 )
 
 func TestSleepCommand_UnmarshalJSON(t *testing.T) {
