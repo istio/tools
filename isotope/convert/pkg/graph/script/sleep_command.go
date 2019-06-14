@@ -58,13 +58,13 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 }
 
 func (c SleepCommand) String() string {
-	ret := ": "
+	ret := ""
 	for idx, item := range c {
 		if idx == 0 {
 			ret += "{"
 		}
 
-		ret += "'" + item.Item.(time.Duration).String() + "': "
+		ret += "" + item.Item.(time.Duration).String() + ": "
 		ret += (strconv.Itoa(item.Weight))
 
 		if (idx + 1) < len(c) {
