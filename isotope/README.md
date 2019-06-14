@@ -104,6 +104,22 @@ Each step in the script includes a command.
 sleep: {{ Duration }}
 ```
 
+###### Pause
+
+`pause`: Similar to `sleep` but one can provide a probability distribution instead of just a fixed Duration.
+
+
+A normal random variable with mean = 1.0 and stdev = 0.25 is generated and the program is paused according to the random variable.
+
+```yaml
+pause:
+  dist: "Normal"
+  mean: 1.0
+  sigma: 0.25
+```
+
+Currently, only `normal` and `log-normal` distributions are only supported. But any probability distribution which has two parameters (mean, stdev) can be easily supported.
+
 ###### Send Request
 
 `call`: Sends a HTTP/gRPC request (depending on the receiving service's type)
