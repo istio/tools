@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
+	"github.com/jmcvetta/randutil"
+	"reflect"
 )
 
 func TestSleepCommand_UnmarshalJSON(t *testing.T) {
@@ -27,8 +29,8 @@ func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 		err     error
 	}{
 		{
-			[]byte(`"100ms"`),
-			SleepCommand(100 * time.Millisecond),
+			[]byte(`{"100ms": 100}`),
+			SleepCommand([]randutil.Choice{randutil.Choice{100, 100 * time.Millisecond}}),
 			nil,
 		},
 	}
@@ -38,12 +40,22 @@ func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 		t.Run("", func(t *testing.T) {
 			t.Parallel()
 
-			var command SleepCommand
-			err := json.Unmarshal(test.input, &command)
+			var probDistribution map[string]int
+			err := json.Unmarshal(test.input, &probDistribution)
 			if test.err != err {
 				t.Errorf("expected %v; actual %v", test.err, err)
 			}
-			if test.command != command {
+
+			command := make(SleepCommand, 0, len(probDistribution))
+
+			for timeString, percentage := range probDistribution {
+				duration, _ := time.ParseDuration(timeString)
+				
+				command = append(command, randutil.Choice{percentage, duration})
+			}
+
+			eq := reflect.DeepEqual(test.command, command)
+			if !eq {
 				t.Errorf("expected %v; actual %v", test.command, command)
 			}
 		})

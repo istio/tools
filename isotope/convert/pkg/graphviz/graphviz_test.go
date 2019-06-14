@@ -19,6 +19,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jmcvetta/randutil"
+
 	"istio.io/tools/isotope/convert/pkg/graph"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
@@ -35,7 +37,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ResponseSize: "10KiB",
 				Steps: [][]string{
 					{
-						"SLEEP 100ms",
+						"SLEEP : {'100ms': 100}",
 					},
 				},
 			},
@@ -71,7 +73,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 						"CALL \"c\" 1KiB",
 					},
 					{
-						"SLEEP 10ms",
+						"SLEEP : {'100ms': 100}",
 					},
 					{
 						"CALL \"b\" 1KiB",
@@ -116,7 +118,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ErrorRate:    0.0001,
 				ResponseSize: 10240,
 				Script: []script.Command{
-					script.SleepCommand(100 * time.Millisecond),
+					script.SleepCommand([]randutil.Choice{randutil.Choice{100, 100 * time.Millisecond}}),
 				},
 			},
 			{
@@ -157,7 +159,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 							Size:        1024,
 						},
 					}),
-					script.SleepCommand(10 * time.Millisecond),
+					script.SleepCommand([]randutil.Choice{randutil.Choice{100, 100 * time.Millisecond}}),
 					script.RequestCommand{
 						ServiceName: "b",
 						Size:        1024,

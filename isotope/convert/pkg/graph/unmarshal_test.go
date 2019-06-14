@@ -20,6 +20,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jmcvetta/randutil"
+
 	"istio.io/tools/isotope/convert/pkg/graph/script"
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
 
@@ -87,7 +89,7 @@ var (
 				"requestSize": 516,
 				"responseSize": 128,
 				"script": [
-					{ "sleep": "100ms" }
+					{ "sleep": {"100ms": 100} }
 				]
 			},
 			"services": [
@@ -104,7 +106,7 @@ var (
 								"size": "1KiB"
 							}
 						},
-						{ "sleep": "10ms" }
+						{ "sleep": {"10ms": 100} }
 					]
 				},
 				{
@@ -118,7 +120,7 @@ var (
 							{ "call": "a" },
 							{ "call": "b" }
 						],
-						{ "sleep": "10ms" }
+						{ "sleep": {"10ms": 100} }
 					]
 				}
 			]
@@ -132,7 +134,7 @@ var (
 			ErrorRate:    0.1,
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
-				script.SleepCommand(100 * time.Millisecond),
+				script.SleepCommand([]randutil.Choice{randutil.Choice{100, 100 * time.Millisecond}}),
 			}),
 		},
 		{
@@ -143,7 +145,7 @@ var (
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
 				script.RequestCommand{ServiceName: "a", Size: 1024},
-				script.SleepCommand(10 * time.Millisecond),
+				script.SleepCommand([]randutil.Choice{randutil.Choice{100, 10 * time.Millisecond}}),
 			}),
 		},
 		{
@@ -157,7 +159,7 @@ var (
 					script.RequestCommand{ServiceName: "a", Size: 516},
 					script.RequestCommand{ServiceName: "b", Size: 516},
 				},
-				script.SleepCommand(10 * time.Millisecond),
+				script.SleepCommand([]randutil.Choice{randutil.Choice{100, 10 * time.Millisecond}}),
 			}),
 		},
 	}}
@@ -182,7 +184,7 @@ var (
 					"script": [
 						[
 							[{ "call": "a" }, { "call": "a" }],
-							{ "sleep": "10ms" }
+							{ "sleep": {"10ms": 100} }
 						]
 					]
 				}

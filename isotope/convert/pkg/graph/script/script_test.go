@@ -19,6 +19,7 @@ import (
 	"reflect"
 	"testing"
 	"time"
+	"github.com/jmcvetta/randutil"
 )
 
 func TestScript_UnmarshalJSON(t *testing.T) {
@@ -35,28 +36,28 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 			nil,
 		},
 		{
-			[]byte(`[{"sleep": "1s"}]`),
+			[]byte(`[{"sleep": {"1s": 100}}]`),
 			Script{
-				SleepCommand(1 * time.Second),
+				SleepCommand([]randutil.Choice{randutil.Choice{100, 1 * time.Second}}),
 			},
 			nil,
 		},
 		{
-			[]byte(`[{"call": "A"}, {"sleep": "10ms"}]`),
+			[]byte(`[{"call": "A"}, {"sleep": {"10ms": 100}}]`),
 			Script{
 				RequestCommand{ServiceName: "A"},
-				SleepCommand(10 * time.Millisecond),
+				SleepCommand([]randutil.Choice{randutil.Choice{100, 10 * time.Millisecond}}),
 			},
 			nil,
 		},
 		{
-			[]byte(`[[{"call": "A"}, {"call": "B"}], {"sleep": "10ms"}]`),
+			[]byte(`[[{"call": "A"}, {"call": "B"}], {"sleep": {"10ms": 100}}]`),
 			Script{
 				ConcurrentCommand{
 					RequestCommand{ServiceName: "A"},
 					RequestCommand{ServiceName: "B"},
 				},
-				SleepCommand(10 * time.Millisecond),
+				SleepCommand([]randutil.Choice{randutil.Choice{100, 10 * time.Millisecond}}),
 			},
 			nil,
 		},
