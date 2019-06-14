@@ -16,6 +16,8 @@ package script
 
 import (
 	"encoding/json"
+	"fmt"
+
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
@@ -36,6 +38,8 @@ type ProcessCommand struct {
 // UnmarshalJSON converts a JSON object to a ProcessCommand.
 func (c *ProcessCommand) UnmarshalJSON(b []byte) (err error) {
 	var data ProcessCommandConfig
+
+	fmt.Println(b)
 
 	err = json.Unmarshal(b, &data)
 	if err != nil {
