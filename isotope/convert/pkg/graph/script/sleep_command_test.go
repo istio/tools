@@ -27,8 +27,8 @@ func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 		err     error
 	}{
 		{
-			[]byte(`"100ms"`),
-			SleepCommand(100 * time.Millisecond),
+			[]byte(`{"type":"static","data":{"time":"100ms"}}`),
+			SleepCommand{"static", SleepCommandStatic{Time: 100 * time.Millisecond}},
 			nil,
 		},
 	}

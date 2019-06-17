@@ -116,7 +116,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ErrorRate:    0.0001,
 				ResponseSize: 10240,
 				Script: []script.Command{
-					script.SleepCommand(100 * time.Millisecond),
+					script.SleepCommand{"static", script.SleepCommandStatic{Time: 100 * time.Millisecond}},
 				},
 			},
 			{
@@ -157,7 +157,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 							Size:        1024,
 						},
 					}),
-					script.SleepCommand(10 * time.Millisecond),
+					script.SleepCommand{"static", script.SleepCommandStatic{Time: 10 * time.Millisecond}},
 					script.RequestCommand{
 						ServiceName: "b",
 						Size:        1024,

@@ -27,11 +27,11 @@ import (
 )
 
 type SleepCommandStatic struct {
-	time time.Duration `json:"time"`
+	Time time.Duration `json:"time"`
 }
 
 func (c SleepCommandStatic) Duration() time.Duration {
-	return c.time
+	return c.Time
 }
 
 type SleepCommandDistribution struct {
@@ -72,6 +72,7 @@ type SleepCommand struct {
 
 // UnmarshalJSON converts a JSON object to a SleepCommand.
 func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
+	fmt.Println(b)
 	var command SleepCommandWrapper
 	err = json.Unmarshal(b, &command)
 	if err != nil {
@@ -88,7 +89,7 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 		}
 
 		var staticCmd SleepCommandStatic
-		staticCmd.time, err = time.ParseDuration(cmd["time"].(string))
+		staticCmd.Time, err = time.ParseDuration(cmd["time"].(string))
 
 		if err != nil {
 			return
