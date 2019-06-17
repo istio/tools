@@ -45,6 +45,7 @@ func extractParams(parameter string) map[string]string {
 
 func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	mode := true
+	perFile := false
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
@@ -57,10 +58,21 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			default:
 				return nil, fmt.Errorf("unknown value '%s' for mode", v)
 			}
+		} else if k == "per_file" {
+			switch strings.ToLower(v) {
+			case "true":
+				perFile = true
+			case "false":
+				perFile = false
+			default:
+				return nil, fmt.Errorf("unknown value '%s' for per_file", v)
+			}
+		} else {
+			return nil, fmt.Errorf("unknown argument '%s' specified", k)
 		}
 	}
 
-	m := protomodel.NewModel(&request, false)
+	m := protomodel.NewModel(&request, perFile)
 
 	filesToGen := make(map[*protomodel.FileDescriptor]bool)
 	for _, fileName := range request.FileToGenerate {
@@ -71,7 +83,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 		filesToGen[fd] = true
 	}
 
-	g := newOpenAPIGenerator(m, mode)
+	g := newOpenAPIGenerator(m, mode, perFile)
 	return g.generateOutput(filesToGen)
 }
 

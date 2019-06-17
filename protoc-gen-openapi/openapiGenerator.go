@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -29,6 +30,16 @@ import (
 	"istio.io/tools/pkg/protomodel"
 )
 
+// Some special types with predefined schemas.
+var specialTypes = map[string]*openapi3.Schema{
+	"google.protobuf.Struct": &openapi3.Schema{
+		Properties: map[string]*openapi3.SchemaRef{
+			"fields": &openapi3.SchemaRef{
+				Value: openapi3.NewObjectSchema().WithAnyAdditionalProperties()},
+		},
+	},
+}
+
 type openapiGenerator struct {
 	buffer bytes.Buffer
 	model  *protomodel.Model
@@ -37,12 +48,15 @@ type openapiGenerator struct {
 	// transient state as individual files are processed
 	currentPackage             *protomodel.PackageDescriptor
 	currentFrontMatterProvider *protomodel.FileDescriptor
+
+	perFile bool
 }
 
-func newOpenAPIGenerator(model *protomodel.Model, mode bool) *openapiGenerator {
+func newOpenAPIGenerator(model *protomodel.Model, mode bool, perFile bool) *openapiGenerator {
 	return &openapiGenerator{
-		model: model,
-		mode:  mode,
+		model:   model,
+		mode:    mode,
+		perFile: perFile,
 	}
 }
 
@@ -63,7 +77,11 @@ func (g *openapiGenerator) generateOutput(filesToGen map[*protomodel.FileDescrip
 		}
 
 		if count > 0 {
-			g.generatePerPackageOutput(filesToGen, pkg, &response)
+			if g.perFile {
+				g.generatePerFileOutput(filesToGen, pkg, &response)
+			} else {
+				g.generatePerPackageOutput(filesToGen, pkg, &response)
+			}
 		}
 	}
 
@@ -85,6 +103,27 @@ func (g *openapiGenerator) getFileContents(file *protomodel.FileDescriptor,
 	for _, s := range file.Services {
 		services[g.relativeName(s)] = s
 	}
+}
+
+func (g *openapiGenerator) generatePerFileOutput(filesToGen map[*protomodel.FileDescriptor]bool, pkg *protomodel.PackageDescriptor,
+	response *plugin.CodeGeneratorResponse) {
+
+	for _, file := range pkg.Files {
+		if _, ok := filesToGen[file]; ok {
+			messages := make(map[string]*protomodel.MessageDescriptor)
+			enums := make(map[string]*protomodel.EnumDescriptor)
+			services := make(map[string]*protomodel.ServiceDescriptor)
+
+			g.getFileContents(file, messages, enums, services)
+			filename := path.Base(file.GetName())
+			extension := path.Ext(filename)
+			name := filename[0 : len(filename)-len(extension)]
+
+			rf := g.generateFile(pkg.Name+"."+name, file, messages, enums, services)
+			response.File = append(response.File, &rf)
+		}
+	}
+
 }
 
 func (g *openapiGenerator) generatePerPackageOutput(filesToGen map[*protomodel.FileDescriptor]bool, pkg *protomodel.PackageDescriptor,
@@ -239,7 +278,9 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *openapi
 
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 		msg := field.FieldType.(*protomodel.MessageDescriptor)
-		if msg.GetOptions().GetMapEntry() {
+		if s, ok := specialTypes[g.absoluteName(msg)]; ok {
+			schema = s
+		} else if msg.GetOptions().GetMapEntry() {
 			isMap = true
 			schema = openapi3.NewObjectSchema().WithAdditionalProperties(g.fieldType(msg.Fields[1]))
 		} else {
