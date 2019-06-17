@@ -54,7 +54,7 @@ func execute(
 }
 
 func executeSleepCommand(cmd script.SleepCommand) {
-	time.Sleep(time.Duration(cmd))
+	time.Sleep(cmd.Data.Duration())
 }
 
 // Execute sends an HTTP request to another service. Assumes DNS is available
