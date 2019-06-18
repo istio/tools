@@ -41,15 +41,14 @@ var specialTypes = map[string]*openapi3.Schema{
 }
 
 type openapiGenerator struct {
-	buffer bytes.Buffer
-	model  *protomodel.Model
-	mode   bool
+	buffer  bytes.Buffer
+	model   *protomodel.Model
+	mode    bool
+	perFile bool
 
 	// transient state as individual files are processed
 	currentPackage             *protomodel.PackageDescriptor
 	currentFrontMatterProvider *protomodel.FileDescriptor
-
-	perFile bool
 }
 
 func newOpenAPIGenerator(model *protomodel.Model, mode bool, perFile bool) *openapiGenerator {
