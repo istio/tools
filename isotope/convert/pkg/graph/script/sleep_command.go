@@ -72,7 +72,6 @@ type SleepCommand struct {
 
 // UnmarshalJSON converts a JSON object to a SleepCommand.
 func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
-	fmt.Println(b)
 	var command SleepCommandWrapper
 	err = json.Unmarshal(b, &command)
 	if err != nil {

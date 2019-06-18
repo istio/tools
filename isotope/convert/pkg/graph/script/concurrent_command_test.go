@@ -19,6 +19,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"gonum.org/v1/gonum/stat/distuv"
 )
 
 func TestConcurrentCommand_UnmarshalJSON(t *testing.T) {
@@ -44,6 +46,14 @@ func TestConcurrentCommand_UnmarshalJSON(t *testing.T) {
 			ConcurrentCommand{
 				RequestCommand{ServiceName: "A"},
 				SleepCommand{"static", SleepCommandStatic{Time: 10 * time.Millisecond}},
+			},
+			nil,
+		},
+		{
+			[]byte(`[{"call": "A"}, {"sleep": {"type":"dist","data":{"dist":"normal", "mean":1.0, "sigma":0.25}}}]`),
+			ConcurrentCommand{
+				RequestCommand{ServiceName: "A"},
+				SleepCommand{"dist", SleepCommandDistribution{"normal", distuv.Normal{Mu: 1.0, Sigma: 0.25}}},
 			},
 			nil,
 		},
