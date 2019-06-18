@@ -32,9 +32,9 @@ import (
 
 // Some special types with predefined schemas.
 var specialTypes = map[string]*openapi3.Schema{
-	"google.protobuf.Struct": &openapi3.Schema{
+	"google.protobuf.Struct": {
 		Properties: map[string]*openapi3.SchemaRef{
-			"fields": &openapi3.SchemaRef{
+			"fields": {
 				Value: openapi3.NewObjectSchema().WithAnyAdditionalProperties()},
 		},
 	},
