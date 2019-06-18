@@ -55,7 +55,7 @@ func (c SleepCommandHistogram) Duration() time.Duration {
 		panic(err)
 	}
 
-	return (time.Duration(result.Item.(time.Duration)))
+	return (result.Item.(time.Duration))
 }
 
 type SleepCommandWrapper struct {
@@ -163,7 +163,7 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 func (c SleepCommand) String() string {
 	switch c.Type {
 	case "static":
-		return time.Duration(c.Data.Duration()).String()
+		return c.Data.Duration().String()
 	case "dist":
 		dist := c.Data.(SleepCommandDistribution)
 
@@ -185,7 +185,6 @@ func (c SleepCommand) String() string {
 		str.WriteString("Histogram: ")
 
 		for idx, item := range Histogram {
-			// prob := item.Weight
 			duration := item.Item.(time.Duration)
 			weight := item.Weight
 
