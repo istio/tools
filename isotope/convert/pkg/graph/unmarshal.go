@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"sync"
 
+	"istio.io/tools/isotope/convert/pkg/graph/msg"
 	"istio.io/tools/isotope/convert/pkg/graph/pct"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
@@ -78,7 +79,7 @@ type serviceGraphJSONMetadata struct {
 type defaults struct {
 	Type            svctype.ServiceType `json:"type"`
 	ErrorRate       pct.Percentage      `json:"errorRate"`
-	ResponseSize    size.ByteSize       `json:"responseSize"`
+	ResponseSize    msg.MessageSize     `json:"responseSize"`
 	Script          script.Script       `json:"script"`
 	RequestSize     size.ByteSize       `json:"requestSize"`
 	NumReplicas     int32               `json:"numReplicas"`

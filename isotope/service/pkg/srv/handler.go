@@ -15,6 +15,7 @@
 package srv
 
 import (
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -26,9 +27,9 @@ import (
 
 // Handler handles the default endpoint by emulating its Service.
 type Handler struct {
-	Service         svc.Service
-	ServiceTypes    map[string]svctype.ServiceType
-	responsePayload []byte
+	Service          svc.Service
+	ServiceTypes     map[string]svctype.ServiceType
+	responsePayloads [][]byte
 }
 
 func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -38,13 +39,16 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	respond := func(status int) {
 		writer.WriteHeader(status)
-		if _, err := writer.Write(h.responsePayload); err != nil {
+		responseIndex := rand.Intn(len(h.responsePayloads))
+		if _, err := writer.Write(h.responsePayloads[responseIndex]); err != nil {
 			log.Errf("%s", err)
 		}
 
 		stopTime := time.Now()
 		duration := stopTime.Sub(startTime)
-		prometheus.RecordResponseSent(duration, len(h.responsePayload), status)
+		prometheus.RecordResponseSent(duration,
+			len(h.responsePayloads[responseIndex]),
+			status)
 	}
 
 	for _, step := range h.Service.Script {

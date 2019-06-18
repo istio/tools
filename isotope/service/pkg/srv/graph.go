@@ -23,6 +23,7 @@ import (
 
 	"istio.io/fortio/log"
 	"istio.io/tools/isotope/convert/pkg/graph"
+	"istio.io/tools/isotope/convert/pkg/graph/msg"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
@@ -46,16 +47,31 @@ func HandlerFromServiceGraphYAML(
 
 	serviceTypes := extractServiceTypes(serviceGraph)
 
-	responsePayload, err := makeRandomByteArray(service.ResponseSize)
+	responsePayloads, err := makeNRandomByteArrays(service.ResponseSize)
 	if err != nil {
 		return Handler{}, err
 	}
 
 	return Handler{
-		Service:         service,
-		ServiceTypes:    serviceTypes,
-		responsePayload: responsePayload,
+		Service:          service,
+		ServiceTypes:     serviceTypes,
+		responsePayloads: responsePayloads,
 	}, nil
+}
+
+func makeNRandomByteArrays(msg msg.MessageSize) ([][]byte, error) {
+	arr := make([][]byte, msg.Data.Amount())
+
+	for i := 0; i < msg.Data.Amount(); i++ {
+		result, err := makeRandomByteArray(msg.Data.Size())
+		arr[i] = result
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return arr, nil
 }
 
 func makeRandomByteArray(n size.ByteSize) ([]byte, error) {

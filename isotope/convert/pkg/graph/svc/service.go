@@ -15,9 +15,11 @@
 package svc
 
 import (
+	"istio.io/tools/isotope/convert/pkg/graph/msg"
 	"istio.io/tools/isotope/convert/pkg/graph/pct"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
-	"istio.io/tools/isotope/convert/pkg/graph/size"
+
+	// "istio.io/tools/isotope/convert/pkg/graph/size"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 )
 
@@ -41,7 +43,7 @@ type Service struct {
 	ErrorRate pct.Percentage `json:"errorRate,omitempty"`
 
 	// ResponseSize is the number of bytes in the response body.
-	ResponseSize size.ByteSize `json:"responseSize,omitempty"`
+	ResponseSize msg.MessageSize `json:"responseSize,omitempty"`
 
 	// Script is sequentially called each time the service is called.
 	Script script.Script `json:"script,omitempty"`
