@@ -110,7 +110,7 @@ Each request would pause for 10ms
 sleep: {type: "static", data: {time: "10ms"}}
 ```
 
-50\% of the request would pause for 50ms and the other 50\% would 
+50\% of the requests would pause for 50ms and the other 50\% would 
 pause for 100ms.
 
 ```yaml
@@ -123,6 +123,8 @@ with mean 1.0 and stdev 0.25
 ```yaml
 sleep: {type: "dist", data: {"dist": "normal", "mean": 1.0, "sigma": 0.25}}
 ```
+
+Currently only the "normal" and "lognormal" distributions are supported
 
 ###### Send Request
 
