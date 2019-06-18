@@ -100,8 +100,28 @@ Each step in the script includes a command.
 
 `sleep`: Pauses for a duration. Useful for simulating processing time.
 
+One can pass a static value, a histogram, or a probability distribution.
+
+##### Examples
+
+Each request would pause for 10ms
+
 ```yaml
-sleep: {{ Duration }}
+sleep: {type: "static", data: {time: "10ms"}}
+```
+
+50\% of the request would pause for 50ms and the other 50\% would 
+pause for 100ms.
+
+```yaml
+sleep: {type: "histogram", data: {"50ms": 50, "100ms": 50}}
+```
+
+Each request's pause duration would follow a Normal Random Variable
+with mean 1.0 and stdev 0.25
+
+```yaml
+sleep: {type: "dist", data: {"dist": "normal", "mean": 1.0, "sigma": 0.25}}
 ```
 
 ###### Send Request
