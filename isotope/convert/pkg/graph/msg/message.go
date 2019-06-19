@@ -16,6 +16,7 @@ package msg
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -91,11 +92,11 @@ func (c MessageSizeHistogram) Amount() int {
 }
 
 type MessageSize struct {
-	Type string
+	Type string `json:"type"`
 	Data interface {
 		Size() size.ByteSize
 		Amount() int
-	}
+	} `json:"data"`
 }
 
 type MessageSizeWrapper struct {
@@ -194,4 +195,72 @@ func (c *MessageSize) UnmarshalJSON(b []byte) (err error) {
 		*c = MessageSize{command.Type, HistCmd}
 	}
 	return
+}
+
+func (c MessageSize) String() string {
+	switch c.Type {
+	case "static":
+		var str strings.Builder
+
+		str.WriteString("{Size: ")
+		str.WriteString(c.Data.Size().String())
+		str.WriteString(", Amount: ")
+		str.WriteString(strconv.Itoa(c.Data.Amount()))
+		str.WriteString("}")
+
+		return str.String()
+	case "dist":
+		dist := c.Data.(MessageSizeDistribution)
+		number := fmt.Sprintf("%d", dist.Number)
+		unit := fmt.Sprintf("%s", dist.Unit)
+
+		switch dist.Type {
+		case "normal":
+			mean := fmt.Sprintf("%f", (dist.Dist.(distuv.Normal).Mu))
+			sigma := fmt.Sprintf("%f", (dist.Dist.(distuv.Normal).Sigma))
+
+			return fmt.Sprintf("Distribution: Normal {Mean: %s, Sigma: %s, Number: %s, Unit: %s}",
+				mean,
+				sigma,
+				number,
+				unit)
+		case "lognormal":
+			mean := fmt.Sprintf("%f", (dist.Dist.(distuv.LogNormal).Mu))
+			sigma := fmt.Sprintf("%f", (dist.Dist.(distuv.LogNormal).Sigma))
+			return fmt.Sprintf("Distribution: LogNormal {Mean: %s, Sigma: %s, Number: %s, Unit %s}",
+				mean,
+				sigma,
+				number,
+				unit)
+		}
+
+	case "histogram":
+		Histogram := c.Data.(MessageSizeHistogram).Histogram
+		var str strings.Builder
+
+		str.WriteString("{Amount: ")
+		str.WriteString(strconv.Itoa(c.Data.Amount()))
+		str.WriteString(", Histogram: ")
+
+		for idx, item := range Histogram {
+			duration := item.Item.(size.ByteSize)
+			weight := item.Weight
+
+			str.WriteString("{")
+			str.WriteString(strconv.Itoa(weight))
+			str.WriteString(",")
+			str.WriteString(duration.String())
+			str.WriteString("}")
+
+			if idx+1 < len(Histogram) {
+				str.WriteString(" ")
+			}
+		}
+
+		str.WriteString("}")
+
+		return str.String()
+	}
+
+	return "Error: Incorrect type -- Only: {static, dist, histogram} allowed"
 }

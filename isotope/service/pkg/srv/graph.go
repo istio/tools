@@ -46,8 +46,8 @@ func HandlerFromServiceGraphYAML(
 	_ = logService(service)
 
 	serviceTypes := extractServiceTypes(serviceGraph)
-
 	responsePayloads, err := makeNRandomByteArrays(service.ResponseSize)
+
 	if err != nil {
 		return Handler{}, err
 	}
@@ -60,9 +60,16 @@ func HandlerFromServiceGraphYAML(
 }
 
 func makeNRandomByteArrays(msg msg.MessageSize) ([][]byte, error) {
+	// In case ResponseSize is not specified.
+	if msg.Data == nil {
+		arr := make([][]byte, 1)
+		return arr, nil
+	}
+
 	arr := make([][]byte, msg.Data.Amount())
 
 	for i := 0; i < msg.Data.Amount(); i++ {
+		fmt.Println(i)
 		result, err := makeRandomByteArray(msg.Data.Size())
 		arr[i] = result
 

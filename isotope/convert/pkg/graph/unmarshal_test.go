@@ -20,9 +20,10 @@ import (
 	"testing"
 	"time"
 
+	"istio.io/tools/isotope/convert/pkg/graph/msg"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
+	"istio.io/tools/isotope/convert/pkg/graph/size"
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
-
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 )
 
@@ -85,7 +86,7 @@ var (
 				"errorRate": 0.1,
 				"numReplicas": 2,
 				"requestSize": 516,
-				"responseSize": 128,
+				"responseSize": {"data":{"number":1,"size":"128"},"type":"static"},
 				"script": [
 					{ "sleep": "100ms" }
 				]
@@ -112,7 +113,7 @@ var (
 					"type": "grpc",
 					"numReplicas": 1,
 					"errorRate": "20%",
-					"responseSize": "1K",
+					"responseSize": {"data":{"number":1,"size":"128"},"type":"static"},
 					"script": [
 						[
 							{ "call": "a" },
@@ -130,7 +131,7 @@ var (
 			Type:         svctype.ServiceHTTP,
 			NumReplicas:  5,
 			ErrorRate:    0.1,
-			ResponseSize: 128,
+			ResponseSize: msg.MessageSize{"static", msg.MessageSizeStatic{size.ByteSize(128), 1}},
 			Script: script.Script([]script.Command{
 				script.SleepCommand(100 * time.Millisecond),
 			}),
@@ -140,7 +141,7 @@ var (
 			Type:         svctype.ServiceHTTP,
 			NumReplicas:  2,
 			ErrorRate:    0.1,
-			ResponseSize: 128,
+			ResponseSize: msg.MessageSize{"static", msg.MessageSizeStatic{size.ByteSize(128), 1}},
 			Script: script.Script([]script.Command{
 				script.RequestCommand{ServiceName: "a", Size: 1024},
 				script.SleepCommand(10 * time.Millisecond),
@@ -151,7 +152,7 @@ var (
 			Type:         svctype.ServiceGRPC,
 			NumReplicas:  1,
 			ErrorRate:    0.2,
-			ResponseSize: 1024,
+			ResponseSize: msg.MessageSize{"static", msg.MessageSizeStatic{size.ByteSize(128), 1}},
 			Script: script.Script([]script.Command{
 				script.ConcurrentCommand{
 					script.RequestCommand{ServiceName: "a", Size: 516},
