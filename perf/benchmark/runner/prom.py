@@ -66,7 +66,7 @@ class Prom(object):
 
     def fetch_memory_by_container(self):
         return self.fetch(
-           'container_memory_usage_bytes{container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}',
+           'container_memory_usage_bytes{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}',
             metric_by_deployment_by_container,
             to_megaBytes)
 

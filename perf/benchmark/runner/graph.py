@@ -56,7 +56,7 @@ def generate_chart(mesh, csv, x_label, y_label_short):
     output_file(f) 
 
     # 5. create chart -> save as interactive HTML 
-    p = build_chart(title, x_label, x_series, y_label, y_series)
+    p = build_chart(title, x_label, x_series, y_label, y_label_short, y_series)
     show(p)
     print("HTML graph saved at %s" %  f)
 
@@ -105,7 +105,7 @@ def get_series(df, x_label, metric):
     return x, y 
 
 # build_chart creates a bokeh.js plot from data 
-def build_chart(title, x_label, x_series, y_label, y_series): 
+def build_chart(title, x_label, x_series, y_label, y_label_short, y_series): 
     # generate y-axis label with units 
     print(y_label)
     if y_label.startswith('p'):
@@ -117,7 +117,7 @@ def build_chart(title, x_label, x_series, y_label, y_series):
             y_axis_label = "max CPUs, server proxy (millicores)" 
 
     # show metric value on hover
-    TOOLTIPS = [(x_label, '$data_y')]
+    TOOLTIPS = [(y_label_short, '$data_y')]
 
     # create plot 
     p = figure(

@@ -176,7 +176,6 @@ metadata:
   name: fortioserver
   namespace: twopods
 spec:
-  clusterIP: 10.4.29.218
   ports:
   - name: http-echo
     port: 8080

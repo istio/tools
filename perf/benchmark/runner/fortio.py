@@ -146,7 +146,8 @@ METRICS_SUMMARY_DURATION = 180
 def syncFortio(url, table, selector=None, promUrl="", csv=None):
     listurl = url + "/fortio/data/"
     listdata = requests.get(listurl)
-    fd, datafile = tempfile.mkstemp()
+    fd, datafile = tempfile.mkstemp(suffix=".json") 
+
     out = os.fdopen(fd, "wt")
     stats = []
     cnt = 0
@@ -208,7 +209,7 @@ def syncFortio(url, table, selector=None, promUrl="", csv=None):
 
 
 def write_csv(keys, data):
-    fd, datafile = tempfile.mkstemp()
+    fd, datafile = tempfile.mkstemp(suffix=".csv")
     out = os.fdopen(fd, "wt")
     cnt = 0
     lst = keys.split(',')
