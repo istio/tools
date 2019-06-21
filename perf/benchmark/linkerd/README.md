@@ -49,7 +49,7 @@ python ./runner/graph.py <PATH_TO_CSV> <METRIC> --mesh=linkerd
 #### Example: 
 
 ```
-python ./runner/graph.py linkerd.csv p90 --mesh=linkerd 
+python ./runner/graph.py linkerd.csv p99 --mesh=linkerd 
 ```
 
 ![example-linkerd](example-linkerd-p99.png)
