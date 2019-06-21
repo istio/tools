@@ -78,15 +78,14 @@ Required fields:
 - `qps` = queries per second for each connection 
 - `duration` = number of seconds to run each test for  (min: 92 seconds)
 
-Optional flags:
-
 ```
+optional arguments:
   -h, --help          show this help message and exit
   --size SIZE         size of the payload
+  --mesh MESH         istio or linkerd
   --client CLIENT     where to run the test from
   --server SERVER     pod ip of the server
   --perf              also run perf and produce flamegraph
-  --linkerd LINKERD   linkerd mode
   --baseline          run baseline for all
   --no-baseline       do not run baseline for all
   --serversidecar     run serversidecar-only for all

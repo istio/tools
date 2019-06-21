@@ -52,4 +52,4 @@ python ./runner/graph.py <PATH_TO_CSV> <METRIC> --mesh=linkerd
 python ./runner/graph.py linkerd.csv p90 --mesh=linkerd 
 ```
 
-![example-linkerd](example-linker-p99.png)
+![example-linkerd](example-linkerd-p99.png)
