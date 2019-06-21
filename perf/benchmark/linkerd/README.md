@@ -24,13 +24,11 @@ See the [example-comparison](example-comparison/) directory for how to run the s
 
 ### 4. Run benchmark 
 
-```
-NAMESPACE=twopods 
+Example:
 
-python runner/runner.py --linkerd 1 100 92 
 ```
-
-(An example test: 1 thread, 100 QPS, for 92 seconds)
+python runner/runner.py 1,2,4,8,16,32,64 1000 240 --baseline --mesh=linkerd
+```
 
 ### 5. Extract Fortio latency metrics to CSV 
 
@@ -45,11 +43,13 @@ python ./runner/fortio.py $FORTIO_CLIENT_URL
 ### 6. Visualize results 
 
 ```
-python ./runner/graph.py --mesh=linkerd <PATH_TO_CSV> <METRIC> 
+python ./runner/graph.py <PATH_TO_CSV> <METRIC> --mesh=linkerd 
 ```
 
 #### Example: 
 
 ```
-python ./runner/graph.py --mesh=linkerd --xaxis=qps /var/folders/rt/610_wrfj70q8221h55lj8rvr009rz8/T/tmpn15l2dlh p90
+python ./runner/graph.py linkerd.csv p90 --mesh=linkerd 
 ```
+
+![example-linkerd](example-linker-p99.png)
