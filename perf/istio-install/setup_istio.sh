@@ -82,10 +82,15 @@ function install_istio() {
 
 
   local values=${VALUES:-values.yaml}
+  local extravalues=${EXTRA_VALUES:-""}
+  if [[ ${extravalues} != "" ]]; then
+    extravalues="--values ${extravalues}"
+  fi
 
   helm template --name istio --namespace istio-system \
        ${opts} \
        --values ${values} \
+       ${extravalues} \
        "${DIRNAME}/${release}/istio" > "${FILENAME}"
 
   if [[ -z "${DRY_RUN}" ]];then

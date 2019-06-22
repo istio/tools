@@ -3,7 +3,9 @@ This is a certificate rotation test with SDS disabled.
 The certificate rotation is tested through creating a number of
 httpbin and sleep workloads (the number of workloads is an input parameter of the script),
 which request for certificates at a customizable interval (e.g., every 1 minute),
-thereby creating the certificate rotation load. 
+thereby creating the certificate rotation load. This test also
+periodically delete pods and create pods to test whether Citadel Agent
+properly releases resources and handles new certificate requests.
 
 In this test, *controlPlaneSecurity* is disabled. To enable 
 *controlPlaneSecurity*, set *controlPlaneSecurity* as *true* in
@@ -11,7 +13,7 @@ In this test, *controlPlaneSecurity* is disabled. To enable
 
 ## To run the certificate rotation test with SDS disabled:
 - Create a GKE cluster and set it as the current cluster.
-Here this test is ran on the cluster *no-sds-cert-rotation-1*
+Here this test is ran on the cluster *no-sds-cert-rotation-2*
 on GCP project *istio-security-testing*.
 You may use `kubectl config current-context` to confirm that your newly created cluster
 is set as the current cluster.
@@ -38,8 +40,8 @@ The following example command will deploy 10 httpbin and sleep workloads in
 a namespace called *test-ns*.
 Note: the number of workloads can be ran depends on the size of your cluster.
 ```
-  cd ROOT-OF-REPO/perf/security/sds-tests/non-sds-1
-  RELEASETYPE=daily RELEASE=release-1.1-20190221-09-16 NAMESPACE=test-ns NUM=10 CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-non-sds-1 ./setup_test.sh
+  cd ROOT-OF-REPO/perf/security/file-mount-tests/non-sds-2
+  RELEASETYPE=daily RELEASE=release-1.1-20190221-09-16 NAMESPACE=test-ns NUM=10 CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-non-sds-2 ./setup_test.sh
 ```
 To test against a release or pre-release. Choose one the the following commands to set up test. 
 ```
@@ -68,5 +70,5 @@ The following output will be displayed.
 by running the following command. The namespace in the command line is the namespace
 created for testing.
 ```
-  NAMESPACE=test-ns CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-non-sds-1 ./cleanup.sh
+  NAMESPACE=test-ns CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-non-sds-2 ./cleanup.sh
 ```
