@@ -24,7 +24,7 @@ import (
 
 	multierror "github.com/hashicorp/go-multierror"
 
-	"istio.io/fortio/log"
+	"fortio.org/fortio/log"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 	"istio.io/tools/isotope/service/pkg/srv/prometheus"
