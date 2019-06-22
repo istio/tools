@@ -46,6 +46,9 @@ func extractParams(parameter string) map[string]string {
 func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	mode := true
 	perFile := false
+	singleFile := false
+	yaml := false
+	useRef := false
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
@@ -67,6 +70,29 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			default:
 				return nil, fmt.Errorf("unknown value '%s' for per_file", v)
 			}
+		} else if k == "single_file" {
+			switch strings.ToLower(v) {
+			case "true":
+				if perFile {
+					return nil, fmt.Errorf("output is already to be generated per file, cannot output to a single file")
+				}
+				singleFile = true
+			case "false":
+				singleFile = false
+			default:
+				return nil, fmt.Errorf("unknown value '%s' for single_file", v)
+			}
+		} else if k == "yaml" {
+			yaml = true
+		} else if k == "use_ref" {
+			switch strings.ToLower(v) {
+			case "true":
+				useRef = true
+			case "false":
+				useRef = false
+			default:
+				return nil, fmt.Errorf("unknown value '%s' for use_ref", v)
+			}
 		} else {
 			return nil, fmt.Errorf("unknown argument '%s' specified", k)
 		}
@@ -83,7 +109,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 		filesToGen[fd] = true
 	}
 
-	g := newOpenAPIGenerator(m, mode, perFile)
+	g := newOpenAPIGenerator(m, mode, perFile, singleFile, yaml, useRef)
 	return g.generateOutput(filesToGen)
 }
 
