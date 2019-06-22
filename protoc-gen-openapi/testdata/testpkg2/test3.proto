@@ -48,6 +48,7 @@ message Test3 {
 
     AEnum aEnum = 15;
 
+    // messageoneof comment
     MessageOneOf messageOneOfField = 16;
 }
 
