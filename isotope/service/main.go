@@ -23,6 +23,7 @@ import (
 	"runtime"
 
 	"fortio.org/fortio/log"
+
 	"istio.io/tools/isotope/convert/pkg/consts"
 	"istio.io/tools/isotope/service/pkg/srv"
 	"istio.io/tools/isotope/service/pkg/srv/prometheus"

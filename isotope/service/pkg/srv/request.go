@@ -20,6 +20,7 @@ import (
 	"net/http"
 
 	"fortio.org/fortio/log"
+
 	"istio.io/tools/isotope/convert/pkg/consts"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
 )
