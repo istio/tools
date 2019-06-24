@@ -38,7 +38,7 @@ def parse_args() -> argparse.Namespace:
         '--log_level',
         type=str,
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
-        default='INFO')
+        default='DEBUG')
     return parser.parse_args()
 
 
