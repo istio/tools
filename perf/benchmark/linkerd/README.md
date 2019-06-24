@@ -10,15 +10,19 @@ See the [example-comparison](example-comparison/) directory for how to run the s
 
 ### 1 - create cluster 
 
+```bash 
 ./linkerd/istio-install/create-cluster  
+```
 
 ### 2 - install Linkerd 
 
+```bash
 ./linkerd/setup-linkerd.sh <VERSION> 
+```
 
 ### 3. deploy the fortio test environment 
 
-```
+```bash
 NAMESPACE="twopods"
 kubectl create namespace $NAMESPACE  
 kubectl annotate namespace $NAMESPACE linkerd.io/inject=enabled
