@@ -12,7 +12,7 @@ if [[ ! -z "${TARGET_VERSION}" ]];then
   RELEASE_MAJOR_MINOR="${TARGET_VERSION}"
 fi
 LATEST_BUILD=$(curl -L https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$RELEASE_MAJOR_MINOR-latest.txt)
-HELMREPO_URL=https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$LATEST_BUILD/charts/ RELEASE_URL=https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$LATEST_BUILD/istio-$LATEST_BUILD-linux.tar.gz ./setup_istio.sh $RELEASE_MAJOR_MINOR
+SKIP_PROMETHEUS=true HELMREPO_URL=https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$LATEST_BUILD/charts/ RELEASE_URL=https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$LATEST_BUILD/istio-$LATEST_BUILD-linux.tar.gz ./setup_istio.sh $RELEASE_MAJOR_MINOR
 
 # trigger redeploy on services to get new sidecars
 /etc/scripts/redeploy.sh ALL

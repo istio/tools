@@ -10,7 +10,19 @@ WD=$(dirname $0)/tmp
 if [[ ! -d "${WD}" ]]; then
   mkdir $WD
 fi
-wget -O "$WD/istio-${RELEASE}-linux.tar.gz" "https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
+
+URL=""
+if [[ "$RELEASETYPE" == "daily" ]]; then
+  URL="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
+elif [[ "$RELEASETYPE" == "release" ]]; then
+	URL="https://github.com/istio/istio/releases/download/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
+elif [[ "$RELEASETYPE" == "pre-release" ]]; then
+	URL="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
+else
+  echo "Please specify RELEASETYPE"
+fi
+
+wget -O "$WD/istio-${RELEASE}-linux.tar.gz" "${URL}"
 tar xfz ${WD}/istio-${RELEASE}-linux.tar.gz -C $WD
 
 function inject_workload() {
@@ -22,7 +34,7 @@ function inject_workload() {
 }
 
 TEMP_DEPLOY_NAME="temp_httpbin_sleep_deploy.yaml"
-helm template --set replicas="${NUM}" .. > "${TEMP_DEPLOY_NAME}"
+helm template --set replicas="${NUM}" ../../workload-deployments/ > "${TEMP_DEPLOY_NAME}"
 
 kubectl create ns ${NAMESPACE} --cluster ${CLUSTER}
 

@@ -6,6 +6,16 @@ global:
     # destination rules or service annotations.
     enabled: true
 
+  sds:
+    enabled: false
+    udsPath: ""
+    useNormalJwt: false
+
+gateways:
+  istio-ingressgateway:
+    sds:
+      enabled: false
+
 nodeagent:
   enabled: false
   image: node-agent-k8s

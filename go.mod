@@ -3,6 +3,7 @@ module istio.io/tools
 go 1.12
 
 require (
+	fortio.org/fortio v1.1.0
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
 	github.com/getkin/kin-openapi v0.1.1-0.20190507152207-d3180292eead
@@ -32,7 +33,6 @@ require (
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	golang.org/x/tools v0.0.0-20190312170243-e65039ee4138 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	istio.io/fortio v1.1.0
 	k8s.io/api v0.0.0-20190118113203-912cbe2bfef3
 	k8s.io/apimachinery v0.0.0-20190223001710-c182ff3b9841
 	k8s.io/client-go v8.0.0+incompatible
