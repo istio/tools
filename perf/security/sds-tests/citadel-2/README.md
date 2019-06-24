@@ -23,7 +23,7 @@ Let the root directory of this repo be *ROOT-OF-REPO*.
 Run the following commands:
 ```
   cd ROOT-OF-REPO/perf/istio-install
-  DNS_DOMAIN=your-example-domain VALUES=values-istio-sds-auth.yaml ./setup_istio.sh release-1.1-20190221-09-16
+  DNS_DOMAIN=your-example-domain EXTRA_VALUES=values-istio-sds-auth.yaml ./setup_istio.sh release-1.1-20190221-09-16
 ```  
 You may replace the Istio release
 in the command to the Istio release to test.
