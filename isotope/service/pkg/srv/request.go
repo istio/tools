@@ -19,15 +19,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"istio.io/fortio/log"
+	"fortio.org/fortio/log"
+
 	"istio.io/tools/isotope/convert/pkg/consts"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
-	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 )
 
 func sendRequest(
 	destName string,
-	destType svctype.ServiceType,
 	size size.ByteSize,
 	requestHeader http.Header) (*http.Response, error) {
 	url := fmt.Sprintf("http://%s:%v", destName, consts.ServicePort)

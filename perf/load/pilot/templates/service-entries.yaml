@@ -1,0 +1,17 @@
+{{ range until (int .Values.serviceEntries) }}
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: ext-svc-{{.}}
+spec:
+  hosts:
+    - {{.}}.example.com
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP
+    - number: 443
+      name: https
+      protocol: HTTPS
+---
+{{ end }}

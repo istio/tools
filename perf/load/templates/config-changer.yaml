@@ -31,7 +31,7 @@ rules:
   verbs: ["*"]
 - apiGroups: [""]
   resources: ["configmaps", "endpoints", "pods", "services", "namespaces", "secrets", "replicationcontrollers"]
-  verbs: ["create", "get", "list", "watch", "update"]
+  verbs: ["create", "get", "list", "watch", "update", "patch"]
 - apiGroups: [""]
   resources: ["endpoints", "pods", "services"]
   verbs: ["get", "list", "watch"]
@@ -82,7 +82,7 @@ spec:
         - /script/run.sh
         - /bin/sleep
         - infinity
-        image: gcr.io/google-containers/hyperkube:v1.12.1
+        image: gcr.io/mixologist-142215/hyperkube:v1.12.1
         imagePullPolicy: IfNotPresent
         name: config-change
         volumeMounts:

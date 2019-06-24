@@ -6,12 +6,25 @@ spec:
   selector:
     istio: ingressgateway
   servers:
-  - hosts:
-    - {{ .Values.serviceNamePrefix }}0.local
-    port:
+  - port:
       name: http
       number: 80
       protocol: HTTP
+    hosts:
+    - {{ .Values.serviceNamePrefix }}0.local
+    - {{ .Values.serviceNamePrefix }}0.{{ .Values.domain }}
+{{- if .Values.https }}
+  - port:
+      name: https
+      number: 443
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: {{ .Values.serviceNamePrefix }}0-cert
+    hosts:
+    - {{ .Values.serviceNamePrefix }}0.local
+    - {{ .Values.serviceNamePrefix }}0.{{ .Values.domain }}
+{{- end }}
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -22,6 +35,7 @@ spec:
   - entrypoint-gateway
   hosts:
   - {{ .Values.serviceNamePrefix }}0.local
+  - {{ .Values.serviceNamePrefix }}0.{{ .Values.domain }}
   http:
   - route:
     - destination:

@@ -1,7 +1,8 @@
 import requests
 import collections
 from typing import List
-
+import os
+import signal
 
 Query = collections.namedtuple(
     'Query',
@@ -15,12 +16,15 @@ Alarm = collections.namedtuple(
 
 
 class Prometheus(object):
-    def __init__(self, url: str, host: str = None):
+    def __init__(self, url: str, host: str = None, pid = 0):
+        self.pid = pid
         self.url = url
-
         self.headers = {}
         if host is not None:
             self.headers['Host'] = host
+
+    def __del__(self):
+        os.kill(self.pid, signal.SIGKILL)
 
     def fetch_by_query(self, query: str) -> dict:
         resp = requests.get(self.url + '/api/v1/query', {

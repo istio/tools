@@ -1,3 +1,17 @@
+// Copyright 2019 Istio Authors
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
 package jsonshim
 
 import (
@@ -63,7 +77,7 @@ func (p *Plugin) Generate(file *generator.FileDescriptor) {
 		p.P(`// MarshalJSON is a custom marshaler supporting oneof fields for `, typeName)
 		p.P(`func (this *`, typeName, `) MarshalJSON() ([]byte, error) {`)
 		p.In()
-		p.P(`str, err := `,marshalerName,`.MarshalToString(this)`)
+		p.P(`str, err := `, marshalerName, `.MarshalToString(this)`)
 		p.P(`return []byte(str), err`)
 		p.Out()
 		p.P(`}`)
@@ -72,7 +86,7 @@ func (p *Plugin) Generate(file *generator.FileDescriptor) {
 		p.P(`// UnmarshalJSON is a custom unmarshaler supporting oneof fields for `, typeName)
 		p.P(`func (this *`, typeName, `) UnmarshalJSON(b []byte) error {`)
 		p.In()
-		p.P(`return `,unmarshalerName,`.Unmarshal(`, bytesPkg.Use(), `.NewReader(b), this)`)
+		p.P(`return `, unmarshalerName, `.Unmarshal(`, bytesPkg.Use(), `.NewReader(b), this)`)
 		p.Out()
 		p.P(`}`)
 
