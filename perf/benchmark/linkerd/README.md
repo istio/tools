@@ -10,7 +10,7 @@ See the [example-comparison](example-comparison/) directory for how to run the s
 
 ### 1 - create cluster 
 
-../istio-install/create-cluster  
+./linkerd/istio-install/create-cluster  
 
 ### 2 - install Linkerd 
 
@@ -19,7 +19,10 @@ See the [example-comparison](example-comparison/) directory for how to run the s
 ### 3. deploy the fortio test environment 
 
 ```
-./linkerd/setup_test.sh
+NAMESPACE="twopods"
+kubectl create namespace $NAMESPACE  
+kubectl annotate namespace $NAMESPACE linkerd.io/inject=enabled
+DNS_DOMAIN=local LINKERD_INJECT=enabled ./setup_test.sh
 ``` 
 
 ### 4. Run benchmark 

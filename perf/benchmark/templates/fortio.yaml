@@ -84,7 +84,7 @@ spec:
         traffic.sidecar.istio.io/includeOutboundIPRanges: {{ $.Values.includeOutboundIPRanges }}
         {{- end }}
         sidecar.istio.io/inject: "{{ $.V.inject }}"
-        linkerd.io/inject: "{{ $.V.injectL }}"
+        linkerd.io/inject: "{{ $.Values.injectL }}"
         sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
         sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
       labels:
