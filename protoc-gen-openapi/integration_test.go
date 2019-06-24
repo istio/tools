@@ -42,13 +42,13 @@ func TestOpenAPIGeneration(t *testing.T) {
 		{
 			name:       "Single File Generation",
 			perPackage: false,
-			genOpts:    ",single_file=true",
+			genOpts:    "single_file=true",
 			wantFiles:  []string{"openapiv3.json"},
 		},
 		{
 			name:       "Use $ref in the output",
 			perPackage: false,
-			genOpts:    ",single_file=true,use_ref=true",
+			genOpts:    "single_file=true,use_ref=true",
 			wantFiles:  []string{"testRef/openapiv3.json"},
 		},
 	}
@@ -76,12 +76,12 @@ func TestOpenAPIGeneration(t *testing.T) {
 
 			if tc.perPackage {
 				for _, files := range packages {
-					args := []string{"-Itestdata", "--openapi_out=mode=true" + tc.genOpts + ":" + tempDir}
+					args := []string{"-Itestdata", "--openapi_out=" + tc.genOpts + ":" + tempDir}
 					args = append(args, files...)
 					protocOpenAPI(t, args)
 				}
 			} else {
-				args := []string{"-Itestdata", "--openapi_out=mode=true" + tc.genOpts + ":" + tempDir}
+				args := []string{"-Itestdata", "--openapi_out=" + tc.genOpts + ":" + tempDir}
 				for _, files := range packages {
 					args = append(args, files...)
 				}

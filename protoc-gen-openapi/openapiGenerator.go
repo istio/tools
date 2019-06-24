@@ -44,7 +44,6 @@ var specialTypes = map[string]*openapi3.Schema{
 type openapiGenerator struct {
 	buffer     bytes.Buffer
 	model      *protomodel.Model
-	mode       bool
 	perFile    bool
 	singleFile bool
 	yaml       bool
@@ -57,10 +56,9 @@ type openapiGenerator struct {
 	messages map[string]*protomodel.MessageDescriptor
 }
 
-func newOpenAPIGenerator(model *protomodel.Model, mode bool, perFile bool, singleFile bool, yaml bool, useRef bool) *openapiGenerator {
+func newOpenAPIGenerator(model *protomodel.Model, perFile bool, singleFile bool, yaml bool, useRef bool) *openapiGenerator {
 	return &openapiGenerator{
 		model:      model,
-		mode:       mode,
 		perFile:    perFile,
 		singleFile: singleFile,
 		yaml:       yaml,
@@ -200,13 +198,24 @@ func (g *openapiGenerator) generateFile(name string,
 		}
 	}
 
+	var version string
+	// only get the API version when generate per package or per file,
+	// as we cannot guarantee all protos in the input are the same version.
+	if !g.singleFile {
+		// derive the API version from the package name
+		// which is a convention for Istio APIs.
+		s := strings.Split(name, ".")
+		version = s[len(s)-1]
+	}
+
 	c := openapi3.NewComponents()
 	c.Schemas = allSchemas
 	// add the openapi object required by the spec.
 	o := openapi3.Swagger{
 		OpenAPI: "3.0.1",
 		Info: openapi3.Info{
-			Title: "OpenAPI Spec for Istio APIs.",
+			Title:   "OpenAPI Spec for Istio APIs.",
+			Version: version,
 		},
 		Components: c,
 	}
@@ -255,7 +264,14 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 			continue
 		}
 		if field.OneofIndex == nil {
-			o.WithProperty(field.GetName(), g.fieldType(field))
+			sr := g.fieldTypeRef(field)
+			if g.useRef && sr.Ref != "" {
+				// in `$ref`, the value of the schema is not in the output.
+				sr.Value = nil
+				o.WithPropertyRef(field.GetName(), sr)
+			} else {
+				o.WithProperty(field.GetName(), sr.Value)
+			}
 		} else {
 			oneof[*field.OneofIndex] = append(oneof[*field.OneofIndex], g.fieldType(field))
 		}
@@ -368,7 +384,9 @@ func (g *openapiGenerator) fieldTypeRef(field *protomodel.FieldDescriptor) *open
 	s := g.fieldType(field)
 	var ref string
 	if *field.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-		if _, ok := g.messages[g.relativeName(field.FieldType)]; ok {
+		msg := field.FieldType.(*protomodel.MessageDescriptor)
+		// only generate `$ref` for top level messages.
+		if _, ok := g.messages[g.relativeName(field.FieldType)]; ok && msg.Parent == nil {
 			ref = fmt.Sprintf("#/components/schemas/%v", g.absoluteName(field.FieldType))
 		}
 	}
