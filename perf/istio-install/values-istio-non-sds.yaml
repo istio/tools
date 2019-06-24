@@ -8,6 +8,8 @@ global:
 
   sds:
     enabled: false
+    udsPath: ""
+    useNormalJwt: false
 
 gateways:
   istio-ingressgateway:
