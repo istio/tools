@@ -176,7 +176,7 @@ func (g *openapiGenerator) generatePerPackageOutput(filesToGen map[*protomodel.F
 
 // Generate an OpenAPI spec for a collection of cross-linked files.
 func (g *openapiGenerator) generateFile(name string,
-	_ *protomodel.FileDescriptor,
+	pkg *protomodel.FileDescriptor,
 	messages map[string]*protomodel.MessageDescriptor,
 	enums map[string]*protomodel.EnumDescriptor,
 	_ map[string]*protomodel.ServiceDescriptor) plugin.CodeGeneratorResponse_File {
@@ -205,10 +205,8 @@ func (g *openapiGenerator) generateFile(name string,
 	// only get the API version when generate per package or per file,
 	// as we cannot guarantee all protos in the input are the same version.
 	if !g.singleFile {
-		if g.currentFrontMatterProvider != nil {
-			if fmd := g.currentFrontMatterProvider.Matter.Description; fmd != "" {
-				description = fmd
-			}
+		if g.currentFrontMatterProvider != nil && g.currentFrontMatterProvider.Matter.Description != "" {
+			description = g.currentFrontMatterProvider.Matter.Description
 		} else if pd := g.generateDescription(g.currentPackage); pd != "" {
 			description = pd
 		} else {
@@ -216,7 +214,13 @@ func (g *openapiGenerator) generateFile(name string,
 		}
 		// derive the API version from the package name
 		// which is a convention for Istio APIs.
-		s := strings.Split(name, ".")
+		var p string
+		if pkg != nil {
+			p = pkg.GetPackage()
+		} else {
+			p = name
+		}
+		s := strings.Split(p, ".")
 		version = s[len(s)-1]
 	} else {
 		description = "OpenAPI Spec for Istio APIs."
