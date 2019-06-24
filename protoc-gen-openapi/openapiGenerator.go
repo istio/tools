@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -41,45 +42,53 @@ var specialTypes = map[string]*openapi3.Schema{
 }
 
 type openapiGenerator struct {
-	buffer  bytes.Buffer
-	model   *protomodel.Model
-	mode    bool
-	perFile bool
+	buffer     bytes.Buffer
+	model      *protomodel.Model
+	perFile    bool
+	singleFile bool
+	yaml       bool
+	useRef     bool
 
 	// transient state as individual files are processed
 	currentPackage             *protomodel.PackageDescriptor
 	currentFrontMatterProvider *protomodel.FileDescriptor
+
+	messages map[string]*protomodel.MessageDescriptor
 }
 
-func newOpenAPIGenerator(model *protomodel.Model, mode bool, perFile bool) *openapiGenerator {
+func newOpenAPIGenerator(model *protomodel.Model, perFile bool, singleFile bool, yaml bool, useRef bool) *openapiGenerator {
 	return &openapiGenerator{
-		model:   model,
-		mode:    mode,
-		perFile: perFile,
+		model:      model,
+		perFile:    perFile,
+		singleFile: singleFile,
+		yaml:       yaml,
+		useRef:     useRef,
 	}
 }
 
 func (g *openapiGenerator) generateOutput(filesToGen map[*protomodel.FileDescriptor]bool) (*plugin.CodeGeneratorResponse, error) {
-	// process each package; we produce one output file per package
 	response := plugin.CodeGeneratorResponse{}
 
-	for _, pkg := range g.model.Packages {
-		g.currentPackage = pkg
-		g.currentFrontMatterProvider = pkg.FileDesc()
+	if g.singleFile {
+		g.generateSingleFileOutput(filesToGen, &response)
+	} else {
+		for _, pkg := range g.model.Packages {
+			g.currentPackage = pkg
 
-		// anything to output for this package?
-		count := 0
-		for _, file := range pkg.Files {
-			if _, ok := filesToGen[file]; ok {
-				count++
+			// anything to output for this package?
+			count := 0
+			for _, file := range pkg.Files {
+				if _, ok := filesToGen[file]; ok {
+					count++
+				}
 			}
-		}
 
-		if count > 0 {
-			if g.perFile {
-				g.generatePerFileOutput(filesToGen, pkg, &response)
-			} else {
-				g.generatePerPackageOutput(filesToGen, pkg, &response)
+			if count > 0 {
+				if g.perFile {
+					g.generatePerFileOutput(filesToGen, pkg, &response)
+				} else {
+					g.generatePerPackageOutput(filesToGen, pkg, &response)
+				}
 			}
 		}
 	}
@@ -109,6 +118,7 @@ func (g *openapiGenerator) generatePerFileOutput(filesToGen map[*protomodel.File
 
 	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
+			g.currentFrontMatterProvider = file
 			messages := make(map[string]*protomodel.MessageDescriptor)
 			enums := make(map[string]*protomodel.EnumDescriptor)
 			services := make(map[string]*protomodel.ServiceDescriptor)
@@ -125,6 +135,21 @@ func (g *openapiGenerator) generatePerFileOutput(filesToGen map[*protomodel.File
 
 }
 
+func (g *openapiGenerator) generateSingleFileOutput(filesToGen map[*protomodel.FileDescriptor]bool, response *plugin.CodeGeneratorResponse) {
+	messages := make(map[string]*protomodel.MessageDescriptor)
+	enums := make(map[string]*protomodel.EnumDescriptor)
+	services := make(map[string]*protomodel.ServiceDescriptor)
+
+	for file, ok := range filesToGen {
+		if ok {
+			g.getFileContents(file, messages, enums, services)
+		}
+	}
+
+	rf := g.generateFile("openapiv3", &protomodel.FileDescriptor{}, messages, enums, services)
+	response.File = []*plugin.CodeGeneratorResponse_File{&rf}
+}
+
 func (g *openapiGenerator) generatePerPackageOutput(filesToGen map[*protomodel.FileDescriptor]bool, pkg *protomodel.PackageDescriptor,
 	response *plugin.CodeGeneratorResponse) {
 	// We need to produce a file for this package.
@@ -136,6 +161,8 @@ func (g *openapiGenerator) generatePerPackageOutput(filesToGen map[*protomodel.F
 	messages := make(map[string]*protomodel.MessageDescriptor)
 	enums := make(map[string]*protomodel.EnumDescriptor)
 	services := make(map[string]*protomodel.ServiceDescriptor)
+
+	g.currentFrontMatterProvider = pkg.FileDesc()
 
 	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
@@ -149,14 +176,18 @@ func (g *openapiGenerator) generatePerPackageOutput(filesToGen map[*protomodel.F
 
 // Generate an OpenAPI spec for a collection of cross-linked files.
 func (g *openapiGenerator) generateFile(name string,
-	_ *protomodel.FileDescriptor,
+	pkg *protomodel.FileDescriptor,
 	messages map[string]*protomodel.MessageDescriptor,
 	enums map[string]*protomodel.EnumDescriptor,
 	_ map[string]*protomodel.ServiceDescriptor) plugin.CodeGeneratorResponse_File {
 
+	g.messages = messages
+
 	allSchemas := make(map[string]*openapi3.SchemaRef)
 
 	for _, message := range messages {
+		// we generate the top-level messages here and the nested messages are generated
+		// inside each top-level message.
 		if message.Parent == nil {
 			g.generateMessage(message, allSchemas)
 		}
@@ -169,18 +200,64 @@ func (g *openapiGenerator) generateFile(name string,
 		}
 	}
 
+	var version string
+	var description string
+	// only get the API version when generate per package or per file,
+	// as we cannot guarantee all protos in the input are the same version.
+	if !g.singleFile {
+		if g.currentFrontMatterProvider != nil && g.currentFrontMatterProvider.Matter.Description != "" {
+			description = g.currentFrontMatterProvider.Matter.Description
+		} else if pd := g.generateDescription(g.currentPackage); pd != "" {
+			description = pd
+		} else {
+			description = "OpenAPI Spec for Istio APIs."
+		}
+		// derive the API version from the package name
+		// which is a convention for Istio APIs.
+		var p string
+		if pkg != nil {
+			p = pkg.GetPackage()
+		} else {
+			p = name
+		}
+		s := strings.Split(p, ".")
+		version = s[len(s)-1]
+	} else {
+		description = "OpenAPI Spec for Istio APIs."
+	}
+
 	c := openapi3.NewComponents()
 	c.Schemas = allSchemas
+	// add the openapi object required by the spec.
+	o := openapi3.Swagger{
+		OpenAPI: "3.0.1",
+		Info: openapi3.Info{
+			Title:   description,
+			Version: version,
+		},
+		Components: c,
+	}
 
 	g.buffer.Reset()
-	b, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to marshall the output of %v to json", name)
+	var filename *string
+	if g.yaml {
+		b, err := yaml.Marshal(o)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "unable to marshall the output of %v to yaml", name)
+		}
+		filename = proto.String(name + ".yaml")
+		g.buffer.Write(b)
+	} else {
+		b, err := json.MarshalIndent(o, "", "  ")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "unable to marshall the output of %v to json", name)
+		}
+		filename = proto.String(name + ".json")
+		g.buffer.Write(b)
 	}
-	g.buffer.Write(b)
 
 	return plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(name + ".json"),
+		Name:    filename,
 		Content: proto.String(g.buffer.String()),
 	}
 }
@@ -205,7 +282,14 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 			continue
 		}
 		if field.OneofIndex == nil {
-			o.WithProperty(field.GetName(), g.fieldType(field))
+			sr := g.fieldTypeRef(field)
+			if g.useRef && sr.Ref != "" {
+				// in `$ref`, the value of the schema is not in the output.
+				sr.Value = nil
+				o.WithPropertyRef(field.GetName(), sr)
+			} else {
+				o.WithProperty(field.GetName(), sr.Value)
+			}
 		} else {
 			oneof[*field.OneofIndex] = append(oneof[*field.OneofIndex], g.fieldType(field))
 		}
@@ -281,7 +365,15 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *openapi
 			schema = s
 		} else if msg.GetOptions().GetMapEntry() {
 			isMap = true
-			schema = openapi3.NewObjectSchema().WithAdditionalProperties(g.fieldType(msg.Fields[1]))
+			sr := g.fieldTypeRef(msg.Fields[1])
+			if g.useRef && sr.Ref != "" {
+				schema = openapi3.NewObjectSchema()
+				// in `$ref`, the value of the schema is not in the output.
+				sr.Value = nil
+				schema.AdditionalProperties = sr
+			} else {
+				schema = openapi3.NewObjectSchema().WithAdditionalProperties(sr.Value)
+			}
 		} else {
 			schema = g.generateMessageSchema(msg)
 		}
@@ -303,6 +395,20 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *openapi
 	}
 
 	return schema
+}
+
+// fieldTypeRef generates the `$ref` in addition to the schema for a field.
+func (g *openapiGenerator) fieldTypeRef(field *protomodel.FieldDescriptor) *openapi3.SchemaRef {
+	s := g.fieldType(field)
+	var ref string
+	if *field.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+		msg := field.FieldType.(*protomodel.MessageDescriptor)
+		// only generate `$ref` for top level messages.
+		if _, ok := g.messages[g.relativeName(field.FieldType)]; ok && msg.Parent == nil {
+			ref = fmt.Sprintf("#/components/schemas/%v", g.absoluteName(field.FieldType))
+		}
+	}
+	return openapi3.NewSchemaRef(ref, s)
 }
 
 func (g *openapiGenerator) relativeName(desc protomodel.CoreDesc) string {
