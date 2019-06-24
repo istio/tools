@@ -44,7 +44,6 @@ var specialTypes = map[string]*openapi3.Schema{
 type openapiGenerator struct {
 	buffer     bytes.Buffer
 	model      *protomodel.Model
-	mode       bool
 	perFile    bool
 	singleFile bool
 	yaml       bool
@@ -57,10 +56,9 @@ type openapiGenerator struct {
 	messages map[string]*protomodel.MessageDescriptor
 }
 
-func newOpenAPIGenerator(model *protomodel.Model, mode bool, perFile bool, singleFile bool, yaml bool, useRef bool) *openapiGenerator {
+func newOpenAPIGenerator(model *protomodel.Model, perFile bool, singleFile bool, yaml bool, useRef bool) *openapiGenerator {
 	return &openapiGenerator{
 		model:      model,
-		mode:       mode,
 		perFile:    perFile,
 		singleFile: singleFile,
 		yaml:       yaml,
@@ -76,7 +74,6 @@ func (g *openapiGenerator) generateOutput(filesToGen map[*protomodel.FileDescrip
 	} else {
 		for _, pkg := range g.model.Packages {
 			g.currentPackage = pkg
-			g.currentFrontMatterProvider = pkg.FileDesc()
 
 			// anything to output for this package?
 			count := 0
@@ -121,6 +118,7 @@ func (g *openapiGenerator) generatePerFileOutput(filesToGen map[*protomodel.File
 
 	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
+			g.currentFrontMatterProvider = file
 			messages := make(map[string]*protomodel.MessageDescriptor)
 			enums := make(map[string]*protomodel.EnumDescriptor)
 			services := make(map[string]*protomodel.ServiceDescriptor)
@@ -164,6 +162,8 @@ func (g *openapiGenerator) generatePerPackageOutput(filesToGen map[*protomodel.F
 	enums := make(map[string]*protomodel.EnumDescriptor)
 	services := make(map[string]*protomodel.ServiceDescriptor)
 
+	g.currentFrontMatterProvider = pkg.FileDesc()
+
 	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
 			g.getFileContents(file, messages, enums, services)
@@ -176,7 +176,7 @@ func (g *openapiGenerator) generatePerPackageOutput(filesToGen map[*protomodel.F
 
 // Generate an OpenAPI spec for a collection of cross-linked files.
 func (g *openapiGenerator) generateFile(name string,
-	_ *protomodel.FileDescriptor,
+	pkg *protomodel.FileDescriptor,
 	messages map[string]*protomodel.MessageDescriptor,
 	enums map[string]*protomodel.EnumDescriptor,
 	_ map[string]*protomodel.ServiceDescriptor) plugin.CodeGeneratorResponse_File {
@@ -200,13 +200,40 @@ func (g *openapiGenerator) generateFile(name string,
 		}
 	}
 
+	var version string
+	var description string
+	// only get the API version when generate per package or per file,
+	// as we cannot guarantee all protos in the input are the same version.
+	if !g.singleFile {
+		if g.currentFrontMatterProvider != nil && g.currentFrontMatterProvider.Matter.Description != "" {
+			description = g.currentFrontMatterProvider.Matter.Description
+		} else if pd := g.generateDescription(g.currentPackage); pd != "" {
+			description = pd
+		} else {
+			description = "OpenAPI Spec for Istio APIs."
+		}
+		// derive the API version from the package name
+		// which is a convention for Istio APIs.
+		var p string
+		if pkg != nil {
+			p = pkg.GetPackage()
+		} else {
+			p = name
+		}
+		s := strings.Split(p, ".")
+		version = s[len(s)-1]
+	} else {
+		description = "OpenAPI Spec for Istio APIs."
+	}
+
 	c := openapi3.NewComponents()
 	c.Schemas = allSchemas
 	// add the openapi object required by the spec.
 	o := openapi3.Swagger{
 		OpenAPI: "3.0.1",
 		Info: openapi3.Info{
-			Title: "OpenAPI Spec for Istio APIs.",
+			Title:   description,
+			Version: version,
 		},
 		Components: c,
 	}
@@ -255,7 +282,14 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 			continue
 		}
 		if field.OneofIndex == nil {
-			o.WithProperty(field.GetName(), g.fieldType(field))
+			sr := g.fieldTypeRef(field)
+			if g.useRef && sr.Ref != "" {
+				// in `$ref`, the value of the schema is not in the output.
+				sr.Value = nil
+				o.WithPropertyRef(field.GetName(), sr)
+			} else {
+				o.WithProperty(field.GetName(), sr.Value)
+			}
 		} else {
 			oneof[*field.OneofIndex] = append(oneof[*field.OneofIndex], g.fieldType(field))
 		}
@@ -368,7 +402,9 @@ func (g *openapiGenerator) fieldTypeRef(field *protomodel.FieldDescriptor) *open
 	s := g.fieldType(field)
 	var ref string
 	if *field.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-		if _, ok := g.messages[g.relativeName(field.FieldType)]; ok {
+		msg := field.FieldType.(*protomodel.MessageDescriptor)
+		// only generate `$ref` for top level messages.
+		if _, ok := g.messages[g.relativeName(field.FieldType)]; ok && msg.Parent == nil {
 			ref = fmt.Sprintf("#/components/schemas/%v", g.absoluteName(field.FieldType))
 		}
 	}

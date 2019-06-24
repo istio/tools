@@ -44,7 +44,6 @@ func extractParams(parameter string) map[string]string {
 }
 
 func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
-	mode := true
 	perFile := false
 	singleFile := false
 	yaml := false
@@ -52,16 +51,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
-		if k == "mode" {
-			switch strings.ToLower(v) {
-			case "true":
-				mode = true
-			case "false":
-				mode = false
-			default:
-				return nil, fmt.Errorf("unknown value '%s' for mode", v)
-			}
-		} else if k == "per_file" {
+		if k == "per_file" {
 			switch strings.ToLower(v) {
 			case "true":
 				perFile = true
@@ -109,7 +99,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 		filesToGen[fd] = true
 	}
 
-	g := newOpenAPIGenerator(m, mode, perFile, singleFile, yaml, useRef)
+	g := newOpenAPIGenerator(m, perFile, singleFile, yaml, useRef)
 	return g.generateOutput(filesToGen)
 }
 
