@@ -36,6 +36,11 @@ function download() {
   echo "${outfile}"
 }
 
+function trim(){
+    [[ "$1" =~ [^[:space:]](.*[^[:space:]])? ]]
+    printf "%s" "$BASH_REMATCH"
+}
+
 function setup_admin_binding() {
   kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
@@ -47,6 +52,7 @@ function install_istio() {
   local release="${2:?"release"}"
 
   local outfile="$(download ${DIRNAME} ${release})"
+  outfile=$(trim $outfile);
 
   if [[ ! -d "${DIRNAME}/${release}" ]];then
       DN=$(mktemp -d)
