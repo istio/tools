@@ -1,3 +1,5 @@
+fortio.org/fortio v1.1.0 h1:RcZTb73HO2NXj6K9U6DZ02BVeA2TzmCdqFD80Y/AU8Y=
+fortio.org/fortio v1.1.0/go.mod h1:Go0fRqoPJ1xy5JOWcS23jyF58byVZxFyEePYsGmCR0k=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLMYoU8P317H5OQ+Via4RmuPwCS0=
@@ -124,8 +126,6 @@ gopkg.in/yaml.v2 v2.2.1 h1:mUhvW9EsL+naU5Q3cakzfE91YhliOondGd6ZrsDBHQE=
 gopkg.in/yaml.v2 v2.2.1/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
-istio.io/fortio v1.1.0 h1:S0ytJ6VrMlOhbJsFewOUNcp39Eu0k8JYcYFjAyovd8A=
-istio.io/fortio v1.1.0/go.mod h1:AsMt0Nqk2iYydveBtcjecQQELc92wp8LQnOrhTqCboc=
 k8s.io/api v0.0.0-20190118113203-912cbe2bfef3 h1:lV0+KGoNkvZOt4zGT4H83hQrzWMt/US/LSz4z4+BQS4=
 k8s.io/api v0.0.0-20190118113203-912cbe2bfef3/go.mod h1:iuAfoD4hCxJ8Onx9kaTIt30j7jUFS00AXQi6QMi99vA=
 k8s.io/apimachinery v0.0.0-20190223001710-c182ff3b9841 h1:Q4RZrHNtlC/mSdC1sTrcZ5RchC/9vxLVj57pWiCBKv4=
