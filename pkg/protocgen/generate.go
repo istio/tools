@@ -40,7 +40,7 @@ func Generate(fn GenerateFn) {
 
 	response, err := fn(request)
 	if err != nil {
-		fatal("%v", err)
+		fatal("%v\n", err)
 	}
 
 	data, err = proto.Marshal(response)

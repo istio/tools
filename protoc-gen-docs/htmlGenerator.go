@@ -29,7 +29,9 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	blackfriday "gopkg.in/russross/blackfriday.v2"
+	"github.com/russross/blackfriday"
+
+	"istio.io/tools/pkg/protomodel"
 )
 
 type outputMode int
@@ -41,22 +43,22 @@ const (
 )
 
 type htmlGenerator struct {
-	buffer      bytes.Buffer
-	model       *model
-	mode        outputMode
-	numWarnings int
-	speller     *gospell.GoSpell
+	buffer           bytes.Buffer
+	model            *protomodel.Model
+	mode             outputMode
+	numWarnings      int
+	speller          *gospell.GoSpell
+	customStyleSheet string
 
 	// transient state as individual files are processed
-	currentPackage             *packageDescriptor
-	currentFrontMatterProvider *fileDescriptor
+	currentPackage             *protomodel.PackageDescriptor
+	currentFrontMatterProvider *protomodel.FileDescriptor
 	grouping                   bool
 
 	genWarnings      bool
 	warningsAsErrors bool
 	emitYAML         bool
 	camelCaseFields  bool
-	customStyleSheet string
 	perFile          bool
 }
 
@@ -64,7 +66,7 @@ const (
 	deprecated = "deprecated "
 )
 
-func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, warningsAsErrors bool, speller *gospell.GoSpell,
+func newHTMLGenerator(model *protomodel.Model, mode outputMode, genWarnings bool, warningsAsErrors bool, speller *gospell.GoSpell,
 	emitYAML bool, camelCaseFields bool, customStyleSheet string, perFile bool) *htmlGenerator {
 	return &htmlGenerator{
 		model:            model,
@@ -79,22 +81,26 @@ func newHTMLGenerator(model *model, mode outputMode, genWarnings bool, warningsA
 	}
 }
 
-func (g *htmlGenerator) getFileContents(file *fileDescriptor, messages map[string]*messageDescriptor, enums map[string]*enumDescriptor, services map[string]*serviceDescriptor) {
-	for _, m := range file.allMessages {
+func (g *htmlGenerator) getFileContents(file *protomodel.FileDescriptor,
+	messages map[string]*protomodel.MessageDescriptor,
+	enums map[string]*protomodel.EnumDescriptor,
+	services map[string]*protomodel.ServiceDescriptor) {
+	for _, m := range file.AllMessages {
 		messages[g.relativeName(m)] = m
 		g.includeUnsituatedDependencies(messages, enums, m)
 	}
 
-	for _, e := range file.allEnums {
+	for _, e := range file.AllEnums {
 		enums[g.relativeName(e)] = e
 	}
 
-	for _, s := range file.services {
+	for _, s := range file.Services {
 		services[g.relativeName(s)] = s
 	}
 }
 
-func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*fileDescriptor]bool, pkg *packageDescriptor, response *plugin.CodeGeneratorResponse) {
+func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*protomodel.FileDescriptor]bool, pkg *protomodel.PackageDescriptor,
+	response *plugin.CodeGeneratorResponse) {
 	// We need to produce a file for each non-hidden file in this package.
 
 	// Decide which types need to be included in the generated file.
@@ -102,12 +108,12 @@ func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*fileDescriptor]boo
 	// dependent types which are located in files that don't have
 	// a known location on the web.
 
-	for _, file := range pkg.files {
+	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
 			g.currentFrontMatterProvider = file
-			messages := make(map[string]*messageDescriptor)
-			enums := make(map[string]*enumDescriptor)
-			services := make(map[string]*serviceDescriptor)
+			messages := make(map[string]*protomodel.MessageDescriptor)
+			enums := make(map[string]*protomodel.EnumDescriptor)
+			services := make(map[string]*protomodel.ServiceDescriptor)
 
 			g.getFileContents(file, messages, enums, services)
 			var filename = path.Base(file.GetName())
@@ -120,38 +126,39 @@ func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*fileDescriptor]boo
 	}
 }
 
-func (g *htmlGenerator) generatePerPackageOutput(filesToGen map[*fileDescriptor]bool, pkg *packageDescriptor, response *plugin.CodeGeneratorResponse) {
+func (g *htmlGenerator) generatePerPackageOutput(filesToGen map[*protomodel.FileDescriptor]bool, pkg *protomodel.PackageDescriptor,
+	response *plugin.CodeGeneratorResponse) {
 	// We need to produce a file for this package.
 
 	// Decide which types need to be included in the generated file.
 	// This will be all the types in the fileToGen input files, along with any
 	// dependent types which are located in packages that don't have
 	// a known location on the web.
-	messages := make(map[string]*messageDescriptor)
-	enums := make(map[string]*enumDescriptor)
-	services := make(map[string]*serviceDescriptor)
+	messages := make(map[string]*protomodel.MessageDescriptor)
+	enums := make(map[string]*protomodel.EnumDescriptor)
+	services := make(map[string]*protomodel.ServiceDescriptor)
 
-	for _, file := range pkg.files {
+	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
 			g.getFileContents(file, messages, enums, services)
 		}
 	}
 
-	rf := g.generateFile(pkg.name, pkg.file, messages, enums, services)
+	rf := g.generateFile(pkg.Name, pkg.FileDesc(), messages, enums, services)
 	response.File = append(response.File, &rf)
 }
 
-func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) (*plugin.CodeGeneratorResponse, error) {
+func (g *htmlGenerator) generateOutput(filesToGen map[*protomodel.FileDescriptor]bool) (*plugin.CodeGeneratorResponse, error) {
 	// process each package; we produce one output file per package
 	response := plugin.CodeGeneratorResponse{}
 
-	for _, pkg := range g.model.packages {
+	for _, pkg := range g.model.Packages {
 		g.currentPackage = pkg
-		g.currentFrontMatterProvider = pkg.file
+		g.currentFrontMatterProvider = pkg.FileDesc()
 
 		// anything to output for this package?
 		count := 0
-		for _, file := range pkg.files {
+		for _, file := range pkg.Files {
 			if _, ok := filesToGen[file]; ok {
 				count++
 			}
@@ -167,51 +174,54 @@ func (g *htmlGenerator) generateOutput(filesToGen map[*fileDescriptor]bool) (*pl
 	}
 
 	if g.warningsAsErrors && g.numWarnings > 0 {
-		return nil, fmt.Errorf("treating %d warnings as errors\n", g.numWarnings)
+		return nil, fmt.Errorf("treating %d warnings as errors", g.numWarnings)
 	}
 
 	return &response, nil
 }
 
-func (g *htmlGenerator) descLocation(desc coreDesc) string {
+func (g *htmlGenerator) descLocation(desc protomodel.CoreDesc) string {
 	if g.perFile {
-		return desc.fileDesc().matter.homeLocation
+		return desc.FileDesc().Matter.HomeLocation
 	}
-	if desc.packageDesc().file != nil {
-		return desc.packageDesc().file.matter.homeLocation
+	if desc.PackageDesc().FileDesc() != nil {
+		return desc.PackageDesc().FileDesc().Matter.HomeLocation
 	}
 	return ""
 }
 
-func (g *htmlGenerator) includeUnsituatedDependencies(messages map[string]*messageDescriptor, enums map[string]*enumDescriptor, msg *messageDescriptor) {
-	for _, field := range msg.fields {
-		if m, ok := field.typ.(*messageDescriptor); ok {
+func (g *htmlGenerator) includeUnsituatedDependencies(messages map[string]*protomodel.MessageDescriptor,
+	enums map[string]*protomodel.EnumDescriptor,
+	msg *protomodel.MessageDescriptor) {
+	for _, field := range msg.Fields {
+		switch f := field.FieldType.(type) {
+		case *protomodel.MessageDescriptor:
 			// A package without a known documentation location is included in the output.
-			if g.descLocation(field.typ) == "" {
-				name := g.relativeName(m)
+			if g.descLocation(field.FieldType) == "" {
+				name := g.relativeName(f)
 				if _, ok := messages[name]; !ok {
-					messages[name] = m
+					messages[name] = f
 					g.includeUnsituatedDependencies(messages, enums, msg)
 				}
 			}
-		} else if e, ok := field.typ.(*enumDescriptor); ok {
-			if g.descLocation(field.typ) == "" {
-				enums[g.relativeName(e)] = e
+		case *protomodel.EnumDescriptor:
+			if g.descLocation(field.FieldType) == "" {
+				enums[g.relativeName(f)] = f
 			}
 		}
 	}
 }
 
 // Generate a package documentation file or a collection of cross-linked files.
-func (g *htmlGenerator) generateFile(name string, top *fileDescriptor, messages map[string]*messageDescriptor,
-	enums map[string]*enumDescriptor, services map[string]*serviceDescriptor) plugin.CodeGeneratorResponse_File {
+func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor, messages map[string]*protomodel.MessageDescriptor,
+	enums map[string]*protomodel.EnumDescriptor, services map[string]*protomodel.ServiceDescriptor) plugin.CodeGeneratorResponse_File {
 	g.buffer.Reset()
 
 	var typeList []string
 	var serviceList []string
 
 	for name, enum := range enums {
-		if enum.isHidden() {
+		if enum.IsHidden() {
 			continue
 		}
 
@@ -230,7 +240,7 @@ func (g *htmlGenerator) generateFile(name string, top *fileDescriptor, messages 
 			continue
 		}
 
-		if msg.isHidden() {
+		if msg.IsHidden() {
 			continue
 		}
 
@@ -245,7 +255,7 @@ func (g *htmlGenerator) generateFile(name string, top *fileDescriptor, messages 
 	sort.Strings(typeList)
 
 	for name, svc := range services {
-		if svc.isHidden() {
+		if svc.IsHidden() {
 			continue
 		}
 
@@ -299,27 +309,27 @@ func (g *htmlGenerator) generateFile(name string, top *fileDescriptor, messages 
 	}
 }
 
-func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) {
-	name := g.currentPackage.name
+func (g *htmlGenerator) generateFileHeader(top *protomodel.FileDescriptor, numEntries int) {
+	name := g.currentPackage.Name
 	if g.mode == htmlFragmentWithFrontMatter {
 		g.emit("---")
 
-		if top != nil && top.matter.title != "" {
-			g.emit("title: ", top.matter.title)
+		if top != nil && top.Matter.Title != "" {
+			g.emit("title: ", top.Matter.Title)
 		} else {
 			g.emit("title: ", name)
 		}
 
-		if top != nil && top.matter.overview != "" {
-			g.emit("overview: ", top.matter.overview)
+		if top != nil && top.Matter.Overview != "" {
+			g.emit("overview: ", top.Matter.Overview)
 		}
 
-		if top != nil && top.matter.description != "" {
-			g.emit("description: ", top.matter.description)
+		if top != nil && top.Matter.Description != "" {
+			g.emit("description: ", top.Matter.Description)
 		}
 
-		if top != nil && top.matter.homeLocation != "" {
-			g.emit("location: ", top.matter.homeLocation)
+		if top != nil && top.Matter.HomeLocation != "" {
+			g.emit("location: ", top.Matter.HomeLocation)
 		}
 
 		g.emit("layout: protoc-gen-docs")
@@ -328,14 +338,14 @@ func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) 
 		// emit additional custom front-matter fields
 		if g.perFile {
 			if top != nil {
-				for _, fm := range top.matter.extra {
+				for _, fm := range top.Matter.Extra {
 					g.emit(fm)
 				}
 			}
 		} else {
 			// Front matter may be in any of the package's files.
-			for _, file := range g.currentPackage.files {
-				for _, fm := range file.matter.extra {
+			for _, file := range g.currentPackage.Files {
+				for _, fm := range file.Matter.Extra {
 					g.emit(fm)
 				}
 			}
@@ -351,18 +361,18 @@ func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) 
 		g.emit("<meta charset=\"utf-8'>")
 		g.emit("<meta name=\"viewport' content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">")
 
-		if top != nil && top.matter.title != "" {
-			g.emit("<meta name=\"title\" content=\"", top.matter.title, "\">")
-			g.emit("<meta name=\"og:title\" content=\"", top.matter.title, "\">")
-			g.emit("<title>", top.matter.title, "</title>")
+		if top != nil && top.Matter.Title != "" {
+			g.emit("<meta name=\"title\" content=\"", top.Matter.Title, "\">")
+			g.emit("<meta name=\"og:title\" content=\"", top.Matter.Title, "\">")
+			g.emit("<title>", top.Matter.Title, "</title>")
 		}
 
-		if top != nil && top.matter.overview != "" {
-			g.emit("<meta name=\"description\" content=\"", top.matter.overview, "\">")
-			g.emit("<meta name=\"og:description\" content=\"", top.matter.overview, "\">")
-		} else if top != nil && top.matter.description != "" {
-			g.emit("<meta name=\"description\" content=\"", top.matter.description, "\">")
-			g.emit("<meta name=\"og:description\" content=\"", top.matter.description, "\">")
+		if top != nil && top.Matter.Overview != "" {
+			g.emit("<meta name=\"description\" content=\"", top.Matter.Overview, "\">")
+			g.emit("<meta name=\"og:description\" content=\"", top.Matter.Overview, "\">")
+		} else if top != nil && top.Matter.Description != "" {
+			g.emit("<meta name=\"description\" content=\"", top.Matter.Description, "\">")
+			g.emit("<meta name=\"og:description\" content=\"", top.Matter.Description, "\">")
 		}
 
 		if g.customStyleSheet != "" {
@@ -373,22 +383,22 @@ func (g *htmlGenerator) generateFileHeader(top *fileDescriptor, numEntries int) 
 
 		g.emit("</head>")
 		g.emit("<body>")
-		if top != nil && top.matter.title != "" {
-			g.emit("<h1>", top.matter.title, "</h1>")
+		if top != nil && top.Matter.Title != "" {
+			g.emit("<h1>", top.Matter.Title, "</h1>")
 		}
 	} else if g.mode == htmlFragment {
 		g.emit("<!-- Generated by protoc-gen-docs -->")
-		if top != nil && top.matter.title != "" {
-			g.emit("<h1>", top.matter.title, "</h1>")
+		if top != nil && top.Matter.Title != "" {
+			g.emit("<h1>", top.Matter.Title, "</h1>")
 		}
 	}
 
 	if g.perFile {
 		if top != nil {
-			g.generateComment(newLocationDescriptor(top.matter.location, top), name)
+			g.generateComment(top.Matter.Location, name)
 		}
 	} else {
-		g.generateComment(g.currentPackage.location(), name)
+		g.generateComment(g.currentPackage.Location(), name)
 	}
 }
 
@@ -399,10 +409,10 @@ func (g *htmlGenerator) generateFileFooter() {
 	}
 }
 
-func (g *htmlGenerator) generateSectionHeading(desc coreDesc) {
+func (g *htmlGenerator) generateSectionHeading(desc protomodel.CoreDesc) {
 	class := ""
-	if desc.class() != "" {
-		class = desc.class() + " "
+	if desc.Class() != "" {
+		class = desc.Class() + " "
 	}
 
 	heading := "h2"
@@ -412,7 +422,7 @@ func (g *htmlGenerator) generateSectionHeading(desc coreDesc) {
 
 	name := g.relativeName(desc)
 
-	g.emit("<", heading, " id=\"", normalizeId(name), "\">", name, "</", heading, ">")
+	g.emit("<", heading, " id=\"", normalizeID(name), "\">", name, "</", heading, ">")
 
 	if class != "" {
 		g.emit("<section class=\"", class, "\">")
@@ -425,11 +435,11 @@ func (g *htmlGenerator) generateSectionTrailing() {
 	g.emit("</section>")
 }
 
-func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
+func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 	g.generateSectionHeading(message)
-	g.generateComment(message.location(), message.GetName())
+	g.generateComment(message.Location(), message.GetName())
 
-	if len(message.fields) > 0 {
+	if len(message.Fields) > 0 {
 		g.emit("<table class=\"message-fields\">")
 		g.emit("<thead>")
 		g.emit("<tr>")
@@ -441,8 +451,8 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 		g.emit("<tbody>")
 
 		var oneof int32 = -1
-		for _, field := range message.fields {
-			if field.isHidden() {
+		for _, field := range message.Fields {
+			if field.IsHidden() {
 				continue
 			}
 
@@ -458,67 +468,46 @@ func (g *htmlGenerator) generateMessage(message *messageDescriptor) {
 				class = deprecated
 			}
 
-			if field.class() != "" {
-				class = class + field.class() + " "
+			if field.Class() != "" {
+				class = class + field.Class() + " "
 			}
 
 			if field.OneofIndex != nil {
 				if *field.OneofIndex != oneof {
-					class = class + "oneof oneof-start"
+					class += "oneof oneof-start"
 					oneof = *field.OneofIndex
 				} else {
-					class = class + "oneof"
+					class += "oneof"
 				}
 			}
 
 			if class != "" {
-				g.emit("<tr id=\"", normalizeId(g.relativeName(field)), "\" class=\"", class, "\">")
+				g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\" class=\"", class, "\">")
 			} else {
-				g.emit("<tr id=\"", normalizeId(g.relativeName(field)), "\">")
+				g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\">")
 			}
 
 			g.emit("<td><code>", fieldName, "</code></td>")
-			g.emit("<td><code>", g.linkify(field.typ, fieldTypeName), "</code></td>")
+			g.emit("<td><code>", g.linkify(field.FieldType, fieldTypeName), "</code></td>")
 			g.emit("<td>")
 
-			g.generateComment(field.location(), field.GetName())
+			g.generateComment(field.Location(), field.GetName())
 
 			g.emit("</td>")
 			g.emit("</tr>")
 		}
 		g.emit("</tbody>")
 		g.emit("</table>")
-
-		/*
-			if g.emitYAML {
-				g.emit("<br />")
-
-				g.emit("<table>")
-				g.emit("<tr><th>YAML</th></tr>")
-				g.emit("<tr><td>")
-				g.emit("<pre><code class=\"language-yaml'>")
-
-				for _, field := range message.fields {
-
-					fieldTypeName := g.fieldYAMLTypeName(field)
-					g.emit(camelCase(field.GetName()), ": ", fieldTypeName)
-				}
-
-				g.emit("</code></pre>")
-				g.emit("</td></tr>")
-				g.emit("</table>")
-			}
-		*/
 	}
 
 	g.generateSectionTrailing()
 }
 
-func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
+func (g *htmlGenerator) generateEnum(enum *protomodel.EnumDescriptor) {
 	g.generateSectionHeading(enum)
-	g.generateComment(enum.location(), enum.GetName())
+	g.generateComment(enum.Location(), enum.GetName())
 
-	if len(enum.values) > 0 {
+	if len(enum.Values) > 0 {
 		g.emit("<table class=\"enum-values\">")
 		g.emit("<thead>")
 		g.emit("<tr>")
@@ -528,8 +517,8 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 		g.emit("</thead>")
 		g.emit("<tbody>")
 
-		for _, v := range enum.values {
-			if v.isHidden() {
+		for _, v := range enum.Values {
+			if v.IsHidden() {
 				continue
 			}
 
@@ -540,19 +529,19 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 				class = deprecated
 			}
 
-			if v.class() != "" {
-				class = class + v.class() + " "
+			if v.Class() != "" {
+				class = class + v.Class() + " "
 			}
 
 			if class != "" {
-				g.emit("<tr id=\"", normalizeId(g.relativeName(v)), "\" class=\"", class, "\">")
+				g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\" class=\"", class, "\">")
 			} else {
-				g.emit("<tr id=\"", normalizeId(g.relativeName(v)), "\">")
+				g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\">")
 			}
 			g.emit("<td><code>", name, "</code></td>")
 			g.emit("<td>")
 
-			g.generateComment(v.location(), name)
+			g.generateComment(v.Location(), name)
 
 			g.emit("</td>")
 			g.emit("</tr>")
@@ -564,12 +553,12 @@ func (g *htmlGenerator) generateEnum(enum *enumDescriptor) {
 	g.generateSectionTrailing()
 }
 
-func (g *htmlGenerator) generateService(service *serviceDescriptor) {
+func (g *htmlGenerator) generateService(service *protomodel.ServiceDescriptor) {
 	g.generateSectionHeading(service)
-	g.generateComment(service.location(), service.GetName())
+	g.generateComment(service.Location(), service.GetName())
 
-	for _, method := range service.methods {
-		if method.isHidden() {
+	for _, method := range service.Methods {
+		if method.IsHidden() {
 			continue
 		}
 
@@ -578,20 +567,20 @@ func (g *htmlGenerator) generateService(service *serviceDescriptor) {
 			class = deprecated
 		}
 
-		if method.class() != "" {
-			class = class + method.class() + " "
+		if method.Class() != "" {
+			class = class + method.Class() + " "
 		}
 
 		if class != "" {
-			g.emit("<pre id=\"", normalizeId(g.relativeName(method)), "\" class=\"", class, "\"><code class=\"language-proto\">rpc ",
-				method.GetName(), "(", g.relativeName(method.input), ") returns (", g.relativeName(method.output), ")")
+			g.emit("<pre id=\"", normalizeID(g.relativeName(method)), "\" class=\"", class, "\"><code class=\"language-proto\">rpc ",
+				method.GetName(), "(", g.relativeName(method.Input), ") returns (", g.relativeName(method.Output), ")")
 		} else {
-			g.emit("<pre id=\"", normalizeId(g.relativeName(method)), "\"><code class=\"language-proto\">rpc ",
-				method.GetName(), "(", g.relativeName(method.input), ") returns (", g.relativeName(method.output), ")")
+			g.emit("<pre id=\"", normalizeID(g.relativeName(method)), "\"><code class=\"language-proto\">rpc ",
+				method.GetName(), "(", g.relativeName(method.Input), ") returns (", g.relativeName(method.Output), ")")
 		}
 		g.emit("</code></pre>")
 
-		g.generateComment(method.location(), method.GetName())
+		g.generateComment(method.Location(), method.GetName())
 	}
 
 	g.generateSectionTrailing()
@@ -607,7 +596,7 @@ func (g *htmlGenerator) emit(str ...string) {
 
 var typeLinkPattern = regexp.MustCompile(`\[[^]]*]\[[^]]*]`)
 
-func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
+func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name string) {
 	com := loc.GetLeadingComments()
 	if com == "" {
 		com = loc.GetTrailingComments()
@@ -681,7 +670,7 @@ func (g *htmlGenerator) generateComment(loc locationDescriptor, name string) {
 				linkName := match[1:end]
 				typeName := match[end+2 : len(match)-1]
 
-				if o, ok := g.model.allDescByName["."+typeName]; ok {
+				if o, ok := g.model.AllDescByName["."+typeName]; ok {
 					return g.linkify(o, linkName)
 				}
 
@@ -769,12 +758,12 @@ var wellKnownTypes = map[string]string{
 	"google.protobuf.Struct":      "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#struct",
 }
 
-func (g *htmlGenerator) linkify(o coreDesc, name string) string {
+func (g *htmlGenerator) linkify(o protomodel.CoreDesc, name string) string {
 	if o == nil {
 		return name
 	}
 
-	if msg, ok := o.(*messageDescriptor); ok && msg.GetOptions().GetMapEntry() {
+	if msg, ok := o.(*protomodel.MessageDescriptor); ok && msg.GetOptions().GetMapEntry() {
 		return name
 	}
 
@@ -783,32 +772,32 @@ func (g *htmlGenerator) linkify(o coreDesc, name string) string {
 		return "<a href=\"" + known + "\">" + name + "</a>"
 	}
 
-	if !o.isHidden() {
+	if !o.IsHidden() {
 		// is there a file-specific home location?
-		loc := o.fileDesc().matter.homeLocation
+		loc := o.FileDesc().Matter.HomeLocation
 
 		// if there isn't a file-specific home location, see if there's a package-wide location
-		if loc == "" && o.packageDesc().file != nil {
-			loc = o.packageDesc().file.matter.homeLocation
+		if loc == "" && o.PackageDesc().FileDesc() != nil {
+			loc = o.PackageDesc().FileDesc().Matter.HomeLocation
 		}
 
-		if loc != "" && (g.currentFrontMatterProvider == nil || loc != g.currentFrontMatterProvider.matter.homeLocation) {
-			return "<a href=\"" + loc + "#" + normalizeId(dottedName(o)) + "\">" + name + "</a>"
+		if loc != "" && (g.currentFrontMatterProvider == nil || loc != g.currentFrontMatterProvider.Matter.HomeLocation) {
+			return "<a href=\"" + loc + "#" + normalizeID(protomodel.DottedName(o)) + "\">" + name + "</a>"
 		}
 	}
 
-	return "<a href=\"#" + normalizeId(g.relativeName(o)) + "\">" + name + "</a>"
+	return "<a href=\"#" + normalizeID(g.relativeName(o)) + "\">" + name + "</a>"
 }
 
-func (g *htmlGenerator) warn(loc locationDescriptor, lineOffset int, format string, args ...interface{}) {
+func (g *htmlGenerator) warn(loc protomodel.LocationDescriptor, lineOffset int, format string, args ...interface{}) {
 	if g.genWarnings {
 		place := ""
 		if loc.SourceCodeInfo_Location != nil && len(loc.Span) >= 2 {
 
 			if lineOffset < 0 {
-				place = fmt.Sprintf("%s:%d: ", loc.file.GetName(), loc.Span[0]+int32(lineOffset)+1)
+				place = fmt.Sprintf("%s:%d: ", loc.File.GetName(), loc.Span[0]+int32(lineOffset)+1)
 			} else {
-				place = fmt.Sprintf("%s:%d:%d: ", loc.file.GetName(), loc.Span[0]+1, loc.Span[1]+1)
+				place = fmt.Sprintf("%s:%d:%d: ", loc.File.GetName(), loc.Span[0]+1, loc.Span[1]+1)
 			}
 		}
 
@@ -817,21 +806,21 @@ func (g *htmlGenerator) warn(loc locationDescriptor, lineOffset int, format stri
 	}
 }
 
-func (g *htmlGenerator) relativeName(desc coreDesc) string {
-	typeName := dottedName(desc)
-	if desc.packageDesc() == g.currentPackage {
+func (g *htmlGenerator) relativeName(desc protomodel.CoreDesc) string {
+	typeName := protomodel.DottedName(desc)
+	if desc.PackageDesc() == g.currentPackage {
 		return typeName
 	}
 
-	return desc.packageDesc().name + "." + typeName
+	return desc.PackageDesc().Name + "." + typeName
 }
 
-func (g *htmlGenerator) absoluteName(desc coreDesc) string {
-	typeName := dottedName(desc)
-	return desc.packageDesc().name + "." + typeName
+func (g *htmlGenerator) absoluteName(desc protomodel.CoreDesc) string {
+	typeName := protomodel.DottedName(desc)
+	return desc.PackageDesc().Name + "." + typeName
 }
 
-func (g *htmlGenerator) fieldTypeName(field *fieldDescriptor) string {
+func (g *htmlGenerator) fieldTypeName(field *protomodel.FieldDescriptor) string {
 	name := "n/a"
 	switch *field.Type {
 	case descriptor.FieldDescriptorProto_TYPE_DOUBLE:
@@ -859,34 +848,34 @@ func (g *htmlGenerator) fieldTypeName(field *fieldDescriptor) string {
 		name = "string"
 
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-		msg := field.typ.(*messageDescriptor)
+		msg := field.FieldType.(*protomodel.MessageDescriptor)
 		if msg.GetOptions().GetMapEntry() {
-			keyType := g.fieldTypeName(msg.fields[0])
-			valType := g.linkify(msg.fields[1].typ, g.fieldTypeName(msg.fields[1]))
+			keyType := g.fieldTypeName(msg.Fields[0])
+			valType := g.linkify(msg.Fields[1].FieldType, g.fieldTypeName(msg.Fields[1]))
 			return "map&lt;" + keyType + ",&nbsp;" + valType + "&gt;"
 		}
-		name = g.relativeName(field.typ)
+		name = g.relativeName(field.FieldType)
 
 	case descriptor.FieldDescriptorProto_TYPE_BYTES:
 		name = "bytes"
 
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
-		name = g.relativeName(field.typ)
+		name = g.relativeName(field.FieldType)
 	}
 
-	if field.isRepeated() {
-		name = name + "[]"
+	if field.IsRepeated() {
+		name += "[]"
 	}
 
 	if field.OneofIndex != nil {
-		name = name + " (oneof)"
+		name += " (oneof)"
 	}
 
 	return name
 }
 
 /* TODO
-func (g *htmlGenerator) fieldYAMLTypeName(field *fieldDescriptor) string {
+func (g *htmlGenerator) fieldYAMLTypeName(field *FieldDescriptor) string {
 	name := "n/a"
 	switch *field.Type {
 	case descriptor.FieldDescriptorProto_TYPE_DOUBLE:
@@ -914,7 +903,7 @@ func (g *htmlGenerator) fieldYAMLTypeName(field *fieldDescriptor) string {
 		name = "string"
 
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-		msg := field.typ.(*messageDescriptor)
+		msg := field.typ.(*MessageDescriptor)
 		if msg.GetOptions().GetMapEntry() {
 			keyType := g.fieldTypeName(msg.fields[0])
 			valType := g.linkify(msg.fields[1].typ, g.fieldTypeName(msg.fields[1]))
@@ -952,7 +941,7 @@ func camelCase(s string) string {
 	return b.String()
 }
 
-func normalizeId(id string) string {
+func normalizeID(id string) string {
 	id = strings.Replace(id, " ", "-", -1)
 	return strings.Replace(id, ".", "-", -1)
 }

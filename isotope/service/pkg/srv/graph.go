@@ -20,7 +20,9 @@ import (
 	"math/rand"
 
 	"github.com/ghodss/yaml"
-	"istio.io/fortio/log"
+
+	"fortio.org/fortio/log"
+
 	"istio.io/tools/isotope/convert/pkg/graph"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
@@ -41,7 +43,7 @@ func HandlerFromServiceGraphYAML(
 	if err != nil {
 		return Handler{}, err
 	}
-	logService(service)
+	_ = logService(service)
 
 	serviceTypes := extractServiceTypes(serviceGraph)
 

@@ -8,6 +8,8 @@ NAMESPACE="twopods"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
+LINKERD_INJECT="${LINKERD_INJECT:-'disabled'}"
+echo "linkerd inject is ${LINKERD_INJECT}"
 
 mkdir -p "${TMPDIR}"
 
@@ -24,12 +26,12 @@ function run_test() {
   helm -n ${NAMESPACE} template \
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set includeOutboundIPRanges=$(svc_ip_range) \
+      --set injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
           . > ${TMPDIR}/twopods.yaml
   echo "Wrote ${TMPDIR}/twopods.yaml"
 
   # remove stdio rules
-  kubectl --namespace istio-system delete rules stdio stdiotcp || true
   kubectl apply -n ${NAMESPACE} -f ${TMPDIR}/twopods.yaml
   echo ${TMPDIR}/twopods.yaml
 }

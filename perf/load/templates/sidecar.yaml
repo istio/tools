@@ -7,3 +7,5 @@ spec:
   - hosts:
     - "./*"
     - "istio-system/*"
+    - "istio-telemetry/*"
+    - "istio-policy/*"

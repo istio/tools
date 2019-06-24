@@ -8,6 +8,15 @@ WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
 
 release="${1:?"release"}"
+
+if [[ "${release}" == *-latest ]];then
+  release=$(curl -f -L https://storage.googleapis.com/istio-prerelease/daily-build/${release}.txt)
+  if [[ $? -ne 0 ]];then
+    echo "${release} branch does not exist"
+    exit 1
+  fi
+fi
+
 shift
 
 function download() {
@@ -21,10 +30,15 @@ function download() {
   local outfile="${DIRNAME}/istio-${release}.tgz"
 
   if [[ ! -f "${outfile}" ]]; then
-    wget -O "${outfile}" "${url}"
+    curl -JLo "${outfile}" "${url}"
   fi
 
   echo "${outfile}"
+}
+
+function trim(){
+    [[ "$1" =~ [^[:space:]](.*[^[:space:]])? ]]
+    printf "%s" "$BASH_REMATCH"
 }
 
 function setup_admin_binding() {
@@ -38,6 +52,7 @@ function install_istio() {
   local release="${2:?"release"}"
 
   local outfile="$(download ${DIRNAME} ${release})"
+  outfile=$(trim $outfile);
 
   if [[ ! -d "${DIRNAME}/${release}" ]];then
       DN=$(mktemp -d)
@@ -73,16 +88,22 @@ function install_istio() {
 
 
   local values=${VALUES:-values.yaml}
+  local extravalues=${EXTRA_VALUES:-""}
+  if [[ ${extravalues} != "" ]]; then
+    extravalues="--values ${extravalues}"
+  fi
 
   helm template --name istio --namespace istio-system \
        ${opts} \
        --values ${values} \
+       ${extravalues} \
        "${DIRNAME}/${release}/istio" > "${FILENAME}"
 
   if [[ -z "${DRY_RUN}" ]];then
       kubectl apply -f "${FILENAME}"
-
-      "$WD/setup_prometheus.sh" ${DIRNAME}
+      if [[ -z "${SKIP_PROMETHEUS}" ]];then
+          "$WD/setup_prometheus.sh" ${DIRNAME}
+      fi
   fi
 
   echo "Wrote file ${FILENAME}"

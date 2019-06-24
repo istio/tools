@@ -19,6 +19,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
+
 	"istio.io/tools/isotope/convert/pkg/graph"
 	"istio.io/tools/isotope/convert/pkg/graphviz"
 )
