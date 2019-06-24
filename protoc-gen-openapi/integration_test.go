@@ -24,61 +24,98 @@ import (
 	"testing"
 )
 
+const goldenDir = "testdata/golden/"
+
 func TestOpenAPIGeneration(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "openapi-temp")
-	if err != nil {
-		t.Fatal(err)
+	var testcases = []struct {
+		name       string
+		perPackage bool
+		genOpts    string
+		wantFiles  []string
+	}{
+		{
+			name:       "Per Package Generation",
+			perPackage: true,
+			genOpts:    "",
+			wantFiles:  []string{"testpkg.json", "testpkg2.json"},
+		},
+		{
+			name:       "Single File Generation",
+			perPackage: false,
+			genOpts:    "single_file=true",
+			wantFiles:  []string{"openapiv3.json"},
+		},
+		{
+			name:       "Use $ref in the output",
+			perPackage: false,
+			genOpts:    "single_file=true,use_ref=true",
+			wantFiles:  []string{"testRef/openapiv3.json"},
+		},
 	}
-	defer os.RemoveAll(tempDir)
 
-	// we assume that the package name is the same as the name of the folder containing the proto files.
-	packages := make(map[string][]string)
-	err = filepath.Walk("testdata", func(path string, info os.FileInfo, err error) error {
-		if strings.HasSuffix(path, ".proto") {
-			dir := filepath.Dir(path)
-			packages[dir] = append(packages[dir], path)
-		}
-		return nil
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for _, files := range packages {
-		args := []string{"-Itestdata", "--openapi_out=mode=true:" + tempDir}
-		args = append(args, files...)
-		protocOpenAPI(t, args)
-	}
-
-	// find the golden files in the test directories and compare with the generated files.
-	err = filepath.Walk("testdata", func(path string, info os.FileInfo, err error) error {
-		if strings.HasSuffix(path, ".json") {
-			filename := info.Name()
-			genPath := filepath.Join(tempDir, filename)
-			got, err := ioutil.ReadFile(genPath)
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			tempDir, err := ioutil.TempDir("", "openapi-temp")
 			if err != nil {
-				t.Errorf("error reading the generated file: %v", err)
-				return nil
+				t.Fatal(err)
 			}
+			defer os.RemoveAll(tempDir)
 
-			want, err := ioutil.ReadFile(path)
+			// we assume that the package name is the same as the name of the folder containing the proto files.
+			packages := make(map[string][]string)
+			err = filepath.Walk("testdata", func(path string, info os.FileInfo, err error) error {
+				if strings.HasSuffix(path, ".proto") {
+					dir := filepath.Dir(path)
+					packages[dir] = append(packages[dir], path)
+				}
+				return nil
+			})
 			if err != nil {
-				t.Errorf("error reading the golden file: %v", err)
+				t.Fatal(err)
 			}
 
-			if bytes.Equal(got, want) {
-				return nil
+			if tc.perPackage {
+				for _, files := range packages {
+					args := []string{"-Itestdata", "--openapi_out=" + tc.genOpts + ":" + tempDir}
+					args = append(args, files...)
+					protocOpenAPI(t, args)
+				}
+			} else {
+				args := []string{"-Itestdata", "--openapi_out=" + tc.genOpts + ":" + tempDir}
+				for _, files := range packages {
+					args = append(args, files...)
+				}
+				protocOpenAPI(t, args)
 			}
 
-			cmd := exec.Command("diff", "-u", path, genPath)
-			out, _ := cmd.CombinedOutput()
-			t.Errorf("golden file differs: %v\n%v", path, string(out))
-			return nil
-		}
-		return nil
-	})
-	if err != nil {
-		t.Fatal(err)
+			// get the golden file and compare with the generated files.
+			for _, file := range tc.wantFiles {
+				wantPath := goldenDir + file
+				// we are looking for the same file name in the generated path
+				genPath := filepath.Join(tempDir, filepath.Base(wantPath))
+				got, err := ioutil.ReadFile(genPath)
+				if err != nil {
+					if os.IsNotExist(err) {
+						t.Fatalf("expected generated file %v does not exist: %v", genPath, err)
+					} else {
+						t.Errorf("error reading the generated file: %v", err)
+					}
+				}
+
+				want, err := ioutil.ReadFile(wantPath)
+				if err != nil {
+					t.Errorf("error reading the golden file: %v", err)
+				}
+
+				if bytes.Equal(got, want) {
+					return
+				}
+
+				cmd := exec.Command("diff", "-u", wantPath, genPath)
+				out, _ := cmd.CombinedOutput()
+				t.Errorf("golden file differs: %v\n%v", filepath.Base(wantPath), string(out))
+			}
+		})
 	}
 }
 
