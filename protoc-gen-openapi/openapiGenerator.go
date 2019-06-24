@@ -74,7 +74,6 @@ func (g *openapiGenerator) generateOutput(filesToGen map[*protomodel.FileDescrip
 	} else {
 		for _, pkg := range g.model.Packages {
 			g.currentPackage = pkg
-			g.currentFrontMatterProvider = pkg.FileDesc()
 
 			// anything to output for this package?
 			count := 0
@@ -119,6 +118,7 @@ func (g *openapiGenerator) generatePerFileOutput(filesToGen map[*protomodel.File
 
 	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
+			g.currentFrontMatterProvider = file
 			messages := make(map[string]*protomodel.MessageDescriptor)
 			enums := make(map[string]*protomodel.EnumDescriptor)
 			services := make(map[string]*protomodel.ServiceDescriptor)
@@ -162,6 +162,8 @@ func (g *openapiGenerator) generatePerPackageOutput(filesToGen map[*protomodel.F
 	enums := make(map[string]*protomodel.EnumDescriptor)
 	services := make(map[string]*protomodel.ServiceDescriptor)
 
+	g.currentFrontMatterProvider = pkg.FileDesc()
+
 	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
 			g.getFileContents(file, messages, enums, services)
@@ -199,13 +201,25 @@ func (g *openapiGenerator) generateFile(name string,
 	}
 
 	var version string
+	var description string
 	// only get the API version when generate per package or per file,
 	// as we cannot guarantee all protos in the input are the same version.
 	if !g.singleFile {
+		if g.currentFrontMatterProvider != nil {
+			if fmd := g.currentFrontMatterProvider.Matter.Description; fmd != "" {
+				description = fmd
+			}
+		} else if pd := g.generateDescription(g.currentPackage); pd != "" {
+			description = pd
+		} else {
+			description = "OpenAPI Spec for Istio APIs."
+		}
 		// derive the API version from the package name
 		// which is a convention for Istio APIs.
 		s := strings.Split(name, ".")
 		version = s[len(s)-1]
+	} else {
+		description = "OpenAPI Spec for Istio APIs."
 	}
 
 	c := openapi3.NewComponents()
@@ -214,7 +228,7 @@ func (g *openapiGenerator) generateFile(name string,
 	o := openapi3.Swagger{
 		OpenAPI: "3.0.1",
 		Info: openapi3.Info{
-			Title:   "OpenAPI Spec for Istio APIs.",
+			Title:   description,
 			Version: version,
 		},
 		Components: c,

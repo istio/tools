@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "OpenAPI Spec for Istio APIs.",
+    "title": "My Overview",
     "version": "testpkg"
   },
   "components": {
