@@ -32,11 +32,19 @@ import (
 )
 
 // Some special types with predefined schemas.
-var specialTypes = map[string]*openapi3.Schema{
+var specialTypes = map[string]openapi3.Schema{
 	"google.protobuf.Struct": {
 		Properties: map[string]*openapi3.SchemaRef{
 			"fields": {
-				Value: openapi3.NewObjectSchema().WithAnyAdditionalProperties()},
+				Value: openapi3.NewObjectSchema().WithAnyAdditionalProperties(),
+			},
+		},
+	},
+	"google.protobuf.ListValue": {
+		Properties: map[string]*openapi3.SchemaRef{
+			"values": {
+				Value: openapi3.NewArraySchema().WithItems(openapi3.NewObjectSchema()),
+			},
 		},
 	},
 }
@@ -128,7 +136,7 @@ func (g *openapiGenerator) generatePerFileOutput(filesToGen map[*protomodel.File
 			extension := path.Ext(filename)
 			name := filename[0 : len(filename)-len(extension)]
 
-			rf := g.generateFile(pkg.Name+"."+name, file, messages, enums, services)
+			rf := g.generateFile(name, file, messages, enums, services)
 			response.File = append(response.File, &rf)
 		}
 	}
@@ -362,7 +370,7 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *openapi
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 		msg := field.FieldType.(*protomodel.MessageDescriptor)
 		if s, ok := specialTypes[g.absoluteName(msg)]; ok {
-			schema = s
+			schema = &s
 		} else if msg.GetOptions().GetMapEntry() {
 			isMap = true
 			sr := g.fieldTypeRef(msg.Fields[1])
