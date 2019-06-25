@@ -69,6 +69,18 @@ jobs:
           name: Running unit tests
           command: go test -race ./...
 
+  fmtpy:
+    docker:
+      - image: gcr.io/istio-testing/circleci:2019-06-13
+    working_directory: /go/src/istio.io/tools
+    environment:
+      GO111MODULE: "on"
+    steps:
+      - checkout
+      - run:
+          name: fmtpy
+          command: make fmtpy-checkonly
+
 workflows:
   version: 2
   nightly:
