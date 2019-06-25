@@ -23,6 +23,14 @@ import (
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
+type CommandType string
+
+const (
+	Static       CommandType = "static"
+	Histogram    CommandType = "histogram"
+	Distribution CommandType = "dist"
+)
+
 type SleepCommandStatic struct {
 	Time time.Duration `json:"time"`
 }
@@ -32,7 +40,6 @@ func (c SleepCommandStatic) Duration() time.Duration {
 }
 
 type SleepCommandDistribution struct {
-	Type string
 	Dist interface {
 		Rand() float64
 	}
@@ -56,12 +63,12 @@ func (c SleepCommandHistogram) Duration() time.Duration {
 }
 
 type SleepCommandWrapper struct {
-	Type string `json:"type"`
+	Type CommandType `json:"type"`
 	Data json.RawMessage
 }
 
 type SleepCommand struct {
-	Type string
+	Type CommandType
 	Data interface {
 		Duration() time.Duration
 	}
@@ -76,7 +83,7 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 	}
 
 	switch command.Type {
-	case "static":
+	case Static:
 		var cmd map[string]interface{}
 		err = json.Unmarshal(command.Data, &cmd)
 
@@ -93,7 +100,7 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 
 		*c = SleepCommand{command.Type, staticCmd}
 
-	case "dist":
+	case Distribution:
 		var cmd map[string]interface{}
 		err = json.Unmarshal(command.Data, &cmd)
 
@@ -109,7 +116,7 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 			}
 
 			var distCmd SleepCommandDistribution
-			distCmd.Type = cmd["dist"].(string)
+			// distCmd.Type = cmd["dist"].(string)
 			distCmd.Dist = dist
 			*c = SleepCommand{command.Type, distCmd}
 		case "lognormal":
@@ -119,11 +126,11 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 			}
 
 			var distCmd SleepCommandDistribution
-			distCmd.Type = cmd["dist"].(string)
+			// distCmd.Type = cmd["dist"].(string)
 			distCmd.Dist = dist
 			*c = SleepCommand{command.Type, distCmd}
 		}
-	case "histogram":
+	case Histogram:
 		var probDistribution map[string]int
 		err = json.Unmarshal(command.Data, &probDistribution)
 

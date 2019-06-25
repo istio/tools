@@ -53,7 +53,7 @@ func TestConcurrentCommand_UnmarshalJSON(t *testing.T) {
 			[]byte(`[{"call": "A"}, {"sleep": {"type":"dist","data":{"dist":"normal", "mean":1.0, "sigma":0.25}}}]`),
 			ConcurrentCommand{
 				RequestCommand{ServiceName: "A"},
-				SleepCommand{"dist", SleepCommandDistribution{"normal", distuv.Normal{Mu: 1.0, Sigma: 0.25}}},
+				SleepCommand{"dist", SleepCommandDistribution{distuv.Normal{Mu: 1.0, Sigma: 0.25}}},
 			},
 			nil,
 		},
