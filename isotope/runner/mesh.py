@@ -83,5 +83,5 @@ def for_state(name: str, entrypoint_service_name: str,
 
 
 def _do_nothing():
-    print ("empty teardown")
+    print("empty teardown")
     pass

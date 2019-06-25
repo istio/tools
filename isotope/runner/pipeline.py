@@ -9,7 +9,7 @@ from typing import Dict, Generator, Optional
 import requests
 
 from . import consts, entrypoint, istio, kubectl, md5, mesh, prometheus, \
-              resources, sh, wait
+    resources, sh, wait
 
 _REPO_ROOT = os.path.join(os.getcwd(),
                           os.path.dirname(os.path.dirname(__file__)))
@@ -48,9 +48,9 @@ def run(topology_path: str, env: mesh.Environment, service_image: str,
         **static_labels,
     }
     if deploy_prometheus:
-      prometheus.apply(
-          labels,
-          intermediate_file_path=resources.PROMETHEUS_VALUES_GEN_YAML_PATH)
+        prometheus.apply(
+            labels,
+            intermediate_file_path=resources.PROMETHEUS_VALUES_GEN_YAML_PATH)
 
     with env.context() as ingress_url:
         logging.info('starting test with environment "%s"', env.name)
