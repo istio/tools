@@ -35,7 +35,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ResponseSize: "10KiB",
 				Steps: [][]string{
 					{
-						"SLEEP 100ms",
+						"SLEEP {\"Type\":\"static\",\"Data\":{\"time\":100000000}}",
 					},
 				},
 			},
@@ -71,7 +71,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 						"CALL \"c\" 1KiB",
 					},
 					{
-						"SLEEP 10ms",
+						"SLEEP {\"Type\":\"static\",\"Data\":{\"time\":10000000}}",
 					},
 					{
 						"CALL \"b\" 1KiB",

@@ -16,10 +16,7 @@ package script
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/jmcvetta/randutil"
@@ -161,46 +158,11 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 }
 
 func (c SleepCommand) String() string {
-	switch c.Type {
-	case "static":
-		return c.Data.Duration().String()
-	case "dist":
-		dist := c.Data.(SleepCommandDistribution)
+	res, err := json.Marshal(c)
 
-		switch dist.Type {
-		case "normal":
-			mean := fmt.Sprintf("%f", (dist.Dist.(distuv.Normal).Mu))
-			sigma := fmt.Sprintf("%f", (dist.Dist.(distuv.Normal).Sigma))
-			return fmt.Sprintf("Distribution: Normal {Mean: %s, Sigma: %s}", mean, sigma)
-		case "lognormal":
-			mean := fmt.Sprintf("%f", (dist.Dist.(distuv.LogNormal).Mu))
-			sigma := fmt.Sprintf("%f", (dist.Dist.(distuv.LogNormal).Sigma))
-			return fmt.Sprintf("Distribution: LogNormal {Mean: %s, Sigma: %s}", mean, sigma)
-		}
-
-	case "histogram":
-		Histogram := c.Data.(SleepCommandHistogram).Histogram
-		var str strings.Builder
-
-		str.WriteString("Histogram: ")
-
-		for idx, item := range Histogram {
-			duration := item.Item.(time.Duration)
-			weight := item.Weight
-
-			str.WriteString("{")
-			str.WriteString(strconv.Itoa(weight))
-			str.WriteString(",")
-			str.WriteString(duration.String())
-			str.WriteString("}")
-
-			if idx+1 < len(Histogram) {
-				str.WriteString(" ")
-			}
-		}
-
-		return str.String()
+	if err != nil {
+		log.Fatalf("%s", err)
 	}
 
-	return "Error: Incorrect sleep command type"
+	return string(res)
 }
