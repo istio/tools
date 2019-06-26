@@ -12,33 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package process
 
 import (
-	"log"
-	"os"
-	"path"
-
-	parser "istio.io/tools/tratis/service/parsing"
-	"istio.io/tools/tratis/service/pkg/consts"
+	"istio.io/tools/tratis/service/parsing/pkg/tag"
 )
 
-var (
-	ApplicationTraceJSONFilePath = path.Join(
-		consts.ConfigPath, consts.ApplicationTraceJSONFileName)
-)
-
-func main() {
-	TracingToolName, ok := os.LookupEnv(consts.TracingToolEnvKey)
-	if !ok {
-		log.Fatalf(`env var "%s" is not set`, consts.TracingToolEnvKey)
-	}
-
-	_, err := parser.ParseJSON(ApplicationTraceJSONFilePath,
-		TracingToolName)
-
-	if err != nil {
-		log.Fatalf(`trace file "%s" is not correctly formatted`,
-			ApplicationTraceJSONFilePath)
-	}
+type Process struct {
+	ServiceName string  `json:"serviceName"`
+	Tags        tag.Tag `json:"tags"`
 }

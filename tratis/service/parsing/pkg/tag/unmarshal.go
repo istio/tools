@@ -12,33 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package tag
 
 import (
-	"log"
-	"os"
-	"path"
-
-	parser "istio.io/tools/tratis/service/parsing"
-	"istio.io/tools/tratis/service/pkg/consts"
+	"encoding/json"
+	"fmt"
 )
 
-var (
-	ApplicationTraceJSONFilePath = path.Join(
-		consts.ConfigPath, consts.ApplicationTraceJSONFileName)
-)
-
-func main() {
-	TracingToolName, ok := os.LookupEnv(consts.TracingToolEnvKey)
-	if !ok {
-		log.Fatalf(`env var "%s" is not set`, consts.TracingToolEnvKey)
-	}
-
-	_, err := parser.ParseJSON(ApplicationTraceJSONFilePath,
-		TracingToolName)
+func (tag *Tag) UnmarshalJSON(b []byte) (err error) {
+	var tagData unmarshableTag
+	err = json.Unmarshal(b, &tagData)
 
 	if err != nil {
-		log.Fatalf(`trace file "%s" is not correctly formatted`,
-			ApplicationTraceJSONFilePath)
+		fmt.Println(err)
+		return
 	}
+
+	*tag = Tag(tagData)
+
+	return
 }
+
+type unmarshableTag Tag
