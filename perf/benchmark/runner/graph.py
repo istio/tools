@@ -1,0 +1,169 @@
+from bokeh.plotting import figure, output_file, show
+import pandas as pd
+import os
+import numpy as np
+from bokeh.io import output_notebook
+from bokeh.models import ColumnDataSource, HoverTool
+from bokeh.models.tools import CustomJSHover
+from bokeh.palettes import Dark2_5 as palette
+import itertools #for cycling through colors 
+from bokeh.models import Legend
+import sys
+import argparse 
+
+
+# generate_chart displays numthreads vs. metric, writes to interactive HTML
+def generate_chart(mesh, csv, x_label, y_label_short):
+    print("Generating chart, x_label=%s, y_label=%s, csv=%s ..." % (x_label, y_label_short, csv))
+
+    # valid options = latency, memory, cpu
+    valid_metrics = {"p50": "p50", 
+                    "p90": "p90", 
+                    "p99": "p99", 
+                    "mem": "mem_MB_max_fortioserver_deployment_proxy", 
+                    "cpu": "cpu_mili_max_fortioserver_deployment_proxy"}
+
+    if y_label_short is None:
+        sys.exit('need metric')
+    if y_label_short not in valid_metrics: 
+        sys.exit("invalid metric")
+    if csv is None:
+        sys.exit('need CSV file') 
+    
+    y_label = valid_metrics[y_label_short] #the CSV label
+
+    # 1. read CSV to pandas dataframe 
+    df = pd.read_csv(csv, index_col=None, header=0)
+    df["Labels"] = [ x.split('_', 6)[-1] for x in df['Labels']]
+
+    # 2. generate series to plot (x= numthreads or qps, y=y_) 
+    x_series, y_series = get_series(df, x_label, y_label) 
+
+    # 3. generate title 
+    qps=df.at[0, 'ActualQPS'] 
+    seconds=df.at[0, 'ActualDuration']  
+    threads=df.at[0, 'NumThreads']  
+
+    if x_label == "connections": #option 1 -- constant QPS, numthreads x metric 
+        title="{} {}, {} QPS over {} seconds".format(mesh, y_label_short, qps, seconds)
+    else: # option 2 -- constant numthreads, QPS x metric 
+        title="{} {}, {} threads over {} seconds".format(mesh, y_label_short, threads, seconds)
+
+
+    # 4. prep file-write 
+    fn = "".join(title.split())
+    f = "/tmp/" + fn + ".html" 
+    output_file(f) 
+
+    # 5. create chart -> save as interactive HTML 
+    p = build_chart(title, x_label, x_series, y_label, y_label_short, y_series)
+    show(p)
+    print("HTML graph saved at %s" %  f)
+
+
+# get_series processes x_label metric / y-axis metric for different test modes (both, serveronly, etc.)
+def get_series(df, x_label, metric): 
+
+    # map CSV label regex --> cleaner labels for graph legend 
+    modes = {'^serveronly': 'serveronly', 
+            "nomix.*_serveronly": "nomixer_serveronly", 
+            "nomix.*_both": "nomixer_both", 
+            "base": "base", 
+            "^both": "both"}
+
+
+    # get y axis 
+    series = {}
+    for m, k in modes.items():
+        rows = df[df.Labels.str.contains(m)]
+        vals = list(rows[metric]) 
+
+        # if y-axis metric is latency, convert microseconds to milliseconds 
+        if metric.startswith("p"):
+            print("converting CSV microseconds to milliseconds...")
+            vals = [v/1000 for v in vals]
+        # reverse to match sorted numthreads, below
+        vals.reverse()
+        series[k] = vals 
+
+    # only include test modes that were in the input CSV - (if nomixer not included, don't attempt to plot it)
+    useries = {}
+    for k, v in series.items():
+        if len(v) > 0: 
+            useries[k] = v 
+    y = useries 
+
+    # get x axis 
+    if x_label=="connections":
+        x = list(rows.NumThreads)
+    elif x_label=="qps": 
+        x = list(rows.ActualQPS)
+    else:
+        sys.exit("Error: x_label must be one of: connections,qps")
+
+    x.sort() # sort to increasing order  
+    return x, y 
+
+# build_chart creates a bokeh.js plot from data 
+def build_chart(title, x_label, x_series, y_label, y_label_short, y_series): 
+    # generate y-axis label with units 
+    print(y_label)
+    if y_label.startswith('p'):
+        y_axis_label = metric = " latency, milliseconds"
+    else:
+        if y_label.startswith('mem'):
+            y_axis_label = "max memory usage, server proxy (MB)"
+        else:
+            y_axis_label = "max CPUs, server proxy (millicores)" 
+
+    # show metric value on hover
+    TOOLTIPS = [(y_label_short, '$data_y')]
+
+    # create plot 
+    p = figure(
+        tools="pan,box_zoom,reset,save",
+        title=title,
+        tooltips=TOOLTIPS,
+        plot_width=1000, plot_height=600,
+        x_axis_label=x_label, y_axis_label=y_axis_label  
+    )
+
+    # format axes 
+    p.title.text_font_size = '22pt'
+    p.xaxis.minor_tick_line_color = None  # turn off x-axis minor ticks
+    p.yaxis.minor_tick_line_color = None  # turn off y-axis minor ticks
+    p.xaxis.axis_label_text_font_size = "15pt"
+    p.yaxis.axis_label_text_font_size = "15pt"
+    p.xaxis.major_label_text_font_size = "13pt"
+    p.yaxis.major_label_text_font_size = "13pt"
+    p.xaxis.ticker = x_series  # x (qps, numthreads) is a discrete variable
+
+    # use a different color for each series (both, baseline, etc.)
+    colors = itertools.cycle(palette) 
+    for mode, val in y_series.items(): 
+        col = next(colors)
+        p.line(x_series, val, line_color=col)
+        p.circle(x_series, val, legend=mode, size=10, fill_color=col)
+
+    p.legend.location = "top_left"
+
+    return p
+
+
+def main(argv):
+    args = getParser().parse_args(argv)
+    return generate_chart(args.mesh, args.csv, args.xaxis, args.metric) 
+
+
+def getParser():
+    parser = argparse.ArgumentParser("Service Mesh Performance Graph Generator")
+    parser.add_argument("csv", help="csv file", default="")
+    parser.add_argument("--xaxis", help="one of: connections, qps", default="connections")
+    parser.add_argument("metric", help="y-axis: one of: p50, p90, p99, mem, cpu", default="")
+    parser.add_argument("--mesh", help="which service mesh tool: istio, linkerd", default="istio")
+    return parser
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main(sys.argv[1:]))

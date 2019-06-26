@@ -1,13 +1,10 @@
 apiVersion: v1
-name: sds citadel tests
+name: istioChaosTotal
 version: 1.0
-description: Helm chart for sds citadel tests
+description: Helm chart for istio chaos test
 keywords:
   - istio
-  - citadel
-  - sds
   - performance
-  - qualification
 sources:
   - http://github.com/istio/istio
 engine: gotpl
