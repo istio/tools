@@ -63,6 +63,10 @@ function gc() {
   gcloud $*
 }
 
+ADDONS="HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard"
+if [[ ! -z "${ISTIO_ADDON}" ]];then
+  ADDONS+=",Istio"
+fi
 gc beta container \
   --project "${PROJECT_ID}" \
   clusters create "${CLUSTER_NAME}" \
@@ -74,5 +78,5 @@ gc beta container \
   --enable-stackdriver-kubernetes \
   --enable-ip-alias --create-subnetwork name="${CLUSTER_NAME}-subnet" \
   --default-max-pods-per-node "${MAXPODS_PER_NODE}" \
-  --addons HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard \
+  --addons "${ADDONS}" \
   --enable-network-policy --enable-autoupgrade --enable-autorepair --labels test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
