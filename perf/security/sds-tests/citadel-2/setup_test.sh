@@ -31,6 +31,24 @@ function inject_workload() {
   # Istio auto sidecar injector is not enabled.
   $WD/istio-${RELEASE}/bin/istioctl kube-inject -f "${deployfile}" -o temp-workload-injected.yaml
   kubectl apply -n ${NAMESPACE} -f temp-workload-injected.yaml --cluster ${CLUSTER}
+
+  echo "Wait 90 seconds for the deployment to be ready ..."
+  sleep 90
+}
+
+function rotate_deployment() {
+  local deployfile="${1:?"please specify the workload deployment file"}"
+
+  ROTATE_WORKLOAD_YAML="rotate_workload_deploy.yaml"
+
+  helm -n ${NAMESPACE} template \
+	  --set Cluster="${CLUSTER}" \
+    --set Namespace="${NAMESPACE}" \
+    --set DeployYaml="${deployfile}" \
+          . > "${ROTATE_WORKLOAD_YAML}"
+  echo "Wrote ${ROTATE_WORKLOAD_YAML}"
+
+  kubectl apply -n ${NAMESPACE} -f ${ROTATE_WORKLOAD_YAML} --cluster ${CLUSTER}
 }
 
 TEMP_DEPLOY_NAME="temp_httpbin_sleep_deploy.yaml"
@@ -40,8 +58,5 @@ kubectl create ns ${NAMESPACE} --cluster ${CLUSTER}
 
 inject_workload ${TEMP_DEPLOY_NAME}
 
-echo "Wait 90 seconds for the deployment to be ready ..."
-sleep 90
+rotate_deployment ${TEMP_DEPLOY_NAME}
 
-
-source ./collect_stats.sh
