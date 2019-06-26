@@ -7,7 +7,7 @@
 # common-files repo, make the change there and check it in. Then come back to this repo and run
 # "make updatecommon".
 
-# Copyright 2019 Istio Authors
+# Copyright 2018 Istio Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,16 +25,7 @@ set -e
 
 SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOTDIR=$(dirname "${SCRIPTPATH}")
-cd "${ROOTDIR}"
 
-if [[ "$1" == "--fix" ]]
-then
-    FIX="--fix"
-fi
+img=gcr.io/istio-testing/go_generate_dependency:2018-07-26
 
-# if you want to update this version, also change the version number in .golangci.yml
-GOLANGCI_VERSION="v1.16.0"
-curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b "$GOPATH"/bin "$GOLANGCI_VERSION"
-golangci-lint --version
-# For tuning and when switching versions PLEASE REFERENCE: https://github.com/istio/istio/issues/14888
-env GOGC=25 golangci-lint run ${FIX} -j 8 -v ./...
+docker run -i --sig-proxy=true --rm --entrypoint go-bindata -v "${ROOTDIR}:${ROOTDIR}" -w "$(pwd)" ${img} "$@"

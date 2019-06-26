@@ -34,7 +34,7 @@ function inject_workload() {
 }
 
 TEMP_DEPLOY_NAME="temp_httpbin_sleep_deploy.yaml"
-helm template --set replicas="${NUM}" .. > "${TEMP_DEPLOY_NAME}"
+helm template --set replicas="${NUM}" ../../workload-deployments/ > "${TEMP_DEPLOY_NAME}"
 
 kubectl create ns ${NAMESPACE} --cluster ${CLUSTER}
 
@@ -44,4 +44,4 @@ echo "Wait 90 seconds for the deployment to be ready ..."
 sleep 90
 
 
-source ./collect_stats.sh
+source collect_stats.sh
