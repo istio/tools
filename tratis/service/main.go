@@ -15,9 +15,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
+
+	"istio.io/tools/tratis/service/graph"
 
 	parser "istio.io/tools/tratis/service/parsing"
 	"istio.io/tools/tratis/service/pkg/consts"
@@ -34,11 +37,14 @@ func main() {
 		log.Fatalf(`env var "%s" is not set`, consts.TracingToolEnvKey)
 	}
 
-	_, err := parser.ParseJSON(ApplicationTraceJSONFilePath,
+	trace, err := parser.ParseJSON(ApplicationTraceJSONFilePath,
 		TracingToolName)
 
 	if err != nil {
 		log.Fatalf(`trace file "%s" is not correctly formatted`,
 			ApplicationTraceJSONFilePath)
 	}
+
+	g := graph.GenerateGraph(trace.Spans)
+	fmt.Println(string(g.ExtractGraphData()))
 }
