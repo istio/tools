@@ -22,6 +22,7 @@ import (
 	"github.com/ghodss/yaml"
 
 	"fortio.org/fortio/log"
+
 	"istio.io/tools/isotope/convert/pkg/graph"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
