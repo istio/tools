@@ -34,7 +34,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				Name:         "a",
 				Type:         "HTTP",
 				ErrorRate:    "0.01%",
-				ResponseSize: "{Size: 10KiB, Amount: 1}",
+				ResponseSize: "{\"type\":\"static\",\"data\":{\"size\":\"10KiB\",\"number\":1}}",
 				Steps: [][]string{
 					{
 						"SLEEP 100ms",
@@ -45,14 +45,14 @@ func TestServiceGraphToGraph(t *testing.T) {
 				Name:         "b",
 				Type:         "gRPC",
 				ErrorRate:    "0.00%",
-				ResponseSize: "{Size: 10KiB, Amount: 1}",
+				ResponseSize: "{\"type\":\"static\",\"data\":{\"size\":\"10KiB\",\"number\":1}}",
 				Steps:        [][]string{},
 			},
 			{
 				Name:         "c",
 				Type:         "HTTP",
 				ErrorRate:    "0.00%",
-				ResponseSize: "{Size: 10KiB, Amount: 1}",
+				ResponseSize: "{\"type\":\"static\",\"data\":{\"size\":\"10KiB\",\"number\":1}}",
 				Steps: [][]string{
 					{
 						"CALL \"a\" 10KiB",
@@ -66,7 +66,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				Name:         "d",
 				Type:         "HTTP",
 				ErrorRate:    "0.00%",
-				ResponseSize: "{Size: 10KiB, Amount: 1}",
+				ResponseSize: "{\"type\":\"static\",\"data\":{\"size\":\"10KiB\",\"number\":1}}",
 				Steps: [][]string{
 					{
 						"CALL \"a\" 1KiB",

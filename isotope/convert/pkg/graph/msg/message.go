@@ -16,7 +16,6 @@ package msg
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -24,6 +23,14 @@ import (
 	"github.com/jmcvetta/randutil"
 	"gonum.org/v1/gonum/stat/distuv"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
+)
+
+type CommandType string
+
+const (
+	Static       CommandType = "static"
+	Histogram    CommandType = "histogram"
+	Distribution CommandType = "dist"
 )
 
 // MessageSizeStatic Type and Associated Functions
@@ -92,7 +99,7 @@ func (c MessageSizeHistogram) Amount() int {
 }
 
 type MessageSize struct {
-	Type string `json:"type"`
+	Type CommandType `json:"type"`
 	Data interface {
 		Size() size.ByteSize
 		Amount() int
@@ -100,7 +107,7 @@ type MessageSize struct {
 }
 
 type MessageSizeWrapper struct {
-	Type string `json:"type"`
+	Type CommandType `json:"type"`
 	Data json.RawMessage
 }
 
@@ -112,7 +119,7 @@ func (c *MessageSize) UnmarshalJSON(b []byte) (err error) {
 	}
 
 	switch command.Type {
-	case "static":
+	case Static:
 		var cmd map[string]interface{}
 		err = json.Unmarshal(command.Data, &cmd)
 
@@ -129,7 +136,7 @@ func (c *MessageSize) UnmarshalJSON(b []byte) (err error) {
 
 		*c = MessageSize{command.Type, staticCmd}
 
-	case "dist":
+	case Distribution:
 		var cmd map[string]interface{}
 		err = json.Unmarshal(command.Data, &cmd)
 
@@ -161,7 +168,7 @@ func (c *MessageSize) UnmarshalJSON(b []byte) (err error) {
 		}
 		*c = MessageSize{command.Type, distCmd}
 
-	case "histogram":
+	case Histogram:
 		var cmd map[string]interface{}
 		err = json.Unmarshal(command.Data, &cmd)
 
@@ -198,69 +205,11 @@ func (c *MessageSize) UnmarshalJSON(b []byte) (err error) {
 }
 
 func (c MessageSize) String() string {
-	switch c.Type {
-	case "static":
-		var str strings.Builder
+	res, err := json.Marshal(c)
 
-		str.WriteString("{Size: ")
-		str.WriteString(c.Data.Size().String())
-		str.WriteString(", Amount: ")
-		str.WriteString(strconv.Itoa(c.Data.Amount()))
-		str.WriteString("}")
-
-		return str.String()
-	case "dist":
-		dist := c.Data.(MessageSizeDistribution)
-		number := fmt.Sprintf("%d", dist.Number)
-		unit := fmt.Sprintf("%s", dist.Unit)
-
-		switch dist.Type {
-		case "normal":
-			mean := fmt.Sprintf("%f", (dist.Dist.(distuv.Normal).Mu))
-			sigma := fmt.Sprintf("%f", (dist.Dist.(distuv.Normal).Sigma))
-
-			return fmt.Sprintf("Distribution: Normal {Mean: %s, Sigma: %s, Number: %s, Unit: %s}",
-				mean,
-				sigma,
-				number,
-				unit)
-		case "lognormal":
-			mean := fmt.Sprintf("%f", (dist.Dist.(distuv.LogNormal).Mu))
-			sigma := fmt.Sprintf("%f", (dist.Dist.(distuv.LogNormal).Sigma))
-			return fmt.Sprintf("Distribution: LogNormal {Mean: %s, Sigma: %s, Number: %s, Unit %s}",
-				mean,
-				sigma,
-				number,
-				unit)
-		}
-
-	case "histogram":
-		Histogram := c.Data.(MessageSizeHistogram).Histogram
-		var str strings.Builder
-
-		str.WriteString("{Amount: ")
-		str.WriteString(strconv.Itoa(c.Data.Amount()))
-		str.WriteString(", Histogram: ")
-
-		for idx, item := range Histogram {
-			duration := item.Item.(size.ByteSize)
-			weight := item.Weight
-
-			str.WriteString("{")
-			str.WriteString(strconv.Itoa(weight))
-			str.WriteString(",")
-			str.WriteString(duration.String())
-			str.WriteString("}")
-
-			if idx+1 < len(Histogram) {
-				str.WriteString(" ")
-			}
-		}
-
-		str.WriteString("}")
-
-		return str.String()
+	if err != nil {
+		log.Fatalf("%s", err)
 	}
 
-	return "Error: Incorrect type -- Only: {static, dist, histogram} allowed"
+	return string(res)
 }
