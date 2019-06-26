@@ -27,14 +27,14 @@ rules:
     resources: ["customresourcedefinitions"]
     verbs: ["*"]
   - apiGroups: ["extensions"]
-    resources: ["thirdpartyresources", "thirdpartyresources.extensions", "ingresses", "ingresses/status"]
+    resources: ["thirdpartyresources", "thirdpartyresources.extensions", "ingresses", "ingresses/status", "deployments"]
     verbs: ["*"]
   - apiGroups: [""]
-    resources: ["configmaps", "endpoints", "pods", "services", "namespaces", "secrets", "replicationcontrollers"]
-    verbs: ["create", "get", "list", "watch", "update", "patch"]
+    resources: ["configmaps", "endpoints", "pods", "services", "namespaces", "secrets", "replicationcontrollers", "deployments"]
+    verbs: ["*"]
   - apiGroups: [""]
-    resources: ["endpoints", "pods", "services"]
-    verbs: ["get", "list", "watch"]
+    resources: ["endpoints", "pods", "services", "serviceaccounts"]
+    verbs: ["get", "list", "watch", "create", "delete"]
   - apiGroups: [""]
     resources: ["namespaces", "nodes", "secrets"]
     verbs: ["get", "list", "watch"]
@@ -72,7 +72,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: workload-rotate
+            name: {{ .Values.ConfigName}}
         - name: script
           configMap:
             name: script
@@ -88,6 +88,8 @@ spec:
           volumeMounts:
             - name: script
               mountPath: /script
+            - name: config
+              mountPath: /data
       restartPolicy: Always
       serviceAccount: workload-rotate-service-account
 ---
@@ -103,54 +105,32 @@ data:
     WD=$(dirname $0)
     WD=$(cd $WD;pwd)
 
-    ${WD}/rotate.sh {{ .Values.Cluster }} {{ .Values.DeployYaml }} {{ .Values.Namespace }} 5m &
+    ${WD}/rotate.sh {{ .Values.DeployYaml }} {{ .Values.Namespace }} {{ .Values.WorkloadLife }} &
     wait
   rotate.sh: |
     set -x
-    errs=0
+
+    deployfile=/data/${1:?"deployfile"}
+    namespace=${2:?"namespace"}
+    sleeptime=${3:?180}
+
+    echo "current path: ${PWD}"
     function rotate_workloads() {
-      local cluster=${1:?"cluster"}
-      local deployfile=${2:?"deployfile"}
-      local namespace=${3:?"namespace"}
-      local duration=${4:?"rotation period"}
-
-      gen=$(printf 'gen%.5d' ${genNo})
-      generate_cert -mode signer -signer-priv=ca.key -signer-cert=ca.cert -host "${host}.local,${host}.${domain},${host}-${gen}.local" -duration 30m
-      if [[ $? -ne 0 ]];then
-        errs=$((errs+1))
-        return
-      fi
-
-      kubectl -n "${ns}" create secret generic "${host}-cert" --from-file=key=priv.pem --from-file=cert=cert.pem  --dry-run -o yaml | kubectl -n "${ns}" apply -f -
-      if [[ $? -ne 0 ]];then
-        errs=$((errs+1))
-      fi
-
-      # check if the new certificate is visible
-      # We add generation number in the cert for verification.
-      for ((jj=0; jj<5; j++)) {
-        echo | openssl s_client -connect "${INGRESS_IP}:443" -servername "${host}.local" -CAfile ca.cert | openssl x509 -noout -text  > /tmp/aa
-        grep DNS /tmp/aa
-        if [[ $(grep "${host}-${gen}.local" /tmp/aa) ]];then
-          echo "Found ${host}-${gen}.local"
-          break
-        fi
-
-        echo "Did not find ${host}-${gen}.local"
-        sleep 10
-      }
+      echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl -n ${namespace} delete deployment sleep"
+      kubectl -n ${namespace} delete deployment sleep
+      # sleep 20 seconds to let sleep pods get deleted before httpbin pods, to avoid request failures
+      # when sleep is sending a request to deleted httpbin pod.
+      sleep 20
+      echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl delete -n ${namespace} -f ${deployfile}"
+      kubectl delete -n ${namespace} -f ${deployfile}
+      sleep 5
+      echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl apply -n ${namespace} -f ${deployfile}"
+      kubectl apply -n ${namespace} -f ${deployfile}
     }
 
-    # fetch signer cert and key
-    # This is used to sign certificate for rotation.
-    kubectl get secret -n istio-system istio-ca-secret -o yaml > ca.yaml
-    awk '/ca-cert/ {print $2}' ca.yaml | base64 --decode > ca.cert
-    awk '/ca-key/ {print $2}' ca.yaml | base64 --decode > ca.key
-
     while [[ true ]];do
-      for ((ii=0; ii<65535; ii++)) {
-        rotate_cert $* ${ii}
-        sleep {{ .Values.configSleep }}
-        sleep $[ ( $RANDOM % {{ .Values.configSleep }} )  + 1 ]s
-      }
+        rotate_workloads
+        # sleep 180 seconds to generate some traffic
+        echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") sleep ${sleeptime}"
+        sleep ${sleeptime}
     done
