@@ -46,12 +46,12 @@ class Fortio(object):
     ports = {
         "http": {"direct_port": 8077, "port": 8080, "ingress": 80},
         "grpc": {"direct_port": 8076, "port": 8079, "ingress": 80},
-        "direct_envoy": {"direct_port": 8076, "port": 8079}
+        "direct_envoy": {"direct_port": 8076, "port": 8079},
     }
 
     def __init__(self, conn=None, qps=None, size=None, mode="http", duration=240, mixer=True, perf_record=False,
                  mixer_cache=True, server="fortioserver", client="fortioclient", additional_args=None, filterFn=None, labels=None,
-                 baseline=False, serversidecar=True, clientsidecar=False, ingress=None):
+                 baseline=False, serversidecar=True, clientsidecar=False, ingress=None, mesh=None):
         self.runid = str(uuid.uuid4()).partition('-')[0]
         self.conn = conn
         self.qps = qps
@@ -73,6 +73,13 @@ class Fortio(object):
         self.run_clientsidecar = clientsidecar
         self.run_ingress = ingress
         self.run_baseline = baseline
+
+        if mesh=="linkerd":
+            self.mesh="linkerd"
+        elif mesh=="istio":
+            self.mesh="istio"
+        else:
+            sys.exit("invalid mesh %s, must be istio or linkerd" % mesh)
 
     def nosidecar(self, fortio_cmd):
         return fortio_cmd + "_base http://{svc}:{port}/echo?size={size}".format(
@@ -123,20 +130,20 @@ class Fortio(object):
         if self.run_ingress:
             p = kubectl(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
-                perf(self.server.name, labels +
+                perf(self.mesh, self.server.name, labels +
                      "_srv_ingress", duration=40)
             p.wait()
 
         if self.run_serversidecar:
             p = kubectl(self.client.name, self.serversidecar(fortio_cmd))
             if self.perf_record:
-                perf(self.server.name, labels + "_srv_serveronly", duration=40)
+                perf(self.mesh, self.server.name, labels + "_srv_serveronly", duration=40)
             p.wait()
 
         if self.run_clientsidecar:
             p = kubectl(self.client.name, self.bothsidecar(fortio_cmd))
             if self.perf_record:
-                perf(self.server.name, labels +
+                perf(self.mesh, self.server.name, labels +
                      "_srv_bothsidecars", duration=40)
             p.wait()
 
@@ -150,30 +157,30 @@ PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
 
 
-def perf(pod, labels, duration=20, runfn=run_command_sync):
+def perf (mesh, pod, labels, duration=20, runfn=run_command_sync):
     filename = labels + "_perf.data"
     filepath = PERFWD + filename
     perfpath = PERFWD + PERFSH
 
     # copy executable over
-    kubecp(PERFSH, pod + ":" + perfpath)
+    kubecp(mesh, PERFSH, pod + ":" + perfpath)
 
     perf = kubectl(pod,
                    "{perf_cmd} {filename} {duration}".format(perf_cmd=perfpath,
                                                              filename=filename, duration=duration),
-                   runfn=run_command_sync, container="istio-proxy")
+                   runfn=run_command_sync, container=mesh+"-proxy")
 
     print(perf)
 
-    print(kubecp(pod + ":" + filepath + ".perf", filename + ".perf"))
+    print(kubecp(mesh, pod + ":" + filepath + ".perf", filename + ".perf"))
 
     run_command_sync("./flame.sh " + filename + ".perf")
     return perf
 
 
-def kubecp(from_file, to_file):
+def kubecp(mesh, from_file, to_file):
     namespace = os.environ.get("NAMESPACE", "service-graph")
-    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c istio-proxy".format(
+    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c" + mesh +"-proxy".format(
         from_file=from_file, to_file=to_file, namespace=namespace)
     print(cmd)
     return run_command_sync(cmd)
@@ -203,7 +210,7 @@ def rc(command):
 
 def run(args):
     fortio = Fortio(size=args.size, duration=args.duration, perf_record=args.perf, labels=args.labels,
-                    baseline=args.baseline, serversidecar=args.serversidecar, clientsidecar=args.clientsidecar, ingress=args.ingress)
+                    baseline=args.baseline, serversidecar=args.serversidecar, clientsidecar=args.clientsidecar, ingress=args.ingress, mesh=args.mesh)
 
     for conn in args.conn:
         for qps in args.qps:
@@ -225,6 +232,8 @@ def getParser():
     parser.add_argument("--size", help="size of the payload",
                         type=int, default=1024)
     parser.add_argument(
+       "--mesh", help="istio or linkerd", default="istio")
+    parser.add_argument(
         "--client", help="where to run the test from", default=None)
     parser.add_argument("--server", help="pod ip of the server", default=None)
     parser.add_argument("--perf", help="also run perf and produce flamegraph",
@@ -237,6 +246,8 @@ def getParser():
 
     parser.add_argument(
         "--ingress", help="run traffic thru ingress", default=None)
+
+
     parser.add_argument("--labels", help="extra labels", default=None)
     return parser
 

@@ -1,0 +1,4 @@
+namespace: istio-chaos-partial
+chaosIntervalMinutes: 1
+components: istio-pilot istio-citadel istio-galley istio-policy istio-telemetry istio-tracing
+kubectlImage: gcr.io/istio-release/kubectl:master-latest-daily

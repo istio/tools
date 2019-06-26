@@ -58,8 +58,9 @@ def set_up(project_id: str, name: str, zone: str, version: str,
 
     _create_service_graph_node_pool(service_graph_num_nodes,
                                     service_graph_machine_type,
-                                    service_graph_disk_size_gb)
-    _create_client_node_pool(client_machine_type, client_disk_size_gb)
+                                    service_graph_disk_size_gb,
+                                    zone)
+    _create_client_node_pool(client_machine_type, client_disk_size_gb, zone)
 
 
 def _create_cluster(name: str, zone: str, version: str, machine_type: str,
@@ -81,26 +82,28 @@ def _create_cluster(name: str, zone: str, version: str, machine_type: str,
 
 
 def _create_service_graph_node_pool(num_nodes: int, machine_type: str,
-                                    disk_size_gb: int) -> None:
+                                    disk_size_gb: int, zone: str) -> None:
     logging.info('creating service graph node-pool')
     _create_node_pool(consts.SERVICE_GRAPH_NODE_POOL_NAME, num_nodes,
-                      machine_type, disk_size_gb)
+                      machine_type, disk_size_gb, zone)
 
 
-def _create_client_node_pool(machine_type: str, disk_size_gb: int) -> None:
+def _create_client_node_pool(machine_type: str, disk_size_gb: int,
+                             zone: str) -> None:
     logging.info('creating client node-pool')
     _create_node_pool(consts.CLIENT_NODE_POOL_NAME, 1, machine_type,
-                      disk_size_gb)
+                      disk_size_gb, zone)
 
 
 def _create_node_pool(name: str, num_nodes: int, machine_type: str,
-                      disk_size_gb: int) -> None:
+                      disk_size_gb: int, zone: str) -> None:
     sh.run_gcloud(
         [
             'container', 'node-pools', 'create', name, '--machine-type',
             machine_type, '--num-nodes',
             str(num_nodes), '--disk-size',
-            str(disk_size_gb)
+            str(disk_size_gb), '--zone',
+            zone
         ],
         check=True)
 

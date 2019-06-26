@@ -1,4 +1,4 @@
-namespace: istio-chaos
+namespace: istio-chaos-total
 chaosIntervalMinutes: 2 # Must be greater than duration to avoid race conditions... Unless you want chaos^2!
 chaosDurationMinutes: 1
 chaosLevel: 3 # The maximum number of components to kill simultaneously, selected at random.
