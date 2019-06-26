@@ -27,18 +27,11 @@ do
     if [ ${resp_code} = 200 ]; then
       num_succeed=$((num_succeed+1))
     else
-      echo "curl from the pod ${pod} failed"
+      echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") curl from the pod ${pod} failed, response code $resp_code"
     fi
     num_curl=$((num_curl+1))
-    echo "Out of ${num_curl} curl, ${num_succeed} succeeded."
+    echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
     sleep 1
   done
-
-  echo "Delete and recreate the pods"
-  kubectl delete -n ${NAMESPACE} -f temp-workload-injected.yaml --cluster ${CLUSTER}
-  sleep 5
-  kubectl apply -n ${NAMESPACE} -f temp-workload-injected.yaml --cluster ${CLUSTER}
-  echo "Wait 90 seconds for the deployment to be ready ..."
-  sleep 90
 
 done
