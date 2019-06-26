@@ -1,0 +1,136 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "My Overview",
+    "version": "testpkg"
+  },
+  "components": {
+    "schemas": {
+      "testpkg.Days": {
+        "description": "Some days",
+        "enum": [
+          [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY"
+          ]
+        ],
+        "type": "string"
+      },
+      "testpkg.Msg1": {
+        "properties": {
+          "bool_field": {
+            "type": "boolean"
+          },
+          "double_field": {
+            "type": "number"
+          },
+          "float_field": {
+            "type": "number"
+          },
+          "int32_field": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "int64_field": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "string_field": {
+            "type": "string"
+          },
+          "test2": {
+            "properties": {
+              "field1": {
+                "description": "field1 is a field",
+                "format": "int32",
+                "type": "integer"
+              },
+              "field3": {
+                "type": "number"
+              },
+              "field4": {
+                "type": "number"
+              },
+              "field5": {
+                "format": "int32",
+                "type": "integer"
+              },
+              "field6": {
+                "format": "int32",
+                "type": "integer"
+              },
+              "field7": {
+                "format": "int32",
+                "type": "integer"
+              },
+              "field8": {
+                "format": "int32",
+                "type": "integer"
+              },
+              "str": {
+                "description": "an array of strings",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "testpkg.Test2": {
+        "properties": {
+          "field1": {
+            "description": "field1 is a field",
+            "format": "int32",
+            "type": "integer"
+          },
+          "field3": {
+            "type": "number"
+          },
+          "field4": {
+            "type": "number"
+          },
+          "field5": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "field6": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "field7": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "field8": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "str": {
+            "description": "an array of strings",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "testpkg.TypeX": {
+        "description": "Some good words Xsome Xbad xwords `xsome xbad xwords` some `xbad` words some `xbas` xwords some [bad](normallink) normal some [bad][testpkg.TypeY] normal ``` doesntmatter ``` thismatters this is fine",
+        "type": "object"
+      },
+      "testpkg.TypeY": {
+        "description": "Comment for this type",
+        "type": "object"
+      },
+      "testpkg.TypeZ": {
+        "type": "object"
+      }
+    }
+  }
+}
