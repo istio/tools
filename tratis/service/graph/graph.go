@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"istio.io/tools/tratis/service/parsing/pkg/span"
 	"sort"
+	"strings"
 )
 
 type RequestType string
@@ -31,16 +32,16 @@ type NodeData struct {
 }
 
 type Node struct {
-	Data     NodeData `'json:"data"`
+	Data     NodeData `json:"data"`
 	Children *[]Node  `json:"children"`
 }
 
 type Graph struct {
-	root *Node `'json:"root"`
+	Root *Node `'json:"root"`
 }
 
 func (g *Graph) ExtractGraphData() []byte {
-	bytes, _ := json.Marshal(g.root)
+	bytes, _ := json.Marshal(g.Root)
 
 	return bytes
 }
@@ -51,7 +52,7 @@ func GenerateGraph(data map[string]span.Span) *Graph {
 			childrenList := make([]Node, 0, 0)
 			d := NodeData{v.SpanID, v.OperationName,
 				v.StartTime, v.Duration,
-				RequestType(v.Tags["upstream_cluster"].(string))}
+				RequestType(strings.Split(v.Tags["upstream_cluster"].(string), "|")[0])}
 			root := Node{d, &childrenList}
 			UpdateChildren(data, &childrenList, v.SpanID)
 			return &Graph{&root}
@@ -72,7 +73,7 @@ func UpdateChildren(data map[string]span.Span, children *[]Node, SpanID string) 
 			childrenList := make([]Node, 0, 0)
 			d := NodeData{v.SpanID, v.OperationName,
 				v.StartTime, v.Duration,
-				RequestType(v.Tags["upstream_cluster"].(string))}
+				RequestType(strings.Split(v.Tags["upstream_cluster"].(string), "|")[0])}
 			*children = append(*children, Node{d, &childrenList})
 
 			UpdateChildren(data, &childrenList, v.SpanID)
