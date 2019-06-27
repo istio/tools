@@ -20,6 +20,7 @@ import (
 	"os"
 	"path"
 
+	"istio.io/tools/tratis/service/distribution"
 	"istio.io/tools/tratis/service/graph"
 
 	parser "istio.io/tools/tratis/service/parsing"
@@ -46,5 +47,7 @@ func main() {
 	}
 
 	g := graph.GenerateGraph(trace.Spans)
-	fmt.Println(string(g.ExtractGraphData()))
+	// fmt.Println(string(g.ExtractGraphData()))
+
+	fmt.Println(distribution.ExtractTimeInformation(g))
 }
