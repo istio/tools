@@ -33,7 +33,7 @@ server:  # server overrides
 client: # client overrides
   #tlsmode: DISABLE
   tlsmode: ISTIO_MUTUAL
-  expose: false
+  expose: true
   inject: "true"
   injectL: "disabled" # "enabled" or "disabled"
 
