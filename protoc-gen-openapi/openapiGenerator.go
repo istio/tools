@@ -32,7 +32,7 @@ import (
 )
 
 // Some special types with predefined schemas.
-var specialTypes = map[string]*openapi3.Schema{
+var specialTypes = map[string]openapi3.Schema{
 	"google.protobuf.Struct": {
 		Properties: map[string]*openapi3.SchemaRef{
 			"fields": {
@@ -370,7 +370,7 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *openapi
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 		msg := field.FieldType.(*protomodel.MessageDescriptor)
 		if s, ok := specialTypes[g.absoluteName(msg)]; ok {
-			schema = s
+			schema = &s
 		} else if msg.GetOptions().GetMapEntry() {
 			isMap = true
 			sr := g.fieldTypeRef(msg.Fields[1])
