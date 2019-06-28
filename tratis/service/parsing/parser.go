@@ -19,10 +19,17 @@ import (
 	"io/ioutil"
 	"log"
 
-	"istio.io/tools/tratis/service/parsing/pkg/trace"
+	jaeger "github.com/jaegertracing/jaeger/model/json"
 )
 
-func ParseJSON(filePath string, toolName string) (appTrace trace.Trace,
+type traceData struct {
+	Traces []jaeger.Trace `json:"data"`
+	Total  int            `json:"total"`
+	Limit  int            `json:"limit"`
+	Offset int            `json:"offset"`
+}
+
+func ParseJSON(filePath string, toolName string) (appTrace jaeger.Trace,
 	err error) {
 	traceJSON, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -39,16 +46,17 @@ func ParseJSON(filePath string, toolName string) (appTrace trace.Trace,
 	return
 }
 
-func parseJaeger(data []byte) (appTrace trace.Trace, err error) {
-	err = json.Unmarshal(data, &appTrace)
+func parseJaeger(data []byte) (appTrace jaeger.Trace, err error) {
+	t := traceData{}
+	err = json.Unmarshal(data, &t)
 	if err != nil {
 		return
 	}
 
-	return appTrace, nil
+	return t.Traces[0], nil
 }
 
-func parseZipkin(data []byte) (appTrace trace.Trace, err error) {
+func parseZipkin(data []byte) (appTrace jaeger.Trace, err error) {
 	err = json.Unmarshal(data, &appTrace)
 	if err != nil {
 		return

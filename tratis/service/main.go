@@ -16,20 +16,16 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
 
-	"istio.io/tools/tratis/service/distribution"
+	// "istio.io/tools/tratis/service/distribution"
 	"istio.io/tools/tratis/service/graph"
 
 	parser "istio.io/tools/tratis/service/parsing"
 	"istio.io/tools/tratis/service/pkg/consts"
-)
-
-var (
-	ApplicationTraceJSONFilePath = path.Join(
-		consts.ConfigPath, consts.ApplicationTraceJSONFileName)
 )
 
 func main() {
@@ -38,16 +34,25 @@ func main() {
 		log.Fatalf(`env var "%s" is not set`, consts.TracingToolEnvKey)
 	}
 
-	trace, err := parser.ParseJSON(ApplicationTraceJSONFilePath,
-		TracingToolName)
+	traces, err := ioutil.ReadDir(consts.TraceFilesPath)
 
 	if err != nil {
-		log.Fatalf(`trace file "%s" is not correctly formatted`,
-			ApplicationTraceJSONFilePath)
+		log.Fatal(err)
 	}
 
-	g := graph.GenerateGraph(trace.Spans)
-	// fmt.Println(string(g.ExtractGraphData()))
+	for _, t := range traces {
+		traceFilePath := path.Join(consts.TraceFilesPath, t.Name())
+		trace, err := parser.ParseJSON(traceFilePath, TracingToolName)
 
-	fmt.Println(distribution.ExtractTimeInformation(g))
+		if err != nil {
+			log.Fatalf(`trace file "%s" is not correctly formatted`,
+				traceFilePath)
+		}
+
+		fmt.Println(trace)
+		fmt.Println(".. ..")
+
+		g := graph.GenerateGraph(trace.Spans)
+		// fmt.Println(string(distribution.ExtractTimeInformation(g)))
+	}
 }

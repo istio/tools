@@ -15,23 +15,27 @@
 package distribution
 
 import (
+	"encoding/json"
 	"istio.io/tools/tratis/service/graph"
 )
 
 type Time struct {
 	StartTime int `json:"startTime"`
 	EndTime   int `json:"endTime"`
+	Duration  int `json:"duration`
 }
 
 type TimeInformation struct {
-	TimeData []Time         `json:"time"`
-	Data     graph.NodeData `json:"data"`
+	TimeData      []Time `json:"time"`
+	OperationName string `json:"operationName,omitempty"`
 }
 
-func ExtractTimeInformation(g *graph.Graph) []TimeInformation {
+func ExtractTimeInformation(g *graph.Graph) []byte {
 	ret := make([]TimeInformation, 0)
 	ExtractTimeInformationWrapper(g.Root, &ret)
-	return ret
+
+	bytes, _ := json.Marshal(ret)
+	return bytes
 }
 
 func ExtractTimeInformationWrapper(n *graph.Node, t *[]TimeInformation) {
@@ -45,17 +49,19 @@ func ExtractTimeInformationWrapper(n *graph.Node, t *[]TimeInformation) {
 	timeData := make([]Time, 0)
 
 	for _, child := range *n.Children {
-		newTime := Time{nodeStartTime, child.Data.StartTime}
+		d := child.Data.StartTime - nodeStartTime
+		newTime := Time{nodeStartTime, child.Data.StartTime, d}
 		timeData = append(timeData, newTime)
 		nodeStartTime = child.Data.StartTime + child.Data.Duration
 
 		ExtractTimeInformationWrapper(&child, t)
 	}
 
-	newTime := Time{nodeStartTime, nodeEndTime}
+	d := nodeEndTime - nodeStartTime
+	newTime := Time{nodeStartTime, nodeEndTime, d}
 	timeData = append(timeData, newTime)
 
 	if n.Data.ReqType == "inbound" {
-		*t = append(*t, TimeInformation{timeData, n.Data})
+		*t = append(*t, TimeInformation{timeData, n.Data.OperationName})
 	}
 }

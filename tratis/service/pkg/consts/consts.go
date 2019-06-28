@@ -15,11 +15,8 @@
 package consts
 
 const (
-	// ConfigPath is the parent directory of the json trace file.
-	ConfigPath = "/usr/local/google/home/saimsalman/go/src/istio.io/tools/tratis"
-	// ApplicationTraceJSONFileName is the name of the file which contains the
-	// JSON Trace output from Jaeger / Zipkin
-	ApplicationTraceJSONFileName = "app-trace.json"
+	// TraceFilesPath is the parent directory of the trace files.
+	TraceFilesPath = "/usr/local/google/home/saimsalman/go/src/istio.io/tools/tratis/traces"
 	// TracingToolEnvKey is the key of the environment variable whose value is
 	// the name of the service.
 	TracingToolEnvKey = "TOOL_NAME"
