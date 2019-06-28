@@ -22,19 +22,56 @@ int __b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsiz
 int __b64_pton (char const *src, u_char *target, size_t targsize);
 ]]
 
+function b64url_to_b64(b64url)
+	b64url=b64url:gsub("-", "+")
+	b64url=b64url:gsub("_", "/")
+	mod4 = b64url:len() % 4
+	if mod4 == 0 then return b64url end
+
+	for i=1, 4-mod4 do
+		b64url = b64url .. "="
+	end
+
+	return b64url
+end
+
 -- has_value(b64jstr, key, val) checks if b64jstr has key==val
 function has_value(b64jstr, key, val)
   -- at most decoded string will be equal to b64 string.
-
+  b64jstr = b64url_to_b64(b64jstr)
   local decoded = ffi.new("unsigned char[".. b64jstr:len() .. "]")
 
   local szd = resolv.__b64_pton(b64jstr, decoded, b64jstr:len())
   if szd == -1 then return false end
+
   local decodedS = ffi.string(decoded, szd)
 
-  -- look for "alg":"ES256"
-  -- return decodedS:match('"alg"%s*:%s*"ES256"') ~= nil
-  return decodedS:match('"' .. key .. '"%s*:%s*"' .. val .. '"') ~= nil
+  -- look for "alg":"ES256" and reject.
+  if decodedS:match('"alg"%s*:%s*"ES256"') ~= nil then return true end
+
+  -- look for common case "RS256" and accept
+  if decodedS:match('"alg"%s*:%s*"RS256"') ~= nil then return false end
+
+  -- slow path, replace unicode variants with standard and then compare again.
+  replaced = replace_unicode(decodedS)
+
+  -- check again
+  if replaced:match('"alg"%s*:%s*"ES256"') ~= nil then return true end
+
+  return false
+end
+
+alg = {["a"]="\\u0061", ["l"]="\\u006c", ["g"]="\\u0067"}
+es256 = {["E"]="\\u0045", ["S"]="\\u0053", ["2"]="\\u0032", ["5"]="\\u0035", ["6"]="\\u0036"}
+
+function replace_unicode(str)
+  for ascii, uni in pairs(alg) do
+	  str = str:gsub(uni, ascii)
+  end
+  for ascii, uni in pairs(es256) do
+	  str = str:gsub(uni, ascii)
+  end
+  return str
 end
 
 -- has_jwt if the given token header can be decoded,
@@ -89,7 +126,6 @@ function should_reject_request_by_query_params(path)
   for _, qp_name in ipairs(paramsToCheck) do
     -- if qp_name has "-" in this, it is special martching char for pattern in find
     -- so we escape it
-    qp_name = string.gsub(qp_name, "%-", "%%-")
     authh = find_qp(path, qp_name)
     if has_jwt(authh, findKey, findVal) then
       return true
@@ -121,7 +157,8 @@ function find_qp(path, qp)
 	local start, _ = string.find(path, "?")
 
 	if start == nil then return nil end
-
+        -- params cannot contain - it must be escaped
+        qp = string.gsub(qp, "%-", "%%-")
 	local qp_start, qp_end = string.find(path, qp .. "=", start + 1)
 
 	if qp_start == nil then return nil end
