@@ -172,7 +172,7 @@ function find_qp(path, qp)
 	return string.sub(path, qp_end+1, qv_end-1)
 end
 
-error_message = "Origin authentication failed"
+error_message = "Origin authentication failed."
 -- envoy entry point
 function envoy_on_request(request_handle)
   headers = request_handle:headers()
