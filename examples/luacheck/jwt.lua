@@ -172,15 +172,16 @@ function find_qp(path, qp)
 	return string.sub(path, qp_end+1, qv_end-1)
 end
 
+error_message = "Origin authentication failed"
 -- envoy entry point
 function envoy_on_request(request_handle)
   headers = request_handle:headers()
 
   if should_reject_request_by_headers(headers) then
-    request_handle:respond({[":status"] = "401"}, "bad jwt value")
+    request_handle:respond({[":status"] = "401"}, error_message)
   end
 
   if should_reject_request_by_query_params(headers:get(":path")) then
-    request_handle:respond({[":status"] = "401"}, "bad jwt value")
+    request_handle:respond({[":status"] = "401"}, error_message)
   end
 end
