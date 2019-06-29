@@ -18,17 +18,14 @@ import (
 	"encoding/json"
 	jaeger "github.com/jaegertracing/jaeger/model/json"
 	"sort"
-	"strings"
 )
 
-type RequestType string
-
 type NodeData struct {
-	SpanID        jaeger.SpanID `json:"spanID,omitempty"`
-	OperationName string        `json:"operationName,omitempty"`
-	StartTime     uint64        `json:"startTime,omitempty"`
-	Duration      uint64        `json:"duration,omitempty"`
-	ReqType       RequestType   `json:"requestType,omitempty"`
+	SpanID        jaeger.SpanID     `json:"spanID,omitempty"`
+	OperationName string            `json:"operationName,omitempty"`
+	StartTime     uint64            `json:"startTime,omitempty"`
+	Duration      uint64            `json:"duration,omitempty"`
+	Tags          []jaeger.KeyValue `json:"tags"`
 }
 
 type Node struct {
@@ -46,13 +43,12 @@ func (g *Graph) ExtractGraphData() []byte {
 	return bytes
 }
 
-func GenerateGraph(data map[string]jaeger.Span) *Graph {
+func GenerateGraph(data []jaeger.Span) *Graph {
 	for _, v := range data {
 		if len(v.References) == 0 {
 			childrenList := make([]Node, 0, 0)
 			d := NodeData{v.SpanID, v.OperationName,
-				v.StartTime, v.Duration,
-				RequestType(v.Tags["upstream_cluster"])}
+				v.StartTime, v.Duration, v.Tags}
 			root := Node{d, &childrenList}
 			UpdateChildren(data, &childrenList, v.SpanID)
 			return &Graph{&root}
@@ -62,18 +58,17 @@ func GenerateGraph(data map[string]jaeger.Span) *Graph {
 	return &Graph{&Node{NodeData{}, nil}}
 }
 
-func UpdateChildren(data map[string]jaeger.Span, children *[]Node, SpanID jaeger.SpanID) {
+func UpdateChildren(data []jaeger.Span, children *[]Node, SpanID jaeger.SpanID) {
 	for _, v := range data {
 		if len(v.References) == 0 {
 			continue
 		}
 
 		ref := v.References[0]
-		if ref.RefType == "CHILD_OF" && ref.SpanID == SpanID {
+		if ref.RefType == jaeger.ChildOf && ref.SpanID == SpanID {
 			childrenList := make([]Node, 0, 0)
 			d := NodeData{v.SpanID, v.OperationName,
-				v.StartTime, v.Duration,
-				RequestType(v.Tags["upstream_cluster"])}
+				v.StartTime, v.Duration, v.Tags}
 			*children = append(*children, Node{d, &childrenList})
 
 			UpdateChildren(data, &childrenList, v.SpanID)

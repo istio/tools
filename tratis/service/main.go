@@ -16,43 +16,56 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"path"
+	// "path"
 
 	// "istio.io/tools/tratis/service/distribution"
+	jaeger "github.com/jaegertracing/jaeger/model/json"
 	"istio.io/tools/tratis/service/graph"
-
 	parser "istio.io/tools/tratis/service/parsing"
 	"istio.io/tools/tratis/service/pkg/consts"
+	// trace "istio.io/tools/tratis/service/traces"
 )
 
+func cleanTraces(traces []jaeger.Trace) []jaeger.Trace {
+	ret := make([]jaeger.Trace, 0)
+
+	for _, trace := range traces {
+		if len(trace.Spans) == consts.NumberSpans {
+			ret = append(ret, trace)
+		}
+	}
+
+	return ret
+}
+
 func main() {
+
 	TracingToolName, ok := os.LookupEnv(consts.TracingToolEnvKey)
 	if !ok {
 		log.Fatalf(`env var "%s" is not set`, consts.TracingToolEnvKey)
 	}
 
-	traces, err := ioutil.ReadDir(consts.TraceFilesPath)
-
+	data, err := parser.ParseJSON(TracingToolName)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf(`Connection between "%s" and tratis is broken`,
+			TracingToolName)
 	}
 
-	for _, t := range traces {
-		traceFilePath := path.Join(consts.TraceFilesPath, t.Name())
-		trace, err := parser.ParseJSON(traceFilePath, TracingToolName)
-
-		if err != nil {
-			log.Fatalf(`trace file "%s" is not correctly formatted`,
-				traceFilePath)
-		}
-
-		fmt.Println(trace)
-		fmt.Println(".. ..")
-
-		g := graph.GenerateGraph(trace.Spans)
-		// fmt.Println(string(distribution.ExtractTimeInformation(g)))
-	}
+	traces := data.Traces
+	traces = cleanTraces(traces)
+	g := graph.GenerateGraph(traces[0].Spans)
+	fmt.Println(string(g.ExtractGraphData()))
 }
+
+//
+
+/*
+
+TODO LIST:
+
+1. RUN GRAPH FILE
+2. FIX DISTRIBUTION FILE
+
+*/

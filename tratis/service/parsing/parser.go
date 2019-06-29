@@ -16,10 +16,10 @@ package parser
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 
 	jaeger "github.com/jaegertracing/jaeger/model/json"
+	trace "istio.io/tools/tratis/service/traces"
 )
 
 type traceData struct {
@@ -29,37 +29,23 @@ type traceData struct {
 	Offset int            `json:"offset"`
 }
 
-func ParseJSON(filePath string, toolName string) (appTrace jaeger.Trace,
+func ParseJSON(toolName string) (appTrace traceData,
 	err error) {
-	traceJSON, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return
-	}
 
 	if toolName == "jaeger" {
-		return parseJaeger(traceJSON)
-	} else if toolName == "zipkin" {
-		return parseZipkin(traceJSON)
+		return ParseJaeger(trace.ExtractTraces())
 	}
 
 	log.Fatalf(`tracing tool "%s" is not correctly supported`, toolName)
 	return
 }
 
-func parseJaeger(data []byte) (appTrace jaeger.Trace, err error) {
+func ParseJaeger(data []byte) (appTrace traceData, err error) {
 	t := traceData{}
 	err = json.Unmarshal(data, &t)
 	if err != nil {
 		return
 	}
 
-	return t.Traces[0], nil
-}
-
-func parseZipkin(data []byte) (appTrace jaeger.Trace, err error) {
-	err = json.Unmarshal(data, &appTrace)
-	if err != nil {
-		return
-	}
-	return appTrace, nil
+	return t, nil
 }

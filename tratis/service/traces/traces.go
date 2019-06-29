@@ -12,21 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package trace
 
-const (
-	// TracingToolEnvKey is the key of the environment variable whose value is
-	// the name of the service.
-	TracingToolEnvKey = "TOOL_NAME"
-
-	// An application might generate traces with varying number of
-	// spans. Only the traces with NumberSpans would be picked.
-	NumberSpans = 8
-
-	// Jaeger URL
-	JaegerURL = "http://localhost:15034"
-	// Service Name
-	ServiceName = ""
-	// Traces Limit
-	TraceLimit = 1000
+import (
+	"io/ioutil"
+	"log"
+	"net/http"
 )
+
+// func GenerateTrace(url string, limit int, service string) {
+// 	MakeRequest(url + '')
+// }
+
+func ExtractTraces() []byte {
+	resp, err := http.Get("http://localhost:15034/jaeger/api/traces?service=istio-ingressgateway&limit=1000")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return (body)
+}
