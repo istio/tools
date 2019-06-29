@@ -55,10 +55,18 @@ func main() {
 
 	traces := data.Traces
 	traces = cleanTraces(traces)
-	g := graph.GenerateGraph(traces[0].Spans)
+
+	graphs := make(*graph.Graph, 0)
+
+	for _, trace := range traces {
+		g := graph.GenerateGraph(trace.Spans)
+		graphs = append(graphs, g)
+	}
+
+	// g := graph.GenerateGraph(traces[0].Spans)
 	// fmt.Println(string(g.ExtractGraphData()))
 
-	fmt.Println(string(distribution.ExtractTimeInformation(g)))
+	// fmt.Println(string(distribution.ExtractTimeInformation(g)))
 }
 
 //
