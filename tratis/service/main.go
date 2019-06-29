@@ -20,8 +20,8 @@ import (
 	"os"
 	// "path"
 
-	// "istio.io/tools/tratis/service/distribution"
 	jaeger "github.com/jaegertracing/jaeger/model/json"
+	"istio.io/tools/tratis/service/distribution"
 	"istio.io/tools/tratis/service/graph"
 	parser "istio.io/tools/tratis/service/parsing"
 	"istio.io/tools/tratis/service/pkg/consts"
@@ -56,7 +56,9 @@ func main() {
 	traces := data.Traces
 	traces = cleanTraces(traces)
 	g := graph.GenerateGraph(traces[0].Spans)
-	fmt.Println(string(g.ExtractGraphData()))
+	// fmt.Println(string(g.ExtractGraphData()))
+
+	fmt.Println(string(distribution.ExtractTimeInformation(g)))
 }
 
 //

@@ -17,15 +17,17 @@ package graph
 import (
 	"encoding/json"
 	jaeger "github.com/jaegertracing/jaeger/model/json"
+	"log"
 	"sort"
+	"strings"
 )
 
 type NodeData struct {
-	SpanID        jaeger.SpanID     `json:"spanID,omitempty"`
-	OperationName string            `json:"operationName,omitempty"`
-	StartTime     uint64            `json:"startTime,omitempty"`
-	Duration      uint64            `json:"duration,omitempty"`
-	Tags          []jaeger.KeyValue `json:"tags"`
+	SpanID        jaeger.SpanID `json:"spanID,omitempty"`
+	OperationName string        `json:"operationName,omitempty"`
+	StartTime     uint64        `json:"startTime,omitempty"`
+	Duration      uint64        `json:"duration,omitempty"`
+	RequestType   string        `json:"requestType"`
 }
 
 type Node struct {
@@ -38,17 +40,35 @@ type Graph struct {
 }
 
 func (g *Graph) ExtractGraphData() []byte {
-	bytes, _ := json.Marshal(g.Root)
+	bytes, err := json.Marshal(g.Root)
+
+	if err != nil {
+		log.Fatalf(`graph structure is improper`)
+	}
 
 	return bytes
+}
+
+func findTag(tags []jaeger.KeyValue, key string) jaeger.KeyValue {
+	for _, tag := range tags {
+		if tag.Key == key {
+			return tag
+		}
+	}
+
+	return jaeger.KeyValue{}
 }
 
 func GenerateGraph(data []jaeger.Span) *Graph {
 	for _, v := range data {
 		if len(v.References) == 0 {
 			childrenList := make([]Node, 0, 0)
+
+			tag := findTag(v.Tags, "upstream_cluster")
+			tagData := strings.Split(tag.Value.(string), "|")[0]
+
 			d := NodeData{v.SpanID, v.OperationName,
-				v.StartTime, v.Duration, v.Tags}
+				v.StartTime, v.Duration, tagData}
 			root := Node{d, &childrenList}
 			UpdateChildren(data, &childrenList, v.SpanID)
 			return &Graph{&root}
@@ -67,8 +87,12 @@ func UpdateChildren(data []jaeger.Span, children *[]Node, SpanID jaeger.SpanID) 
 		ref := v.References[0]
 		if ref.RefType == jaeger.ChildOf && ref.SpanID == SpanID {
 			childrenList := make([]Node, 0, 0)
+
+			tag := findTag(v.Tags, "upstream_cluster")
+			tagData := strings.Split(tag.Value.(string), "|")[0]
+
 			d := NodeData{v.SpanID, v.OperationName,
-				v.StartTime, v.Duration, v.Tags}
+				v.StartTime, v.Duration, tagData}
 			*children = append(*children, Node{d, &childrenList})
 
 			UpdateChildren(data, &childrenList, v.SpanID)

@@ -16,13 +16,14 @@ package distribution
 
 import (
 	"encoding/json"
+	// jaeger "github.com/jaegertracing/jaeger/model/json"
 	"istio.io/tools/tratis/service/graph"
 )
 
 type Time struct {
-	StartTime int `json:"startTime"`
-	EndTime   int `json:"endTime"`
-	Duration  int `json:"duration`
+	StartTime uint64 `json:"startTime"`
+	EndTime   uint64 `json:"endTime"`
+	Duration  uint64 `json:"duration`
 }
 
 type TimeInformation struct {
@@ -61,7 +62,7 @@ func ExtractTimeInformationWrapper(n *graph.Node, t *[]TimeInformation) {
 	newTime := Time{nodeStartTime, nodeEndTime, d}
 	timeData = append(timeData, newTime)
 
-	if n.Data.ReqType == "inbound" {
+	if n.Data.RequestType == "inbound" {
 		*t = append(*t, TimeInformation{timeData, n.Data.OperationName})
 	}
 }
