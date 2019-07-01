@@ -15,17 +15,19 @@
 package trace
 
 import (
+	"fmt"
 	"io/ioutil"
+	"istio.io/tools/tratis/service/pkg/consts"
 	"log"
 	"net/http"
 )
 
-// func GenerateTrace(url string, limit int, service string) {
-// 	MakeRequest(url + '')
-// }
-
 func ExtractTraces() []byte {
-	resp, err := http.Get("http://localhost:15034/jaeger/api/traces?service=istio-ingressgateway&limit=5000")
+	pageAddress := fmt.Sprintf("http://%s:%s/jaeger/api/traces?service=%s&limit=%d",
+		consts.TracingToolAddress, consts.TracingToolPortNumber, consts.TracingToolEntryPoint,
+		consts.NumTraces)
+
+	resp, err := http.Get(pageAddress)
 	if err != nil {
 		log.Fatalln(err)
 	}

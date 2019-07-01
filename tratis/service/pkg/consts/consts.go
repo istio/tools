@@ -31,11 +31,18 @@ const (
 	// Service Name
 	ServiceName = ""
 	// Traces Limit
-	TraceLimit = 1000
+	NumTraces = 1000
 
 	// Distribution Fitting File Path
 	DistFilePath = "Distribution"
 
 	// Distribution Fitting Function Name
 	DistFittingFuncName = "BestFitDistribution"
+
+	// Tracing Tool IP Address
+	TracingToolAddress = "localhost"
+	// Tarcing Tool Port Number
+	TracingToolPortNumber = "15034"
+	// Tracing Tool EntryPoint Service
+	TracingToolEntryPoint = "istio-ingressgateway"
 )
