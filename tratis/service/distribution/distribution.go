@@ -33,7 +33,8 @@ type TotalDistributions struct {
 	Distributions []DistributionDetails `json:"distributions"`
 }
 
-func TimeInfoToDist(fileName string, funcName string, data []CombinedTimeInformation) {
+func TimeInfoToDist(fileName string,
+	funcName string, data []CombinedTimeInformation) []TotalDistributions {
 	ret := make([]TotalDistributions, len(data))
 
 	for idx, operation := range data {
@@ -45,18 +46,14 @@ func TimeInfoToDist(fileName string, funcName string, data []CombinedTimeInforma
 		ret[idx].OperationName = operation.OperationName
 	}
 
-	fmt.Println(ret)
+	return ret
 }
 
 func GeneratePythonCommand(fileName string, funcName string, data []uint64) string {
 	var command strings.Builder
-	command.WriteString("import ")
-	command.WriteString(fileName)
-	command.WriteString("; print ")
-	command.WriteString(fileName)
-	command.WriteString(".")
-	command.WriteString(funcName)
-	command.WriteString("([")
+
+	s := fmt.Sprintf("import %s; print %s.%s ([", fileName, fileName, funcName)
+	command.WriteString(s)
 
 	for idx, value := range data {
 		command.WriteString(strconv.Itoa(int(value)))

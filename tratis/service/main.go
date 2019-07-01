@@ -47,26 +47,42 @@ func main() {
 		log.Fatalf(`env var "%s" is not set`, consts.TracingToolEnvKey)
 	}
 
+	fmt.Println("Generating Traces ...")
+
 	data, err := parser.ParseJSON(TracingToolName)
 	if err != nil {
 		log.Fatalf(`Connection between "%s" and tratis is broken`,
 			TracingToolName)
 	}
 
+	fmt.Println("Cleaning Traces ...")
+
 	traces := data.Traces
 	traces = cleanTraces(traces)
 
 	d := make([][]distribution.TimeInformation, 0)
 
-	for _, trace := range traces {
+	fmt.Println("Generating Time Information ...")
+
+	for idx, trace := range traces {
 		g := graph.GenerateGraph(trace.Spans)
+
+		if idx == 0 {
+
+			fmt.Println("Call Graph: ", string(g.ExtractGraphData()))
+		}
+
 		traceInformation := distribution.ExtractTimeInformation(g)
 
 		d = append(d, traceInformation)
 	}
 
+	fmt.Println("Combining Results + Distribution Fitting ...")
+
 	combinedResults := distribution.CombineTimeInformation(d)
-	distribution.TimeInfoToDist("Distribution", "BestFitDistribution", combinedResults)
+	dists := distribution.TimeInfoToDist(consts.DistFilePath,
+		consts.DistFittingFuncName, combinedResults)
+	fmt.Println("Distribution Details: ", dists)
 }
 
 //

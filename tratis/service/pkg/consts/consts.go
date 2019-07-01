@@ -23,6 +23,7 @@ const (
 	// spans. Only the traces with NumberSpans would be picked.
 	NumberSpans = 8
 
+	// Max Number of Services in Application
 	NumberServices = 4
 
 	// Jaeger URL
@@ -31,4 +32,10 @@ const (
 	ServiceName = ""
 	// Traces Limit
 	TraceLimit = 1000
+
+	// Distribution Fitting File Path
+	DistFilePath = "Distribution"
+
+	// Distribution Fitting Function Name
+	DistFittingFuncName = "BestFitDistribution"
 )
