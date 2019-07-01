@@ -25,7 +25,6 @@ import (
 	"istio.io/tools/tratis/service/graph"
 	parser "istio.io/tools/tratis/service/parsing"
 	"istio.io/tools/tratis/service/pkg/consts"
-	// trace "istio.io/tools/tratis/service/traces"
 )
 
 func cleanTraces(traces []jaeger.Trace) []jaeger.Trace {
@@ -41,6 +40,7 @@ func cleanTraces(traces []jaeger.Trace) []jaeger.Trace {
 }
 
 func main() {
+	fmt.Println("Starting Tratis ...")
 
 	TracingToolName, ok := os.LookupEnv(consts.TracingToolEnvKey)
 	if !ok {
@@ -55,10 +55,18 @@ func main() {
 
 	traces := data.Traces
 	traces = cleanTraces(traces)
-	g := graph.GenerateGraph(traces[0].Spans)
-	// fmt.Println(string(g.ExtractGraphData()))
 
-	fmt.Println(string(distribution.ExtractTimeInformation(g)))
+	d := make([][]distribution.TimeInformation, 0)
+
+	for _, trace := range traces {
+		g := graph.GenerateGraph(trace.Spans)
+		traceInformation := distribution.ExtractTimeInformation(g)
+
+		d = append(d, traceInformation)
+	}
+
+	combinedResults := distribution.CombineTimeInformation(d)
+	distribution.TimeInfoToDist("Distribution", "BestFitDistribution", combinedResults)
 }
 
 //

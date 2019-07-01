@@ -23,6 +23,8 @@ const (
 	// spans. Only the traces with NumberSpans would be picked.
 	NumberSpans = 8
 
+	NumberServices = 4
+
 	// Jaeger URL
 	JaegerURL = "http://localhost:15034"
 	// Service Name

@@ -25,7 +25,7 @@ import (
 // }
 
 func ExtractTraces() []byte {
-	resp, err := http.Get("http://localhost:15034/jaeger/api/traces?service=istio-ingressgateway&limit=1000")
+	resp, err := http.Get("http://localhost:15034/jaeger/api/traces?service=istio-ingressgateway&limit=5000")
 	if err != nil {
 		log.Fatalln(err)
 	}
