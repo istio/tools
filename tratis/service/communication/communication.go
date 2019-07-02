@@ -43,7 +43,7 @@ func FindNumServices(toolAddr string, toolPortNum string) []byte {
 	return body
 }
 
-func ExtractTraces(toolAddr string, toolPortNum string, 
+func ExtractTraces(toolAddr string, toolPortNum string,
 	appEntryPoint string, numTraces int) []byte {
 	pageAddress := fmt.Sprintf("http://%s:%s/jaeger/api/traces?service=%s&limit=%d",
 		toolAddr, toolPortNum, appEntryPoint, numTraces)
