@@ -1,4 +1,4 @@
-// Copyright 2018 Istio Authors
+// Copyright 2019 Istio Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this currentFile except in compliance with the License.
@@ -68,6 +68,12 @@ func GeneratePythonCommand(fileName string, funcName string, data []uint64) stri
 	return command.String()
 }
 
+/*
+The more values (traces) generated the better the results of the
+distribution fitting module but at least a minimum of 50 values 
+(traces) should be generated.
+*/
+
 func RunDistributionFitting(command string) Details {
 	cmd := exec.Command("python", "-c", command)
 	out, err := cmd.CombinedOutput()
@@ -79,7 +85,7 @@ func RunDistributionFitting(command string) Details {
 	var ret Details
 	err = json.Unmarshal(out, &ret)
 	if err != nil {
-		log.Fatalf(`Python Script Output Not Correctly Formatted`)
+		log.Fatalf(`Python Script Output Not Correctly Formatted: %s`, err)
 	}
 
 	return ret

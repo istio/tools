@@ -1,4 +1,4 @@
-// Copyright 2018 Istio Authors
+// Copyright 2019 Istio Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this currentFile except in compliance with the License.
@@ -16,7 +16,7 @@ package distribution
 
 import (
 	"istio.io/tools/tratis/service/graph"
-	"istio.io/tools/tratis/service/pkg/consts"
+	// "istio.io/tools/tratis/service/pkg/consts"
 )
 
 type Time struct {
@@ -36,10 +36,14 @@ type CombinedTimeInformation struct {
 }
 
 func CombineTimeInformation(data [][]TimeInformation) []CombinedTimeInformation {
-	ret := make([]CombinedTimeInformation, consts.NumberServices)
+	ret := make([]CombinedTimeInformation, 0)
 
 	for _, trace := range data {
 		for idx, span := range trace {
+			if len(ret) < idx+1 {
+				ret = append(ret, CombinedTimeInformation{})
+			}
+			
 			ret[idx].OperationName = span.OperationName
 
 			if len(ret[idx].Duration) == 0 {

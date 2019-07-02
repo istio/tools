@@ -1,4 +1,4 @@
-// Copyright 2018 Istio Authors
+// Copyright 2019 Istio Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this currentFile except in compliance with the License.
@@ -26,7 +26,7 @@ import (
 	"istio.io/tools/tratis/service/pkg/consts"
 )
 
-func cleanTraces(traces []jaeger.Trace) []jaeger.Trace {
+func filterTracesByNumSpans(traces []jaeger.Trace) []jaeger.Trace {
 	ret := make([]jaeger.Trace, 0)
 
 	for _, trace := range traces {
@@ -41,10 +41,11 @@ func cleanTraces(traces []jaeger.Trace) []jaeger.Trace {
 func main() {
 	fmt.Println("Starting Tratis ...")
 
-	TracingToolName, ok := os.LookupEnv(consts.TracingToolEnvKey)
-	if !ok {
-		log.Fatalf(`env var "%s" is not set`, consts.TracingToolEnvKey)
+	if len(os.Args) != 2 {
+		log.Fatalf(`Input Arguments not correctly provided: go run main.go <TOOL_NAME=jaeger/zipkin>`)
 	}
+
+	TracingToolName := os.Args[1]
 
 	fmt.Println("Generating Traces ...")
 
@@ -54,10 +55,12 @@ func main() {
 			TracingToolName)
 	}
 
-	fmt.Println("Cleaning Traces ...")
+	fmt.Println("Filtering Traces ...")
 
 	traces := data.Traces
-	traces = cleanTraces(traces)
+	traces = filterTracesByNumSpans(traces)
+
+	fmt.Printf("Processing %d Traces\n", len(traces))
 
 	d := make([][]distribution.TimeInformation, 0)
 

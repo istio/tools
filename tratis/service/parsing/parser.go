@@ -1,4 +1,4 @@
-// Copyright 2018 Istio Authors
+// Copyright 2019 Istio Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this currentFile except in compliance with the License.
@@ -19,7 +19,8 @@ import (
 	"log"
 
 	jaeger "github.com/jaegertracing/jaeger/model/json"
-	trace "istio.io/tools/tratis/service/traces"
+	comm "istio.io/tools/tratis/service/communication"
+	"istio.io/tools/tratis/service/pkg/consts"
 )
 
 type TraceData struct {
@@ -33,7 +34,9 @@ func ParseJSON(toolName string) (appTrace TraceData,
 	err error) {
 
 	if toolName == "jaeger" {
-		return ParseJaeger(trace.ExtractTraces())
+		return ParseJaeger(comm.ExtractTraces(consts.TracingToolAddress, 
+			consts.TracingToolPortNumber, consts.TracingToolEntryPoint,
+		consts.NumTraces))
 	}
 
 	log.Fatalf(`tracing tool "%s" is not correctly supported`, toolName)

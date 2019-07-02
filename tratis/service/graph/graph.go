@@ -1,4 +1,4 @@
-// Copyright 2018 Istio Authors
+// Copyright 2019 Istio Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this currentFile except in compliance with the License.
@@ -60,26 +60,35 @@ func findTag(tags []jaeger.KeyValue, key string) jaeger.KeyValue {
 	return jaeger.KeyValue{}
 }
 
-func GenerateGraph(data []jaeger.Span) *Graph {
-	for _, v := range data {
-		if len(v.References) == 0 {
-			childrenList := make([]Node, 0)
 
-			tag := findTag(v.Tags, "upstream_cluster")
-			tagData := strings.Split(tag.Value.(string), "|")[0]
-
-			d := NodeData{v.SpanID, v.OperationName,
-				v.StartTime, v.Duration, tagData}
-			root := Node{d, &childrenList}
-			UpdateChildren(data, &childrenList, v.SpanID)
-			return &Graph{&root}
+// Root span has no references.
+func findRootSpan(spans []jaeger.Span) jaeger.Span {
+	for _, span := range spans {
+		if len(span.References) == 0 {
+			return span
 		}
 	}
 
-	return &Graph{&Node{NodeData{}, nil}}
+	log.Fatalf(`Root Span not present in spans`)
+	return jaeger.Span{}
 }
 
-func UpdateChildren(data []jaeger.Span, children *[]Node, spanID jaeger.SpanID) {
+func GenerateGraph(data []jaeger.Span) *Graph {
+	rootSpan := findRootSpan(data)
+
+	tag := findTag(rootSpan.Tags, "upstream_cluster")
+	tagData := strings.Split(tag.Value.(string), "|")[0]
+
+	d := NodeData{rootSpan.SpanID, rootSpan.OperationName,
+		rootSpan.StartTime, rootSpan.Duration, tagData}
+	childrenList := UpdateChildren(data, rootSpan.SpanID)
+	root := Node{d, &childrenList}
+	return &Graph{&root}
+}
+
+func UpdateChildren(data []jaeger.Span, spanID jaeger.SpanID) []Node {
+	children := make([]Node, 0)
+
 	for _, v := range data {
 		if len(v.References) == 0 {
 			continue
@@ -87,21 +96,41 @@ func UpdateChildren(data []jaeger.Span, children *[]Node, spanID jaeger.SpanID) 
 
 		ref := v.References[0]
 		if ref.RefType == jaeger.ChildOf && ref.SpanID == spanID {
-			childrenList := make([]Node, 0)
+			/*
+			Tag Examples:
+
+			{Key: upstream_cluster 
+			 Type: string 
+			 Value: inbound|9080|http|productpage.default.svc.cluster.local
+			}
+
+			{Key: upstream_cluster 
+			 Type: string 
+			 Value: inbound|9080|http|reviews.default.svc.cluster.local
+			} 
+
+			{Key: upstream_cluster
+			 Type: string
+			 Value: outbound|9080||ratings.default.svc.cluster.local
+			}
+			*/
 
 			tag := findTag(v.Tags, "upstream_cluster")
 			tagData := strings.Split(tag.Value.(string), "|")[0]
 
 			d := NodeData{v.SpanID, v.OperationName,
 				v.StartTime, v.Duration, tagData}
-			*children = append(*children, Node{d, &childrenList})
 
-			UpdateChildren(data, &childrenList, v.SpanID)
-
-			sort.Slice(childrenList, func(i, j int) bool {
-				return (childrenList[i].Data.StartTime <
-					childrenList[j].Data.StartTime)
-			})
+			nodeChildren := UpdateChildren(data, v.SpanID)
+			children = append(children, Node{d, &nodeChildren})
 		}
 	}
+
+
+	sort.Slice(children, func(i, j int) bool {
+		return (children[i].Data.StartTime <
+			children[j].Data.StartTime)
+	})
+
+	return children
 }
