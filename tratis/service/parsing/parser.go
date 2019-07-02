@@ -19,6 +19,7 @@ import (
 	"log"
 
 	jaeger "github.com/jaegertracing/jaeger/model/json"
+
 	trace "istio.io/tools/tratis/service/traces"
 )
 
