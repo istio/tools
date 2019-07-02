@@ -60,7 +60,6 @@ func findTag(tags []jaeger.KeyValue, key string) jaeger.KeyValue {
 	return jaeger.KeyValue{}
 }
 
-
 // Root span has no references.
 func findRootSpan(spans []jaeger.Span) jaeger.Span {
 	for _, span := range spans {
