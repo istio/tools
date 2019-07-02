@@ -26,10 +26,6 @@ const (
 	// Max Number of Services in Application
 	NumberServices = 4
 
-	// Jaeger URL
-	JaegerURL = "http://localhost:15034"
-	// Service Name
-	ServiceName = ""
 	// Traces Limit
 	NumTraces = 1000
 

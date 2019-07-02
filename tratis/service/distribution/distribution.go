@@ -73,6 +73,7 @@ func RunDistributionFitting(command string) Details {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
+		fmt.Println(string(out))
 	}
 
 	var ret Details
