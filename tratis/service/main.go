@@ -20,6 +20,7 @@ import (
 	"os"
 
 	jaeger "github.com/jaegertracing/jaeger/model/json"
+
 	"istio.io/tools/tratis/service/distribution"
 	"istio.io/tools/tratis/service/graph"
 	parser "istio.io/tools/tratis/service/parsing"
