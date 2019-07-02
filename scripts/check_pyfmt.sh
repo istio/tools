@@ -21,7 +21,8 @@ SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOTDIR=$(dirname "${SCRIPTPATH}")
 cd "${ROOTDIR}"
 
-pip install --upgrade autopep8
+sudo apt-get install --upgrade python3-pip
+pip3 install --upgrade autopep8
 
 status=0
 python_files_changed=$(git diff --name-only | grep -E '\.py$' || true)
@@ -37,6 +38,7 @@ if [ -n "$python_files_changed" ]; then
           exit 0
         else
           echo "=== autopep8 check fail ==="
+          echo "=== run 'make fmtpy-checkandupdate' to update the format ==="
           exit 1
         fi
     fi
