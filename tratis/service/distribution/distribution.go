@@ -70,7 +70,7 @@ func GeneratePythonCommand(fileName string, funcName string, data []uint64) stri
 
 /*
 The more values (traces) generated the better the results of the
-distribution fitting module but at least a minimum of 50 values 
+distribution fitting module but at least a minimum of 50 values
 (traces) should be generated.
 */
 
