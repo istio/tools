@@ -43,7 +43,6 @@ func CombineTimeInformation(data [][]TimeInformation) []CombinedTimeInformation 
 			if len(ret) < idx+1 {
 				ret = append(ret, CombinedTimeInformation{})
 			}
-			
 			ret[idx].OperationName = span.OperationName
 
 			if len(ret[idx].Duration) == 0 {
