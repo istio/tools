@@ -16,7 +16,7 @@ Alarm = collections.namedtuple(
 
 
 class Prometheus(object):
-    def __init__(self, url: str, host: str = None, pid = 0):
+    def __init__(self, url: str, host: str = None, pid=0):
         self.pid = pid
         self.url = url
         self.headers = {}

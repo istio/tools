@@ -157,8 +157,10 @@ def click_share_link(dashboard_url, timeout):
     print("dashboard url:{0}".format(dashboard_url))
     driver.get(dashboard_url)
 
-    share_button = WebDriverWait(driver, timeout).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "navbar-button--share")))
+    share_button = WebDriverWait(
+        driver, timeout).until(
+        EC.presence_of_element_located(
+            (By.CLASS_NAME, "navbar-button--share")))
     share_button.click()
 
     snapshot_tap = WebDriverWait(driver, timeout).until(
