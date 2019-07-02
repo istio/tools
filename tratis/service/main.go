@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	// "path"
 
 	jaeger "github.com/jaegertracing/jaeger/model/json"
 	"istio.io/tools/tratis/service/distribution"
@@ -84,14 +83,3 @@ func main() {
 		consts.DistFittingFuncName, combinedResults)
 	fmt.Println("Distribution Details: ", dists)
 }
-
-//
-
-/*
-
-TODO LIST:
-
-1. RUN GRAPH FILE
-2. FIX DISTRIBUTION FILE
-
-*/

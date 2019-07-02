@@ -22,14 +22,14 @@ import (
 	trace "istio.io/tools/tratis/service/traces"
 )
 
-type traceData struct {
+type TraceData struct {
 	Traces []jaeger.Trace `json:"data"`
 	Total  int            `json:"total"`
 	Limit  int            `json:"limit"`
 	Offset int            `json:"offset"`
 }
 
-func ParseJSON(toolName string) (appTrace traceData,
+func ParseJSON(toolName string) (appTrace TraceData,
 	err error) {
 
 	if toolName == "jaeger" {
@@ -40,8 +40,8 @@ func ParseJSON(toolName string) (appTrace traceData,
 	return
 }
 
-func ParseJaeger(data []byte) (appTrace traceData, err error) {
-	t := traceData{}
+func ParseJaeger(data []byte) (appTrace TraceData, err error) {
+	t := TraceData{}
 	err = json.Unmarshal(data, &t)
 	if err != nil {
 		return

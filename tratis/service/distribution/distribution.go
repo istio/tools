@@ -23,14 +23,14 @@ import (
 	"strings"
 )
 
-type DistributionDetails struct {
+type Details struct {
 	Name       string    `json:"name"`
 	Parameters []float64 `json:"parameters"`
 }
 
 type TotalDistributions struct {
-	OperationName string                `json:"operationName"`
-	Distributions []DistributionDetails `json:"distributions"`
+	OperationName string    `json:"operationName"`
+	Distributions []Details `json:"distributions"`
 }
 
 func TimeInfoToDist(fileName string,
@@ -68,14 +68,14 @@ func GeneratePythonCommand(fileName string, funcName string, data []uint64) stri
 	return command.String()
 }
 
-func RunDistributionFitting(command string) DistributionDetails {
+func RunDistributionFitting(command string) Details {
 	cmd := exec.Command("python", "-c", command)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	var ret DistributionDetails
+	var ret Details
 	err = json.Unmarshal(out, &ret)
 	if err != nil {
 		log.Fatalf(`Python Script Output Not Correctly Formatted`)

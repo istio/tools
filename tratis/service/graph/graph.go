@@ -16,10 +16,11 @@ package graph
 
 import (
 	"encoding/json"
-	jaeger "github.com/jaegertracing/jaeger/model/json"
 	"log"
 	"sort"
 	"strings"
+
+	jaeger "github.com/jaegertracing/jaeger/model/json"
 )
 
 type NodeData struct {
@@ -62,7 +63,7 @@ func findTag(tags []jaeger.KeyValue, key string) jaeger.KeyValue {
 func GenerateGraph(data []jaeger.Span) *Graph {
 	for _, v := range data {
 		if len(v.References) == 0 {
-			childrenList := make([]Node, 0, 0)
+			childrenList := make([]Node, 0)
 
 			tag := findTag(v.Tags, "upstream_cluster")
 			tagData := strings.Split(tag.Value.(string), "|")[0]
@@ -78,15 +79,15 @@ func GenerateGraph(data []jaeger.Span) *Graph {
 	return &Graph{&Node{NodeData{}, nil}}
 }
 
-func UpdateChildren(data []jaeger.Span, children *[]Node, SpanID jaeger.SpanID) {
+func UpdateChildren(data []jaeger.Span, children *[]Node, spanID jaeger.SpanID) {
 	for _, v := range data {
 		if len(v.References) == 0 {
 			continue
 		}
 
 		ref := v.References[0]
-		if ref.RefType == jaeger.ChildOf && ref.SpanID == SpanID {
-			childrenList := make([]Node, 0, 0)
+		if ref.RefType == jaeger.ChildOf && ref.SpanID == spanID {
+			childrenList := make([]Node, 0)
 
 			tag := findTag(v.Tags, "upstream_cluster")
 			tagData := strings.Split(tag.Value.(string), "|")[0]

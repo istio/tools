@@ -17,9 +17,10 @@ package trace
 import (
 	"fmt"
 	"io/ioutil"
-	"istio.io/tools/tratis/service/pkg/consts"
 	"log"
 	"net/http"
+
+	"istio.io/tools/tratis/service/pkg/consts"
 )
 
 func ExtractTraces() []byte {
@@ -31,6 +32,7 @@ func ExtractTraces() []byte {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

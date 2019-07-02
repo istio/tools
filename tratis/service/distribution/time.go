@@ -15,9 +15,6 @@
 package distribution
 
 import (
-	// "fmt"
-	// "encoding/json"
-	// jaeger "github.com/jaegertracing/jaeger/model/json"
 	"istio.io/tools/tratis/service/graph"
 	"istio.io/tools/tratis/service/pkg/consts"
 )
@@ -25,7 +22,7 @@ import (
 type Time struct {
 	StartTime uint64 `json:"startTime"`
 	EndTime   uint64 `json:"endTime"`
-	Duration  uint64 `json:"duration`
+	Duration  uint64 `json:"duration"`
 }
 
 type TimeInformation struct {
@@ -92,25 +89,3 @@ func ExtractTimeInformationWrapper(n *graph.Node, t *[]TimeInformation) {
 		*t = append(*t, TimeInformation{timeData, n.Data.OperationName})
 	}
 }
-
-// func CombineTimeInformation(data [][]TimeInformation) []CombineTimeInformation {
-// 	// [{[{1562002522923573 1562002522925988 2415}] details.default.svc.cluster.local:9080/*} {[{1562002522933506 1562002522934836 1330}] ratings.default.svc.cluster.local:9080/*} {[{1562002522930153 1562002522933052 2899} {1562002522935123 1562002522936216 1093}] reviews.default.svc.cluster.local:9080/*} {[{1562002522919404 1562002522923162 3758} {1562002522926485 1562002522929816 3331} {1562002522937008 1562002522939600 2592}] productpage.default.svc.cluster.local:9080/productpage}]
-
-// 	// 1. Add Operation Name
-// 	// 2. Add Time Datax`
-
-// 	ret := make([]CombineTimeInformation, consts.NumberSpans)
-
-// 	for _, ret := range ret {
-// 		ret.Duration
-// 	}
-
-// 	for _, timeInfo := range data {
-// 		for idx, span := range timeInfo {
-// 			ret[idx].OperationName = span.OperationName
-// 			ret[idx]
-
-// 			for idx_timeData,
-// 		}
-// 	}
-// }
