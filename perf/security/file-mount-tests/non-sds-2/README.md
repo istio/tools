@@ -8,8 +8,11 @@ periodically delete pods and create pods to test whether Citadel Agent
 properly releases resources and handles new certificate requests.
 
 In this test, *controlPlaneSecurity* is disabled. To enable 
-*controlPlaneSecurity*, set *controlPlaneSecurity* as *true* in
-*ROOT-OF-REPO/perf/istio/values-istio-non-sds.yaml*.
+*controlPlaneSecurity*
+1) set *pilot.sidecar* to true in *ROOT-OF-REPO/perf/istio/values.yaml*
+2) set *controlPlaneSecurity* to *true* in
+*ROOT-OF-REPO/perf/istio/values-istio-non-sds.yaml* or
+*ROOT-OF-REPO/perf/istio/values-multi-citadel-non-sds.yaml*.
 
 ## To run the certificate rotation test with SDS disabled:
 - Create a GKE cluster and set it as the current cluster.
@@ -18,18 +21,32 @@ on GCP project *istio-security-testing*.
 You may use `kubectl config current-context` to confirm that your newly created cluster
 is set as the current cluster.
 
-- Deploy Istio:
+There are two test scenarios, i.e., single citadel instance and multiple citadel instances. You
+can pick one for your testing cluster.
+
+### Deploy Istio with single Citadel instance
 Let the root directory of this repo be *ROOT-OF-REPO*.
 Run the following commands:
 ```
   cd ROOT-OF-REPO/perf/istio-install
   DNS_DOMAIN=your-example-domain EXTRA_VALUES=values-istio-non-sds.yaml ./setup_istio.sh release-1.1-20190221-09-16
-```  
+```
 You may replace the Istio release
 in the command to the Istio release to test.
 After running the above script to deploy Istio, wait a moment for Istio to be ready.
 
-- Deploy workloads that request for certificates. 
+### Deploy Istio with multiple Citadel instances
+
+*This test case works only for Istio release version 1.2.2+ (Istio release) or daily release release-1.2-20190630-09-15+*
+
+Run the following commands to install 3 Citadel instances:
+```
+  cd ROOT-OF-REPO/perf/istio-install
+  DNS_DOMAIN=your-example-domain EXTRA_VALUES=values-multi-citadel-non-sds.yaml ./setup_istio.sh release-1.2-20190630-09-15
+```
+
+## Deploy workloads
+
 *RELEASE* variable specifies the Istio release. 
 *RELEASETYPE* variable specifies the type Istio release, daily, pre-release and release.
 *NAMESPACE* variable specifies the k8s namespace for testing.
