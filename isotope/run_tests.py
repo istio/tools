@@ -13,7 +13,7 @@ def main(args: argparse.Namespace) -> None:
     config = cfg.from_toml_file(args.config_path)
 
     cluster.set_up_if_not_exists(
-        config.cluster_project_id, config.cluster_name, config.cluster_zone,
+        config.cluster_project_id, config.cluster_name, config.cluster_zones,
         config.cluster_version, config.server_machine_type,
         config.server_disk_size_gb, config.server_num_nodes,
         config.client_machine_type, config.client_disk_size_gb)

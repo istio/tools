@@ -10,12 +10,16 @@ environments = [
 
 [cluster]
 project_id = "istio-200620"
-# Cluster will be created with one n1-standard-1 node in the default node-pool
-# running Prometheus. In total, the cluster will have 1 Prometheus node, 1
-# client node, and N service-graph nodes (total of N + 2 nodes).
-name = "isotope-cluster-1"
-zone = "us-central1-a"
-version = "1.12.7-gke.7"
+# Cluster will be created with one n1-standard-1 node per zone in the default node-pool.
+# Only one of them will be running Prometheus. In total, the cluster will have 
+# 1 Prometheus node per zone, 1 client node per zone, and N service-graph nodes per zone.
+# In total (N + 2) nodes per zone.
+name = "isotope-cluster-2"
+# One can specify multiple zones for the cluster. The control place 
+# would be in the first zone you specify but the nodes would be 
+# spread around the zones.
+zones = ["us-central1-a", "us-central1-b", "us-central1-c"]
+version = "1.12.7-gke.25"
 
 [istio]
 archive_url = "https://github.com/istio/istio/releases/download/1.1.3/istio-1.1.3-linux.tar.gz"
