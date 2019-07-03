@@ -5,7 +5,8 @@ import sys
 
 def str_presenter(dumper, data):
     if len(data.splitlines()) > 1:  # check for multiline string
-        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+        return dumper.represent_scalar(
+            'tag:yaml.org,2002:str', data, style='|')
     return dumper.represent_scalar('tag:yaml.org,2002:str', data)
 
 
@@ -61,8 +62,10 @@ def getParser():
     parser.add_argument(
         "filename", help="filename")
 
-    parser.add_argument("--mixer-server", help="mixer address",
-                        default="istio-telemetry.istio-system.svc.cluster.local:9091")
+    parser.add_argument(
+        "--mixer-server",
+        help="mixer address",
+        default="istio-telemetry.istio-system.svc.cluster.local:9091")
 
     return parser
 
