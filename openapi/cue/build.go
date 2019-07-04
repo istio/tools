@@ -75,7 +75,7 @@ type grouping struct {
 	version string
 }
 
-func completeBuildPlan(g map[string][]grouping, root string) error {
+func completeBuildPlan(buildPlan map[string][]grouping, root string) error {
 	// Walk over all .proto files in the root and add them to groupin entries
 	// that requested all files in the directory to be added.
 	err := filepath.Walk(root, func(path string, f os.FileInfo, _ error) (err error) {
