@@ -5,17 +5,16 @@ topology_paths = [
 
 environments = [
   "NONE",
-  "ISTIO",
 ]
 
 [cluster]
-project_id = "istio-200620"
+project_id = "istio-516"
 # Cluster will be created with one n1-standard-1 node in the default node-pool
 # running Prometheus. In total, the cluster will have 1 Prometheus node, 1
 # client node, and N service-graph nodes (total of N + 2 nodes).
-name = "isotope-cluster-1"
+name = "isotope-cluster-4"
 zone = "us-central1-a"
-version = "1.12.7-gke.7"
+version = "1.12.7-gke.25"
 
 [istio]
 archive_url = "https://github.com/istio/istio/releases/download/1.1.3/istio-1.1.3-linux.tar.gz"
@@ -29,6 +28,9 @@ image = "tahler/isotope-service:1"
 [client]
 machine_type = "n1-highcpu-4"
 disk_size_gb = 16
+# One can specify multiple clients which will generate the load at 
+# the same time.
+num_nodes = 2
 # Necessary fork to allow Fortio's server to output Prometheus metrics.
 image = "tahler/fortio:prometheus"
 # "max" is a special string, otherwise use a number.

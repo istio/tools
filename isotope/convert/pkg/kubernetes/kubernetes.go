@@ -59,6 +59,7 @@ func ServiceGraphToKubernetesManifests(
 	serviceMaxIdleConnectionsPerHost int,
 	clientNodeSelector map[string]string,
 	clientImage string,
+	clientNum int,
 	environmentName string) ([]byte, error) {
 	numServices := len(serviceGraph.Services)
 	numManifests := numManifestsPerService*numServices + numConfigMaps
@@ -116,15 +117,17 @@ func ServiceGraphToKubernetesManifests(
 		}
 	}
 
-	fortioDeployment := makeFortioDeployment(
-		clientNodeSelector, clientImage)
-	if err := appendManifest(fortioDeployment); err != nil {
-		return nil, err
-	}
+	for i := 0; i < clientNum; i++ {
+		fortioDeployment := makeFortioDeployment(
+			clientNodeSelector, clientImage, i)
+		if err := appendManifest(fortioDeployment); err != nil {
+			return nil, err
+		}
 
-	fortioService := makeFortioService()
-	if err := appendManifest(fortioService); err != nil {
-		return nil, err
+		fortioService := makeFortioService(i)
+		if err := appendManifest(fortioService); err != nil {
+			return nil, err
+		}
 	}
 
 	if hasRbacPolicy {

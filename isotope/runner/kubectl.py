@@ -61,14 +61,15 @@ def apply_text(json_or_yaml: str, intermediate_file_path: str = None) -> None:
 
 
 @contextlib.contextmanager
-def port_forward(label_key: str, label_value: str, target_port: int,
-                 namespace: str) -> Generator[int, None, None]:
+def port_forward(label_key: str, label_value: str, client_index: int,
+                 target_port: int, namespace: str) -> Generator[int, None, None]:
     """Port forwards the first pod matching label, yielding the open port."""
     # TODO: Catch error if label matches zero pods.
     pod_name = sh.run_kubectl(
         [
             'get', 'pod', '-l{}={}'.format(label_key, label_value),
-            '-o=jsonpath={.items[0].metadata.name}', '--namespace', namespace
+            '-o=jsonpath={.items[' + str(client_index) +
+            '].metadata.name}', '--namespace', namespace
         ],
         check=True).stdout
     local_port = _get_open_port()

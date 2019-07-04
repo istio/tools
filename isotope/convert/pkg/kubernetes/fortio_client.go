@@ -20,6 +20,8 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"strconv"
+
 	"istio.io/tools/isotope/convert/pkg/consts"
 )
 
@@ -27,10 +29,11 @@ var fortioClientLabels = map[string]string{"app": "client"}
 
 func makeFortioDeployment(
 	nodeSelector map[string]string,
-	clientImage string) (deployment appsv1.Deployment) {
+	clientImage string,
+	clientNum int) (deployment appsv1.Deployment) {
 	deployment.APIVersion = "apps/v1"
 	deployment.Kind = "Deployment"
-	deployment.ObjectMeta.Name = "client"
+	deployment.ObjectMeta.Name = "client" + strconv.Itoa(clientNum)
 	deployment.ObjectMeta.Labels = fortioClientLabels
 	timestamp(&deployment.ObjectMeta)
 	deployment.Spec = appsv1.DeploymentSpec{
@@ -65,10 +68,10 @@ func makeFortioDeployment(
 	return
 }
 
-func makeFortioService() (service apiv1.Service) {
+func makeFortioService(clientNum int) (service apiv1.Service) {
 	service.APIVersion = "v1"
 	service.Kind = "Service"
-	service.ObjectMeta.Name = "client"
+	service.ObjectMeta.Name = "client" + strconv.Itoa(clientNum)
 	service.ObjectMeta.Labels = fortioClientLabels
 	service.ObjectMeta.Annotations = prometheusScrapeAnnotations
 	timestamp(&service.ObjectMeta)
