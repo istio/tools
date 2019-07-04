@@ -89,7 +89,6 @@ import (
 	"strings"
 
 	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/load"
@@ -137,7 +136,7 @@ func main() {
 		Paths:  importPaths,
 	})
 
-	err := filepath.Walk(cwd, func(path string, f os.FileInfo, _ error) (err error) {
+	_ = filepath.Walk(cwd, func(path string, f os.FileInfo, _ error) (err error) {
 		if !strings.HasSuffix(path, ".proto") {
 			return nil
 		}
@@ -189,7 +188,10 @@ func main() {
 	}
 
 	// Build the OpenAPI files.
-	completeBuildPlan(buildPlan, cwd)
+	err = completeBuildPlan(buildPlan, cwd)
+	if err != nil {
+		log.Fatalf("Error completing build plan: %v", err)
+	}
 	for dir, groupings := range buildPlan {
 		for _, g := range groupings {
 			builder.gen(dir, &g)
@@ -209,8 +211,7 @@ func (x *builder) gen(dir string, g *grouping) {
 		Module: "istio.io/api",
 	}
 
-	var instances []*build.Instance
-	instances = load.Instances([]string{"./" + dir}, cfg)
+	instances := load.Instances([]string{"./" + dir}, cfg)
 	inst := cue.Build(instances)[0]
 	if inst.Err != nil {
 		fatal(inst.Err, "Instance failed")

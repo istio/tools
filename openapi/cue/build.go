@@ -30,13 +30,13 @@ import (
 // The map maps from directory relative the root, to a grouping value for each
 // file that needs to be generated.
 var buildPlan = map[string][]grouping{
-	"authentication/v1alpha1":     []grouping{{all: true}},
-	"mcp/v1alpha1":                []grouping{{all: true}},
-	"mesh/v1alpha1":               []grouping{{all: true}},
-	"mixer/adapter/model/v1beta1": []grouping{{all: true}},
-	"mixer/v1/config/client":      []grouping{{all: true}},
-	"mixer/v1":                    []grouping{{all: true}},
-	"networking/v1alpha3": []grouping{{
+	"authentication/v1alpha1":     {{all: true}},
+	"mcp/v1alpha1":                {{all: true}},
+	"mesh/v1alpha1":               {{all: true}},
+	"mixer/adapter/model/v1beta1": {{all: true}},
+	"mixer/v1/config/client":      {{all: true}},
+	"mixer/v1":                    {{all: true}},
+	"networking/v1alpha3": {{
 		oapiFilename: "istio.networking.destination.v1.json",
 		protoFiles:   []string{"destination_rule.proto"},
 	}, {
@@ -52,8 +52,8 @@ var buildPlan = map[string][]grouping{
 		oapiFilename: "istio.networking.sidecar.v1.json",
 		protoFiles:   []string{"sidecar.proto"},
 	}},
-	"policy/v1beta1": []grouping{{all: true}},
-	"rbac/v1alpha1":  []grouping{{all: true}},
+	"policy/v1beta1": {{all: true}},
+	"rbac/v1alpha1":  {{all: true}},
 }
 
 type grouping struct {
