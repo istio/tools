@@ -85,17 +85,17 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
+	"strconv"
 	"strings"
 
 	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/load"
 	"cuelang.org/go/encoding/openapi"
 	"cuelang.org/go/encoding/protobuf"
+	"github.com/emicklei/proto"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
@@ -103,6 +103,7 @@ var (
 	inplace = flag.Bool("inplace", false, "generate configurations in place")
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
 	root    = flag.String("root", "", "the istio/api root for which to generate files (default is cwd)")
+	verbose = flag.Bool("v", false, "print debugging output")
 )
 
 func main() {
@@ -130,13 +131,11 @@ func main() {
 		importPaths[0] = cwd
 	}
 
-	protoConfig := &protobuf.Config{
+	b := protobuf.NewExtractor(&protobuf.Config{
 		Root:   cwd,
 		Module: "istio.io/api",
 		Paths:  importPaths,
-	}
-
-	b := protobuf.NewExtractor(protoConfig)
+	})
 
 	err := filepath.Walk(cwd, func(path string, f os.FileInfo, _ error) (err error) {
 		if !strings.HasSuffix(path, ".proto") {
@@ -174,7 +173,7 @@ func main() {
 		}
 	}
 
-	// Gernate the openAPI
+	// Gernate the OpenAPI
 	protoNames := map[string]string{}
 
 	// build map of CUE package import paths (Go paths) to proto package paths.
@@ -183,135 +182,221 @@ func main() {
 		protoNames[i.ImportPath] = i.DisplayPath
 	}
 
-	pkgTitles := extractDocTitlesPerPackage(builds)
+	builder := &builder{
+		modRoot:    modRoot,
+		cwd:        cwd,
+		protoNames: protoNames,
+	}
 
 	// Build the OpenAPI files.
-	instances := load.Instances([]string{"./..."}, &load.Config{
-		Dir:    modRoot,
+	completeBuildPlan(buildPlan, cwd)
+	for dir, groupings := range buildPlan {
+		for _, g := range groupings {
+			builder.gen(dir, &g)
+		}
+	}
+}
+
+type builder struct {
+	modRoot    string
+	cwd        string
+	protoNames map[string]string
+}
+
+func (x *builder) gen(dir string, g *grouping) {
+	cfg := &load.Config{
+		Dir:    x.modRoot,
 		Module: "istio.io/api",
-	})
-	for _, inst := range cue.Build(instances) {
-		if inst.Err != nil {
-			fatal(inst.Err, "Instance failed.")
-		}
-		basename := protoNames[inst.ImportPath] + ".json"
-		fmt.Println("Building", basename+"...", inst.ImportPath)
+	}
 
-		if err := inst.Value().Validate(); err != nil {
-			fatal(err, "Validation failed.")
-		}
+	var instances []*build.Instance
+	instances = load.Instances([]string{"./" + dir}, cfg)
+	inst := cue.Build(instances)[0]
+	if inst.Err != nil {
+		fatal(inst.Err, "Instance failed")
+	}
 
-		b, err := openapi.Gen(inst, &openapi.Generator{
-			Info: openapi.OrderedMap{
-				{"title", pkgTitles[inst.ImportPath][0]},
-				{"version", filepath.Base(inst.ImportPath)},
-			},
+	items, err := x.genOpenAPI(inst, g)
+	if err != nil {
+		fatal(err, "Error generating OpenAPI file")
+	}
 
-			// Resolve all references to objects within the file.
-			SelfContained: true,
+	if !g.all {
+		x.filterOpenAPI(items, g)
+	}
 
-			FieldFilter: "min.*|max.*",
+	x.writeOpenAPI(items, g)
+}
 
-			// Computes the reference format for Istio types.
-			ReferenceFunc: func(p *cue.Instance, path []string) string {
-				name := strings.Join(path, ".")
-				// Map CUE names to proto names.
-				name = strings.Replace(name, "_", ".", -1)
+func (x *builder) genOpenAPI(inst *cue.Instance, g *grouping) (*openapi.OrderedMap, error) {
+	if inst.Err != nil {
+		fatal(inst.Err, "Instance failed.")
+	}
+	fmt.Println("Building", g.oapiFilename+"...")
 
-				pkg := protoNames[p.ImportPath]
-				if pkg == "" {
-					log.Fatalf("No protoname for pkg with import path %q", p.ImportPath)
+	if err := inst.Value().Validate(); err != nil {
+		fatal(err, "Validation failed.")
+	}
+
+	info := openapi.OrderedMap{}
+	info.Set("title", g.title)
+	info.Set("version", g.version)
+
+	gen := &openapi.Generator{
+		Info: info,
+
+		// Resolve all references to objects within the file.
+		SelfContained: true,
+
+		FieldFilter: "min.*|max.*",
+
+		// Computes the reference format for Istio types.
+		ReferenceFunc: func(p *cue.Instance, path []string) string {
+			return x.reference(p.ImportPath, path)
+		},
+
+		DescriptionFunc: func(v cue.Value) string {
+			docs := v.Doc()
+			if len(docs) > 0 {
+				// Cut off first section, but don't stop if this ends with
+				// an example, list, or the like, as it will end weirdly.
+				split := strings.Split(docs[0].Text(), "\n\n")
+				k := 1
+				for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
 				}
-				return pkg + "." + name
-			},
+				return strings.Join(split[:k], "\n\n")
+			}
+			return ""
+		},
+	}
 
-			DescriptionFunc: func(v cue.Value) string {
-				docs := v.Doc()
-				if len(docs) > 0 {
-					// Cut off first section, but don't stop if this ends with
-					// an example, list, or the like, as it will end weirdly.
-					split := strings.Split(docs[0].Text(), "\n\n")
-					k := 1
-					for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
-					}
-					return strings.Join(split[:k], "\n\n")
+	return gen.All(inst)
+}
+
+// reference defines the references format of schema by the convention used
+// in Istio.
+func (x *builder) reference(goPkg string, path []string) string {
+	name := strings.Join(path, ".")
+	// Map CUE names to proto names.
+	name = strings.Replace(name, "_", ".", -1)
+
+	pkg := x.protoNames[goPkg]
+	if pkg == "" {
+		log.Fatalf("No protoname for pkg with import path %q", goPkg)
+	}
+	return pkg + "." + name
+}
+
+// filterOpenAPI filters out unneeded elements from a generated OpenAPI.
+// It does so my looking up the top-level items in the proto files defined
+// in g, recursively marking their dependencies, and then eliminating any
+// schema from items that was not marked.
+func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *grouping) {
+	// All references found.
+	m := marker{
+		found:   map[string]bool{},
+		schemas: findInMap(items, "components", "schemas"),
+	}
+
+	// Get top-level definitions for the files in the given grouping
+	for _, f := range g.protoFiles {
+		goPkg := ""
+		for _, e := range protoElems(filepath.Join(x.modRoot, g.dir, f)) {
+			switch v := e.(type) {
+			case *proto.Option:
+				if v.Name == "go_package" {
+					goPkg, _ = strconv.Unquote(v.Constant.SourceRepresentation())
 				}
-				return ""
-			},
-		})
-		if err != nil {
-			fatal(err, "Error generating OpenAPI file")
+
+			case *proto.Message:
+				m.markReference(x.reference(goPkg, []string{v.Name}))
+
+			case *proto.Enum:
+				m.markReference(x.reference(goPkg, []string{v.Name}))
+			}
 		}
+	}
 
-		// Note: this just tests basic OpenAPI 3 validity. It cannot, of course,
-		// know if the the proto files were correctly mapped.
-		_, err = openapi3.NewSwaggerLoader().LoadSwaggerFromData(b)
-		if err != nil {
-			log.Fatalf("Invalid OpenAPI generated: %v", err)
+	// Now eliminate unused top-level items.
+	k := 0
+	pairs := m.schemas.Pairs()
+	for i := 0; i < len(pairs); i++ {
+		if m.found[pairs[i].Key] {
+			pairs[k] = pairs[i]
+			k++
 		}
+	}
+	m.schemas.SetAll(pairs[:k])
+}
 
-		var buf bytes.Buffer
-		_ = json.Indent(&buf, b, "", "  ")
+func (x *builder) writeOpenAPI(items *openapi.OrderedMap, g *grouping) {
+	b, _ := json.Marshal(items)
 
-		relPath, _ := filepath.Rel(modRoot, inst.Dir)
-		filename := filepath.Join(cwd, relPath, basename)
+	// Note: this just tests basic OpenAPI 3 validity. It cannot, of course,
+	// know if the the proto files were correctly mapped.
+	_, err := openapi3.NewSwaggerLoader().LoadSwaggerFromData(b)
+	if err != nil {
+		log.Fatalf("Invalid OpenAPI generated: %v", err)
+	}
 
-		err = ioutil.WriteFile(filename, buf.Bytes(), 0644)
-		if err != nil {
-			log.Fatalf("Error writing OpenAPI file: %v", err)
-		}
+	var buf bytes.Buffer
+	_ = json.Indent(&buf, b, "", "  ")
+
+	filename := filepath.Join(x.cwd, g.dir, g.oapiFilename)
+	err = ioutil.WriteFile(filename, buf.Bytes(), 0644)
+	if err != nil {
+		log.Fatalf("Error writing OpenAPI file: %v", err)
 	}
 }
 
-var (
-	descRe = regexp.MustCompile(`\$description: (.*)\n`)
-)
-
-func extractDocTitlesPerPackage(builds []*build.Instance) map[string][]string {
-	descriptions := extractTitles(descRe, builds)
-
-	descriptions["istio.io/api/networking/v1alpha3"] = []string{
-		"Configuration affecting networking.",
-	}
-
-	for pkg, titles := range descriptions {
-		switch len(titles) {
-		case 1:
-		case 0:
-			fmt.Printf("No $description set for package %q in any .proto file\n", pkg)
-			descriptions[pkg] = []string{"NO TITLE"}
-		default:
-			fmt.Printf("Ambiguous package titles for package %q\n", pkg)
+func findInMap(items *openapi.OrderedMap, path ...string) *openapi.OrderedMap {
+	for _, kv := range items.Pairs() {
+		if kv.Key == path[0] {
+			m := kv.Value.(*openapi.OrderedMap)
+			if len(path) == 1 {
+				return m
+			}
+			return findInMap(m, path[1:]...)
 		}
 	}
-
-	return descriptions
+	panic("should not happen")
 }
 
-func extractTitles(re *regexp.Regexp, builds []*build.Instance) map[string][]string {
-	pkgTitles := map[string][]string{}
+type marker struct {
+	found   map[string]bool
+	schemas *openapi.OrderedMap
+}
 
-	for _, b := range builds {
-		pkgTitles[b.ImportPath] = nil
+func (x *marker) markReference(ref string) {
+	if x.found[ref] {
+		return
+	}
+	x.found[ref] = true
 
-		extractTitle := func(n ast.Node) {
-			c, ok := n.(*ast.CommentGroup)
-			if !ok {
-				return
-			}
-			m := re.FindStringSubmatch(c.Text())
-			a := pkgTitles[b.ImportPath]
-			if len(m) > 1 && m[1] != "" && (len(a) == 0 || a[0] != m[1]) {
-				pkgTitles[b.ImportPath] = append(a, m[1])
-			}
-		}
-
-		for _, f := range b.Files {
-			ast.Walk(f, nil, extractTitle)
+	for _, kv := range x.schemas.Pairs() {
+		if kv.Key == ref {
+			x.markRecursive(kv.Value.(*openapi.OrderedMap))
+			return
 		}
 	}
+	panic("should not happen")
+}
 
-	return pkgTitles
+func (x *marker) markRecursive(m *openapi.OrderedMap) {
+	for _, kv := range m.Pairs() {
+		switch v := kv.Value.(type) {
+		case *openapi.OrderedMap:
+			x.markRecursive(v)
+		case []*openapi.OrderedMap:
+			for _, m := range v {
+				x.markRecursive(m)
+			}
+		case string:
+			if kv.Key == "$ref" {
+				x.markReference(kv.Value.(string)[len("#/components/schemas/"):])
+			}
+		}
+	}
 }
 
 func fatal(err error, msg string) {
