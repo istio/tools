@@ -301,7 +301,7 @@ func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *grouping) {
 	// Get top-level definitions for the files in the given grouping
 	for _, f := range g.protoFiles {
 		goPkg := ""
-		for _, e := range protoElems(filepath.Join(x.modRoot, g.dir, f)) {
+		for _, e := range protoElems(filepath.Join(x.cwd, g.dir, f)) {
 			switch v := e.(type) {
 			case *proto.Option:
 				if v.Name == "go_package" {
