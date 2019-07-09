@@ -116,7 +116,6 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 			}
 
 			var distCmd SleepCommandDistribution
-			// distCmd.Type = cmd["dist"].(string)
 			distCmd.Dist = dist
 			*c = SleepCommand{command.Type, distCmd}
 		case "lognormal":
@@ -126,7 +125,6 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 			}
 
 			var distCmd SleepCommandDistribution
-			// distCmd.Type = cmd["dist"].(string)
 			distCmd.Dist = dist
 			*c = SleepCommand{command.Type, distCmd}
 		}
