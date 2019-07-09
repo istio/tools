@@ -129,6 +129,5 @@ venv.bak/
 .mypy_cache/
 tools.code-workspace
 
-# perf/benchmark results 
-.csv
+# perf/benchmark results
 .DS_Store
