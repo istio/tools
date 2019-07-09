@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"sync"
 	"time"
@@ -58,12 +59,27 @@ func executeSleepCommand(cmd script.SleepCommand) {
 	time.Sleep(time.Duration(cmd))
 }
 
+func executeRequestCommandHelper(cmd script.RequestCommand) bool {
+	rand.Seed(time.Now().UnixNano())
+	number := rand.Intn(100 + 1)
+
+	if number < cmd.Probability {
+		return false
+	}
+	return true
+}
+
 // Execute sends an HTTP request to another service. Assumes DNS is available
 // which maps exe.ServiceName to the relevant URL to reach the service.
 func executeRequestCommand(
 	cmd script.RequestCommand,
 	forwardableHeader http.Header,
 	serviceTypes map[string]svctype.ServiceType) error {
+
+	if executeRequestCommandHelper(cmd) == true {
+		return nil
+	}
+
 	destName := cmd.ServiceName
 	_, ok := serviceTypes[destName]
 	if !ok {
