@@ -1,5 +1,5 @@
-cuelang.org/go v0.0.4-rc1.0.20190704084948-0a9753308f1f h1:42+GjIOPC1Pq9CCI3wJVIBcb8jeJ2fvGKppTffrN2X0=
-cuelang.org/go v0.0.4-rc1.0.20190704084948-0a9753308f1f/go.mod h1:VIdM1Tv9WLZrnFHlSCCd8/chGu0Jo8s/VF0Y1HT9zyI=
+cuelang.org/go v0.0.4 h1:YY7QFmPPluSSOEvkQ+cevzDnDMfNYcafE6ghFlX7RvU=
+cuelang.org/go v0.0.4/go.mod h1:VIdM1Tv9WLZrnFHlSCCd8/chGu0Jo8s/VF0Y1HT9zyI=
 fortio.org/fortio v1.1.0 h1:RcZTb73HO2NXj6K9U6DZ02BVeA2TzmCdqFD80Y/AU8Y=
 fortio.org/fortio v1.1.0/go.mod h1:Go0fRqoPJ1xy5JOWcS23jyF58byVZxFyEePYsGmCR0k=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
