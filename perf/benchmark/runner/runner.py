@@ -49,9 +49,26 @@ class Fortio(object):
         "direct_envoy": {"direct_port": 8076, "port": 8079},
     }
 
-    def __init__(self, conn=None, qps=None, size=None, mode="http", duration=240, mixer=True, perf_record=False,
-                 mixer_cache=True, server="fortioserver", client="fortioclient", additional_args=None, filterFn=None, labels=None,
-                 baseline=False, serversidecar=True, clientsidecar=False, ingress=None, mesh=None):
+    def __init__(
+            self,
+            conn=None,
+            qps=None,
+            size=None,
+            mode="http",
+            duration=240,
+            mixer=True,
+            perf_record=False,
+            mixer_cache=True,
+            server="fortioserver",
+            client="fortioclient",
+            additional_args=None,
+            filterFn=None,
+            labels=None,
+            baseline=False,
+            serversidecar=True,
+            clientsidecar=False,
+            ingress=None,
+            mesh=None):
         self.runid = str(uuid.uuid4()).partition('-')[0]
         self.conn = conn
         self.qps = qps
@@ -74,10 +91,10 @@ class Fortio(object):
         self.run_ingress = ingress
         self.run_baseline = baseline
 
-        if mesh=="linkerd":
-            self.mesh="linkerd"
-        elif mesh=="istio":
-            self.mesh="istio"
+        if mesh == "linkerd":
+            self.mesh = "linkerd"
+        elif mesh == "istio":
+            self.mesh = "istio"
         else:
             sys.exit("invalid mesh %s, must be istio or linkerd" % mesh)
 
@@ -124,8 +141,14 @@ class Fortio(object):
         if self.labels is not None:
             labels += "_" + self.labels
 
-        fortio_cmd = ("fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} -httpbufferkb=128 " +
-                      "-labels {labels}").format(conn=conn, qps=qps, duration=duration, r=self.r, labels=labels)
+        fortio_cmd = (
+            "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} -httpbufferkb=128 " +
+            "-labels {labels}").format(
+            conn=conn,
+            qps=qps,
+            duration=duration,
+            r=self.r,
+            labels=labels)
 
         if self.run_ingress:
             p = kubectl(self.client.name, self.ingress(fortio_cmd))
@@ -137,7 +160,12 @@ class Fortio(object):
         if self.run_serversidecar:
             p = kubectl(self.client.name, self.serversidecar(fortio_cmd))
             if self.perf_record:
-                perf(self.mesh, self.server.name, labels + "_srv_serveronly", duration=40)
+                perf(
+                    self.mesh,
+                    self.server.name,
+                    labels +
+                    "_srv_serveronly",
+                    duration=40)
             p.wait()
 
         if self.run_clientsidecar:
@@ -157,7 +185,7 @@ PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
 
 
-def perf (mesh, pod, labels, duration=20, runfn=run_command_sync):
+def perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
     filename = labels + "_perf.data"
     filepath = PERFWD + filename
     perfpath = PERFWD + PERFSH
@@ -165,10 +193,14 @@ def perf (mesh, pod, labels, duration=20, runfn=run_command_sync):
     # copy executable over
     kubecp(mesh, PERFSH, pod + ":" + perfpath)
 
-    perf = kubectl(pod,
-                   "{perf_cmd} {filename} {duration}".format(perf_cmd=perfpath,
-                                                             filename=filename, duration=duration),
-                   runfn=run_command_sync, container=mesh+"-proxy")
+    perf = kubectl(
+        pod,
+        "{perf_cmd} {filename} {duration}".format(
+            perf_cmd=perfpath,
+            filename=filename,
+            duration=duration),
+        runfn=run_command_sync,
+        container=mesh + "-proxy")
 
     print(perf)
 
@@ -180,8 +212,8 @@ def perf (mesh, pod, labels, duration=20, runfn=run_command_sync):
 
 def kubecp(mesh, from_file, to_file):
     namespace = os.environ.get("NAMESPACE", "service-graph")
-    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c" + mesh +"-proxy".format(
-        from_file=from_file, to_file=to_file, namespace=namespace)
+    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c" + mesh + \
+        "-proxy".format(from_file=from_file, to_file=to_file, namespace=namespace)
     print(cmd)
     return run_command_sync(cmd)
 
@@ -209,8 +241,16 @@ def rc(command):
 
 
 def run(args):
-    fortio = Fortio(size=args.size, duration=args.duration, perf_record=args.perf, labels=args.labels,
-                    baseline=args.baseline, serversidecar=args.serversidecar, clientsidecar=args.clientsidecar, ingress=args.ingress, mesh=args.mesh)
+    fortio = Fortio(
+        size=args.size,
+        duration=args.duration,
+        perf_record=args.perf,
+        labels=args.labels,
+        baseline=args.baseline,
+        serversidecar=args.serversidecar,
+        clientsidecar=args.clientsidecar,
+        ingress=args.ingress,
+        mesh=args.mesh)
 
     for conn in args.conn:
         for qps in args.qps:
@@ -224,7 +264,9 @@ def csv_to_int(s):
 def getParser():
     parser = argparse.ArgumentParser("Run performance test")
     parser.add_argument(
-        "conn", help="number of connections, comma separated list", type=csv_to_int)
+        "conn",
+        help="number of connections, comma separated list",
+        type=csv_to_int)
     parser.add_argument(
         "qps", help="qps, comma separated list", type=csv_to_int)
     parser.add_argument(
@@ -232,7 +274,7 @@ def getParser():
     parser.add_argument("--size", help="size of the payload",
                         type=int, default=1024)
     parser.add_argument(
-       "--mesh", help="istio or linkerd", default="istio")
+        "--mesh", help="istio or linkerd", default="istio")
     parser.add_argument(
         "--client", help="where to run the test from", default=None)
     parser.add_argument("--server", help="pod ip of the server", default=None)
@@ -247,16 +289,15 @@ def getParser():
     parser.add_argument(
         "--ingress", help="run traffic thru ingress", default=None)
 
-
     parser.add_argument("--labels", help="extra labels", default=None)
     return parser
 
 
 def define_bool(parser, opt, help, default_val):
     parser.add_argument(
-        "--"+opt, help=help, dest=opt, action='store_true')
+        "--" + opt, help=help, dest=opt, action='store_true')
     parser.add_argument(
-        "--no-"+opt, help="do not "+help, dest=opt, action='store_false')
+        "--no-" + opt, help="do not " + help, dest=opt, action='store_false')
     val = {opt: default_val}
     parser.set_defaults(**val)
 

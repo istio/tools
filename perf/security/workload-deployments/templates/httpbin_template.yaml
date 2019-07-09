@@ -82,7 +82,28 @@ spec:
       serviceAccountName: sleep
       containers:
       - name: sleep
-        image: pstauffer/curl
-        command: ["/bin/sleep", "3650d"]
+        image: tutum/curl:trusty
+        args:
+          - bash
+          - -c
+          - |-
+            sleep 60
+            num_curl=0
+            num_succeed=0
+            while true; do
+              resp_code=$(curl -sS  -o /dev/null -w "%{http_code}\n" httpbin:8000/headers)
+              if [ ${resp_code} = 200 ]; then
+                num_succeed=$((num_succeed+1))
+              else
+                echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") curl failed, response code $resp_code"
+              fi
+              num_curl=$((num_curl+1))
+              echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
+              sleep .5
+            done
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
         imagePullPolicy: IfNotPresent
 ---
