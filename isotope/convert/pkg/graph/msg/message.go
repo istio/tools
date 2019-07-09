@@ -22,6 +22,7 @@ import (
 
 	"github.com/jmcvetta/randutil"
 	"gonum.org/v1/gonum/stat/distuv"
+
 	"istio.io/tools/isotope/convert/pkg/graph/size"
 )
 
@@ -57,8 +58,8 @@ type MessageSizeDistribution struct {
 	}
 }
 
-func FloatToString(input_num float64) string {
-	return strconv.FormatFloat(input_num, 'f', 10, 64)
+func FloatToString(inputNum float64) string {
+	return strconv.FormatFloat(inputNum, 'f', 10, 64)
 }
 
 func (c MessageSizeDistribution) Size() size.ByteSize {
