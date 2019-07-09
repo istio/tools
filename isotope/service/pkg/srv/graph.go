@@ -21,7 +21,8 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	"istio.io/fortio/log"
+	"fortio.org/fortio/log"
+
 	"istio.io/tools/isotope/convert/pkg/graph"
 	"istio.io/tools/isotope/convert/pkg/graph/msg"
 	"istio.io/tools/isotope/convert/pkg/graph/size"

@@ -6,6 +6,20 @@ global:
     # destination rules or service annotations.
     enabled: true
 
+  sds:
+    enabled: false
+    udsPath: ""
+    useNormalJwt: false
+
+gateways:
+  istio-ingressgateway:
+    sds:
+      enabled: false
+
+security:
+  # Short lived cert to test rotation.
+  workloadCertTtl: 30m
+
 nodeagent:
   enabled: false
   image: node-agent-k8s

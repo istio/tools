@@ -10,6 +10,7 @@ import schedule
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from google.cloud import datastore
@@ -132,40 +133,44 @@ def persist(datastore_client, dashboard, snapshot_url, kind='Snapshot'):
           format(snapshot['url'], dashboard['title']))
 
 
-def export_snapshot(grafana_api, datastore_client, dashboard_name):
+def export_snapshot(dashboard, dashboard_url, datastore_client, timeout):
     """
-    :param grafana_api: grafana api client
+    :param dashboard: dashboard to export snapshot
+    :param dashboard_url: url of dashboard
     :param datastore_client: datastore api client
-    :param dashboard_name: dashboard to export snapshot
+    :param timeout: timeout for waiting page elements
     """
-    dashboard = grafana_api.search_dashboard(dashboard_name)
-    # remove / at beginning
-    path = dashboard['url'][1:]
-    dashboard_url = grafana_api.construct_url(path)
+    snapshot_url = ""
+    try:
+        snapshot_url = click_share_link(dashboard_url, timeout)
+    except TimeoutException as ex:
+        print("Failed to export snapshot caused by selenium timeout,"
+              " retry in next interval")
+    if snapshot_url != "":
+        persist(datastore_client, dashboard, snapshot_url)
 
-    snapshot_url = click_share_link(dashboard_url)
 
-    persist(datastore_client, dashboard, snapshot_url)
-
-
-def click_share_link(dashboard_url):
+def click_share_link(dashboard_url, timeout):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(chrome_options=chrome_options)
     print("dashboard url:{0}".format(dashboard_url))
     driver.get(dashboard_url)
 
-    element = driver.find_element_by_class_name("navbar-button--share")
-    element.click()
+    share_button = WebDriverWait(
+        driver, timeout).until(
+        EC.presence_of_element_located(
+            (By.CLASS_NAME, "navbar-button--share")))
+    share_button.click()
 
-    snapshot_tap = WebDriverWait(driver, 1).until(
+    snapshot_tap = WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.LINK_TEXT, "Snapshot")))
     snapshot_tap.click()
 
-    snapshot_share = WebDriverWait(driver, 1).until(
+    snapshot_share = WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.CLASS_NAME, "btn-secondary")))
     snapshot_share.click()
-    snapshot_link = WebDriverWait(driver, 10).until(
+    snapshot_link = WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.CLASS_NAME, "share-modal-link")))
     print(snapshot_link.text)
     return snapshot_link.text
@@ -179,23 +184,34 @@ def getParser():
         default="istio performance")
 
     parser.add_argument("--period", help="Period in minutes"
-                        " to automatically export snapshots", default=1)
+                        " to automatically export snapshots",
+                        type=int, default=5)
+
+    parser.add_argument("--pageTimeout", help="Timeout in seconds, "
+                        "set it to higher value to avoid selenium exception",
+                        type=int, default=60)
 
     return parser
 
 
 def main(argv):
     args = getParser().parse_args(argv)
+    # init grafana api wrapper
     grafana_api = GrafanaAPI()
 
     # init datastore client
     datastore_client = datastore.Client()
 
+    dashboard = grafana_api.search_dashboard(args.dashboard_name)
+    path = dashboard['url'][1:]
+    dashboard_url = grafana_api.construct_url(path)
+
     # Run at schedule
     schedule.every(args.period).minutes.do(export_snapshot,
-                                           grafana_api,
+                                           dashboard,
+                                           dashboard_url,
                                            datastore_client,
-                                           args.dashboard_name)
+                                           args.pageTimeout)
     while True:
         schedule.run_pending()
         time.sleep(1)

@@ -27,7 +27,14 @@ class Prom(object):
     # url: base url for prometheus
     #
 
-    def __init__(self, url, nseconds, end=None, host=None, start=None, aggregate=True):
+    def __init__(
+            self,
+            url,
+            nseconds,
+            end=None,
+            host=None,
+            start=None,
+            aggregate=True):
         self.url = url
         self.nseconds = nseconds
         if start is None:
@@ -56,17 +63,21 @@ class Prom(object):
             raise Exception(str(resp.text))
 
         data = resp.json()
-        return computeMinMaxAvg(data, groupby=groupby, xform=xform, aggregate=self.aggregate)
+        return computeMinMaxAvg(
+            data,
+            groupby=groupby,
+            xform=xform,
+            aggregate=self.aggregate)
 
     def fetch_cpu_by_container(self):
         return self.fetch(
-            'irate(container_cpu_usage_seconds_total{container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
+            'irate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
             metric_by_deployment_by_container,
             to_miliCpus)
 
     def fetch_memory_by_container(self):
         return self.fetch(
-            'container_memory_usage_bytes{container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}',
+            'container_memory_usage_bytes{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}',
             metric_by_deployment_by_container,
             to_megaBytes)
 
@@ -92,7 +103,12 @@ class Prom(object):
 
     def fetch_num_requests_by_response_code(self, code):
         data = self.fetch_by_query(
-            'sum(rate(istio_requests_total{reporter="destination", response_code="' + str(code) + '"}[' + str(self.nseconds) + 's]))')
+            'sum(rate(istio_requests_total{reporter="destination", response_code="' +
+            str(code) +
+            '"}[' +
+            str(
+                self.nseconds) +
+            's]))')
         if len(data["data"]["result"]) > 0:
             return data["data"]["result"][0]["values"]
         return []
@@ -327,8 +343,12 @@ def metric_by_deployment_by_container(metric):
 
 
 # These deployments have columns in the table, so only these are watched.
-Watched_Deployments = set(["istio-pilot", "istio-telemetry",
-                           "istio-policy", "fortioserver", "fortioclient", "istio-ingressgateway"])
+Watched_Deployments = set(["istio-pilot",
+                           "istio-telemetry",
+                           "istio-policy",
+                           "fortioserver",
+                           "fortioclient",
+                           "istio-ingressgateway"])
 
 # returns deployment_name
 
@@ -413,9 +433,14 @@ def getParser():
     parser.add_argument(
         "nseconds", help="duration in seconds of the extract", type=int)
     parser.add_argument(
-        "--end", help="relative time in seconds from now to end collection", type=int, default=0)
+        "--end",
+        help="relative time in seconds from now to end collection",
+        type=int,
+        default=0)
     parser.add_argument(
-        "--host", help="host header when collection is thru ingress", default=None)
+        "--host",
+        help="host header when collection is thru ingress",
+        default=None)
     parser.add_argument(
         "--indent", help="pretty print json with indent", default=None)
     parser.add_argument('--aggregate', dest='aggregate', action='store_true')

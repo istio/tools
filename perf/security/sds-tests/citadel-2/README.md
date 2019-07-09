@@ -23,14 +23,16 @@ Let the root directory of this repo be *ROOT-OF-REPO*.
 Run the following commands:
 ```
   cd ROOT-OF-REPO/perf/istio-install
-  DNS_DOMAIN=your-example-domain VALUES=values-istio-sds-auth.yaml ./setup_istio.sh release-1.1-20190221-09-16
+  DNS_DOMAIN=your-example-domain EXTRA_VALUES=values-istio-sds-auth.yaml ./setup_istio.sh release-1.1-20190221-09-16
 ```  
 You may replace the Istio release
 in the command to the Istio release to test.
 After running the above script to deploy Istio, wait a moment for Istio to be ready.
 
 - Deploy workloads that request for certificates through SDS.
-*RELEASE* variable specifies the Istio release. *NAMESPACE* variable specifies the k8s namespace for testing.
+*RELEASE* variable specifies the Istio release. 
+*RELEASETYPE* variable specifies the type Istio release, daily, pre-release and release.
+*NAMESPACE* variable specifies the k8s namespace for testing.
 *NUM* variable specifies the number of httpbin and sleep workloads.
 *CLUSTER* variable specifies the cluster for running the test
 (the list of clusters can be viewed through "kubectl config get-contexts").
@@ -39,7 +41,15 @@ a namespace called *test-ns*.
 Note: the number of workloads can be ran depends on the size of your cluster.
 ```
   cd ROOT-OF-REPO/perf/security/sds-tests/citadel-2
-  RELEASE=release-1.1-20190221-09-16 NAMESPACE=test-ns NUM=10 CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-citadel-1 ./setup_test.sh
+  RELEASETYPE=daily RELEASE=release-1.1-20190221-09-16 NAMESPACE=test-ns NUM=10 CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-citadel-1 ./setup_test.sh
+```
+To test against a release or pre-release. Choose one the the following commands to set up test. 
+```
+  RELEASETYPE=release RELEASE=1.1.7 NAMESPACE=test-ns NUM=10 CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-citadel-1 ./setup_test.sh
+```
+or
+```
+  RELEASETYPE=pre-release RELEASE=1.1.7 NAMESPACE=test-ns NUM=10 CLUSTER=gke_istio-security-testing_us-central1-a_release-12-qualify-citadel-1 ./setup_test.sh
 ```
 Wait a moment for the deployment to be ready. Then view the logs of Node Agents.
 The Node Agents can be listed through

@@ -35,7 +35,7 @@ jobs:
 
   build:
     docker:
-      - image: gcr.io/istio-testing/circleci:2019-04-22
+      - image: gcr.io/istio-testing/circleci:2019-06-13
     environment:
       GO111MODULE: "on"
     working_directory: /go/src/istio.io/tools
@@ -47,7 +47,7 @@ jobs:
 
   lint:
     docker:
-      - image: gcr.io/istio-testing/circleci:2019-04-22
+      - image: gcr.io/istio-testing/circleci:2019-06-13
     environment:
       GO111MODULE: "on"
     working_directory: /go/src/istio.io/tools
@@ -59,7 +59,7 @@ jobs:
 
   test:
     docker:
-      - image: gcr.io/istio-testing/circleci:2019-04-22
+      - image: gcr.io/istio-testing/circleci:2019-06-13
     environment:
       GO111MODULE: "on"
     working_directory: /go/src/istio.io/tools
@@ -68,6 +68,18 @@ jobs:
       - run:
           name: Running unit tests
           command: go test -race ./...
+
+  fmtpy:
+    docker:
+      - image: gcr.io/istio-testing/circleci:2019-06-13
+    working_directory: /go/src/istio.io/tools
+    environment:
+      GO111MODULE: "on"
+    steps:
+      - checkout
+      - run:
+          name: fmtpy
+          command: make fmtpy-checkonly
 
 workflows:
   version: 2
@@ -88,3 +100,4 @@ workflows:
       - build
       - lint
       - test
+      - fmtpy
