@@ -96,22 +96,22 @@ func UpdateChildren(data []jaeger.Span, spanID jaeger.SpanID) []Node {
 		ref := v.References[0]
 		if ref.RefType == jaeger.ChildOf && ref.SpanID == spanID {
 			/*
-			Tag Examples:
+				Tag Examples:
 
-			{Key: upstream_cluster 
-			 Type: string 
-			 Value: inbound|9080|http|productpage.default.svc.cluster.local
-			}
+				{Key: upstream_cluster
+				 Type: string
+				 Value: inbound|9080|http|productpage.default.svc.cluster.local
+				}
 
-			{Key: upstream_cluster 
-			 Type: string 
-			 Value: inbound|9080|http|reviews.default.svc.cluster.local
-			} 
+				{Key: upstream_cluster
+				 Type: string
+				 Value: inbound|9080|http|reviews.default.svc.cluster.local
+				}
 
-			{Key: upstream_cluster
-			 Type: string
-			 Value: outbound|9080||ratings.default.svc.cluster.local
-			}
+				{Key: upstream_cluster
+				 Type: string
+				 Value: outbound|9080||ratings.default.svc.cluster.local
+				}
 			*/
 
 			tag := findTag(v.Tags, "upstream_cluster")
@@ -124,7 +124,6 @@ func UpdateChildren(data []jaeger.Span, spanID jaeger.SpanID) []Node {
 			children = append(children, Node{d, &nodeChildren})
 		}
 	}
-
 
 	sort.Slice(children, func(i, j int) bool {
 		return (children[i].Data.StartTime <

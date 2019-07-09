@@ -34,9 +34,9 @@ func ParseJSON(toolName string) (appTrace TraceData,
 	err error) {
 
 	if toolName == "jaeger" {
-		return ParseJaeger(comm.ExtractTraces(consts.TracingToolAddress, 
+		return ParseJaeger(comm.ExtractTraces(consts.TracingToolAddress,
 			consts.TracingToolPortNumber, consts.TracingToolEntryPoint,
-		consts.NumTraces))
+			consts.NumTraces))
 	}
 
 	log.Fatalf(`tracing tool "%s" is not correctly supported`, toolName)
