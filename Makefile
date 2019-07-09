@@ -26,5 +26,11 @@ lint:
 fmt:
 	@scripts/run_gofmt.sh
 
+fmtpy-checkandupdate:
+	@scripts/check_pyfmt.sh true
+
+fmtpy-checkonly:
+	@scripts/check_pyfmt.sh false
+
 include Makefile.common.mk
 include perf/stability/stability.mk

@@ -11,14 +11,16 @@ global:
     udsPath: ""
     useNormalJwt: false
 
+security:
+  # The number of citadel instances.
+  replicaCount: 3
+  # Short lived cert to test rotation.
+  workloadCertTtl: 30m
+
 gateways:
   istio-ingressgateway:
     sds:
       enabled: false
-
-security:
-  # Short lived cert to test rotation.
-  workloadCertTtl: 30m
 
 nodeagent:
   enabled: false

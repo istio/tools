@@ -83,7 +83,7 @@ if __name__ == "__main__":
     prom_client.report_metrics()
     prom_client.report_running('rabbitmq')
 
-    time.sleep(10) # Wait for server
+    time.sleep(10)  # Wait for server
 
     while True:
         try:

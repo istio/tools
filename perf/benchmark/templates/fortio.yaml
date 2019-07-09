@@ -85,6 +85,10 @@ spec:
         {{- end }}
         sidecar.istio.io/inject: "{{ $.V.inject }}"
         linkerd.io/inject: "{{ $.Values.injectL }}"
+{{- if eq $.Values.injectL "enabled" }}
+        config.linkerd.io/skip-outbound-ports: "8077" 
+        config.linkerd.io/skip-inbound-ports: "8077"          
+{{- end }}
         sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
         sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
       labels:

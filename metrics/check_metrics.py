@@ -27,6 +27,7 @@ def find_prometheus():
     except subprocess.CalledProcessError:
         return "istio-system", "deployment/prometheus"
 
+
 def setup_promethus():
     port = os.environ.get("PROM_PORT", "9990")
     namespace, deployment = find_prometheus()
@@ -39,6 +40,7 @@ def setup_promethus():
     ], stdout=subprocess.PIPE)
     port_forward.stdout.readline()  # Wait for port forward to be ready
     return Prometheus('http://localhost:%s/' % port, pid=port_forward.pid)
+
 
 def standard_queries(namespace, cpu_lim=50, mem_lim=64):
     """Standard queries that should be run against all tests."""
@@ -88,14 +90,14 @@ def istio_requests_sanity(namespace):
     """Ensure that there are some requests to the namespace as a sanity check.
     This won't work for tests which don't report requests through Istio."""
     return Query(
-        '%s: Total Requests/s (sanity check)' % namespace,
-        'sum(rate(istio_requests_total{destination_service_namespace="%s"}[10m]))' % namespace,
+        '%s: Total Requests/s (sanity check)' %
+        namespace,
+        'sum(rate(istio_requests_total{destination_service_namespace="%s"}[10m]))' %
+        namespace,
         Alarm(
             lambda qps: qps < 0.5,
-            'There were no requests, the test is likely not running properly.'
-        ),
-        None
-    )
+            'There were no requests, the test is likely not running properly.'),
+        None)
 
 
 def stability_query(source, test):

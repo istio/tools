@@ -34,7 +34,7 @@ DNS_DOMAIN=local LINKERD_INJECT=enabled ./setup_test.sh
 Example:
 
 ```
-python runner/runner.py 1,2,4,8,16,32,64 1000 240 --baseline --mesh=linkerd
+python runner/runner.py 16,64 1000 240 --baseline --mesh=linkerd
 ```
 
 ### 5. Extract Fortio latency metrics to CSV 
@@ -53,10 +53,20 @@ python ./runner/fortio.py $FORTIO_CLIENT_URL
 python ./runner/graph.py <PATH_TO_CSV> <METRIC> --mesh=linkerd 
 ```
 
-#### Example: 
+#### Examples: 
+
+**Latency, 90th percentile** 
 
 ```
-python ./runner/graph.py linkerd.csv p99 --mesh=linkerd 
+python ./runner/graph.py linkerd.csv p90 --mesh=linkerd 
 ```
 
-![example-linkerd](example-linkerd-p99.png)
+![example-linkerd-p90](linkerd-p90.png)
+
+**Latency, 50th percentile** 
+
+```
+python ./runner/graph.py linkerd.csv p50 --mesh=linkerd 
+```
+
+![example-linkerd-p50](linkerd-p50.png)

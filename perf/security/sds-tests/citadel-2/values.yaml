@@ -1,0 +1,4 @@
+Namespace: test-ns
+DeployYaml: temp_httpbin_sleep_deploy.yaml
+ConfigName: config-change
+WorkloadLife: 180
