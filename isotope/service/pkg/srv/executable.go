@@ -62,11 +62,12 @@ func executeSleepCommand(cmd script.SleepCommand) {
 func executeRequestCommandHelper(cmd script.RequestCommand) bool {
 	rand.Seed(time.Now().UnixNano())
 	number := rand.Intn(100 + 1)
+	ret := true
 
 	if number < cmd.Probability {
-		return false
+		ret = false
 	}
-	return true
+	return ret
 }
 
 // Execute sends an HTTP request to another service. Assumes DNS is available
@@ -76,7 +77,7 @@ func executeRequestCommand(
 	forwardableHeader http.Header,
 	serviceTypes map[string]svctype.ServiceType) error {
 
-	if executeRequestCommandHelper(cmd) == true {
+	if executeRequestCommandHelper(cmd) {
 		return nil
 	}
 
