@@ -12,7 +12,8 @@ import yaml
 
 from . import consts, kubectl, resources, sh, wait
 
-DAILY_BUILD_URL="https://storage.googleapis.com/istio-prerelease/daily-build"
+DAILY_BUILD_URL = "https://storage.googleapis.com/istio-prerelease/daily-build"
+
 
 def convert_archive(archive_url: str) -> str:
     """Convert symbolic archive into archive url
@@ -22,9 +23,10 @@ def convert_archive(archive_url: str) -> str:
         return archive_url
 
     full_name = "{}-09-15".format(archive_url)
-    
+
     return "{daily}/{full_name}/istio-{full_name}-linux.tar.gz".format(
         daily=DAILY_BUILD_URL, full_name=full_name)
+
 
 def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
            archive_url: str, values: str) -> None:

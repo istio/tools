@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: workload-rotate-service-account
+  namespace: {{ .Values.Namespace }}
+  labels:
+    app: workload-rotate
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: workload-rotate-{{ .Values.Namespace }}
+rules:
+  - apiGroups: ["config.istio.io"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["rbac.istio.io"]
+    resources: ["*"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["networking.istio.io"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["authentication.istio.io"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["*"]
+  - apiGroups: ["extensions"]
+    resources: ["thirdpartyresources", "thirdpartyresources.extensions", "ingresses", "ingresses/status", "deployments"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["configmaps", "endpoints", "pods", "services", "namespaces", "secrets", "replicationcontrollers", "deployments"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["endpoints", "pods", "services", "serviceaccounts"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["namespaces", "nodes", "secrets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: workload-rotate-{{ .Values.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: workload-rotate-{{ .Values.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: workload-rotate-service-account
+    namespace: {{ .Values.Namespace }}
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: workload-rotate
+  namespace: {{ .Values.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: workload-rotate
+  template:
+    metadata:
+      labels:
+        run: workload-rotate
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Values.ConfigName}}
+        - name: script
+          configMap:
+            name: script
+            defaultMode: 0744
+      containers:
+        - args:
+            - /script/run.sh
+            - /bin/sleep
+            - infinity
+          image: gcr.io/mixologist-142215/hyperkube:v1.12.1
+          imagePullPolicy: IfNotPresent
+          name: workload-rotate
+          volumeMounts:
+            - name: script
+              mountPath: /script
+            - name: config
+              mountPath: /data
+      restartPolicy: Always
+      serviceAccount: workload-rotate-service-account
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: script
+  namespace: {{ .Values.Namespace }}
+data:
+  run.sh: |
+    #!/bin/bash
+    set -ex
+    WD=$(dirname $0)
+    WD=$(cd $WD;pwd)
+
+    ${WD}/rotate.sh {{ .Values.DeployYaml }} {{ .Values.Namespace }} {{ .Values.WorkloadLife }} &
+    wait
+  rotate.sh: |
+    set -x
+
+    deployfile=/data/${1:?"deployfile"}
+    namespace=${2:?"namespace"}
+    sleeptime=${3:?180}
+
+    echo "current path: ${PWD}"
+    function rotate_workloads() {
+      echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl -n ${namespace} delete deployment sleep"
+      kubectl -n ${namespace} delete deployment sleep
+      # sleep 25 seconds to let sleep pods get deleted before httpbin pods, to avoid request failures
+      # when sleep is sending a request to deleted httpbin pod.
+      sleep 25
+      echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl delete -n ${namespace} -f ${deployfile}"
+      kubectl delete -n ${namespace} -f ${deployfile}
+      sleep 5
+      echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl apply -n ${namespace} -f ${deployfile}"
+      kubectl apply -n ${namespace} -f ${deployfile}
+    }
+
+    while [[ true ]];do
+        rotate_workloads
+        # sleep 180 seconds to generate some traffic
+        echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") sleep ${sleeptime}"
+        sleep ${sleeptime}
+    done

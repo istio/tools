@@ -1,0 +1,13 @@
+{{- if .Values.globalMeshPolicy }}
+apiVersion: authentication.istio.io/v1alpha1
+kind: MeshPolicy
+metadata:
+  name: default
+spec:
+  origins:
+  - jwt:
+      issuer: testing@secure.istio.io
+      jwksUri: https://raw.githubusercontent.com/istio/istio/master/security/tools/jwt/samples/jwks.json 
+  peers:
+  - mtls: {}
+{{- end }}
