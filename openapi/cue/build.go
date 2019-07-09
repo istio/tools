@@ -26,34 +26,21 @@ import (
 	"github.com/kr/pretty"
 )
 
+type plan map[string][]grouping
+
 // buildPlan specifies which .proto files end up in which OpenAPI .json files.
 // The map maps from directory relative the root, to a grouping value for each
 // file that needs to be generated.
-var buildPlan = map[string][]grouping{
+var buildPlan = plan{
 	"authentication/v1alpha1":     {{all: true}},
 	"mcp/v1alpha1":                {{all: true}},
 	"mesh/v1alpha1":               {{all: true}},
 	"mixer/adapter/model/v1beta1": {{all: true}},
 	"mixer/v1/config/client":      {{all: true}},
 	"mixer/v1":                    {{all: true}},
-	"networking/v1alpha3": {{
-		oapiFilename: "istio.networking.destination.v1.json",
-		protoFiles:   []string{"destination_rule.proto"},
-	}, {
-		oapiFilename: "istio.networking.envoy_filter.v1.json",
-		protoFiles:   []string{"envoy_filter.proto"},
-	}, {
-		oapiFilename: "istio.networking.gateway.v1.json",
-		protoFiles:   []string{"gateway.proto"},
-	}, {
-		oapiFilename: "istio.networking.service_entry.v1.json",
-		protoFiles:   []string{"service_entry.proto"},
-	}, {
-		oapiFilename: "istio.networking.sidecar.v1.json",
-		protoFiles:   []string{"sidecar.proto"},
-	}},
-	"policy/v1beta1": {{all: true}},
-	"rbac/v1alpha1":  {{all: true}},
+	"networking/v1alpha3":         {{perFile: true}},
+	"policy/v1beta1":              {{all: true}},
+	"rbac/v1alpha1":               {{all: true}},
 }
 
 type grouping struct {
@@ -62,20 +49,45 @@ type grouping struct {
 	oapiFilename string // empty indicates the default name
 	protoFiles   []string
 
-	// pkg is used for custom packages, that only have a subset of the
-	// proto files in them. For these CUE cannot derive the FQ name. But it will
-	// always be the same package in question.
-	pkg string
-
 	// automatically add all files in this directory.
-	all bool
+	all     bool
+	perFile bool
 
 	// derived automatically if unspecified.
 	title   string
 	version string
 }
 
-func completeBuildPlan(buildPlan map[string][]grouping, root string) error {
+// fileFromDir computes the openapi json filename from the directory name.
+// If filename is not "", it is assumed to be the proto filename in perFile
+// mode.
+func fileFromDir(dir, filename string) string {
+	comps := strings.Split(dir, "/")
+	if len(comps) == 0 {
+		return "istio.json"
+	}
+
+	comps = append([]string{"istio"}, comps...)
+
+	if filename == "" {
+		return strings.Join(append(comps, "json"), ".")
+	}
+
+	filename = filename[:len(filename)-len(".proto")]
+	version := len(comps) - 1
+	return strings.Join(append(comps[:version], filename, comps[version], "json"), ".")
+}
+
+func completeBuildPlan(buildPlan plan, root string) (plan, error) {
+	// Did the user override the plan with command lines?
+	if *outdir != "" {
+		*outdir = filepath.Clean(*outdir)
+		buildPlan = plan{*outdir: {{
+			all:     !*perFile,
+			perFile: *perFile,
+		}}}
+	}
+
 	// Walk over all .proto files in the root and add them to groupin entries
 	// that requested all files in the directory to be added.
 	err := filepath.Walk(root, func(path string, f os.FileInfo, _ error) (err error) {
@@ -86,23 +98,32 @@ func completeBuildPlan(buildPlan map[string][]grouping, root string) error {
 		rel, _ := filepath.Rel(root, path)
 		dir, file := filepath.Split(rel)
 		dir = filepath.Clean(dir)
-		if len(buildPlan[dir]) == 0 || !buildPlan[dir][0].all {
+		switch {
+		case len(buildPlan[dir]) == 0:
 			return nil
+		case buildPlan[dir][0].perFile:
+			if len(buildPlan[dir][0].protoFiles) > 0 {
+				buildPlan[dir] = append(buildPlan[dir], grouping{
+					protoFiles: []string{file},
+					perFile:    true,
+				})
+				break
+			}
+			fallthrough
+		case buildPlan[dir][0].all:
+			buildPlan[dir][0].protoFiles = append(buildPlan[dir][0].protoFiles, file)
 		}
 
-		buildPlan[dir][0].protoFiles = append(buildPlan[dir][0].protoFiles, file)
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Complete version, titles, and file names
 	for dir, all := range buildPlan {
 		for i := range all {
-			if err := (&all[i]).update(root, dir); err != nil {
-				return err
-			}
+			(&all[i]).update(root, dir)
 		}
 	}
 
@@ -121,16 +142,18 @@ func completeBuildPlan(buildPlan map[string][]grouping, root string) error {
 		}
 	}
 
-	return nil
+	return buildPlan, nil
 }
 
-func (g *grouping) update(root, dir string) error {
+func (g *grouping) update(root, dir string) {
 	g.dir = dir
 
-	g.pkg = "istio." + strings.Replace(dir, "/", ".", -1)
-
 	if g.oapiFilename == "" {
-		g.oapiFilename = g.pkg + ".json"
+		filename := ""
+		if g.perFile && len(g.protoFiles) > 0 {
+			filename = g.protoFiles[0]
+		}
+		g.oapiFilename = fileFromDir(dir, filename)
 	}
 
 	g.version = filepath.Base(dir)
@@ -139,13 +162,12 @@ func (g *grouping) update(root, dir string) error {
 		for _, file := range g.protoFiles {
 			if title, ok := findTitle(filepath.Join(root, dir, file)); ok {
 				if g.title != "" && g.title != title {
-					fmt.Printf("found two incompatible titles:\n\t%q, and\n\t%q", g.title, title)
+					fmt.Printf("found two incompatible titles for %s:\n\t%q, and\n\t%q\n", g.oapiFilename, g.title, title)
 				}
 				g.title = title
 			}
 		}
 	}
-	return nil
 }
 
 var descRe = regexp.MustCompile(`\$description: (.*)`)

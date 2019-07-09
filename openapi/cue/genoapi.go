@@ -103,10 +103,18 @@ var (
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
 	root    = flag.String("root", "", "the istio/api root for which to generate files (default is cwd)")
 	verbose = flag.Bool("v", false, "print debugging output")
+
+	// manually configuring builds
+	outdir  = flag.String("dir", "", "only generated files in this directory")
+	perFile = flag.Bool("per_file", false, "generate separate output per file; dir must be specfied")
+	all     = flag.String("all", "", "combine all the matched outputs in a single file")
+	title   = flag.String("title", "All Istio types.", "title of the output file when --all is used")
+	version = flag.String("version", "v1alpha1", "version of the output file when --all is used")
 )
 
 func main() {
 	flag.Parse()
+	log.SetFlags(log.Lshortfile)
 
 	cwd, _ := os.Getwd()
 
@@ -188,13 +196,21 @@ func main() {
 	}
 
 	// Build the OpenAPI files.
-	err = completeBuildPlan(buildPlan, cwd)
-	if err != nil {
-		log.Fatalf("Error completing build plan: %v", err)
-	}
-	for dir, groupings := range buildPlan {
-		for _, g := range groupings {
-			builder.gen(dir, &g)
+	if *all != "" {
+		builder.genAll(&grouping{
+			title:        *title,
+			version:      *version,
+			oapiFilename: *all,
+		})
+	} else {
+		buildPlan, err = completeBuildPlan(buildPlan, cwd)
+		if err != nil {
+			log.Fatalf("Error completing build plan: %v", err)
+		}
+		for dir, groupings := range buildPlan {
+			for _, g := range groupings {
+				builder.gen(dir, &g)
+			}
 		}
 	}
 }
@@ -217,35 +233,62 @@ func (x *builder) gen(dir string, g *grouping) {
 		fatal(inst.Err, "Instance failed")
 	}
 
-	items, err := x.genOpenAPI(inst, g)
+	schemas, err := x.genOpenAPI(g.oapiFilename, inst)
 	if err != nil {
 		fatal(err, "Error generating OpenAPI file")
 	}
 
 	if !g.all {
-		x.filterOpenAPI(items, g)
+		x.filterOpenAPI(schemas, g)
 	}
 
-	x.writeOpenAPI(items, g)
+	x.writeOpenAPI(schemas, g)
 }
 
-func (x *builder) genOpenAPI(inst *cue.Instance, g *grouping) (*openapi.OrderedMap, error) {
-	if inst.Err != nil {
-		fatal(inst.Err, "Instance failed.")
+func (x *builder) genAll(g *grouping) {
+	cfg := &load.Config{
+		Dir:    x.modRoot,
+		Module: "istio.io/api",
 	}
-	fmt.Println("Building", g.oapiFilename+"...")
+
+	instances := load.Instances([]string{"./..."}, cfg)
+	all := cue.Build(instances)
+	for _, inst := range all {
+		if inst.Err != nil {
+			fatal(inst.Err, "Instance failed")
+		}
+	}
+
+	found := map[string]bool{}
+
+	schemas := &openapi.OrderedMap{}
+
+	for _, inst := range all {
+		items, err := x.genOpenAPI(inst.ImportPath, inst)
+		if err != nil {
+			fatal(err, "Error generating OpenAPI file")
+		}
+		for _, kv := range items.Pairs() {
+			if found[kv.Key] {
+				continue
+			}
+			found[kv.Key] = true
+
+			schemas.Set(kv.Key, kv.Value)
+		}
+	}
+
+	x.writeOpenAPI(schemas, g)
+}
+
+func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedMap, error) {
+	fmt.Printf("Building %s...\n", name)
 
 	if err := inst.Value().Validate(); err != nil {
 		fatal(err, "Validation failed.")
 	}
 
-	info := openapi.OrderedMap{}
-	info.Set("title", g.title)
-	info.Set("version", g.version)
-
 	gen := &openapi.Generator{
-		Info: info,
-
 		// Resolve all references to objects within the file.
 		SelfContained: true,
 
@@ -271,7 +314,7 @@ func (x *builder) genOpenAPI(inst *cue.Instance, g *grouping) (*openapi.OrderedM
 		},
 	}
 
-	return gen.All(inst)
+	return gen.Schemas(inst)
 }
 
 // reference defines the references format of schema by the convention used
@@ -296,7 +339,7 @@ func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *grouping) {
 	// All references found.
 	m := marker{
 		found:   map[string]bool{},
-		schemas: findInMap(items, "components", "schemas"),
+		schemas: items,
 	}
 
 	// Get top-level definitions for the files in the given grouping
@@ -330,8 +373,20 @@ func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *grouping) {
 	m.schemas.SetAll(pairs[:k])
 }
 
-func (x *builder) writeOpenAPI(items *openapi.OrderedMap, g *grouping) {
-	b, _ := json.Marshal(items)
+func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *grouping) {
+	oapi := &openapi.OrderedMap{}
+	oapi.Set("openapi", "3.0.0")
+
+	info := &openapi.OrderedMap{}
+	info.Set("title", g.title)
+	info.Set("version", g.version)
+	oapi.Set("info", info)
+
+	comps := &openapi.OrderedMap{}
+	comps.Set("schemas", schemas)
+	oapi.Set("components", comps)
+
+	b, _ := json.Marshal(oapi)
 
 	// Note: this just tests basic OpenAPI 3 validity. It cannot, of course,
 	// know if the the proto files were correctly mapped.
@@ -346,21 +401,8 @@ func (x *builder) writeOpenAPI(items *openapi.OrderedMap, g *grouping) {
 	filename := filepath.Join(x.cwd, g.dir, g.oapiFilename)
 	err = ioutil.WriteFile(filename, buf.Bytes(), 0644)
 	if err != nil {
-		log.Fatalf("Error writing OpenAPI file: %v", err)
+		log.Fatalf("Error writing OpenAPI file %s in dir %s: %v", g.oapiFilename, g.dir, err)
 	}
-}
-
-func findInMap(items *openapi.OrderedMap, path ...string) *openapi.OrderedMap {
-	for _, kv := range items.Pairs() {
-		if kv.Key == path[0] {
-			m := kv.Value.(*openapi.OrderedMap)
-			if len(path) == 1 {
-				return m
-			}
-			return findInMap(m, path[1:]...)
-		}
-	}
-	panic("should not happen")
 }
 
 type marker struct {
