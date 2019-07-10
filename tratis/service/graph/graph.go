@@ -60,6 +60,32 @@ func findTag(tags []jaeger.KeyValue, key string) jaeger.KeyValue {
 	return jaeger.KeyValue{}
 }
 
+func CompGraph(g1 *Graph, g2 *Graph) bool {
+	return _CompGraphHelper(g1.Root, g2.Root)
+}
+
+func _CompGraphHelper(node1 *Node, node2 *Node) bool {
+	if node1 == nil && node2 == nil {
+		return true
+	} else if node1 == nil || node2 == nil {
+		return false
+	}
+
+	ret := true
+
+	if node1.Data.OperationName == node2.Data.OperationName &&
+		node1.Data.RequestType == node2.Data.RequestType &&
+		len(*node1.Children) == len(*node2.Children) {
+		for i := 0; i < len(*node1.Children); i++ {
+			ret = ret && _CompGraphHelper(&(*node1.Children)[0], &(*node2.Children)[0])
+		}
+	} else {
+		return false
+	}
+
+	return ret
+}
+
 // Root span has no references.
 func findRootSpan(spans []jaeger.Span) jaeger.Span {
 	for _, span := range spans {
@@ -115,7 +141,13 @@ func UpdateChildren(data []jaeger.Span, spanID jaeger.SpanID) []Node {
 			*/
 
 			tag := findTag(v.Tags, "upstream_cluster")
-			tagData := strings.Split(tag.Value.(string), "|")[0]
+			var tagData string
+
+			if tag.Value == nil {
+				tagData = ""
+			} else {
+				tagData = strings.Split(tag.Value.(string), "|")[0]
+			}
 
 			d := NodeData{v.SpanID, v.OperationName,
 				v.StartTime, v.Duration, tagData}

@@ -64,6 +64,7 @@ func main() {
 	fmt.Printf("Processing %d Traces\n", len(traces))
 
 	d := make([][]distribution.TimeInformation, 0)
+	initGraph := &graph.Graph{}
 
 	fmt.Println("Generating Time Information ...")
 
@@ -71,8 +72,12 @@ func main() {
 		g := graph.GenerateGraph(trace.Spans)
 
 		if idx == 0 {
-
+			initGraph = g
 			fmt.Println("Call Graph: ", string(g.ExtractGraphData()))
+		}
+
+		if !graph.CompGraph(initGraph, g) {
+			continue
 		}
 
 		traceInformation := distribution.ExtractTimeInformation(g)
