@@ -33,7 +33,7 @@ func TestService_MarshalJSON(t *testing.T) {
 				Type:        svctype.ServiceHTTP,
 				NumReplicas: 1,
 			},
-			[]byte(`{"name":"a","type":"http","numReplicas":1,"numRbacPolicies":0}`),
+			[]byte(`{"name":"a","type":"http","numReplicas":1,"responseSize":{"type":"","data":null},"numRbacPolicies":0}`),
 			nil,
 		},
 	}

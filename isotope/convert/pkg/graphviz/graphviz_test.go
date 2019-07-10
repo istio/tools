@@ -20,7 +20,9 @@ import (
 	"time"
 
 	"istio.io/tools/isotope/convert/pkg/graph"
+	"istio.io/tools/isotope/convert/pkg/graph/msg"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
+	"istio.io/tools/isotope/convert/pkg/graph/size"
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 )
@@ -32,7 +34,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				Name:         "a",
 				Type:         "HTTP",
 				ErrorRate:    "0.01%",
-				ResponseSize: "10KiB",
+				ResponseSize: "{\"type\":\"static\",\"data\":{\"size\":\"10KiB\",\"number\":1}}",
 				Steps: [][]string{
 					{
 						"SLEEP 100ms",
@@ -43,14 +45,14 @@ func TestServiceGraphToGraph(t *testing.T) {
 				Name:         "b",
 				Type:         "gRPC",
 				ErrorRate:    "0.00%",
-				ResponseSize: "10KiB",
+				ResponseSize: "{\"type\":\"static\",\"data\":{\"size\":\"10KiB\",\"number\":1}}",
 				Steps:        [][]string{},
 			},
 			{
 				Name:         "c",
 				Type:         "HTTP",
 				ErrorRate:    "0.00%",
-				ResponseSize: "10KiB",
+				ResponseSize: "{\"type\":\"static\",\"data\":{\"size\":\"10KiB\",\"number\":1}}",
 				Steps: [][]string{
 					{
 						"CALL \"a\" 10KiB",
@@ -64,7 +66,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				Name:         "d",
 				Type:         "HTTP",
 				ErrorRate:    "0.00%",
-				ResponseSize: "10KiB",
+				ResponseSize: "{\"type\":\"static\",\"data\":{\"size\":\"10KiB\",\"number\":1}}",
 				Steps: [][]string{
 					{
 						"CALL \"a\" 1KiB",
@@ -114,7 +116,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				Name:         "a",
 				Type:         svctype.ServiceHTTP,
 				ErrorRate:    0.0001,
-				ResponseSize: 10240,
+				ResponseSize: msg.MessageSize{"static", msg.MessageSizeStatic{size.ByteSize(10240), 1}},
 				Script: []script.Command{
 					script.SleepCommand(100 * time.Millisecond),
 				},
@@ -123,13 +125,13 @@ func TestServiceGraphToGraph(t *testing.T) {
 				Name:         "b",
 				Type:         svctype.ServiceGRPC,
 				ErrorRate:    0,
-				ResponseSize: 10240,
+				ResponseSize: msg.MessageSize{"static", msg.MessageSizeStatic{size.ByteSize(10240), 1}},
 			},
 			{
 				Name:         "c",
 				Type:         svctype.ServiceHTTP,
 				ErrorRate:    0,
-				ResponseSize: 10240,
+				ResponseSize: msg.MessageSize{"static", msg.MessageSizeStatic{size.ByteSize(10240), 1}},
 				Script: []script.Command{
 					script.RequestCommand{
 						ServiceName: "a",
@@ -145,7 +147,7 @@ func TestServiceGraphToGraph(t *testing.T) {
 				Name:         "d",
 				Type:         svctype.ServiceHTTP,
 				ErrorRate:    0,
-				ResponseSize: 10240,
+				ResponseSize: msg.MessageSize{"static", msg.MessageSizeStatic{size.ByteSize(10240), 1}},
 				Script: []script.Command{
 					script.ConcurrentCommand([]script.Command{
 						script.RequestCommand{
