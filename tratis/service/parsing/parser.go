@@ -19,7 +19,7 @@ import (
 	"log"
 
 	jaeger "github.com/jaegertracing/jaeger/model/json"
-	
+
 	comm "istio.io/tools/tratis/service/communication"
 	"istio.io/tools/tratis/service/pkg/consts"
 )

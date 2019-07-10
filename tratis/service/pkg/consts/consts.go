@@ -15,12 +15,8 @@
 package consts
 
 const (
-	// An application might generate traces with varying number of
-	// spans. Only the traces with NumberSpans would be picked.
-	NumberSpans = 8
-
 	// Traces Limit
-	NumTraces = 10000
+	NumTraces = 500000
 
 	// Distribution Fitting File Path
 	DistFilePath = "Distribution"

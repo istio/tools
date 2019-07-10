@@ -77,7 +77,7 @@ func _CompGraphHelper(node1 *Node, node2 *Node) bool {
 		node1.Data.RequestType == node2.Data.RequestType &&
 		len(*node1.Children) == len(*node2.Children) {
 		for i := 0; i < len(*node1.Children); i++ {
-			ret = ret && _CompGraphHelper(&(*node1.Children)[0], &(*node2.Children)[0])
+			ret = ret && _CompGraphHelper(&(*node1.Children)[i], &(*node2.Children)[i])
 		}
 	} else {
 		return false
@@ -102,7 +102,13 @@ func GenerateGraph(data []jaeger.Span) *Graph {
 	rootSpan := findRootSpan(data)
 
 	tag := findTag(rootSpan.Tags, "upstream_cluster")
-	tagData := strings.Split(tag.Value.(string), "|")[0]
+	var tagData string
+
+	if tag.Value == nil {
+		tagData = ""
+	} else {
+		tagData = strings.Split(tag.Value.(string), "|")[0]
+	}
 
 	d := NodeData{rootSpan.SpanID, rootSpan.OperationName,
 		rootSpan.StartTime, rootSpan.Duration, tagData}

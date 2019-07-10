@@ -16,7 +16,6 @@ package distribution
 
 import (
 	"istio.io/tools/tratis/service/graph"
-	// "istio.io/tools/tratis/service/pkg/consts"
 )
 
 type Time struct {

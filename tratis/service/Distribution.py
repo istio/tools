@@ -8,6 +8,9 @@ import json
 def BestFitDistribution(data):
     bins = int((len(data) * 1.0) / 10)
 
+    if bins == 0:
+        bins = len(data)
+
     """Model data by finding best fit distribution to data"""
     # Get histogram of original data
     y, x = np.histogram(data, bins=bins, density=True)

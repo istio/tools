@@ -19,23 +19,29 @@ import (
 	"log"
 	"os"
 
-	jaeger "github.com/jaegertracing/jaeger/model/json"
-
 	"istio.io/tools/tratis/service/distribution"
 	"istio.io/tools/tratis/service/graph"
 	parser "istio.io/tools/tratis/service/parsing"
 	"istio.io/tools/tratis/service/pkg/consts"
 )
 
-func filterTracesByNumSpans(traces []jaeger.Trace) []jaeger.Trace {
-	ret := make([]jaeger.Trace, 0)
-
-	for _, trace := range traces {
-		if len(trace.Spans) == consts.NumberSpans {
-			ret = append(ret, trace)
+func addNewGraph(data *[][]*graph.Graph, g *graph.Graph) int {
+	ret := -1
+	for idx, graphs := range *data {
+		if graph.CompGraph(graphs[0], g) {
+			ret = idx
+			break
 		}
 	}
 
+	if ret == -1 {
+		temp := make([]*graph.Graph, 0)
+		temp = append(temp, g)
+		*data = append(*data, temp)
+
+		return (len(*data) - 1)
+	}
+	(*data)[ret] = append((*data)[ret], g)
 	return ret
 }
 
@@ -59,36 +65,46 @@ func main() {
 	fmt.Println("Filtering Traces ...")
 
 	traces := data.Traces
-	traces = filterTracesByNumSpans(traces)
 
 	fmt.Printf("Processing %d Traces\n", len(traces))
 
-	d := make([][]distribution.TimeInformation, 0)
-	initGraph := &graph.Graph{}
+	d := make([][][]distribution.TimeInformation, 0)
+	graphs := make([][]*graph.Graph, 0)
 
 	fmt.Println("Generating Time Information ...")
 
-	for idx, trace := range traces {
+	for _, trace := range traces {
 		g := graph.GenerateGraph(trace.Spans)
-
-		if idx == 0 {
-			initGraph = g
-			fmt.Println("Call Graph: ", string(g.ExtractGraphData()))
-		}
-
-		if !graph.CompGraph(initGraph, g) {
-			continue
-		}
+		idx := addNewGraph(&graphs, g)
 
 		traceInformation := distribution.ExtractTimeInformation(g)
 
-		d = append(d, traceInformation)
+		if len(d) < idx+1 {
+			d = append(d, make([][]distribution.TimeInformation, 0))
+		}
+
+		d[idx] = append(d[idx], traceInformation)
 	}
 
 	fmt.Println("Combining Results + Distribution Fitting ...")
 
-	combinedResults := distribution.CombineTimeInformation(d)
-	dists := distribution.TimeInfoToDist(consts.DistFilePath,
-		consts.DistFittingFuncName, combinedResults)
-	fmt.Println("Distribution Details: ", dists)
+	for idx := range graphs {
+		fmt.Println("=======================================================")
+		fmt.Println("Number of Traces: ", len(graphs[idx]))
+		fmt.Println("Call Graph: ", string(graphs[idx][0].ExtractGraphData()))
+
+		combinedResults := distribution.CombineTimeInformation(d[idx])
+		dists := distribution.TimeInfoToDist(consts.DistFilePath,
+			consts.DistFittingFuncName, combinedResults)
+		fmt.Println("Distribution Details: ", dists)
+		fmt.Println("=======================================================")
+	}
 }
+
+/*
+	LOGIC:
+		FOR EACH GRAPH CHECK LISTS OF LISTS.
+		IF GRAPH DOES NOT MATCH MAKE NEW CATEGORY <==> OTHERWISE PUSH INTO OLDER CATEGORY
+		USE SAME INDEX FOR TIME INFO
+		HENCE MULTIPLE CALL GRAPHS WITH DIFFERENT TIME INFO.
+*/
