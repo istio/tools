@@ -16,27 +16,158 @@ package script
 
 import (
 	"encoding/json"
+	"log"
 	"time"
+
+	"github.com/jmcvetta/randutil"
+	"gonum.org/v1/gonum/stat/distuv"
 )
 
-// SleepCommand describes a command to pause for a duration.
-type SleepCommand time.Duration
+type CommandType string
+
+const (
+	Static       CommandType = "static"
+	Histogram    CommandType = "histogram"
+	Distribution CommandType = "dist"
+)
+
+type SleepCommandStatic struct {
+	Time time.Duration `json:"time"`
+}
+
+func (c SleepCommandStatic) Duration() time.Duration {
+	return c.Time
+}
+
+type SleepCommandDistribution struct {
+	Dist interface {
+		Rand() float64
+	}
+}
+
+func (c SleepCommandDistribution) Duration() time.Duration {
+	return time.Duration(c.Dist.Rand() * 10e8)
+}
+
+type SleepCommandHistogram struct {
+	Histogram []randutil.Choice
+}
+
+func (c SleepCommandHistogram) Duration() time.Duration {
+	result, err := randutil.WeightedChoice(c.Histogram)
+	if err != nil {
+		panic(err)
+	}
+
+	return (result.Item.(time.Duration))
+}
+
+type SleepCommandWrapper struct {
+	Type CommandType `json:"type"`
+	Data json.RawMessage
+}
+
+type SleepCommand struct {
+	Type CommandType
+	Data interface {
+		Duration() time.Duration
+	}
+}
 
 // UnmarshalJSON converts a JSON object to a SleepCommand.
 func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
-	var durationStr string
-	err = json.Unmarshal(b, &durationStr)
+	var command SleepCommandWrapper
+	err = json.Unmarshal(b, &command)
 	if err != nil {
 		return
 	}
-	duration, err := time.ParseDuration(durationStr)
-	if err != nil {
-		return
+
+	switch command.Type {
+	case Static:
+		var cmd map[string]interface{}
+		err = json.Unmarshal(command.Data, &cmd)
+
+		if err != nil {
+			return
+		}
+
+		var staticCmd SleepCommandStatic
+		staticCmd.Time, err = time.ParseDuration(cmd["time"].(string))
+
+		if err != nil {
+			return
+		}
+
+		*c = SleepCommand{command.Type, staticCmd}
+
+	case Distribution:
+		var cmd map[string]interface{}
+		err = json.Unmarshal(command.Data, &cmd)
+
+		if err != nil {
+			return
+		}
+
+		switch cmd["dist"] {
+		case "normal":
+			dist := distuv.Normal{
+				Mu:    cmd["mean"].(float64),
+				Sigma: cmd["sigma"].(float64),
+			}
+
+			var distCmd SleepCommandDistribution
+			distCmd.Dist = dist
+			*c = SleepCommand{command.Type, distCmd}
+		case "lognormal":
+			dist := distuv.LogNormal{
+				Mu:    cmd["mean"].(float64),
+				Sigma: cmd["sigma"].(float64),
+			}
+
+			var distCmd SleepCommandDistribution
+			distCmd.Dist = dist
+			*c = SleepCommand{command.Type, distCmd}
+		}
+	case Histogram:
+		var probDistribution map[string]int
+		err = json.Unmarshal(command.Data, &probDistribution)
+
+		if err != nil {
+			return
+		}
+
+		ret := make([]randutil.Choice, 0, len(probDistribution))
+		totalPercentage := 0
+
+		for timeString, percentage := range probDistribution {
+			duration, err := time.ParseDuration(timeString)
+
+			if err != nil {
+				return err
+			}
+
+			ret = append(ret, randutil.Choice{percentage, duration})
+			totalPercentage += percentage
+		}
+
+		if totalPercentage != 100 {
+			log.Fatalf("Total Percentage does not equal 100.")
+		}
+
+		var HistCmd SleepCommandHistogram
+		HistCmd.Histogram = ret
+		*c = SleepCommand{command.Type, HistCmd}
+
 	}
-	*c = SleepCommand(duration)
 	return
 }
 
 func (c SleepCommand) String() string {
-	return time.Duration(c).String()
+	res, err := json.Marshal(c)
+
+	if err != nil {
+		log.Fatalf("%s", err)
+	}
+
+	return string(res)
 }
