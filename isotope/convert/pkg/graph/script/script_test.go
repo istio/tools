@@ -35,28 +35,28 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 			nil,
 		},
 		{
-			[]byte(`[{"sleep": "1s"}]`),
+			[]byte(`[{"sleep": {"type": "static", "data": {"time": "1s"}}}]`),
 			Script{
-				SleepCommand(1 * time.Second),
+				SleepCommand{"static", SleepCommandStatic{Time: 1 * time.Second}},
 			},
 			nil,
 		},
 		{
-			[]byte(`[{"call": "A"}, {"sleep": "10ms"}]`),
+			[]byte(`[{"call": "A"}, {"sleep": {"type": "static", "data": {"time": "10ms"}}}]`),
 			Script{
 				RequestCommand{ServiceName: "A"},
-				SleepCommand(10 * time.Millisecond),
+				SleepCommand{"static", SleepCommandStatic{Time: 10 * time.Millisecond}},
 			},
 			nil,
 		},
 		{
-			[]byte(`[[{"call": "A"}, {"call": "B"}], {"sleep": "10ms"}]`),
+			[]byte(`[[{"call": "A"}, {"call": "B"}], {"sleep": {"type": "static", "data": {"time": "10ms"}}}]`),
 			Script{
 				ConcurrentCommand{
 					RequestCommand{ServiceName: "A"},
 					RequestCommand{ServiceName: "B"},
 				},
-				SleepCommand(10 * time.Millisecond),
+				SleepCommand{"static", SleepCommandStatic{Time: 10 * time.Millisecond}},
 			},
 			nil,
 		},

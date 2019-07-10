@@ -56,7 +56,7 @@ func execute(
 }
 
 func executeSleepCommand(cmd script.SleepCommand) {
-	time.Sleep(time.Duration(cmd))
+	time.Sleep(cmd.Data.Duration())
 }
 
 func executeRequestCommandHelper(cmd script.RequestCommand) bool {

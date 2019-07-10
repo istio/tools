@@ -16,8 +16,12 @@ package script
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
+
+	"github.com/jmcvetta/randutil"
+	"gonum.org/v1/gonum/stat/distuv"
 )
 
 func TestSleepCommand_UnmarshalJSON(t *testing.T) {
@@ -27,8 +31,19 @@ func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 		err     error
 	}{
 		{
-			[]byte(`"100ms"`),
-			SleepCommand(100 * time.Millisecond),
+			[]byte(`{"type":"static","data":{"time":"100ms"}}`),
+			SleepCommand{"static", SleepCommandStatic{Time: 100 * time.Millisecond}},
+			nil,
+		},
+		{
+			[]byte(`{"type":"histogram","data":{"1s":50, "2s":50}}`),
+			SleepCommand{"histogram", SleepCommandHistogram{[]randutil.Choice{{50, 1 * time.Second},
+				{50, 2 * time.Second}}}},
+			nil,
+		},
+		{
+			[]byte(`{"type":"dist","data":{"dist":"normal", "mean":1.0, "sigma":0.25}}`),
+			SleepCommand{"dist", SleepCommandDistribution{distuv.Normal{Mu: 1.0, Sigma: 0.25}}},
 			nil,
 		},
 	}
@@ -43,7 +58,8 @@ func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 			if test.err != err {
 				t.Errorf("expected %v; actual %v", test.err, err)
 			}
-			if test.command != command {
+			eq := reflect.DeepEqual(test.command, command)
+			if !eq {
 				t.Errorf("expected %v; actual %v", test.command, command)
 			}
 		})
