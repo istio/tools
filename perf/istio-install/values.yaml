@@ -4,12 +4,13 @@ global:
   imagePullPolicy: Always
   #hub: docker.io/istionightly
   #tag: nightly-release-0.8
-  meshExpansion: true
-  meshExpansionILB: true
+  meshExpansion:
+    enabled: true
+    useILB: true
+
   refreshInterval: 30s
   imagePullPolicy: Always
   k8sIngressSelector: ingressgateway
-
 
   proxy:
     enableCoreDump: true
@@ -20,12 +21,25 @@ global:
         cpu: 500m
         memory: 256Mi
       limits:
-        memory: 256Mi
+        memory: 256Mi 
+
+    envoyAccessLogService:
+      enabled: false
+      host: accesslog-grpc.istio-system.svc.cluster.local
+      port: 18090 
 
   mtls:
     # Default setting for service-to-service mtls. Can be set explicitly using
     # destination rules or service annotations.
     enabled: true
+
+  multiCluster:
+    enabled: true
+
+   # Provides dns resolution for global services
+  podDNSSearchNamespaces:
+  - global
+  - "{{ valueOrDefault .DeploymentMeta.Namespace \"default\" }}.global"
 
   # 1.1.5 sds.enabled requires controlPlaneSecurity to be disabled.
   controlPlaneSecurityEnabled: false
@@ -34,29 +48,42 @@ global:
     udsPath: "unix:/var/run/sds/uds_path"
     useNormalJwt: true
 
+# needed for multi cluster
+istiocoredns:
+  enabled: true
 
 ingress:
   enabled: false
 
 gateways:
+
+gateways:
+  istio-egressgateway:
+    enabled: true
+    env:
+      # Needed to route traffic via egress gateway if desired.
+      ISTIO_META_REQUESTED_NETWORK_VIEW: "external"
+
   istio-ilbgateway:
     enabled: true
+    type: NodePort #change to NodePort, ClusterIP or LoadBalancer if need be
 
   istio-ingressgateway:
+    enabled: true
     meshExpansion: true
     sds:
       enabled: true
-    enabled: true
+
     secretVolumes:
     - name: istio-ingressgateway-certs
       secretName: istio-ingressgateway-certs
       mountPath: /etc/istio/ingressgateway-certs
-    - name: istio-ingressgateway-certs-fortiotls
-      secretName: istio-ingressgateway-certs-fortiotls
-      mountPath: /etc/istio/ingressgateway-certs-fortiotls
-    - name: istio-ingressgateway-certs-fortionoistio
-      secretName: istio-ingressgateway-certs-fortionoistio
-      mountPath: /etc/istio/ingressgateway-certs-fortionoistio
+#    - name: istio-ingressgateway-certs-fortiotls
+#      secretName: istio-ingressgateway-certs-fortiotls
+#      mountPath: /etc/istio/ingressgateway-certs-fortiotls
+#    - name: istio-ingressgateway-certs-fortionoistio
+#      secretName: istio-ingressgateway-certs-fortionoistio
+#      mountPath: /etc/istio/ingressgateway-certs-fortionoistio
     labels:
       istio: ingressgateway
       ver: ingress10
@@ -73,22 +100,8 @@ gateways:
         cpu: 4000m
         memory: 512Mi
     type: LoadBalancer #change to NodePort, ClusterIP or LoadBalancer if need be
-    ports:
-    - port: 80
-      targetPort: 80
-      name: http2
-      nodePort: 31380
-    - port: 443
-      name: https
-      nodePort: 31390
-    - port: 31400
-      name: tcp
-    - port: 15011
-      targetPort: 15011
-      name: tcp-pilot-grcp-tls
-    - port: 8060
-      targetPort: 8060
-      name: tcp-citadel-grpc-tls
+    pports:
+    # The following ports are for specific tests.
     - port: 5201
       name: tcp-iperf-cont
     - port: 5202
@@ -100,7 +113,7 @@ gateways:
 
 pilot:
   replicaCount: 2
-  sidecar: false
+  sidecar: true
   autoscaleMax: 10
   env:
     PILOT_PUSH_THROTTLE: 50
@@ -155,9 +168,8 @@ mixer:
       targetAverageUtilization: 80
     sessionAffinityEnabled: false
 
-
 tracing:
-  enabled: false
+  enabled: true
   jaeger:
     enabled: true
 
@@ -172,7 +184,7 @@ kiali:
   tag: latest
 
 certmanager:
-  enabled: true
+  enabled: false
   email: mjog@google.com
   commonName: ingress.v10.istio.webinf.info
   certificates:
@@ -180,7 +192,6 @@ certmanager:
   #commonName: fortiotls.v10.istio.webinf.info
   #certificates:
   #  - "fortiotls.v10.istio.webinf.info"
-
 
 nodeagent:
   enabled: true

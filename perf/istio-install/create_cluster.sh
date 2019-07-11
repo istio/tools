@@ -63,6 +63,11 @@ function gc() {
   gcloud $*
 }
 
+NETWORK_SUBNET="--create-subnetwork name="${CLUSTER_NAME}-subnet"
+if [[ ! -z "${USE_SUBNET}" ]];then
+  NETWORK_SUBNET="--network ${USE_SUBNET}"
+fi
+
 ADDONS="HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard"
 if [[ ! -z "${ISTIO_ADDON}" ]];then
   ADDONS+=",Istio"

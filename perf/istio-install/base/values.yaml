@@ -12,7 +12,9 @@ telemetryNamespace: istio-system
 
 #fortioImage: istio/fortio:latest
 fortioImage: fortio/fortio:latest
-
+als:
+  enabled: true
+  Image: gcr.io/mixologist-142215/als:v002
 qps: 500
 
 # Number of test cluster-IP services pointing to A. Used to create a realistic
