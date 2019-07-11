@@ -10,10 +10,9 @@ certManager: false
 
 telemetryNamespace: istio-system
 
-#fortioImage: istio/fortio:latest
 fortioImage: fortio/fortio:latest
 als:
-  enabled: true
+  enabled: false
   Image: gcr.io/mixologist-142215/als:v002
 qps: 500
 
