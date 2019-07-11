@@ -16,6 +16,7 @@ package script
 
 import (
 	"encoding/json"
+	"errors"
 
 	"istio.io/tools/isotope/convert/pkg/graph/size"
 )
@@ -26,6 +27,8 @@ type RequestCommand struct {
 	ServiceName string `json:"service"`
 	// Size is the number of bytes in the request body.
 	Size size.ByteSize `json:"size"`
+	// Percentage is the
+	Probability int `json:"probability"`
 }
 
 var (
@@ -53,7 +56,12 @@ func (c *RequestCommand) UnmarshalJSON(b []byte) (err error) {
 		if err != nil {
 			return
 		}
+
 		*c = RequestCommand(unmarshallableRequestCommand)
+
+		if c.Probability < 0 || c.Probability > 100 {
+			return errors.New("math: invalid probability, outside range: [0,100]")
+		}
 	}
 	return
 }
