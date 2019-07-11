@@ -148,25 +148,78 @@ func (c *MessageSize) UnmarshalJSON(b []byte) (err error) {
 		var distCmd MessageSizeDistribution
 		distCmd.Number = int(cmd["number"].(float64))
 		distCmd.Unit = cmd["unit"].(string)
+		var dist interface {
+			Rand() float64
+		}
 
 		switch cmd["distribution"] {
 		case "normal":
-			dist := distuv.Normal{
+			dist = distuv.Normal{
 				Mu:    cmd["mean"].(float64),
 				Sigma: cmd["sigma"].(float64),
 			}
-
-			distCmd.Type = cmd["distribution"].(string)
-			distCmd.Dist = dist
 		case "lognormal":
-			dist := distuv.LogNormal{
+			dist = distuv.LogNormal{
 				Mu:    cmd["mean"].(float64),
 				Sigma: cmd["sigma"].(float64),
 			}
-
-			distCmd.Type = cmd["distribution"].(string)
-			distCmd.Dist = dist
+		case "beta":
+			dist = distuv.Beta{
+				Alpha: cmd["alpha"].(float64),
+				Beta:  cmd["beta"].(float64),
+			}
+		case "chi-squared":
+			dist = distuv.ChiSquared{
+				K: cmd["k"].(float64),
+			}
+		case "exp":
+			dist = distuv.Exponential{
+				Rate: cmd["rate"].(float64),
+			}
+		case "f":
+			dist = distuv.F{
+				D1: cmd["d1"].(float64),
+				D2: cmd["d2"].(float64),
+			}
+		case "gamma":
+			dist = distuv.Gamma{
+				Alpha: cmd["alpha"].(float64),
+				Beta:  cmd["beta"].(float64),
+			}
+		case "gumbel-right":
+			dist = distuv.GumbelRight{
+				Mu:   cmd["mu"].(float64),
+				Beta: cmd["beta"].(float64),
+			}
+		case "inverse-gamma":
+			dist = distuv.InverseGamma{
+				Alpha: cmd["alpha"].(float64),
+				Beta:  cmd["beta"].(float64),
+			}
+		case "laplace":
+			dist = distuv.Laplace{
+				Mu:    cmd["mu"].(float64),
+				Scale: cmd["scale"].(float64),
+			}
+		case "pareto":
+			dist = distuv.Pareto{
+				Xm:    cmd["xm"].(float64),
+				Alpha: cmd["alpha"].(float64),
+			}
+		case "studentst":
+			dist = distuv.StudentsT{
+				Mu:    cmd["mu"].(float64),
+				Sigma: cmd["sigma"].(float64),
+				Nu:    cmd["nu"].(float64),
+			}
+		case "weibull":
+			dist = distuv.Weibull{
+				K:      cmd["k"].(float64),
+				Lambda: cmd["lambda"].(float64),
+			}
 		}
+		distCmd.Type = cmd["distribution"].(string)
+		distCmd.Dist = dist
 		*c = MessageSize{command.Type, distCmd}
 
 	case Histogram:
