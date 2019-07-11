@@ -78,12 +78,6 @@ gateways:
     - name: istio-ingressgateway-certs
       secretName: istio-ingressgateway-certs
       mountPath: /etc/istio/ingressgateway-certs
-#    - name: istio-ingressgateway-certs-fortiotls
-#      secretName: istio-ingressgateway-certs-fortiotls
-#      mountPath: /etc/istio/ingressgateway-certs-fortiotls
-#    - name: istio-ingressgateway-certs-fortionoistio
-#      secretName: istio-ingressgateway-certs-fortionoistio
-#      mountPath: /etc/istio/ingressgateway-certs-fortionoistio
     labels:
       istio: ingressgateway
       ver: ingress10
@@ -100,16 +94,6 @@ gateways:
         cpu: 4000m
         memory: 512Mi
     type: LoadBalancer #change to NodePort, ClusterIP or LoadBalancer if need be
-    pports:
-    # The following ports are for specific tests.
-    - port: 5201
-      name: tcp-iperf-cont
-    - port: 5202
-      name: tcp-iperfraw
-    - port: 5203
-      name: tcp-iperf
-    - port: 5204
-      name: tcp-iperf-tls
 
 pilot:
   replicaCount: 2
