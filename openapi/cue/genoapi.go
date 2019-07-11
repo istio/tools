@@ -102,6 +102,7 @@ var (
 	inplace = flag.Bool("inplace", false, "generate configurations in place")
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
 	root    = flag.String("root", "", "the istio/api root for which to generate files (default is cwd)")
+	mod     = flag.String("module", "istio.io/api", "Go module root")
 	verbose = flag.Bool("v", false, "print debugging output")
 
 	// manually configuring builds
@@ -138,9 +139,11 @@ func main() {
 		importPaths[0] = cwd
 	}
 
+	module := *mod
+
 	b := protobuf.NewExtractor(&protobuf.Config{
 		Root:   cwd,
-		Module: "istio.io/api",
+		Module: module,
 		Paths:  importPaths,
 	})
 
@@ -158,7 +161,7 @@ func main() {
 
 	modRoot := cwd
 	if !*inplace {
-		modRoot, err = ioutil.TempDir("", "istio-openapi-gen")
+		modRoot, err = ioutil.TempDir("", "genoapi")
 		if err != nil {
 			log.Fatalf("Error creating temp dir: %v", err)
 		}
@@ -190,6 +193,7 @@ func main() {
 	}
 
 	builder := &builder{
+		module:     module,
 		modRoot:    modRoot,
 		cwd:        cwd,
 		protoNames: protoNames,
@@ -197,10 +201,10 @@ func main() {
 
 	// Build the OpenAPI files.
 	if *all != "" {
-		builder.genAll(&grouping{
-			title:        *title,
-			version:      *version,
-			oapiFilename: *all,
+		builder.genAll(&Grouping{
+			Title:        *title,
+			Version:      *version,
+			OapiFilename: *all,
 		})
 	} else {
 		buildPlan, err = completeBuildPlan(buildPlan, cwd)
@@ -216,15 +220,16 @@ func main() {
 }
 
 type builder struct {
+	module     string
 	modRoot    string
 	cwd        string
 	protoNames map[string]string
 }
 
-func (x *builder) gen(dir string, g *grouping) {
+func (x *builder) gen(dir string, g *Grouping) {
 	cfg := &load.Config{
 		Dir:    x.modRoot,
-		Module: "istio.io/api",
+		Module: x.module,
 	}
 
 	instances := load.Instances([]string{"./" + dir}, cfg)
@@ -233,22 +238,22 @@ func (x *builder) gen(dir string, g *grouping) {
 		fatal(inst.Err, "Instance failed")
 	}
 
-	schemas, err := x.genOpenAPI(g.oapiFilename, inst)
+	schemas, err := x.genOpenAPI(g.OapiFilename, inst)
 	if err != nil {
 		fatal(err, "Error generating OpenAPI file")
 	}
 
-	if !g.all {
+	if !g.All {
 		x.filterOpenAPI(schemas, g)
 	}
 
 	x.writeOpenAPI(schemas, g)
 }
 
-func (x *builder) genAll(g *grouping) {
+func (x *builder) genAll(g *Grouping) {
 	cfg := &load.Config{
 		Dir:    x.modRoot,
-		Module: "istio.io/api",
+		Module: x.module,
 	}
 
 	instances := load.Instances([]string{"./..."}, cfg)
@@ -335,15 +340,15 @@ func (x *builder) reference(goPkg string, path []string) string {
 // It does so my looking up the top-level items in the proto files defined
 // in g, recursively marking their dependencies, and then eliminating any
 // schema from items that was not marked.
-func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *grouping) {
+func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *Grouping) {
 	// All references found.
 	m := marker{
 		found:   map[string]bool{},
 		schemas: items,
 	}
 
-	// Get top-level definitions for the files in the given grouping
-	for _, f := range g.protoFiles {
+	// Get top-level definitions for the files in the given Grouping
+	for _, f := range g.ProtoFiles {
 		goPkg := ""
 		for _, e := range protoElems(filepath.Join(x.cwd, g.dir, f)) {
 			switch v := e.(type) {
@@ -373,13 +378,13 @@ func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *grouping) {
 	m.schemas.SetAll(pairs[:k])
 }
 
-func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *grouping) {
+func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
 	oapi := &openapi.OrderedMap{}
 	oapi.Set("openapi", "3.0.0")
 
 	info := &openapi.OrderedMap{}
-	info.Set("title", g.title)
-	info.Set("version", g.version)
+	info.Set("title", g.Title)
+	info.Set("version", g.Version)
 	oapi.Set("info", info)
 
 	comps := &openapi.OrderedMap{}
@@ -398,10 +403,10 @@ func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *grouping) {
 	var buf bytes.Buffer
 	_ = json.Indent(&buf, b, "", "  ")
 
-	filename := filepath.Join(x.cwd, g.dir, g.oapiFilename)
+	filename := filepath.Join(x.cwd, g.dir, g.OapiFilename)
 	err = ioutil.WriteFile(filename, buf.Bytes(), 0644)
 	if err != nil {
-		log.Fatalf("Error writing OpenAPI file %s in dir %s: %v", g.oapiFilename, g.dir, err)
+		log.Fatalf("Error writing OpenAPI file %s in dir %s: %v", g.OapiFilename, g.dir, err)
 	}
 }
 

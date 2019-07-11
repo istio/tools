@@ -26,36 +26,36 @@ import (
 	"github.com/kr/pretty"
 )
 
-type plan map[string][]grouping
+type Plan map[string][]Grouping
 
 // buildPlan specifies which .proto files end up in which OpenAPI .json files.
 // The map maps from directory relative the root, to a grouping value for each
 // file that needs to be generated.
-var buildPlan = plan{
-	"authentication/v1alpha1":     {{all: true}},
-	"mcp/v1alpha1":                {{all: true}},
-	"mesh/v1alpha1":               {{all: true}},
-	"mixer/adapter/model/v1beta1": {{all: true}},
-	"mixer/v1/config/client":      {{all: true}},
-	"mixer/v1":                    {{all: true}},
-	"networking/v1alpha3":         {{perFile: true}},
-	"policy/v1beta1":              {{all: true}},
-	"rbac/v1alpha1":               {{all: true}},
+var buildPlan = Plan{
+	"authentication/v1alpha1":     {{All: true}},
+	"mcp/v1alpha1":                {{All: true}},
+	"mesh/v1alpha1":               {{All: true}},
+	"mixer/adapter/model/v1beta1": {{All: true}},
+	"mixer/v1/config/client":      {{All: true}},
+	"mixer/v1":                    {{All: true}},
+	"networking/v1alpha3":         {{PerFile: true}},
+	"policy/v1beta1":              {{All: true}},
+	"rbac/v1alpha1":               {{All: true}},
 }
 
-type grouping struct {
+type Grouping struct {
 	dir string
 
-	oapiFilename string // empty indicates the default name
-	protoFiles   []string
+	OapiFilename string // empty indicates the default name
+	ProtoFiles   []string
 
 	// automatically add all files in this directory.
-	all     bool
-	perFile bool
+	All     bool
+	PerFile bool
 
 	// derived automatically if unspecified.
-	title   string
-	version string
+	Title   string
+	Version string
 }
 
 // fileFromDir computes the openapi json filename from the directory name.
@@ -78,13 +78,13 @@ func fileFromDir(dir, filename string) string {
 	return strings.Join(append(comps[:version], filename, comps[version], "json"), ".")
 }
 
-func completeBuildPlan(buildPlan plan, root string) (plan, error) {
-	// Did the user override the plan with command lines?
+func completeBuildPlan(buildPlan Plan, root string) (Plan, error) {
+	// Did the user override the Plan with command lines?
 	if *outdir != "" {
 		*outdir = filepath.Clean(*outdir)
-		buildPlan = plan{*outdir: {{
-			all:     !*perFile,
-			perFile: *perFile,
+		buildPlan = Plan{*outdir: {{
+			All:     !*perFile,
+			PerFile: *perFile,
 		}}}
 	}
 
@@ -101,17 +101,17 @@ func completeBuildPlan(buildPlan plan, root string) (plan, error) {
 		switch {
 		case len(buildPlan[dir]) == 0:
 			return nil
-		case buildPlan[dir][0].perFile:
-			if len(buildPlan[dir][0].protoFiles) > 0 {
-				buildPlan[dir] = append(buildPlan[dir], grouping{
-					protoFiles: []string{file},
-					perFile:    true,
+		case buildPlan[dir][0].PerFile:
+			if len(buildPlan[dir][0].ProtoFiles) > 0 {
+				buildPlan[dir] = append(buildPlan[dir], Grouping{
+					ProtoFiles: []string{file},
+					PerFile:    true,
 				})
 				break
 			}
 			fallthrough
-		case buildPlan[dir][0].all:
-			buildPlan[dir][0].protoFiles = append(buildPlan[dir][0].protoFiles, file)
+		case buildPlan[dir][0].All:
+			buildPlan[dir][0].ProtoFiles = append(buildPlan[dir][0].ProtoFiles, file)
 		}
 
 		return nil
@@ -135,8 +135,8 @@ func completeBuildPlan(buildPlan plan, root string) (plan, error) {
 	// Validate
 	for dir, all := range buildPlan {
 		for _, g := range all {
-			if g.title == "" {
-				g.title = "NO TITLE"
+			if g.Title == "" {
+				g.Title = "NO TITLE"
 				fmt.Printf("No $description set for package %q in any .proto file\n", dir)
 			}
 		}
@@ -145,26 +145,26 @@ func completeBuildPlan(buildPlan plan, root string) (plan, error) {
 	return buildPlan, nil
 }
 
-func (g *grouping) update(root, dir string) {
+func (g *Grouping) update(root, dir string) {
 	g.dir = dir
 
-	if g.oapiFilename == "" {
+	if g.OapiFilename == "" {
 		filename := ""
-		if g.perFile && len(g.protoFiles) > 0 {
-			filename = g.protoFiles[0]
+		if g.PerFile && len(g.ProtoFiles) > 0 {
+			filename = g.ProtoFiles[0]
 		}
-		g.oapiFilename = fileFromDir(dir, filename)
+		g.OapiFilename = fileFromDir(dir, filename)
 	}
 
-	g.version = filepath.Base(dir)
+	g.Version = filepath.Base(dir)
 
-	if g.title == "" {
-		for _, file := range g.protoFiles {
+	if g.Title == "" {
+		for _, file := range g.ProtoFiles {
 			if title, ok := findTitle(filepath.Join(root, dir, file)); ok {
-				if g.title != "" && g.title != title {
-					fmt.Printf("found two incompatible titles for %s:\n\t%q, and\n\t%q\n", g.oapiFilename, g.title, title)
+				if g.Title != "" && g.Title != title {
+					fmt.Printf("found two incompatible titles for %s:\n\t%q, and\n\t%q\n", g.OapiFilename, g.Title, title)
 				}
-				g.title = title
+				g.Title = title
 			}
 		}
 	}
