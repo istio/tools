@@ -2,7 +2,7 @@
 #excludeOutboundIPRanges exclude pod ips
 excludeOutboundIPRanges: 
 proxy:
-  cpu: "500m"
+  cpu: "1000m"
   memory: "512m"
 
 appresources1:
