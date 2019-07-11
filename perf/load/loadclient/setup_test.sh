@@ -10,9 +10,12 @@ NAMEPREFIX=${2:?"prefix name for service. typically svc-"}
 
 HTTPS=${HTTPS:-"false"}
 
+if [[ -z "${GATEWAY_URL}" ]];then
 SYSTEM_GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
 INGRESS_GATEWAY_URL=$(kubectl -n istio-ingress get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
 GATEWAY_URL=${SYSTEM_GATEWAY_URL:-$INGRESS_GATEWAY_URL}
+fi
+
 SERVICEHOST="${NAMEPREFIX}0.local"
 
 function run_test() {
