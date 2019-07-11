@@ -13,8 +13,9 @@
 // limitations under the License.
 
 // genoapi generates OpenAPI files from .proto definitions and other sources
-// of CUE constraints. It should either be run at the root of the istio/api
-// or the --root flag should indicate the location of this repo.
+// of CUE constraints. It requires the definition of a configuration file
+// that is specified at the Go or CUE module root for which one wishes to
+// generate the OpenAPI files.
 //
 // Generation adopts the Proto <-> JSON mappings conventions. Most notably,
 // field names are converted to JSON names.
@@ -99,18 +100,14 @@ import (
 )
 
 var (
+	configFile = flag.String("f", "", "configuration file; by default the directory  in which this file is located is assumed to be the root")
+
 	inplace = flag.Bool("inplace", false, "generate configurations in place")
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
-	root    = flag.String("root", "", "the istio/api root for which to generate files (default is cwd)")
-	mod     = flag.String("module", "istio.io/api", "Go module root")
 	verbose = flag.Bool("v", false, "print debugging output")
 
 	// manually configuring builds
-	outdir  = flag.String("dir", "", "only generated files in this directory")
-	perFile = flag.Bool("per_file", false, "generate separate output per file; dir must be specfied")
-	all     = flag.String("all", "", "combine all the matched outputs in a single file")
-	title   = flag.String("title", "All Istio types.", "title of the output file when --all is used")
-	version = flag.String("version", "v1alpha1", "version of the output file when --all is used")
+	all = flag.Bool("all", false, "combine all the matched outputs in a single file; the 'all' section must be specified in the configuration")
 )
 
 func main() {
@@ -129,21 +126,26 @@ func main() {
 		}
 	}
 
-	// Update cwd to istio/api path, if not the actual cwd.
-	if *root != "" {
-		var err error
-		cwd, err = filepath.Abs(*root)
-		if err != nil {
-			log.Fatalf("Invalid root %q: %v", *root, err)
-		}
-		importPaths[0] = cwd
+	if *configFile == "" {
+		log.Fatalf("Must specify configuration with the -f option")
 	}
 
-	module := *mod
+	c, err := loadConfig(*configFile)
+	if err != nil {
+		fatal(err, "Error parsing configuration file")
+	}
+
+	dir, err := filepath.Abs(*configFile)
+	if err != nil {
+		log.Fatalf("Invalid root %q: %v", dir, err)
+	}
+	cwd, _ = filepath.Split(dir)
+
+	importPaths[0] = cwd
 
 	b := protobuf.NewExtractor(&protobuf.Config{
 		Root:   cwd,
-		Module: module,
+		Module: c.Module,
 		Paths:  importPaths,
 	})
 
@@ -167,6 +169,9 @@ func main() {
 		}
 		defer os.RemoveAll(modRoot)
 	}
+
+	c.cwd = cwd
+	c.modRoot = modRoot
 
 	for _, f := range files {
 		b, err := format.Node(f)
@@ -193,25 +198,22 @@ func main() {
 	}
 
 	builder := &builder{
-		module:     module,
-		modRoot:    modRoot,
-		cwd:        cwd,
+		Config:     c,
 		protoNames: protoNames,
 	}
 
 	// Build the OpenAPI files.
-	if *all != "" {
-		builder.genAll(&Grouping{
-			Title:        *title,
-			Version:      *version,
-			OapiFilename: *all,
-		})
+	if *all {
+		if c.All == nil {
+			log.Fatalf("Must specify the all section in the configuration")
+		}
+		builder.genAll(c.All)
 	} else {
-		buildPlan, err = completeBuildPlan(buildPlan, cwd)
+		err := c.completeBuildPlan()
 		if err != nil {
 			log.Fatalf("Error completing build plan: %v", err)
 		}
-		for dir, groupings := range buildPlan {
+		for dir, groupings := range c.Directories {
 			for _, g := range groupings {
 				builder.gen(dir, &g)
 			}
@@ -220,16 +222,14 @@ func main() {
 }
 
 type builder struct {
-	module     string
-	modRoot    string
-	cwd        string
+	*Config
 	protoNames map[string]string
 }
 
 func (x *builder) gen(dir string, g *Grouping) {
 	cfg := &load.Config{
 		Dir:    x.modRoot,
-		Module: x.module,
+		Module: x.Module,
 	}
 
 	instances := load.Instances([]string{"./" + dir}, cfg)
@@ -243,7 +243,7 @@ func (x *builder) gen(dir string, g *Grouping) {
 		fatal(err, "Error generating OpenAPI file")
 	}
 
-	if !g.All {
+	if g.Mode != allFiles {
 		x.filterOpenAPI(schemas, g)
 	}
 
@@ -253,7 +253,7 @@ func (x *builder) gen(dir string, g *Grouping) {
 func (x *builder) genAll(g *Grouping) {
 	cfg := &load.Config{
 		Dir:    x.modRoot,
-		Module: x.module,
+		Module: x.Module,
 	}
 
 	instances := load.Instances([]string{"./..."}, cfg)
@@ -293,37 +293,29 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 		fatal(err, "Validation failed.")
 	}
 
-	gen := &openapi.Generator{
-		// Resolve all references to objects within the file.
-		SelfContained: true,
+	gen := *x.Openapi
+	gen.ReferenceFunc = func(p *cue.Instance, path []string) string {
+		return x.reference(p.ImportPath, path)
+	}
 
-		FieldFilter: "min.*|max.*",
-
-		// Computes the reference format for Istio types.
-		ReferenceFunc: func(p *cue.Instance, path []string) string {
-			return x.reference(p.ImportPath, path)
-		},
-
-		DescriptionFunc: func(v cue.Value) string {
-			docs := v.Doc()
-			if len(docs) > 0 {
-				// Cut off first section, but don't stop if this ends with
-				// an example, list, or the like, as it will end weirdly.
-				split := strings.Split(docs[0].Text(), "\n\n")
-				k := 1
-				for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
-				}
-				return strings.Join(split[:k], "\n\n")
+	gen.DescriptionFunc = func(v cue.Value) string {
+		docs := v.Doc()
+		if len(docs) > 0 {
+			// Cut off first section, but don't stop if this ends with
+			// an example, list, or the like, as it will end weirdly.
+			split := strings.Split(docs[0].Text(), "\n\n")
+			k := 1
+			for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
 			}
-			return ""
-		},
+			return strings.Join(split[:k], "\n\n")
+		}
+		return ""
 	}
 
 	return gen.Schemas(inst)
 }
 
-// reference defines the references format of schema by the convention used
-// in Istio.
+// reference defines the references format based on the protobuf naming.
 func (x *builder) reference(goPkg string, path []string) string {
 	name := strings.Join(path, ".")
 	// Map CUE names to proto names.
@@ -449,5 +441,6 @@ func (x *marker) markRecursive(m *openapi.OrderedMap) {
 
 func fatal(err error, msg string) {
 	errors.Print(os.Stderr, err, nil)
-	log.Fatal(msg)
+	_ = log.Output(2, msg)
+	os.Exit(1)
 }

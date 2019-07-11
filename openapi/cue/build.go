@@ -16,46 +16,99 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	"cuelang.org/go/cue"
+	"cuelang.org/go/encoding/openapi"
+	"cuelang.org/go/pkg/encoding/yaml"
 	"github.com/emicklei/proto"
 	"github.com/kr/pretty"
 )
 
-type Plan map[string][]Grouping
+// A Config defines the OpenAPI to generate and their properties.
+type Config struct {
+	// Module is the Go or CUE modules for which to generated OpenAPI
+	// definitions.
+	Module string
 
-// buildPlan specifies which .proto files end up in which OpenAPI .json files.
-// The map maps from directory relative the root, to a grouping value for each
-// file that needs to be generated.
-var buildPlan = Plan{
-	"authentication/v1alpha1":     {{All: true}},
-	"mcp/v1alpha1":                {{All: true}},
-	"mesh/v1alpha1":               {{All: true}},
-	"mixer/adapter/model/v1beta1": {{All: true}},
-	"mixer/v1/config/client":      {{All: true}},
-	"mixer/v1":                    {{All: true}},
-	"networking/v1alpha3":         {{PerFile: true}},
-	"policy/v1beta1":              {{All: true}},
-	"rbac/v1alpha1":               {{All: true}},
+	cwd     string // the current working directory
+	modRoot string // the module root
+
+	// The generator configuration.
+	Openapi *openapi.Generator
+
+	// Directories is a list of files to generate per directory.
+	Directories map[string][]Grouping
+
+	// Information about the output of an aggregate OpenAPI file.
+	All *Grouping
 }
 
+const (
+	perFile  = "perFile"
+	allFiles = "all"
+)
+
+// Grouping defines the source and settings for a single file.
 type Grouping struct {
 	dir string
 
 	OapiFilename string // empty indicates the default name
-	ProtoFiles   []string
 
-	// automatically add all files in this directory.
-	All     bool
-	PerFile bool
+	// Mode defines the set of files to include by default:
+	//   manual   user defines ProtoFiles
+	//   all      all proto files in this directory are automatically added
+	//   perFile  a single file is generated for each proto file in the directory
+	Mode string
+
+	// ProtoFiles defines the list of proto files to include as the bases
+	// of the generated file. The paths are relative the the directory.
+	ProtoFiles []string
 
 	// derived automatically if unspecified.
 	Title   string
 	Version string
+}
+
+func loadConfig(filename string) (c *Config, err error) {
+	var r cue.Runtime
+
+	var inst *cue.Instance
+
+	// TODO: use CUE itself to validate configuration values.
+
+	switch filepath.Ext(filename) {
+	case ".cue", ".json":
+		inst, err = r.Parse(filename, nil)
+		if err != nil {
+			return nil, err
+		}
+
+	case ".yaml", ".yml":
+		b, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return nil, err
+		}
+		expr, err := yaml.Unmarshal(b)
+		if err != nil {
+			return nil, err
+		}
+		inst, err = r.FromExpr(expr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	c = &Config{}
+	if err = inst.Value().Decode(c); err != nil {
+		return nil, err
+	}
+	return c, nil
 }
 
 // fileFromDir computes the openapi json filename from the directory name.
@@ -78,15 +131,10 @@ func fileFromDir(dir, filename string) string {
 	return strings.Join(append(comps[:version], filename, comps[version], "json"), ".")
 }
 
-func completeBuildPlan(buildPlan Plan, root string) (Plan, error) {
-	// Did the user override the Plan with command lines?
-	if *outdir != "" {
-		*outdir = filepath.Clean(*outdir)
-		buildPlan = Plan{*outdir: {{
-			All:     !*perFile,
-			PerFile: *perFile,
-		}}}
-	}
+func (c *Config) completeBuildPlan() error {
+	root := c.cwd
+
+	buildPlan := c.Directories
 
 	// Walk over all .proto files in the root and add them to groupin entries
 	// that requested all files in the directory to be added.
@@ -101,23 +149,23 @@ func completeBuildPlan(buildPlan Plan, root string) (Plan, error) {
 		switch {
 		case len(buildPlan[dir]) == 0:
 			return nil
-		case buildPlan[dir][0].PerFile:
+		case buildPlan[dir][0].Mode == perFile:
 			if len(buildPlan[dir][0].ProtoFiles) > 0 {
 				buildPlan[dir] = append(buildPlan[dir], Grouping{
 					ProtoFiles: []string{file},
-					PerFile:    true,
+					Mode:       perFile,
 				})
 				break
 			}
 			fallthrough
-		case buildPlan[dir][0].All:
+		case buildPlan[dir][0].Mode == allFiles:
 			buildPlan[dir][0].ProtoFiles = append(buildPlan[dir][0].ProtoFiles, file)
 		}
 
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Complete version, titles, and file names
@@ -142,7 +190,7 @@ func completeBuildPlan(buildPlan Plan, root string) (Plan, error) {
 		}
 	}
 
-	return buildPlan, nil
+	return nil
 }
 
 func (g *Grouping) update(root, dir string) {
@@ -150,7 +198,7 @@ func (g *Grouping) update(root, dir string) {
 
 	if g.OapiFilename == "" {
 		filename := ""
-		if g.PerFile && len(g.ProtoFiles) > 0 {
+		if g.Mode == perFile && len(g.ProtoFiles) > 0 {
 			filename = g.ProtoFiles[0]
 		}
 		g.OapiFilename = fileFromDir(dir, filename)
