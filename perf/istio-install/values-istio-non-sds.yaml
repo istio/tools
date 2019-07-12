@@ -16,6 +16,10 @@ gateways:
     sds:
       enabled: false
 
+security:
+  # Short lived cert to test rotation.
+  workloadCertTtl: 30m
+
 nodeagent:
   enabled: false
   image: node-agent-k8s

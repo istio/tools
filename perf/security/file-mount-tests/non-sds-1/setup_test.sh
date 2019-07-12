@@ -40,8 +40,8 @@ kubectl create ns ${NAMESPACE} --cluster ${CLUSTER}
 
 inject_workload ${TEMP_DEPLOY_NAME}
 
-echo "Wait 90 seconds for the deployment to be ready ..."
-sleep 90
+echo "Wait 60 seconds for the deployment to be ready ..."
+sleep 60
 
 
 source collect_stats.sh
