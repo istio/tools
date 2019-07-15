@@ -77,6 +77,8 @@
 //
 package main
 
+//go:generate go run assets_dev.go assets_gen.go
+
 import (
 	"bytes"
 	"encoding/json"
@@ -101,6 +103,7 @@ import (
 
 var (
 	configFile = flag.String("f", "", "configuration file; by default the directory  in which this file is located is assumed to be the root")
+	help       = flag.Bool("help", false, "show documentation for this tool")
 
 	inplace = flag.Bool("inplace", false, "generate configurations in place")
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
@@ -110,9 +113,56 @@ var (
 	all = flag.Bool("all", false, "combine all the matched outputs in a single file; the 'all' section must be specified in the configuration")
 )
 
+const (
+	usage = `genoapi generates OpenAPI definitions from Protobuf definitions
+
+Usage:
+
+	genoapi -paths=<proto-include>,... -f <config> <flags>
+
+Flags:
+`
+
+	helpTxt = `
+genopai converts Protobuf definitions to OpenAPI using hermetic CUE definitions
+as an intermediate representation. The .proto files may be annotated to add
+additional constraints (see cuelang.org/go/encoding/protobuf).
+
+IMPORTANT:
+The -path command line flags must include directories for imports in proto files
+that are not located within the Go module. The path for Google protobuf files
+imports should thereby precede the path for gogo-proto files. The latter has
+invalid copies of the former that will break the build if they are selected
+over to original Google files.
+
+
+Configuration File
+
+The configuration file has the followign format, expressed in CUE:
+
+%s
+`
+)
+
 func main() {
 	flag.Parse()
 	log.SetFlags(log.Lshortfile)
+
+	if *help {
+		f, err := assets.Open("/")
+		if err != nil {
+			log.Fatal(err)
+		}
+		b, _ := ioutil.ReadAll(f)
+		if split := bytes.Split(b, []byte("\n\n")); len(split) > 2 {
+			b = bytes.Join(split[2:], []byte("\n\n"))
+		}
+		fmt.Println(usage)
+		flag.PrintDefaults()
+
+		fmt.Printf(helpTxt, b)
+		return
+	}
 
 	cwd, _ := os.Getwd()
 

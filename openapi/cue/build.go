@@ -16,7 +16,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,7 +24,7 @@ import (
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/encoding/openapi"
-	"cuelang.org/go/pkg/encoding/yaml"
+	"cuelang.org/go/encoding/yaml"
 	"github.com/emicklei/proto"
 	"github.com/kr/pretty"
 )
@@ -55,6 +54,8 @@ const (
 )
 
 // Grouping defines the source and settings for a single file.
+//
+// See doc.cue for more information on these fields.
 type Grouping struct {
 	dir string
 
@@ -76,36 +77,36 @@ type Grouping struct {
 }
 
 func loadConfig(filename string) (c *Config, err error) {
-	var r cue.Runtime
+	r := &cue.Runtime{}
 
-	var inst *cue.Instance
+	f, err := assets.Open("/")
+	if err != nil {
+		return nil, err
+	}
+	inst, err := r.Compile("doc.cue", f)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// TODO: use CUE itself to validate configuration values.
+	var cfg *cue.Instance
 
 	switch filepath.Ext(filename) {
 	case ".cue", ".json":
-		inst, err = r.Parse(filename, nil)
-		if err != nil {
-			return nil, err
-		}
-
+		cfg, err = r.Compile(filename, nil)
 	case ".yaml", ".yml":
-		b, err := ioutil.ReadFile(filename)
-		if err != nil {
-			return nil, err
-		}
-		expr, err := yaml.Unmarshal(b)
-		if err != nil {
-			return nil, err
-		}
-		inst, err = r.FromExpr(expr)
-		if err != nil {
-			return nil, err
-		}
+		cfg, err = yaml.Decode(r, filename, nil)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	v := inst.Value().Unify(cfg.Value())
+	if err := v.Err(); err != nil {
+		return nil, err
 	}
 
 	c = &Config{}
-	if err = inst.Value().Decode(c); err != nil {
+	if err = v.Decode(c); err != nil {
 		return nil, err
 	}
 	return c, nil
