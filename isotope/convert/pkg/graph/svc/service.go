@@ -29,6 +29,9 @@ type Service struct {
 	// Type describes what protocol the service supports (e.g. HTTP, gRPC).
 	Type svctype.ServiceType `json:"type,omitempty"`
 
+	// Service Version
+	Version string `json:"version,omitempty"`
+
 	// NumReplicas is the number of replicas backing this service.
 	NumReplicas int32 `json:"numReplicas,omitempty"`
 
