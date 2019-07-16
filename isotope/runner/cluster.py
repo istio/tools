@@ -26,13 +26,30 @@ def set_up_if_not_exists(
                service_graph_disk_size_gb, service_graph_num_nodes,
                client_machine_type, client_disk_size_gb)
 
+def clean_up(project_id: str, name: str, zone: str):
+    sh.run_gcloud(['config', 'set', 'project', project_id], check=True)
+
+    output = sh.run_gcloud(
+        ['container', 'clusters', 'list', '--zone', zone], check=True).stdout
+    # TODO: Also check if the cluster is normal (e.g. not being deleted).
+    if name in output:
+        logging.debug('%s exists, cleaning up all namespaces', name)
+        sh.run_kubectl(
+            [
+                'delete', '--all', 'pods', '--namespace',
+                consts.SERVICE_GRAPH_NODE_POOL_NAME
+            ],
+            check=True)
+    else:
+        logging.debug('%s does not exist, bypassing cleanup', name)
+
+
 
 def set_up(project_id: str, name: str, zone: str, version: str,
            service_graph_machine_type: str, service_graph_disk_size_gb: int,
            service_graph_num_nodes: int, client_machine_type: str,
            client_disk_size_gb: int, deploy_prometheus=False) -> None:
     """Creates and sets up a GKE cluster.
-
     Args:
         project_id: full ID for the cluster's GCP project
         name: name of the GKE cluster

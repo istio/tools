@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import logging
 
@@ -11,6 +9,11 @@ def main(args: argparse.Namespace) -> None:
     logging.basicConfig(level=log_level, format='%(levelname)s\t> %(message)s')
 
     config = cfg.from_toml_file(args.config_path)
+
+    if args.clean_up == 'True':
+        cluster.clean_up(
+            config.cluster_project_id, config.cluster_name, config.cluster_zone)
+        return
 
     cluster.set_up_if_not_exists(
         config.cluster_project_id, config.cluster_name, config.cluster_zone,
@@ -34,6 +37,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('config_path', type=str)
     parser.add_argument('helm_values', type=str)
+    parser.add_argument('--clean-up',
+                        type=str,
+                        choices=['True', 'False'],
+                        default='False')
     parser.add_argument(
         '--log_level',
         type=str,
