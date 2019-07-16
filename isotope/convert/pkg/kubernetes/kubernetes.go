@@ -233,6 +233,7 @@ func makeDeployment(
 						},
 						Env: []apiv1.EnvVar{
 							{Name: consts.ServiceNameEnvKey, Value: service.Name},
+							{Name: consts.ServiceVersionNumEnvKey, Value: service.Version[1:]},
 						},
 						VolumeMounts: []apiv1.VolumeMount{
 							{

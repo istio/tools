@@ -5,17 +5,16 @@ topology_paths = [
 
 environments = [
   "NONE",
-  "ISTIO",
 ]
 
 [cluster]
-project_id = "istio-200620"
+project_id = "absolute-garden-516"
 # Cluster will be created with one n1-standard-1 node in the default node-pool
 # running Prometheus. In total, the cluster will have 1 Prometheus node, 1
 # client node, and N service-graph nodes (total of N + 2 nodes).
-name = "isotope-cluster-1"
+name = "policy-4"
 zone = "us-central1-a"
-version = "1.12.7-gke.7"
+version = "1.12.7-gke.25"
 
 [istio]
 archive_url = "https://github.com/istio/istio/releases/download/1.1.3/istio-1.1.3-linux.tar.gz"
@@ -24,7 +23,7 @@ archive_url = "https://github.com/istio/istio/releases/download/1.1.3/istio-1.1.
 machine_type = "n1-standard-1"
 disk_size_gb = 16
 num_nodes = 4
-image = "tahler/isotope-service:1"
+image = "saimsalman/isotope:v2"
 
 [client]
 machine_type = "n1-highcpu-4"

@@ -4,12 +4,18 @@ defaults:
   numRbacPolicies: 3
 services:
 - name: a
+  version: v1
+- name: a
+  version: v2
 - name: b
+  version: v1
 - name: c
+  version: v1
   script:
   - call: a
   - call: b
 - name: d
+  version: v1
   isEntrypoint: true
   script:
   - - call: a
