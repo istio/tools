@@ -23,7 +23,7 @@ See the [example-comparison](example-comparison/) directory for how to run the s
 ### 3. deploy the fortio test environment 
 
 ```bash
-NAMESPACE="twopods"
+export NAMESPACE="twopods"
 kubectl create namespace $NAMESPACE  
 kubectl annotate namespace $NAMESPACE linkerd.io/inject=enabled
 DNS_DOMAIN=local LINKERD_INJECT=enabled ./setup_test.sh
@@ -42,7 +42,7 @@ python runner/runner.py 16,64 1000 240 --baseline --mesh=linkerd
 **Note** - Linkerd proxy CPU/memory usage not yet implemented, only latency performance.
 
 ```
-export FORTIO_CLIENT_URL=<fortio svc EXTERNAL_IP:port>
+export FORTIO_CLIENT_URL=<fortio client svc EXTERNAL_IP:port>
 
 python ./runner/fortio.py $FORTIO_CLIENT_URL
 ```
