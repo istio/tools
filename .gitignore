@@ -16,6 +16,7 @@ vendor
 *.dll
 *.so
 *.dylib
+openapi/cue/cue
 
 # Test binary, build with `go test -c`
 *.test

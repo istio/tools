@@ -1,0 +1,10 @@
+apiVersion: v1
+name: istioChaosTotal
+version: 1.0
+description: Helm chart for istio chaos test
+keywords:
+  - istio
+  - performance
+sources:
+  - http://github.com/istio/istio
+engine: gotpl

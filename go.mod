@@ -3,8 +3,11 @@ module istio.io/tools
 go 1.12
 
 require (
+	cuelang.org/go v0.0.5-0.20190714195934-4e5b69a67cf9
+	fortio.org/fortio v1.1.0
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
+	github.com/emicklei/proto v1.6.11
 	github.com/getkin/kin-openapi v0.1.1-0.20190507152207-d3180292eead
 	github.com/ghodss/yaml v1.0.0
 	github.com/gogo/protobuf v1.2.1
@@ -17,22 +20,20 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f // indirect
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/imdario/mergo v0.3.6 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
+	github.com/kr/pretty v0.1.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
 	github.com/russross/blackfriday v2.0.0+incompatible
+	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
+	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd // indirect
 	github.com/spf13/cobra v0.0.3
-	github.com/spf13/pflag v1.0.2 // indirect
-	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6 // indirect
-	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2 // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
-	golang.org/x/tools v0.0.0-20190312170243-e65039ee4138 // indirect
+	golang.org/x/tools v0.0.0-20181210225255-6a3e9aa2ab77
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	istio.io/fortio v1.1.0
 	k8s.io/api v0.0.0-20190118113203-912cbe2bfef3
 	k8s.io/apimachinery v0.0.0-20190223001710-c182ff3b9841
 	k8s.io/client-go v8.0.0+incompatible

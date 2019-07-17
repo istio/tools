@@ -18,7 +18,8 @@ import (
 	"net/http"
 	"time"
 
-	"istio.io/fortio/log"
+	"fortio.org/fortio/log"
+
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 	"istio.io/tools/isotope/service/pkg/srv/prometheus"

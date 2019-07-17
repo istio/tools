@@ -28,6 +28,10 @@ spec:
         - "{{ .Values.runDuration }}"
         - -r
         - "0.0001"
+{{- range $a, $s := .Values.additionalHeaders }}
+        - -H
+        - "{{$a}}: {{$s}}"
+{{- end }}
         - -H
         - "Host: {{ .Values.serviceHost }}"
 {{- if .Values.https }}

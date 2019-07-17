@@ -20,14 +20,13 @@ jobs:
       - run:
           command: |
             mkdir -p $GOPATH/src/istio.io
-            mkdir -p $GOPATH/src/github.com/istio-ecosystem
             git clone https://github.com/istio/istio.git $GOPATH/src/istio.io/istio
-            git clone https://github.com/istio-ecosystem/istio-installer.git $GOPATH/src/github.com/istio-ecosystem/istio-installer
+            git clone https://github.com/istio/installer.git $GOPATH/src/istio.io/installer
       - run:
           command: make test
       - run:
           when: always
-          command: (cd $GOPATH/src/github.com/istio-ecosystem; make kind-logs)
+          command: (cd $GOPATH/src/istio.io/installer; make kind-logs)
       - store_test_results:
           path: /workspace/go/out/tests
       - store_artifacts:
@@ -35,7 +34,7 @@ jobs:
 
   build:
     docker:
-      - image: gcr.io/istio-testing/circleci:2019-04-22
+      - image: gcr.io/istio-testing/circleci:2019-06-13
     environment:
       GO111MODULE: "on"
     working_directory: /go/src/istio.io/tools
@@ -47,7 +46,7 @@ jobs:
 
   lint:
     docker:
-      - image: gcr.io/istio-testing/circleci:2019-04-22
+      - image: gcr.io/istio-testing/circleci:2019-06-13
     environment:
       GO111MODULE: "on"
     working_directory: /go/src/istio.io/tools
@@ -59,7 +58,7 @@ jobs:
 
   test:
     docker:
-      - image: gcr.io/istio-testing/circleci:2019-04-22
+      - image: gcr.io/istio-testing/circleci:2019-06-13
     environment:
       GO111MODULE: "on"
     working_directory: /go/src/istio.io/tools
@@ -68,6 +67,18 @@ jobs:
       - run:
           name: Running unit tests
           command: go test -race ./...
+
+  fmtpy:
+    docker:
+      - image: gcr.io/istio-testing/circleci:2019-06-13
+    working_directory: /go/src/istio.io/tools
+    environment:
+      GO111MODULE: "on"
+    steps:
+      - checkout
+      - run:
+          name: fmtpy
+          command: make fmtpy-checkonly
 
 workflows:
   version: 2
@@ -88,3 +99,4 @@ workflows:
       - build
       - lint
       - test
+      - fmtpy

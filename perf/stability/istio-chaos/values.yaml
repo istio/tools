@@ -1,6 +1,0 @@
-namespace: istio-chaos
-chaosIntervalMinutes: 2 # Must be greater than duration to avoid race conditions... Unless you want chaos^2!
-chaosDurationMinutes: 1
-chaosLevel: 3 # The maximum number of components to kill simultaneously, selected at random.
-components: istio-pilot istio-citadel istio-galley istio-policy istio-telemetry istio-tracing
-kubectlImage: gcr.io/istio-release/kubectl:master-latest-daily
