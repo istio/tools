@@ -39,6 +39,9 @@ func (svc *Service) UnmarshalJSON(b []byte) (err error) {
 		err = ErrEmptyName
 		return
 	}
+	if svc.Version == "" {
+		svc.Version = "v1"
+	}
 	return
 }
 
