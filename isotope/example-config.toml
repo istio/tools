@@ -3,6 +3,10 @@ topology_paths = [
   "example-topologies/canonical.yaml",
 ]
 
+policy_files = [
+  "example-policies/canonical.yaml",
+]
+
 environments = [
   "NONE",
   "ISTIO",

@@ -1,0 +1,107 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: a
+spec:
+  hosts:
+  - a.service-graph.svc.cluster.local
+  http:
+  - route:
+    - destination:
+        host: a.service-graph.svc.cluster.local
+        subset: v1
+      weight: 75
+    - destination:
+        host: a.service-graph.svc.cluster.local
+        subset: v2
+      weight: 25
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: b
+spec:
+  hosts:
+  - b.service-graph.svc.cluster.local
+  http:
+  - route:
+    - destination:
+        host: b.service-graph.svc.cluster.local
+        subset: v1
+      weight: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: c
+spec:
+  hosts:
+  - c.service-graph.svc.cluster.local
+  http:
+  - route:
+    - destination:
+        host: c.service-graph.svc.cluster.local
+        subset: v1
+      weight: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: d
+spec:
+  hosts:
+  - d.service-graph.svc.cluster.local
+  http:
+  - route:
+    - destination:
+        host: d.service-graph.svc.cluster.local
+        subset: v1
+      weight: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: b
+spec:
+  host: b.service-graph.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: a
+spec:
+  host: a.service-graph.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: c
+spec:
+  host: c.service-graph.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: d
+spec:
+  host: d.service-graph.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---

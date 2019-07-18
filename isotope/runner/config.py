@@ -8,16 +8,17 @@ import toml
 class RunnerConfig:
     """Represents the intermediary between a config file"""
 
-    def __init__(self, topology_paths: List[str], environments: List[str],
-                 istio_archive_url: str, cluster_project_id: str,
-                 cluster_name: str, cluster_zones: List[str],
-                 cluster_version: str, server_machine_type: str,
-                 server_disk_size_gb: int, server_num_nodes: int,
-                 server_image: str, client_machine_type: str,
-                 client_disk_size_gb: int, client_image: str,
-                 client_qps: Optional[int], client_duration: str,
-                 client_num_conc_conns: int) -> None:
+    def __init__(self, topology_paths: List[str], policy_files: List[str],
+                 environments: List[str], istio_archive_url: str,
+                 cluster_project_id: str, cluster_name: str,
+                 cluster_zones: List[str], cluster_version: str,
+                 server_machine_type: str, server_disk_size_gb: int,
+                 server_num_nodes: int, server_image: str,
+                 client_machine_type: str, client_disk_size_gb: int,
+                 client_image: str, client_qps: Optional[int],
+                 client_duration: str, client_num_conc_conns: int) -> None:
         self.topology_paths = topology_paths
+        self.policy_files = policy_files
         self.environments = environments
         self.istio_archive_url = istio_archive_url
         self.cluster_project_id = cluster_project_id
@@ -57,6 +58,7 @@ class RunnerConfig:
 
 def from_dict(d: Dict[str, Any]) -> RunnerConfig:
     topology_paths = d.get('topology_paths', [])
+    policy_files = d.get('policy_files', [])
     environments = d.get('environments', [])
 
     istio = d['istio']
@@ -89,6 +91,7 @@ def from_dict(d: Dict[str, Any]) -> RunnerConfig:
 
     return RunnerConfig(
         topology_paths=topology_paths,
+        policy_files=policy_files,
         environments=environments,
         istio_archive_url=istio_archive_url,
         cluster_project_id=cluster_project_id,

@@ -26,8 +26,9 @@ def main(args: argparse.Namespace) -> None:
                 consts.SERVICE_GRAPH_NAMESPACE, config, args.helm_values)
             pipeline.run(topology_path, mesh_environment, config.server_image,
                          config.client_image, config.istio_archive_url,
-                         config.client_qps, config.client_duration,
-                         config.client_num_conc_conns, config.labels())
+                         config.policy_files, config.client_qps,
+                         config.client_duration, config.client_num_conc_conns,
+                         config.labels())
 
 
 def parse_args() -> argparse.Namespace:
