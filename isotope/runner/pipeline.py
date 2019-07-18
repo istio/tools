@@ -58,7 +58,7 @@ def run(topology_path: str, env: mesh.Environment, service_image: str,
         logging.info('starting test with environment "%s"', env.name)
         result_output_path = '{}_{}.json'.format(topology_name, env.name)
 
-        _test_service_graph(manifest_path, policy_files,
+        _test_service_graph(env, manifest_path, policy_files,
                             result_output_path, ingress_url,
                             test_qps, test_duration,
                             test_num_concurrent_connections)
@@ -120,8 +120,8 @@ def _get_gke_node_selector(node_pool_name: str) -> str:
     return 'cloud.google.com/gke-nodepool={}'.format(node_pool_name)
 
 
-def _test_service_graph(yaml_path: str, policy_files: List[str],
-                        test_result_output_path: str,
+def _test_service_graph(env: mesh.Environment, yaml_path: str,
+                        policy_files: List[str], test_result_output_path: str,
                         test_target_url: str, test_qps: Optional[int],
                         test_duration: str,
                         test_num_concurrent_connections: int) -> None:
@@ -130,7 +130,9 @@ def _test_service_graph(yaml_path: str, policy_files: List[str],
     with kubectl.manifest(yaml_path):
         wait.until_deployments_are_ready(consts.SERVICE_GRAPH_NAMESPACE)
         wait.until_service_graph_is_ready()
-        _apply_policy_files(policy_files, consts.ISTIO_NAMESPACE)
+
+        if env.name == "istio":
+            _apply_policy_files(policy_files, consts.ISTIO_NAMESPACE)
         # TODO: Why is this extra buffer necessary?
         logging.debug('sleeping for 30 seconds as an extra buffer')
         time.sleep(30)
