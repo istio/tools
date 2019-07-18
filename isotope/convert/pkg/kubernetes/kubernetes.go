@@ -189,17 +189,25 @@ func makeDeployment(
 	service svc.Service, nodeSelector map[string]string,
 	serviceImage string, serviceMaxIdleConnectionsPerHost int) (
 	k8sDeployment appsv1.Deployment) {
+
+	if service.Version == "" {
+		service.Version = "v1"
+	}
+
+	AppLabels := map[string]string{"app": "service-graph", "version": service.Version}
+
 	k8sDeployment.APIVersion = "apps/v1"
 	k8sDeployment.Kind = "Deployment"
-	k8sDeployment.ObjectMeta.Name = service.Name
+	k8sDeployment.ObjectMeta.Name = service.Name + "-" + service.Version
 	k8sDeployment.ObjectMeta.Namespace = ServiceGraphNamespace
-	k8sDeployment.ObjectMeta.Labels = serviceGraphAppLabels
+	k8sDeployment.ObjectMeta.Labels = AppLabels
 	timestamp(&k8sDeployment.ObjectMeta)
 	k8sDeployment.Spec = appsv1.DeploymentSpec{
 		Replicas: &service.NumReplicas,
 		Selector: &metav1.LabelSelector{
 			MatchLabels: map[string]string{
-				"name": service.Name,
+				"name":    service.Name,
+				"version": service.Version,
 			},
 		},
 		Template: apiv1.PodTemplateSpec{
@@ -207,7 +215,8 @@ func makeDeployment(
 				Labels: combineLabels(
 					serviceGraphNodeLabels,
 					map[string]string{
-						"name": service.Name,
+						"name":    service.Name,
+						"version": service.Version,
 					}),
 				Annotations: prometheusScrapeAnnotations,
 			},
@@ -224,6 +233,7 @@ func makeDeployment(
 						},
 						Env: []apiv1.EnvVar{
 							{Name: consts.ServiceNameEnvKey, Value: service.Name},
+							{Name: consts.ServiceVersionNumEnvKey, Value: service.Version[1:]},
 						},
 						VolumeMounts: []apiv1.VolumeMount{
 							{

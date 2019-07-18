@@ -32,14 +32,14 @@ import (
 // HandlerFromServiceGraphYAML makes a handler to emulate the service with name
 // serviceName in the service graph represented by the YAML file at path.
 func HandlerFromServiceGraphYAML(
-	path string, serviceName string) (Handler, error) {
+	path string, serviceName string, serviceVersion string) (Handler, error) {
 
 	serviceGraph, err := serviceGraphFromYAMLFile(path)
 	if err != nil {
 		return Handler{}, err
 	}
 
-	service, err := extractService(serviceGraph, serviceName)
+	service, err := extractService(serviceGraph, serviceName, serviceVersion)
 	if err != nil {
 		return Handler{}, err
 	}
@@ -95,10 +95,11 @@ func serviceGraphFromYAMLFile(
 
 // extractService finds the service in serviceGraph with the specified name.
 func extractService(
-	serviceGraph graph.ServiceGraph, name string) (
+	serviceGraph graph.ServiceGraph, name string, version string) (
 	service svc.Service, err error) {
+	version = "v" + version
 	for _, svc := range serviceGraph.Services {
-		if svc.Name == name {
+		if svc.Name == name && svc.Version == version {
 			service = svc
 			return
 		}
