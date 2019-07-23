@@ -62,12 +62,12 @@ func ConvertSizeInfo(data []CombinedSizeInformation) []HasDistributionData {
 }
 
 func InfoToDist(fileName string,
-	funcName string, data []HasDistributionData) []TotalDistributions {
+	funcName string, data []HasDistributionData, isTime bool) []TotalDistributions {
 	ret := make([]TotalDistributions, len(data))
 
 	for idx, distributionData := range data {
 		for _, data := range distributionData.GetDistributionData() {
-			cmd := GeneratePythonCommand(fileName, funcName, data)
+			cmd := GeneratePythonCommand(fileName, funcName, data, isTime)
 			ret[idx].Distributions = append(ret[idx].Distributions, RunDistributionFitting(cmd))
 		}
 
@@ -77,7 +77,8 @@ func InfoToDist(fileName string,
 	return ret
 }
 
-func GeneratePythonCommand(fileName string, funcName string, data []uint64) string {
+func GeneratePythonCommand(fileName string, funcName string, data []uint64,
+	isTime bool) string {
 	var command strings.Builder
 
 	s := fmt.Sprintf("import %s; print(%s.%s([", fileName, fileName, funcName)
@@ -91,7 +92,9 @@ func GeneratePythonCommand(fileName string, funcName string, data []uint64) stri
 		}
 	}
 
-	command.WriteString("]))")
+	command.WriteString("], \"")
+	command.WriteString(strconv.FormatBool(isTime))
+	command.WriteString("\"))")
 
 	return command.String()
 }
