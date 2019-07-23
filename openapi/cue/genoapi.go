@@ -353,6 +353,8 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 		if len(docs) > 0 {
 			// Cut off first section, but don't stop if this ends with
 			// an example, list, or the like, as it will end weirdly.
+			// Also remove any protoc-gen-docs annotations at the beginning
+			// and any new-line.
 			split := strings.Split(docs[0].Text(), "\n\n")
 			k := 1
 			for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
