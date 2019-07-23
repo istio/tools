@@ -1,0 +1,1620 @@
+[
+  {
+    "NumTraces": 306,
+    "CallGraph": {
+      "data": {
+        "spanID": "650c80d31f4aee01",
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "requestType": "outbound",
+        "nodeID": "router~10.20.2.21~istio-ingressgateway-cfbf989b7-b7zxb.istio-system~istio-system.svc.cluster.local"
+      },
+      "children": [
+        {
+          "data": {
+            "spanID": "7a618b779b0d7254",
+            "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+            "requestType": "inbound",
+            "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+          },
+          "children": [
+            {
+              "data": {
+                "spanID": "3fe94afe45bedf1",
+                "operationName": "details.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "10403b60744558ff",
+                    "operationName": "details.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.2.17~details-v1-7964b4bb49-tkkfk.default~default.svc.cluster.local"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "data": {
+                "spanID": "b460f11f640eb479",
+                "operationName": "reviews.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "c67a003e981a66ac",
+                    "operationName": "reviews.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.0.4~reviews-v1-597f899bf6-ksb99.default~default.svc.cluster.local"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "TimeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "gumbel_r",
+            "parameters": [
+              0.003011749962878137,
+              0.0003528572157112822
+            ],
+            "mean": 0.003242437908496732,
+            "sigma": 0.0006707626814459264
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "invgamma",
+            "parameters": [
+              1.071151853437228,
+              0.0010329737190816323,
+              0.00016796444531075067
+            ],
+            "mean": 0.0016777385620915031,
+            "sigma": 0.0011193158377066216
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "invgamma",
+            "parameters": [
+              2.671812900697221,
+              0.0034933416068506406,
+              0.0029454736676299414
+            ],
+            "mean": 0.005342777777777778,
+            "sigma": 0.002203455016439357
+          },
+          {
+            "name": "invgamma",
+            "parameters": [
+              4.379091722244805,
+              0.0019856487290756996,
+              0.0091347669835912
+            ],
+            "mean": 0.004796199346405228,
+            "sigma": 0.0024154097686095942
+          },
+          {
+            "name": "invgamma",
+            "parameters": [
+              4.114256547028722,
+              0.0011040304813073197,
+              0.008018497435663999
+            ],
+            "mean": 0.003772179738562091,
+            "sigma": 0.0021090497457108997
+          }
+        ]
+      }
+    ],
+    "RequestSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      }
+    ],
+    "ResponseSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "weibull_max",
+            "parameters": [
+              0.20012813550131126,
+              0.00017800000000000004,
+              1.2110632261525454
+            ],
+            "mean": 0.000178,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.04452347565544276,
+              0.0002949999999999999,
+              1.5944028423969316
+            ],
+            "mean": 0.00029499999999999996,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "weibull_max",
+            "parameters": [
+              0.20012813550131126,
+              0.00017800000000000004,
+              1.2110632261525454
+            ],
+            "mean": 0.000178,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.04452347565544276,
+              0.0002949999999999999,
+              1.5944028423969316
+            ],
+            "mean": 0.00029499999999999996,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.047433772893508266,
+              0.004182999999999999,
+              1.5314089344265647
+            ],
+            "mean": 0.004183,
+            "sigma": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NumTraces": 273,
+    "CallGraph": {
+      "data": {
+        "spanID": "68ad6dcb5939a7e1",
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "requestType": "outbound",
+        "nodeID": "router~10.20.2.21~istio-ingressgateway-cfbf989b7-b7zxb.istio-system~istio-system.svc.cluster.local"
+      },
+      "children": [
+        {
+          "data": {
+            "spanID": "f091536e5f1a1cb3",
+            "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+            "requestType": "inbound",
+            "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+          },
+          "children": [
+            {
+              "data": {
+                "spanID": "892a782875632028",
+                "operationName": "details.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "780871a3ad541a63",
+                    "operationName": "details.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.2.17~details-v1-7964b4bb49-tkkfk.default~default.svc.cluster.local"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "data": {
+                "spanID": "520e5064374bcd10",
+                "operationName": "reviews.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "1bde266eae32b00b",
+                    "operationName": "reviews.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.3.7~reviews-v2-664994896d-9h84q.default~default.svc.cluster.local"
+                  },
+                  "children": [
+                    {
+                      "data": {
+                        "spanID": "9264917f1e358ea0",
+                        "operationName": "ratings.default.svc.cluster.local:9080/*",
+                        "requestType": "outbound",
+                        "nodeID": "sidecar~10.20.3.7~reviews-v2-664994896d-9h84q.default~default.svc.cluster.local"
+                      },
+                      "children": [
+                        {
+                          "data": {
+                            "spanID": "f9e90e43665770df",
+                            "operationName": "ratings.default.svc.cluster.local:9080/*",
+                            "requestType": "inbound",
+                            "nodeID": "sidecar~10.20.1.10~ratings-v1-7bb4dbd557-pd6lj.default~default.svc.cluster.local"
+                          },
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "TimeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "laplace",
+            "parameters": [
+              0.0031189500866506442,
+              0.00038538241415271514
+            ],
+            "mean": 0.0032997362637362635,
+            "sigma": 0.0008951900533730521
+          }
+        ]
+      },
+      {
+        "operationName": "ratings.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "laplace",
+            "parameters": [
+              0.0013140157394207438,
+              0.00022732896787689682
+            ],
+            "mean": 0.001344131868131868,
+            "sigma": 0.0003932718210016117
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "pareto",
+            "parameters": [
+              3.7848236521683534,
+              0.000005418608021052581,
+              0.002371580963438637
+            ],
+            "mean": 0.003240095238095238,
+            "sigma": 0.001264717492756621
+          },
+          {
+            "name": "lognorm",
+            "parameters": [
+              0.885130146126521,
+              0.0007196261403259487,
+              0.0004433370192847846
+            ],
+            "mean": 0.001439901098901099,
+            "sigma": 0.0011576784075595734
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "invgamma",
+            "parameters": [
+              2.3783542287350596,
+              0.003541865477173724,
+              0.002607686896341879
+            ],
+            "mean": 0.005458857142857143,
+            "sigma": 0.0022453663753748214
+          },
+          {
+            "name": "invgamma",
+            "parameters": [
+              3.935222119534989,
+              0.0019635009468308186,
+              0.008271441855073053
+            ],
+            "mean": 0.0048909853479853485,
+            "sigma": 0.0025793169495537216
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              2.2006828900306554,
+              42444167068665.75,
+              0.002524473620496096,
+              21652656920.952007
+            ],
+            "mean": 0.0039365824175824175,
+            "sigma": 0.0022042038948967397
+          }
+        ]
+      }
+    ],
+    "RequestSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              0.9899920243471434,
+              1.0393951944685846,
+              -2.661587125184533e-26,
+              9.609767701594333e-26
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "ratings.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              0.9899920243471434,
+              1.0393951944685846,
+              -2.661587125184533e-26,
+              9.609767701594333e-26
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              0.9899920243471434,
+              1.0393951944685846,
+              -2.661587125184533e-26,
+              9.609767701594333e-26
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              0.9899920243471434,
+              1.0393951944685846,
+              -2.661587125184533e-26,
+              9.609767701594333e-26
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              0.9899920243471434,
+              1.0393951944685846,
+              -2.661587125184533e-26,
+              9.609767701594333e-26
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              0.9899920243471434,
+              1.0393951944685846,
+              -2.661587125184533e-26,
+              9.609767701594333e-26
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              0.9899920243471434,
+              1.0393951944685846,
+              -2.661587125184533e-26,
+              9.609767701594333e-26
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      }
+    ],
+    "ResponseSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "laplace",
+            "parameters": [
+              0.000178,
+              2.7754429920058726e-19
+            ],
+            "mean": 0.000178,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "ratings.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1.0174388774761516,
+              1.0882101797176613,
+              0.000047999999999999994,
+              1.0776822680625775e-20
+            ],
+            "mean": 0.000048,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1.0174388774761516,
+              1.0882101797176613,
+              0.000047999999999999994,
+              1.0776822680625775e-20
+            ],
+            "mean": 0.000048,
+            "sigma": 0
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              1.0436559590269299,
+              0.9967291150979729,
+              0.00037899999999999994,
+              6.618789251414463e-20
+            ],
+            "mean": 0.000379,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "laplace",
+            "parameters": [
+              0.000178,
+              2.7754429920058726e-19
+            ],
+            "mean": 0.000178,
+            "sigma": 0
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              1.0436559590269299,
+              0.9967291150979729,
+              0.00037899999999999994,
+              6.618789251414463e-20
+            ],
+            "mean": 0.000379,
+            "sigma": 0
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              0.9884945153356657,
+              1.0418388726435233,
+              0.005182999999999999,
+              1.0887727169596994e-18
+            ],
+            "mean": 0.005183,
+            "sigma": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NumTraces": 311,
+    "CallGraph": {
+      "data": {
+        "spanID": "581a2d976e9bb97d",
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "requestType": "outbound",
+        "nodeID": "router~10.20.2.21~istio-ingressgateway-cfbf989b7-b7zxb.istio-system~istio-system.svc.cluster.local"
+      },
+      "children": [
+        {
+          "data": {
+            "spanID": "9a00e89e1626cbbc",
+            "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+            "requestType": "inbound",
+            "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+          },
+          "children": [
+            {
+              "data": {
+                "spanID": "c2ce7bc1cf6b1251",
+                "operationName": "details.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "4ffbc02d65922ecc",
+                    "operationName": "details.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.2.17~details-v1-7964b4bb49-tkkfk.default~default.svc.cluster.local"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "data": {
+                "spanID": "7bec91ccf5502f5e",
+                "operationName": "reviews.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "b6a1d17640a2d4be",
+                    "operationName": "reviews.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.2.18~reviews-v3-fc984656d-n2lck.default~default.svc.cluster.local"
+                  },
+                  "children": [
+                    {
+                      "data": {
+                        "spanID": "185461f3f02de1d2",
+                        "operationName": "ratings.default.svc.cluster.local:9080/*",
+                        "requestType": "outbound",
+                        "nodeID": "sidecar~10.20.2.18~reviews-v3-fc984656d-n2lck.default~default.svc.cluster.local"
+                      },
+                      "children": [
+                        {
+                          "data": {
+                            "spanID": "8754ff5d144d9d3d",
+                            "operationName": "ratings.default.svc.cluster.local:9080/*",
+                            "requestType": "inbound",
+                            "nodeID": "sidecar~10.20.1.10~ratings-v1-7bb4dbd557-pd6lj.default~default.svc.cluster.local"
+                          },
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "TimeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "gumbel_r",
+            "parameters": [
+              0.0030156351944688655,
+              0.00032757509011317027
+            ],
+            "mean": 0.0032292700964630223,
+            "sigma": 0.0006938809168816875
+          }
+        ]
+      },
+      {
+        "operationName": "ratings.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "laplace",
+            "parameters": [
+              0.001305000214189392,
+              0.00023382903879764472
+            ],
+            "mean": 0.0013605305466237942,
+            "sigma": 0.0005577403878086344
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "invgamma",
+            "parameters": [
+              1.2297260629143096,
+              0.0024127537257327787,
+              0.0004958675990997109
+            ],
+            "mean": 0.0031802315112540195,
+            "sigma": 0.0014633099062445777
+          },
+          {
+            "name": "laplace",
+            "parameters": [
+              0.001297982025301184,
+              0.00034913503395598075
+            ],
+            "mean": 0.001528006430868167,
+            "sigma": 0.000856773425815902
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              2.0887279664584226,
+              333597955914408.7,
+              0.0036821329975538566,
+              240184743494.122
+            ],
+            "mean": 0.00550900964630225,
+            "sigma": 0.002701454736517907
+          },
+          {
+            "name": "laplace",
+            "parameters": [
+              0.004046879039547379,
+              0.0011803653148649896
+            ],
+            "mean": 0.004848980707395498,
+            "sigma": 0.0028991454735914765
+          },
+          {
+            "name": "lognorm",
+            "parameters": [
+              0.7423608680485956,
+              0.002361544729460786,
+              0.001091680755399156
+            ],
+            "mean": 0.003951762057877814,
+            "sigma": 0.0021554434110037826
+          }
+        ]
+      }
+    ],
+    "RequestSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "f",
+            "parameters": [
+              0.9763436440492492,
+              1.159419017167412,
+              -2.9080767084001104e-33,
+              0.8974278822656322
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "ratings.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "f",
+            "parameters": [
+              0.9763436440492492,
+              1.159419017167412,
+              -2.9080767084001104e-33,
+              0.8974278822656322
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "f",
+            "parameters": [
+              0.9763436440492492,
+              1.159419017167412,
+              -2.9080767084001104e-33,
+              0.8974278822656322
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "f",
+            "parameters": [
+              0.9763436440492492,
+              1.159419017167412,
+              -2.9080767084001104e-33,
+              0.8974278822656322
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "f",
+            "parameters": [
+              0.9763436440492492,
+              1.159419017167412,
+              -2.9080767084001104e-33,
+              0.8974278822656322
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "f",
+            "parameters": [
+              0.9763436440492492,
+              1.159419017167412,
+              -2.9080767084001104e-33,
+              0.8974278822656322
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "f",
+            "parameters": [
+              0.9763436440492492,
+              1.159419017167412,
+              -2.9080767084001104e-33,
+              0.8974278822656322
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      }
+    ],
+    "ResponseSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1.0356702023496926,
+              1.0244510982548782,
+              0.00017799999999999996,
+              5.503670826203279e-20
+            ],
+            "mean": 0.00017799999999999996,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "ratings.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1.0174388774761516,
+              1.0882101797176613,
+              0.000047999999999999994,
+              1.0776822680625775e-20
+            ],
+            "mean": 0.000048,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1.0174388774761516,
+              1.0882101797176613,
+              0.000047999999999999994,
+              1.0776822680625775e-20
+            ],
+            "mean": 0.000048,
+            "sigma": 0
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              1.0434678026374575,
+              0.9970470023615745,
+              0.00037499999999999995,
+              8.29320673454015e-20
+            ],
+            "mean": 0.00037499999999999995,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1.0356702023496926,
+              1.0244510982548782,
+              0.00017799999999999996,
+              5.503670826203279e-20
+            ],
+            "mean": 0.00017799999999999996,
+            "sigma": 0
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              1.0434678026374575,
+              0.9970470023615745,
+              0.00037499999999999995,
+              8.29320673454015e-20
+            ],
+            "mean": 0.00037499999999999995,
+            "sigma": 0
+          },
+          {
+            "name": "beta",
+            "parameters": [
+              1,
+              1.0499999999999998,
+              0.005179,
+              3.0046291974743185e-18
+            ],
+            "mean": 0.0051790000000000004,
+            "sigma": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NumTraces": 109,
+    "CallGraph": {
+      "data": {
+        "spanID": "6accf1acb2c8d990",
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "requestType": "outbound",
+        "nodeID": "router~10.20.1.32~istio-ingressgateway-cfbf989b7-sctcx.istio-system~istio-system.svc.cluster.local"
+      },
+      "children": [
+        {
+          "data": {
+            "spanID": "904c37f274cb43a7",
+            "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+            "requestType": "inbound",
+            "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+          },
+          "children": [
+            {
+              "data": {
+                "spanID": "2b4bd0219384987c",
+                "operationName": "details.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "2a8b8dc416e509ef",
+                    "operationName": "details.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.2.17~details-v1-7964b4bb49-tkkfk.default~default.svc.cluster.local"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "data": {
+                "spanID": "d8fe23b13a51d475",
+                "operationName": "reviews.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "963479435f8ccb63",
+                    "operationName": "reviews.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.2.18~reviews-v3-fc984656d-n2lck.default~default.svc.cluster.local"
+                  },
+                  "children": [
+                    {
+                      "data": {
+                        "spanID": "7c173cba6a14bd8d",
+                        "operationName": "ratings.default.svc.cluster.local:9080/*",
+                        "requestType": "outbound",
+                        "nodeID": "sidecar~10.20.2.18~reviews-v3-fc984656d-n2lck.default~default.svc.cluster.local"
+                      },
+                      "children": [
+                        {
+                          "data": {
+                            "spanID": "44e3cf674eb6149e",
+                            "operationName": "ratings.default.svc.cluster.local:9080/*",
+                            "requestType": "inbound",
+                            "nodeID": "sidecar~10.20.1.10~ratings-v1-7bb4dbd557-pd6lj.default~default.svc.cluster.local"
+                          },
+                          "children": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "TimeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1.8647073113432802,
+              2174750453.2120724,
+              0.0025536425414641436,
+              815866.8903068608
+            ],
+            "mean": 0.0032607522935779814,
+            "sigma": 0.0007373454283210733
+          }
+        ]
+      },
+      {
+        "operationName": "ratings.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "gumbel_r",
+            "parameters": [
+              0.0012153343018952072,
+              0.00021354973302925437
+            ],
+            "mean": 0.0013432935779816512,
+            "sigma": 0.0003295383781042217
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "gumbel_r",
+            "parameters": [
+              0.0028862018721074315,
+              0.0005168904831022001
+            ],
+            "mean": 0.003313880733944954,
+            "sigma": 0.0018250054019441646
+          },
+          {
+            "name": "gumbel_r",
+            "parameters": [
+              0.0012471087237838178,
+              0.0001911235854647907
+            ],
+            "mean": 0.001370733944954128,
+            "sigma": 0.0003124499853962359
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "lognorm",
+            "parameters": [
+              0.9467326082088476,
+              0.003920271797001197,
+              0.000809881195922653
+            ],
+            "mean": 0.005260917431192661,
+            "sigma": 0.0017868123910744081
+          },
+          {
+            "name": "lognorm",
+            "parameters": [
+              0.6645123493625391,
+              0.0024713508503382644,
+              0.0018401308995989237
+            ],
+            "mean": 0.004858944954128439,
+            "sigma": 0.0023440748069644872
+          },
+          {
+            "name": "invgamma",
+            "parameters": [
+              2.465244932984402,
+              0.0025543844713694095,
+              0.0016289852754732784
+            ],
+            "mean": 0.003837990825688073,
+            "sigma": 0.002187717838869456
+          }
+        ]
+      }
+    ],
+    "RequestSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "ratings.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      }
+    ],
+    "ResponseSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1,
+              1.0499999999999996,
+              0.000178,
+              1.8778932484214495e-19
+            ],
+            "mean": 0.00017800000000000004,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "ratings.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "f",
+            "parameters": [
+              0.872763909527349,
+              1.1473602213794907,
+              0.000047999999999999994,
+              1.0150895937962656
+            ],
+            "mean": 0.00004800000000000001,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "f",
+            "parameters": [
+              0.872763909527349,
+              1.1473602213794907,
+              0.000047999999999999994,
+              1.0150895937962656
+            ],
+            "mean": 0.00004800000000000001,
+            "sigma": 0
+          },
+          {
+            "name": "weibull_max",
+            "parameters": [
+              0.13891915460534962,
+              0.00037500000000000006,
+              1.2548716529959245
+            ],
+            "mean": 0.000375,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1,
+              1.0499999999999996,
+              0.000178,
+              1.8778932484214495e-19
+            ],
+            "mean": 0.00017800000000000004,
+            "sigma": 0
+          },
+          {
+            "name": "weibull_max",
+            "parameters": [
+              0.13891915460534962,
+              0.00037500000000000006,
+              1.2548716529959245
+            ],
+            "mean": 0.000375,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.7793813433540273,
+              0.005178999999999999,
+              1.0160804703531903
+            ],
+            "mean": 0.005179000000000003,
+            "sigma": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NumTraces": 105,
+    "CallGraph": {
+      "data": {
+        "spanID": "e4b9aad7f90297f9",
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "requestType": "outbound",
+        "nodeID": "router~10.20.1.28~istio-ingressgateway-cfbf989b7-b784n.istio-system~istio-system.svc.cluster.local"
+      },
+      "children": [
+        {
+          "data": {
+            "spanID": "c8dbce8b11d30d90",
+            "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+            "requestType": "inbound",
+            "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+          },
+          "children": [
+            {
+              "data": {
+                "spanID": "1b24c524a75bcce0",
+                "operationName": "details.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "80a7de66dbecf4f4",
+                    "operationName": "details.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.2.17~details-v1-7964b4bb49-tkkfk.default~default.svc.cluster.local"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "data": {
+                "spanID": "df4151bc30106ee4",
+                "operationName": "reviews.default.svc.cluster.local:9080/*",
+                "requestType": "outbound",
+                "nodeID": "sidecar~10.20.0.5~productpage-v1-6c668694dc-dmnsl.default~default.svc.cluster.local"
+              },
+              "children": [
+                {
+                  "data": {
+                    "spanID": "1d5aed6f3ce05cac",
+                    "operationName": "reviews.default.svc.cluster.local:9080/*",
+                    "requestType": "inbound",
+                    "nodeID": "sidecar~10.20.0.4~reviews-v1-597f899bf6-ksb99.default~default.svc.cluster.local"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "TimeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "lognorm",
+            "parameters": [
+              0.4183109880902517,
+              0.002204244622962217,
+              0.0008864896519310529
+            ],
+            "mean": 0.0031772761904761905,
+            "sigma": 0.0004958682264325352
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "invgamma",
+            "parameters": [
+              1.018720993968437,
+              0.0010277246040811057,
+              0.00016160938203856943
+            ],
+            "mean": 0.0016649904761904762,
+            "sigma": 0.0009492158352195257
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "lognorm",
+            "parameters": [
+              0.9249494546087522,
+              0.003664923564768616,
+              0.0010871888628159014
+            ],
+            "mean": 0.005418885714285715,
+            "sigma": 0.0022265042595024194
+          },
+          {
+            "name": "lognorm",
+            "parameters": [
+              0.675635186354443,
+              0.002640265980900245,
+              0.001547836401409758
+            ],
+            "mean": 0.004690428571428571,
+            "sigma": 0.002152677745976387
+          },
+          {
+            "name": "invgamma",
+            "parameters": [
+              1.3796157198250665,
+              0.0021521689106740096,
+              0.0009021117551356924
+            ],
+            "mean": 0.0038793999999999994,
+            "sigma": 0.0020946711904625617
+          }
+        ]
+      }
+    ],
+    "RequestSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.779425722663547,
+              -3.3236152831688453e-34,
+              1.0160492250559816
+            ],
+            "mean": 0,
+            "sigma": 0
+          }
+        ]
+      }
+    ],
+    "ResponseSizeInformation": [
+      {
+        "operationName": "details.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1,
+              1.0499999999999998,
+              0.000178,
+              9.389466242107245e-20
+            ],
+            "mean": 0.00017800000000000002,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "reviews.default.svc.cluster.local:9080/*",
+        "distributions": [
+          {
+            "name": "chi2",
+            "parameters": [
+              0.04452347565544276,
+              0.0002949999999999999,
+              1.5944028423969316
+            ],
+            "mean": 0.000295,
+            "sigma": 0
+          }
+        ]
+      },
+      {
+        "operationName": "productpage.default.svc.cluster.local:9080/productpage",
+        "distributions": [
+          {
+            "name": "beta",
+            "parameters": [
+              1,
+              1.0499999999999998,
+              0.000178,
+              9.389466242107245e-20
+            ],
+            "mean": 0.00017800000000000002,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.04452347565544276,
+              0.0002949999999999999,
+              1.5944028423969316
+            ],
+            "mean": 0.000295,
+            "sigma": 0
+          },
+          {
+            "name": "chi2",
+            "parameters": [
+              0.04742601776763859,
+              0.004182999999999999,
+              1.5314143944311407
+            ],
+            "mean": 0.004183,
+            "sigma": 0
+          }
+        ]
+      }
+    ]
+  }
+]
