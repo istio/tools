@@ -15,6 +15,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -26,12 +27,13 @@ import (
 func main() {
 	fmt.Println("Starting Tratis ...")
 
-	if len(os.Args) != 3 {
-		log.Fatalf(`Input Arguments not correctly provided: go run main.go <TOOL_NAME=jaeger/zipkin> <RESULTS_JSON_FILE>`)
+	if len(os.Args) != 4 {
+		log.Fatalf(`Input Arguments not correctly provided: go run main.go <TOOL_NAME=jaeger/zipkin> <INPUT_TRACES> <RESULTS_JSON_FILE>`)
 	}
 
 	TracingToolName := os.Args[1]
-	jsonFileName := os.Args[2]
+	traceFileName := os.Args[2]
+	jsonFileName := os.Args[3]
 
 	fmt.Println("Generating Traces ...")
 
@@ -41,11 +43,29 @@ func main() {
 			TracingToolName)
 	}
 
+	fmt.Println("Writing Traces to File ...")
+
+	f, err := os.Create(traceFileName)
+	if err != nil {
+		log.Fatalf("Unable to create %s: %v", traceFileName, err)
+	}
+	bytes, _ := json.MarshalIndent(data, "", "  ")
+	n, err := f.Write(bytes)
+	if err != nil {
+		log.Fatalf("Unable to write json to %s: %v", jsonFileName, err)
+	}
+
+	_, _ = fmt.Fprintf(os.Stderr, "Successfully wrote %d bytes of Json data to %s\n", n, traceFileName)
+
 	results := output.GenerateOutput(data)
 
-	f, err := os.Create(jsonFileName)
+	f, err = os.Create(jsonFileName)
 	if err != nil {
 		log.Fatalf("Unable to create %s: %v", jsonFileName, err)
 	}
-	f.Write(append(results, '\n'))
+	n, err = f.Write(append(results, '\n'))
+	if err != nil {
+		log.Fatalf("Unable to write json to %s: %v", jsonFileName, err)
+	}
+	_, _ = fmt.Fprintf(os.Stderr, "Successfully wrote %d bytes of Json data to %s\n", n, jsonFileName)
 }

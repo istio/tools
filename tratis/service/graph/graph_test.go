@@ -39,8 +39,7 @@ var (
 	}
 )
 
-func TestfindTag(t *testing.T) {
-
+func TestFindTag1(t *testing.T) {
 	var tests = []struct {
 		actual   jaeger.KeyValue
 		expected jaeger.KeyValue
@@ -56,7 +55,53 @@ func TestfindTag(t *testing.T) {
 		t.Run("", func(t *testing.T) {
 			t.Parallel()
 
-			if reflect.DeepEqual(test.actual, test.expected) {
+			if !reflect.DeepEqual(test.actual, test.expected) {
+				t.Errorf("%s: got %+v, not as expected %+v", test.msg, test.actual, test.expected)
+			}
+		})
+	}
+}
+
+func TestFindTag2(t *testing.T) {
+	var tests = []struct {
+		actual   jaeger.KeyValue
+		expected jaeger.KeyValue
+		msg      string
+	}{
+		{jaeger.KeyValue{Key: "upstream_cluster", Type: "string", Value: "outbound|9080||details.default.svc.cluster.local"},
+			findTag(tags, "upstream_cluster"),
+			""},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run("", func(t *testing.T) {
+			t.Parallel()
+
+			if !reflect.DeepEqual(test.actual, test.expected) {
+				t.Errorf("%s: got %+v, not as expected %+v", test.msg, test.actual, test.expected)
+			}
+		})
+	}
+}
+
+func TestFindTag3(t *testing.T) {
+	var tests = []struct {
+		actual   jaeger.KeyValue
+		expected jaeger.KeyValue
+		msg      string
+	}{
+		{jaeger.KeyValue{Key: "request_size", Type: "string", Value: "0"},
+			findTag(tags, "request_size"),
+			""},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run("", func(t *testing.T) {
+			t.Parallel()
+
+			if !reflect.DeepEqual(test.actual, test.expected) {
 				t.Errorf("%s: got %+v, not as expected %+v", test.msg, test.actual, test.expected)
 			}
 		})
