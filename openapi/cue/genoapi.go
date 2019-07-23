@@ -363,7 +363,7 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 			i := 1
 			for ; i < len(s) && strings.HasPrefix(s[i-1], "$"); i++ {
 			}
-			return strings.Join(s[i-1:len(s)], " ")
+			return strings.Join(s[i-1:], " ")
 		}
 		return ""
 	}
