@@ -89,19 +89,14 @@ func ExtractSizeInformationWrapper(n *graph.Node, t *[]MessageSizeInfo) {
 		return
 	}
 
-	sizeData := make([]MessageSize, 0)
-
 	for _, child := range *n.Children {
-		newSize := MessageSize{child.Data.ResponseSize, child.Data.RequestSize}
-		sizeData = append(sizeData, newSize)
-
 		ExtractSizeInformationWrapper(&child, t)
 	}
 
-	newSize := MessageSize{n.Data.ResponseSize, n.Data.RequestSize}
-	sizeData = append(sizeData, newSize)
-
 	if n.Data.RequestType == "inbound" {
+		sizeData := make([]MessageSize, 0)
+		newSize := MessageSize{n.Data.ResponseSize, n.Data.RequestSize}
+		sizeData = append(sizeData, newSize)
 		*t = append(*t, MessageSizeInfo{sizeData, n.Data.OperationName})
 	}
 }

@@ -6,8 +6,12 @@ import json
 import statistics
 
 # Create models from data
-def BestFitDistribution(data):
-    data = [float(val)*1e-6 for val in data]
+def BestFitDistribution(data, isTime):
+    # Convert time data to seconds from microseconds.
+
+    if isTime == "true":
+        data = [float(val)*1e-6 for val in data]
+
     bins = int((len(data) * 1.0) / 10)
 
     if bins == 0:
