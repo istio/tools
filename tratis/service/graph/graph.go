@@ -19,7 +19,6 @@ import (
 	"log"
 	"sort"
 	"strings"
-	"fmt"
 
 	jaeger "github.com/jaegertracing/jaeger/model/json"
 )
@@ -55,7 +54,6 @@ func (g *Graph) ExtractGraphData() []byte {
 }
 
 func findTag(tags []jaeger.KeyValue, key string) jaeger.KeyValue {
-	fmt.Printf("%+v\n", tags)
 	for _, tag := range tags {
 		if tag.Key == key {
 			return tag

@@ -26,8 +26,8 @@ import (
 )
 
 type Output struct {
-	NumTraces               int                               `'json"NumTraces"`
-	CallGraph               *graph.Node                       `'json:"Graph"`
+	NumTraces               int                               `json:"NumTraces"`
+	CallGraph               *graph.Node                       `json:"Graph"`
 	TimeInformation         []distribution.TotalDistributions `json:"TimeInformation"`
 	RequestSizeInformation  []distribution.TotalDistributions `json:"RequestSizeInformation"`
 	ResponseSizeInformation []distribution.TotalDistributions `json:"ResponseSizeInformation"`
@@ -128,6 +128,7 @@ func GenerateOutput(data parser.TraceData) []byte {
 			ret = append(ret, temp)
 		} else {
 			fmt.Println("Skipping Graph Number: ", idx)
+			fmt.Println("")
 		}
 	}
 
