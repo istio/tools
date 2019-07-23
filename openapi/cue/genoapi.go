@@ -357,7 +357,11 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 			k := 1
 			for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
 			}
-			return strings.Join(split[:k], "\n\n")
+			s := strings.Fields(strings.Join(split[:k], "\n"))
+			i := 1
+			for ; i < len(s) && strings.HasPrefix(s[i-1], "$"); i++ {
+			}
+			return strings.Join(s[i-1:len(s)], " ")
 		}
 		return ""
 	}
