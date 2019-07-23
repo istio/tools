@@ -31,19 +31,19 @@ func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 		err     error
 	}{
 		{
-			[]byte(`{"type":"static","data":{"time":"100ms"}}`),
+			[]byte(`{"Type":"static","Data":{"time":"100ms"}}`),
 			SleepCommand{"static", SleepCommandStatic{Time: 100 * time.Millisecond}},
 			nil,
 		},
 		{
-			[]byte(`{"type":"histogram","data":{"1s":50, "2s":50}}`),
+			[]byte(`{"Type":"histogram","Data":{"1s":50, "2s":50}}`),
 			SleepCommand{"histogram", SleepCommandHistogram{[]randutil.Choice{{50, 1 * time.Second},
 				{50, 2 * time.Second}}}},
 			nil,
 		},
 		{
-			[]byte(`{"type":"dist","data":{"dist":"normal", "mean":1.0, "sigma":0.25}}`),
-			SleepCommand{"dist", SleepCommandDistribution{distuv.Normal{Mu: 1.0, Sigma: 0.25}}},
+			[]byte(`{"Type":"dist","Data":{"name":"normal", "Dist": {"Mu":1.0, "Sigma":0.25}}}`),
+			SleepCommand{"dist", SleepCommandDistribution{"normal", distuv.Normal{Mu: 1.0, Sigma: 0.25}}},
 			nil,
 		},
 	}

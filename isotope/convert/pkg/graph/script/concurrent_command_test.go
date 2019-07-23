@@ -35,14 +35,14 @@ func TestConcurrentCommand_UnmarshalJSON(t *testing.T) {
 			nil,
 		},
 		{
-			[]byte(`[{"sleep": {"type": "static", "data": {"time": "1s"}}}]`),
+			[]byte(`[{"sleep": {"Type": "static", "Data": {"time": "1s"}}}]`),
 			ConcurrentCommand{
 				SleepCommand{"static", SleepCommandStatic{Time: 1 * time.Second}},
 			},
 			nil,
 		},
 		{
-			[]byte(`[{"call": "A"}, {"sleep": {"type": "static", "data": {"time": "10ms"}}}]`),
+			[]byte(`[{"call": "A"}, {"sleep": {"Type": "static", "Data": {"time": "10ms"}}}]`),
 			ConcurrentCommand{
 				RequestCommand{ServiceName: "A"},
 				SleepCommand{"static", SleepCommandStatic{Time: 10 * time.Millisecond}},
@@ -50,10 +50,10 @@ func TestConcurrentCommand_UnmarshalJSON(t *testing.T) {
 			nil,
 		},
 		{
-			[]byte(`[{"call": "A"}, {"sleep": {"type":"dist","data":{"dist":"normal", "mean":1.0, "sigma":0.25}}}]`),
+			[]byte(`[{"call": "A"}, {"sleep": {"Type":"dist","Data":{"name":"normal", "Dist": {"Mu":1.0, "Sigma":0.25}}}}]`),
 			ConcurrentCommand{
 				RequestCommand{ServiceName: "A"},
-				SleepCommand{"dist", SleepCommandDistribution{distuv.Normal{Mu: 1.0, Sigma: 0.25}}},
+				SleepCommand{"dist", SleepCommandDistribution{"normal", distuv.Normal{Mu: 1.0, Sigma: 0.25}}},
 			},
 			nil,
 		},
