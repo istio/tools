@@ -40,6 +40,21 @@ const (
 
 package {{ .Package }}
 
+// Instance describes a single resource annotation
+type Instance struct {
+	// The name of the annotation.
+	Name string
+
+	// Description of the annotation.
+	Description string
+
+	// Hide the existence of this annotation when outputting usage information.
+	Hidden bool
+
+	// Mark this annotation as deprecated when generating usage information.
+	Deprecated bool
+}
+
 var (
 	{{ range .Annotations }}
 		{{.VariableName}} = Instance {
