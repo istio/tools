@@ -12,7 +12,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/gogo/protobuf v1.2.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/protobuf v1.3.2
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/google/uuid v0.0.0-20161128191214-064e2069ce9c
@@ -34,6 +34,7 @@ require (
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	golang.org/x/tools v0.0.0-20181210225255-6a3e9aa2ab77
 	gopkg.in/inf.v0 v0.9.1 // indirect
+	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
 	k8s.io/api v0.0.0-20190118113203-912cbe2bfef3
 	k8s.io/apimachinery v0.0.0-20190223001710-c182ff3b9841
 	k8s.io/client-go v8.0.0+incompatible
@@ -41,3 +42,5 @@ require (
 	k8s.io/helm v2.12.0+incompatible
 	k8s.io/klog v0.1.0 // indirect
 )
+
+replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
