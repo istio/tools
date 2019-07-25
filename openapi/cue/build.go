@@ -116,6 +116,10 @@ func loadConfig(filename string) (c *Config, err error) {
 // If filename is not "", it is assumed to be the proto filename in perFile
 // mode.
 func fileFromDir(dir, filename string) string {
+	if filename != "" {
+		filename = filename[:len(filename)-len(".proto")]
+		return filename + ".json"
+	}
 	comps := strings.Split(dir, "/")
 	if len(comps) == 0 {
 		return "istio.json"
@@ -123,13 +127,7 @@ func fileFromDir(dir, filename string) string {
 
 	comps = append([]string{"istio"}, comps...)
 
-	if filename == "" {
-		return strings.Join(append(comps, "json"), ".")
-	}
-
-	filename = filename[:len(filename)-len(".proto")]
-	version := len(comps) - 1
-	return strings.Join(append(comps[:version], filename, comps[version], "json"), ".")
+	return strings.Join(append(comps, "json"), ".")
 }
 
 func (c *Config) completeBuildPlan() error {
