@@ -92,7 +92,7 @@ var (
 	output     string
 	htmlOutput string
 
-	nameSeparator = regexp.MustCompile("[._\\-]")
+	nameSeparator = regexp.MustCompile(`[._\-]`)
 
 	rootCmd = cobra.Command{
 		Use:   "gen",
