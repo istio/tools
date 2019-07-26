@@ -26,7 +26,7 @@ var (
 
 func main() {
 	// Simple server that listens on many ports
-	wg.Add(4)
+	wg.Add(6)
 	go listen(":8085")
 	go listen(":8086")
 	go listen(":8087")
