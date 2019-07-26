@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+spec:
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      serviceAccount: looper-service-account
+      containers:
+      - name: client
+        image: gcr.io/istio-release/kubectl:master-latest-daily
+        args:
+          - bash
+          - -c
+          - |-
+            function assert() {
+              if [[ $1 != $2 ]]; then
+                echo "$1" != "$2"
+                exit 1
+              fi
+            }
+            POD_IP=""
+            while [[ -z $POD_IP ]]; do
+              echo "attempting to get POD_IP"
+              POD_IP=$(kubectl get pods -l app=server -n istio-stability-looper -ojsonpath='{.items[0].status.podIP}')
+              sleep 1
+            done
+            while true; do
+              echo "`date`: Sending traffic"
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:8085") # HTTP Service and container port
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:8086") # Undeclared Port
+              assert 000 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:8087") # HTTP container port only
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:9085") # TCP Service and container port
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:9086") # Undeclared port
+              assert 000 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:9087") # TCP container port only
+              # Repeat with host header
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" -H "Host: server" "${POD_IP}:8085") # HTTP Service and container port
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" -H "Host: server" "${POD_IP}:8086") # Undeclared Port
+              assert 000 $(curl -s -o /dev/null -w "%{http_code}\n" -H "Host: server" "${POD_IP}:8087") # HTTP container port only
+              sleep 1
+            done
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: looper-service-account
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: looper-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: looper-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: looper-role
+subjects:
+  - kind: ServiceAccount
+    name: looper-service-account
+    namespace: {{ .Release.Namespace }}
