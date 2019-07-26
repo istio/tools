@@ -6,7 +6,7 @@ RUN curl -sSL https://github.com/uber/prototool/releases/download/v1.3.0/prototo
 RUN chmod +x /usr/bin/prototool
 
 FROM gcr.io/istio-testing/protolock:2019-03-11 as protolock
-FROM gcr.io/istio-testing/protoc:2019-07-25
+FROM gcr.io/istio-testing/protoc:2019-07-26
 
 COPY --from=protolock /usr/bin/protolock /usr/bin/
 COPY --from=prototool_download /usr/bin/prototool /usr/bin/
