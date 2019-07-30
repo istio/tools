@@ -2,6 +2,8 @@ module istio.io/tools
 
 go 1.12
 
+replace github.com/gogo/protobuf => github.com/istio/gogo-protobuf v1.2.2-0.20190726125433-4c9abdb3090c
+
 require (
 	cuelang.org/go v0.0.5-0.20190714195934-4e5b69a67cf9
 	fortio.org/fortio v1.1.0
@@ -22,6 +24,7 @@ require (
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/kr/pretty v0.1.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -30,7 +33,7 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	github.com/spf13/cobra v0.0.3
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
-	golang.org/x/tools v0.0.0-20181210225255-6a3e9aa2ab77
+	golang.org/x/tools v0.0.0-20190706070813-72ffa07ba3db
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
 	k8s.io/api v0.0.0-20190118113203-912cbe2bfef3
