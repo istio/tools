@@ -2,11 +2,12 @@ FROM golang:1.12 as golang_build_env
 
 # Setup environment
 ENV OUTDIR=/out
-ENV PROTOBUF_VERSION=3.9.0
-ENV GOGO_PROTOBUF_VERSION=65acae22fc9d1fe290b33faa2bd64cdc20a463a0
+ENV PROTOBUF_VERSION=3.6.1
+ENV GOGO_PROTOBUF_VERSION=v1.2.2
 ENV GOLANG_PROTOBUF_VERSION=v1.3.1
 ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=v1.8.0
+ENV COUNTERFEITER_VERSION=v6.2.2
 
 RUN mkdir -p ${OUTDIR}/usr/bin
 RUN mkdir -p ${OUTDIR}/usr/include
@@ -35,13 +36,15 @@ RUN curl -L -o /tmp/include/protobuf/gogoproto/gogo.proto https://raw.githubuser
 
 # Install external dependencies
 RUN GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogo@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get github.com/istio/gogo-protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get github.com/istio/gogo-protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get github.com/istio/gogo-protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
 RUN GO111MODULE=on go get github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
 RUN GO111MODULE=on go get github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
+
+
+RUN GO111MODULE=on go get github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
+RUN go get github.com/jteeuwen/go-bindata/...
 
 # Install custom Istio tools
 RUN go get istio.io/tools/protoc-gen-docs
