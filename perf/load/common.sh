@@ -6,6 +6,7 @@ if [[ -z "${GATEWAY_URL-}" ]];then
   GATEWAY_URL=${SYSTEM_GATEWAY_URL:-$INGRESS_GATEWAY_URL}
 fi
 
+
 HTTPS=${HTTPS:-"false"}
 
 function run_test() {
