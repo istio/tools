@@ -12,18 +12,32 @@ if [[ ! -d "${WD}" ]]; then
 fi
 
 URL=""
-if [[ "$RELEASETYPE" == "daily" ]]; then
-  URL="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-elif [[ "$RELEASETYPE" == "release" ]]; then
-	URL="https://github.com/istio/istio/releases/download/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-elif [[ "$RELEASETYPE" == "pre-release" ]]; then
-	URL="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-else
-  echo "Please specify RELEASETYPE"
-fi
+case "${OSTYPE}" in
+  darwin*)
+    if [[ "$RELEASETYPE" == "daily" ]]; then
+        URL="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-osx.tar.gz"
+    elif [[ "$RELEASETYPE" == "release" ]]; then
+        URL="https://github.com/istio/istio/releases/download/${RELEASE}/istio-${RELEASE}-osx.tar.gz"
+    elif [[ "$RELEASETYPE" == "pre-release" ]]; then
+        URL="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${RELEASE}/istio-${RELEASE}-osx.tar.gz"
+    else
+        echo "Please specify RELEASETYPE"
+    fi ;;
+  linux*)
+    if [[ "$RELEASETYPE" == "daily" ]]; then
+        URL="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
+    elif [[ "$RELEASETYPE" == "release" ]]; then
+        URL="https://github.com/istio/istio/releases/download/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
+    elif [[ "$RELEASETYPE" == "pre-release" ]]; then
+        URL="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
+    else
+        echo "Please specify RELEASETYPE"
+    fi ;;
+  *) echo "unsupported: ${OSTYPE}" ;;
+esac
 
-wget -O "$WD/istio-${RELEASE}-linux.tar.gz" "${URL}"
-tar xfz ${WD}/istio-${RELEASE}-linux.tar.gz -C $WD
+curl -JLo "$WD/istio-${RELEASE}.tar.gz" "${URL}"
+tar xfz ${WD}/istio-${RELEASE}.tar.gz -C $WD
 
 function inject_workload() {
   local tempdeployfile="${1:?"please specify the template workload deployment file"}"
