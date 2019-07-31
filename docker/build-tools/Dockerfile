@@ -49,11 +49,11 @@ RUN GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@${
 RUN go get github.com/jteeuwen/go-bindata/go-bindata
 
 # Install latest versions of custom Istio tools
-RUN go get istio.io/tools/protoc-gen-docs
-RUN go get istio.io/tools/cmd/annotations_prep
+RUN GO111MODULE=on go get istio.io/tools/protoc-gen-docs@latest
+RUN GO111MODULE=on go get istio.io/tools/cmd/annotations_prep@latest
 
 # Save some bytes in the container
-# RUN upx --lzma /go/bin/*
+RUN upx --lzma /go/bin/*
 
 # Prewarm the golang module cache
 RUN rm -fr /go/pkg/mod/*
@@ -67,6 +67,8 @@ WORKDIR /
 RUN apt-get purge -y unzip autoconf libtool zlibc zlib1g-dev libc-ares-dev libssl-dev upx
 RUN apt-get autoremove -y
 RUN apt-get clean
+
+# TODO: Remove this block if the FROM distroless below is made to work.
 RUN rm -fr /root/.cache/go-build
 RUN rm -fr /home
 RUN rm -fr /tmp/*
@@ -87,5 +89,3 @@ RUN rm -fr /tmp/*
 #
 #ENV GOPATH /go
 #ENV PATH $GOPATH/bin:$PATH
-
-RUN ls -alR /go
