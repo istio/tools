@@ -10,7 +10,7 @@ require (
 	github.com/emicklei/proto v1.6.11
 	github.com/getkin/kin-openapi v0.1.1-0.20190507152207-d3180292eead
 	github.com/ghodss/yaml v1.0.0
-	github.com/gogo/protobuf v1.2.1
+	github.com/gogo/protobuf v1.2.2-0.20190730201129-28a6bbf47e48
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
 	github.com/google/btree v1.0.0 // indirect
