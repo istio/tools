@@ -25,13 +25,18 @@ openapi?: {
 	// the OpenAPI output, recursively.
 	selfContained: bool | *false
 
-	// FieldFilter defines a regular expression of all fields to omit from the
+	// fieldFilter defines a regular expression of all fields to omit from the
 	// output. It is only allowed to filter fields that add additional
 	// constraints. Fields that indicate basic types cannot be removed. It is
 	// an error for such fields to be excluded by this filter.
 	// Fields are qualified by their Object type. For instance, the
 	// minimum field of the schema object is qualified as Schema/minimum.
 	fieldFilter?: string
+
+	// expandReferences replaces references with actual objects when generating
+	// OpenAPI Schema. It is an error for an CUE value to refer to itself if
+	// this option is used.
+	expandReferences: bool | *false
 }
 
 // The all section specifies settings for generating an aggregate OpenAPI file
