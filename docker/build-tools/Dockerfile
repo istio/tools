@@ -11,12 +11,19 @@ ENV GOIMPORTS_VERSION=379209517ffe
 ENV GOLANGCI_LINT_VERSION=v1.16.0
 
 # Update distro and install dependencies
-RUN apt-get update
-RUN apt-get install -y build-essential unzip autoconf libtool zlibc zlib1g-dev libc-ares-dev libssl-dev upx
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    autoconf \
+    build-essential \
+    libc-ares-dev \
+    libssl-dev \
+    libtool \
+    unzip \
+    upx \
+    zlibc \
+    zlib1g-dev
 
 # Prepare common output directories
-RUN mkdir -p /usr/bin
-RUN mkdir -p /usr/include
+RUN mkdir -p /usr/bin /usr/include
 
 # Install protoc
 WORKDIR /tmp
@@ -25,9 +32,7 @@ RUN unzip /tmp/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip
 RUN cp -aR /tmp/bin/protoc /usr/bin
 
 # Install necessary protoc includes
-RUN mkdir -p /usr/include/protobuf/google/protobuf
-RUN mkdir -p /usr/include/protobuf/google/rpc
-RUN mkdir -p /usr/include/protobuf/gogoproto
+RUN mkdir -p /usr/include/protobuf/google/protobuf /usr/include/protobuf/google/rpc /usr/include/protobuf/gogoproto
 RUN for f in any duration descriptor empty struct timestamp wrappers; do \
             curl -L -o /usr/include/protobuf/google/protobuf/${f}.proto https://raw.githubusercontent.com/google/protobuf/master/src/google/protobuf/${f}.proto; \
         done
@@ -49,8 +54,8 @@ RUN GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@${
 RUN go get github.com/jteeuwen/go-bindata/go-bindata
 
 # Install latest versions of custom Istio tools
-RUN GO111MODULE=on go get istio.io/tools/protoc-gen-docs@latest
-RUN GO111MODULE=on go get istio.io/tools/cmd/annotations_prep@latest
+RUN go get istio.io/tools/protoc-gen-docs
+RUN go get istio.io/tools/cmd/annotations_prep
 
 # Save some bytes in the container
 RUN upx --lzma /go/bin/*
@@ -64,14 +69,20 @@ RUN go mod download
 
 # Cleanup
 WORKDIR /
-RUN apt-get purge -y unzip autoconf libtool zlibc zlib1g-dev libc-ares-dev libssl-dev upx
-RUN apt-get autoremove -y
-RUN apt-get clean
+RUN apt-get purge -y \
+    autoconf \
+    libc-ares-dev \
+    libssl-dev \
+    libtool \
+    unzip \
+    upx \
+    zlibc \
+    zlib1g-dev \
+    && apt-get autoremove -y \
+    && apt-get clean
 
-# TODO: Remove this block if the FROM distroless below is made to work.
-RUN rm -fr /root/.cache/go-build
-RUN rm -fr /home
-RUN rm -fr /tmp/*
+# TODO: Remove this if the FROM distroless below is made to work.
+RUN rm -fr /root/.cache/go-build /home /tmp/*
 
 # TODO: sadly this doesn't work as some processes launched in the container won't start. For example, make fails with the super useful:
 #
