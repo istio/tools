@@ -79,7 +79,8 @@ RUN apt-get purge -y \
     zlibc \
     zlib1g-dev \
     && apt-get autoremove -y \
-    && apt-get clean
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # TODO: Remove this if the FROM distroless below is made to work.
 RUN rm -fr /root/.cache/go-build /home /tmp/*
