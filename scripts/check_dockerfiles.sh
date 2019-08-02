@@ -7,7 +7,7 @@
 # common-files repo, make the change there and check it in. Then come back to this repo and run
 # "make updatecommon".
 
-# Copyright 2018 Istio Authors
+# Copyright 2019 Istio Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,9 +23,30 @@
 
 set -e
 
-SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}")" && pwd )"
 ROOTDIR=$(dirname "${SCRIPTPATH}")
+cd "${ROOTDIR}"
 
-img=gcr.io/istio-testing/api-build-tools:2019-07-30
+CD_TMPFILE=$(mktemp /tmp/check_dockerfile.XXXXXX)
+HL_TMPFILE=$(mktemp /tmp/hadolint.XXXXXX)
 
-docker run -i --sig-proxy=true --rm --entrypoint go-bindata --user "$(id -u)" -v /etc/passwd:/etc/passwd:ro -v "${ROOTDIR}:${ROOTDIR}" -w "$(pwd)" ${img} "$@"
+# shellcheck disable=SC2044
+for df in $(find "${ROOTDIR}" -path "${ROOTDIR}/vendor" -prune -o -name 'Dockerfile*'); do
+  docker run --rm -i hadolint/hadolint:v1.17.1 < "$df" > "${HL_TMPFILE}"
+  if [ "" != "$(cat "${HL_TMPFILE}")" ]
+  then
+    {
+      echo "$df:"
+      cut -d":" -f2- < "${HL_TMPFILE}"
+      echo
+    } >> "${CD_TMPFILE}"
+  fi
+done
+
+rm -f "${HL_TMPFILE}"
+if [ "" != "$(cat "${CD_TMPFILE}")" ]; then
+  cat "${CD_TMPFILE}"
+  rm -f "${CD_TMPFILE}"
+  exit 1
+fi
+rm -f "${CD_TMPFILE}"
