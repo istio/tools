@@ -63,16 +63,12 @@ RUN go get istio.io/tools/protoc-gen-docs
 RUN go get istio.io/tools/cmd/annotations_prep
 
 # Put the stuff we need in its final output location
-RUN mkdir -p ${OUTDIR}/usr/bin
+RUN mkdir -p ${OUTDIR}/go/bin
 RUN mkdir -p ${OUTDIR}/usr/include
-RUN mkdir -p ${OUTDIR}/usr/local/go/bin
-RUN mkdir -p ${OUTDIR}/usr/local/go/pkg/mod
 
-#RUN install -c ${GOPATH}/bin/* ${OUTDIR}/usr/bin
-RUN cp -aR /tmp/bin/protoc ${OUTDIR}/usr/local/go/bin
+RUN cp -aR /tmp/bin/protoc ${OUTDIR}/go/bin
 RUN cp -aR /tmp/include/* ${OUTDIR}/usr/include
-RUN cp -aR /go/bin ${OUTDIR}/usr/local/go/bin
-RUN cp -aR /usr/local/go/bin/* ${OUTDIR}/usr/local/go/bin
+RUN cp -aR /go/bin/* ${OUTDIR}/go/bin
 
 # Use inplace decompression on the go toolchain binaries
 #RUN upx --lzma ${OUTDIR}/usr/bin/*
@@ -82,28 +78,13 @@ FROM golang:1.12 as build_tools_mod
 # Setup to run the Go compiler with host-side build cache, test cache, and module cache
 FROM ubuntu:xenial
 COPY --from=build_tools_context /out/ /
-COPY --from=build_tools_mod /usr/local/go/pkg/ /usr/local/go/pkg/
+COPY --from=build_tools_mod /usr/local/go/ /go/
 
 RUN apt-get update
-RUN apt-get install -y make ca-certificates git
+RUN apt-get install -y make ca-certificates git strace
 
+ENV GOROOT=/go
 ENV GOCACHE=/gocache
-ENV PATH=/usr/local/go/bin:$PATH
+ENV PATH /go/bin:$PATH
 
-# TODO: sadly this doesn't work as some processes launched in the container won't start. For example, make fails with the super useful:
-#
-#   make: *** [gen] Error 139
-#
-# There must be some additional dependency or variable that needs to be copied over
-#
-# Render the final image with minimal stuff, which saves over 300M compared to the fuller container image up to this point.
-#FROM gcr.io/distroless/base:latest
-#
-#COPY --from=build_tools /usr/ /usr
-#COPY --from=build_tools /go/ /go
-#COPY --from=build_tools /bin/ /bin
-#COPY --from=build_tools /lib/ /lib
-#
-#ENV GOPATH /go
-#ENV PATH $GOPATH/bin:$PATH
-#ENV GOCACHE=/gocache
+WORKDIR /
