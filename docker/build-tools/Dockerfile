@@ -80,7 +80,7 @@ FROM golang:1.12 as golang_context
 FROM ubuntu:xenial as base_os_context
 
 RUN apt-get update
-RUN apt-get install -y make ca-certificates git strace
+RUN apt-get install -y make ca-certificates git
 RUN apt-get autoremove -y
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/*
