@@ -71,20 +71,29 @@ RUN cp -aR /tmp/include/* ${OUTDIR}/usr/include
 RUN cp -aR /go/bin/* ${OUTDIR}/go/bin
 
 # Use inplace decompression on the go toolchain binaries
-#RUN upx --lzma ${OUTDIR}/usr/bin/*
+RUN upx --lzma ${OUTDIR}/go/bin/*
 
-FROM golang:1.12 as build_tools_mod
+# Create a golang toolchain context
+FROM golang:1.12 as golang_context
 
-# Setup to run the Go compiler with host-side build cache, test cache, and module cache
-FROM ubuntu:xenial
-COPY --from=build_tools_context /out/ /
-COPY --from=build_tools_mod /usr/local/go/ /go/
+# Build a base os context
+FROM ubuntu:xenial as base_os_context
 
 RUN apt-get update
 RUN apt-get install -y make ca-certificates git strace
+RUN apt-get autoremove -y
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
+
+# Setup to run the Go compiler with host-side build cache, test cache, and module cache
+FROM scratch
 
 ENV GOROOT=/go
 ENV GOCACHE=/gocache
 ENV PATH /go/bin:$PATH
+
+COPY --from=base_os_context / /
+COPY --from=build_tools_context /out/ /
+COPY --from=golang_context /usr/local/go/ /go/
 
 WORKDIR /
