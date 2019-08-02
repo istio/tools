@@ -73,3 +73,16 @@ directories <Dir>: [...{
 	// as specified in the directory path.
 	version?: =~#"^v\d."#
 }]
+
+crd?: {
+	// the output directory of the CRD file.
+	dir?: string
+
+	// the output filename of the CRDs.
+	fileprefix?: string
+
+	istioversion: string
+
+	// the list of APIs that have CRDs generated and their details.
+	crdconfigs? <ProtoName>: [...{}]
+}

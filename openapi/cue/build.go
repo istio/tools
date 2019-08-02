@@ -27,6 +27,9 @@ import (
 	"cuelang.org/go/encoding/yaml"
 	"github.com/emicklei/proto"
 	"github.com/kr/pretty"
+
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // A Config defines the OpenAPI to generate and their properties.
@@ -45,6 +48,9 @@ type Config struct {
 
 	// Information about the output of an aggregate OpenAPI file.
 	All *Grouping
+
+	// Crd is the configuration for CRD generation.
+	Crd *CrdGen
 }
 
 const (
@@ -73,6 +79,26 @@ type Grouping struct {
 	// derived automatically if unspecified.
 	Title   string
 	Version string
+}
+
+// CrdGen defines the output of the CRD file.
+type CrdGen struct {
+	Dir string // empty indicates the default directory.
+
+	Fileprefix string // empty indicates the default prefix.
+
+	// The Istio version of the CRDs to be generated.
+	IstioVersion string
+
+	// Mapping of ProtoName and its CRD output configuration.
+	CrdConfigs map[string][]CrdConfig
+}
+
+// CrdConfig defines the details about each CRD to be generated.
+type CrdConfig struct {
+	Metadata metav1.ObjectMeta
+
+	Spec apiext.CustomResourceDefinitionSpec
 }
 
 func loadConfig(filename string) (c *Config, err error) {
@@ -108,6 +134,12 @@ func loadConfig(filename string) (c *Config, err error) {
 	if err = v.Decode(c); err != nil {
 		return nil, err
 	}
+
+	if *verbose && *crd {
+		pretty.Print(c)
+		fmt.Println()
+	}
+
 	return c, nil
 }
 
