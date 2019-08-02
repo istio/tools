@@ -67,8 +67,10 @@ function install_istio() {
       # apply CRD files for istio kinds
       if [[ -f "${DIRNAME}/${release}/istio/templates/crds.yaml" ]];then
          kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
+         kubectl wait --for=condition=Established -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
       else
          kubectl apply -f "${DIRNAME}/${release}/istio-init/files/"
+         kubectl wait --for=condition=Established -f "${DIRNAME}/${release}/istio-init/files/"
       fi
   fi
 
@@ -81,11 +83,6 @@ function install_istio() {
     opts+=" --set global.tag=${release}"
     opts+=" --set global.hub=gcr.io/istio-release"
   fi
-
-  if [[ "${MCP}" != "0" ]];then
-      opts+=" --set global.useMCP=true"
-  fi
-
 
   local values=${VALUES:-values.yaml}
   local extravalues=${EXTRA_VALUES:-""}
