@@ -79,17 +79,22 @@ FROM ubuntu:xenial as base_os_context
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    make \
-    gcc \
-    libc-dev \
-    git \
-    wget \
     curl \
- && rm -rf /var/lib/apt/lists/*
+	gcc \
+    git \
+	libc-dev \
+	make \
+	pkg-config \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
-# Setup to run the Go compiler with host-side build cache, test cache, and module cache
+# Not in a sharing moood
+RUN rm -fr /usr/share
+
+# Prepare final output image
 FROM scratch
 
+# Setup to run the Go compiler with host-side build cache, test cache, and module cache
 ENV GO111MODULE=on
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
