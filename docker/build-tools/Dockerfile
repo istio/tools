@@ -88,7 +88,9 @@ RUN rm -rf /var/lib/apt/lists/*
 # Setup to run the Go compiler with host-side build cache, test cache, and module cache
 FROM scratch
 
+ENV GO111MODULE=on
 ENV GOROOT=/go
+ENV GOPATH=/go
 ENV GOCACHE=/gocache
 ENV PATH /go/bin:$PATH
 
