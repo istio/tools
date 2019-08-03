@@ -91,7 +91,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM scratch
 
 ENV GO111MODULE=on
-ENV GOROOT=/go
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
 ENV PATH /go/bin:$PATH
