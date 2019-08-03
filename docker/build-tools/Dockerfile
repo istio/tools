@@ -14,16 +14,11 @@ ENV OUTDIR=/out
 
 # Update distro and install dependencies
 # TODO we probably don't need all this stuff...
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    autoconf \
-    build-essential \
-    libc-ares-dev \
-    libssl-dev \
-    libtool \
     unzip \
     upx \
-    zlibc \
-    zlib1g-dev
+ && rm -rf /var/lib/apt/lists/*
 
 # Prepare common output directories
 RUN mkdir -p /usr/bin /usr/include
@@ -79,11 +74,14 @@ FROM golang:1.12 as golang_context
 # Build a base os context
 FROM ubuntu:xenial as base_os_context
 
-RUN apt-get update
-RUN apt-get install -y make ca-certificates git
-RUN apt-get autoremove -y
-RUN apt-get clean
-RUN rm -rf /var/lib/apt/lists/*
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    make \
+    ca-certificates \
+    git \
+    wget \
+    curl \
+ && rm -rf /var/lib/apt/lists/*
 
 # Setup to run the Go compiler with host-side build cache, test cache, and module cache
 FROM scratch
