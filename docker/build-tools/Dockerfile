@@ -74,10 +74,14 @@ FROM golang:1.12 as golang_context
 # Build a base os context
 FROM ubuntu:xenial as base_os_context
 
+# required for golang: ca-certificates, gcc, libc-dev,git
+# required for general build: make, wget, curl
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    make \
     ca-certificates \
+    make \
+    gcc \
+    libc-dev \
     git \
     wget \
     curl \
