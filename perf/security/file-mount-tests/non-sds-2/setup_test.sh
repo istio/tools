@@ -65,8 +65,8 @@ function rotate_deployment() {
           . > "${ROTATE_WORKLOAD_YAML}"
   echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Wrote ${ROTATE_WORKLOAD_YAML}"
   # Create ConfigMap workload-deploy and load workload deployment file into ConfigMap workload-deploy.
-  echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl -n ${NAMESPACE} create "
-  "configmap "${workloaddeploymentconfig}" --from-file="${deployfile}"=${deployfile} --cluster ${CLUSTER}"
+  echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl -n ${NAMESPACE} create \
+  configmap "${workloaddeploymentconfig}" --from-file="${deployfile}"=${deployfile} --cluster ${CLUSTER}"
   kubectl -n ${NAMESPACE} create configmap "${workloaddeploymentconfig}" --from-file="${deployfile}"=${deployfile} --cluster ${CLUSTER}
   # Create ConfigMap script and load workload rotate script into ConfigMap script.
   # Create a deployment to mount the workload deployment file and rotate script, and execute the script
