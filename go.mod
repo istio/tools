@@ -3,7 +3,7 @@ module istio.io/tools
 go 1.12
 
 require (
-	cuelang.org/go v0.0.5-0.20190801165258-980b30ca6554
+	cuelang.org/go v0.0.5-0.20190805140455-1372f3e73eee
 	fortio.org/fortio v1.1.0
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
@@ -31,7 +31,7 @@ require (
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd // indirect
 	github.com/spf13/cobra v0.0.3
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
-	golang.org/x/tools v0.0.0-20181210225255-6a3e9aa2ab77
+	golang.org/x/tools v0.0.0-20190328211700-ab21143f2384
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
 	k8s.io/api v0.0.0-20190118113203-912cbe2bfef3
