@@ -99,4 +99,7 @@ COPY --from=base_os_context / /
 COPY --from=build_tools_context /out/ /
 COPY --from=golang_context /usr/local/go/ /go/
 
+RUN mkdir -p /gocache
+RUN mkdir -p /go/pkg/mod
+
 WORKDIR /
