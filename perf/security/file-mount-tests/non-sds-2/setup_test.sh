@@ -11,32 +11,18 @@ if [[ ! -d "${WD}" ]]; then
   mkdir $WD
 fi
 
-URL=""
-case "${OSTYPE}" in
-  darwin*)
-    if [[ "$RELEASETYPE" == "daily" ]]; then
-        URL="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-osx.tar.gz"
-    elif [[ "$RELEASETYPE" == "release" ]]; then
-        URL="https://github.com/istio/istio/releases/download/${RELEASE}/istio-${RELEASE}-osx.tar.gz"
-    elif [[ "$RELEASETYPE" == "pre-release" ]]; then
-        URL="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${RELEASE}/istio-${RELEASE}-osx.tar.gz"
-    else
-        echo "Please specify RELEASETYPE"
-    fi ;;
-  linux*)
-    if [[ "$RELEASETYPE" == "daily" ]]; then
-        URL="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-    elif [[ "$RELEASETYPE" == "release" ]]; then
-        URL="https://github.com/istio/istio/releases/download/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-    elif [[ "$RELEASETYPE" == "pre-release" ]]; then
-        URL="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-    else
-        echo "Please specify RELEASETYPE"
-    fi ;;
-  *) echo "unsupported: ${OSTYPE}" ;;
-esac
+source ../../utils/get_release.sh
+get_release_url $RELEASETYPE $RELEASE
+if [[ $release_url == *"RELEASETYPE"* ]]; then
+  echo "$release_url"
+  exit
+elif [[ $release_url == *"unsupported OS"* ]]; then
+  echo "$release_url"
+  exit
+fi
+echo "Release URL is $release_url"
 
-curl -JLo "$WD/istio-${RELEASE}.tar.gz" "${URL}"
+curl -JLo "$WD/istio-${RELEASE}.tar.gz" "${release_url}"
 tar xfz ${WD}/istio-${RELEASE}.tar.gz -C $WD
 
 function inject_workload() {
