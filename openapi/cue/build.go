@@ -35,8 +35,7 @@ type Config struct {
 	// definitions.
 	Module string
 
-	cwd     string // the current working directory
-	modRoot string // the module root
+	cwd string // the current working directory
 
 	// The generator configuration.
 	Openapi *openapi.Generator

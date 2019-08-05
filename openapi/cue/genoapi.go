@@ -49,10 +49,16 @@
 //   some of the gogoproto go_package definition are illformed. Be sure to use
 //   the original .proto files for the google protobuf types.
 //
-// 2. Validating generated CUE
 //
-// The generated CUE from the previous step may be combined with other sources
-// of CUE constraints. This step validates the combined sources for consistency.
+// 2. Combine and validate generated CUE
+//
+// CUE files that reside in the same directory as a .proto file and that have
+// the same package name as the corresponding Go package are automatically
+// merged into the generated CUE definitions. Merging happens based on the
+// generated CUE names.
+//
+// The combines CUE definitions are validated for consistency before proceeding
+// to the next step.
 //
 //
 // 3. Converting CUE to OpenAPI
@@ -72,7 +78,6 @@
 // explicit about any order or injection points.
 //
 // Examples of other possible CUE sources are:
-// - hand-written .cue files in each of the cue directories
 // - constraints extracted from Go code
 //
 package main
@@ -211,30 +216,24 @@ func main() {
 		fatal(err, "Error generating CUE from proto")
 	}
 
-	modRoot := cwd
-	if !*inplace {
-		modRoot, err = ioutil.TempDir("", "genoapi")
-		if err != nil {
-			log.Fatalf("Error creating temp dir: %v", err)
-		}
-		defer os.RemoveAll(modRoot)
-	}
-
 	c.cwd = cwd
-	c.modRoot = modRoot
 
+	overlay := map[string]load.Source{}
 	for _, f := range files {
-		b, err := format.Node(f)
-		if err != nil {
-			fatal(err, "Error formatting file: ")
-		}
 		filename := f.Filename
 		relPath, _ := filepath.Rel(cwd, filename)
-		filename = filepath.Join(modRoot, relPath)
+		filename = filepath.Join(cwd, relPath)
+		overlay[filename] = load.FromFile(f)
 
-		_ = os.MkdirAll(filepath.Dir(filename), 0755)
-		if err := ioutil.WriteFile(filename, b, 0644); err != nil {
-			log.Fatalf("Error writing file: %v", err)
+		if *inplace {
+			b, err := format.Node(f)
+			if err != nil {
+				fatal(err, "Error formatting file: ")
+			}
+			_ = os.MkdirAll(filepath.Dir(filename), 0755)
+			if err := ioutil.WriteFile(filename, b, 0644); err != nil {
+				log.Fatalf("Error writing file: %v", err)
+			}
 		}
 	}
 
@@ -250,6 +249,7 @@ func main() {
 	builder := &builder{
 		Config:     c,
 		protoNames: protoNames,
+		overlay:    overlay,
 	}
 
 	// Build the OpenAPI files.
@@ -274,12 +274,14 @@ func main() {
 type builder struct {
 	*Config
 	protoNames map[string]string
+	overlay    map[string]load.Source
 }
 
 func (x *builder) gen(dir string, g *Grouping) {
 	cfg := &load.Config{
-		Dir:    x.modRoot,
-		Module: x.Module,
+		Dir:     x.cwd,
+		Module:  x.Module,
+		Overlay: x.overlay,
 	}
 
 	instances := load.Instances([]string{"./" + dir}, cfg)
@@ -302,8 +304,9 @@ func (x *builder) gen(dir string, g *Grouping) {
 
 func (x *builder) genAll(g *Grouping) {
 	cfg := &load.Config{
-		Dir:    x.modRoot,
-		Module: x.Module,
+		Dir:     x.cwd,
+		Module:  x.Module,
+		Overlay: x.overlay,
 	}
 
 	instances := load.Instances([]string{"./..."}, cfg)
@@ -349,13 +352,15 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 	}
 
 	gen.DescriptionFunc = func(v cue.Value) string {
-		docs := v.Doc()
-		if len(docs) > 0 {
+		for _, doc := range v.Doc() {
+			if doc.Text() == "" {
+				continue
+			}
 			// Cut off first section, but don't stop if this ends with
 			// an example, list, or the like, as it will end weirdly.
 			// Also remove any protoc-gen-docs annotations at the beginning
 			// and any new-line.
-			split := strings.Split(docs[0].Text(), "\n\n")
+			split := strings.Split(doc.Text(), "\n\n")
 			k := 1
 			for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
 			}
