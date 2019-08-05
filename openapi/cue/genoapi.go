@@ -121,7 +121,7 @@ var (
 	// manually configuring builds
 	all = flag.Bool("all", false, "combine all the matched outputs in a single file; the 'all' section must be specified in the configuration")
 
-	crd = flag.Bool("crd", false, "generate CRDs based on the Istio protos and cue files")
+	crd = flag.Bool("crd", false, "generate CRD validation yaml based on the Istio protos and cue files")
 )
 
 const (
@@ -387,16 +387,16 @@ func (x *builder) genCRD() {
 			fatal(err, "Error generating OpenAPI schema")
 		}
 		for _, kv := range items.Pairs() {
-			if generated[kv.Key] {
-				continue
-			}
-
-			if cs, ok := x.Config.Crd.CrdConfigs[kv.Key]; ok {
-				for _, c := range cs {
-					crd := x.getCRD(c, kv.Value)
-					crds = append(crds, crd)
+			for c, v := range x.Config.Crd.CrdConfigs {
+				if generated[c] {
+					continue
 				}
-				generated[kv.Key] = true
+
+				if v.SchemaName == kv.Key {
+					crd := x.getCRD(v, kv.Value)
+					crds = append(crds, crd)
+					generated[c] = true
+				}
 			}
 		}
 	}
@@ -436,12 +436,19 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 			for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
 			}
 			s := strings.Fields(strings.Join(split[:k], "\n"))
-			i := 1
-			for ; i < len(s) && strings.HasPrefix(s[i-1], "$"); i++ {
+			for i := 0; i < len(s) && strings.HasPrefix(s[i], "$"); i++ {
+				s[i] = ""
 			}
-			return strings.Join(s[i-1:], " ")
+			return strings.Join(s, " ")
 		}
 		return ""
+	}
+
+	if *crd {
+		// CRD schema does not allow $ref fields.
+		gen.ExpandReferences = true
+
+		gen.FieldFilter = "default|required|minimum|maximum"
 	}
 
 	return gen.Schemas(inst)

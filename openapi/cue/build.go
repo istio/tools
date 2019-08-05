@@ -90,15 +90,21 @@ type CrdGen struct {
 	// The Istio version of the CRDs to be generated.
 	IstioVersion string
 
-	// Mapping of ProtoName and its CRD output configuration.
-	CrdConfigs map[string][]CrdConfig
+	// Mapping of CRD name and its output configuration.
+	CrdConfigs map[string]CrdConfig
 }
 
 // CrdConfig defines the details about each CRD to be generated.
 type CrdConfig struct {
-	Metadata metav1.ObjectMeta
+	// the name of the schema to use for this CRD.
+	SchemaName string
 
-	Spec apiext.CustomResourceDefinitionSpec
+	// fields to be overriden to object type.
+	FieldsOverride []string
+
+	// the base of the CRD.
+	Metadata metav1.ObjectMeta
+	Spec     apiext.CustomResourceDefinitionSpec
 }
 
 func loadConfig(filename string) (c *Config, err error) {

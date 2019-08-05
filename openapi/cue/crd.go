@@ -17,6 +17,10 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"reflect"
+	"strings"
+
+	"cuelang.org/go/encoding/openapi"
 
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,6 +28,13 @@ import (
 
 // Interim solution to build the Istio CRDs before we move to KubeBuilder.
 func (x *builder) getCRD(crdCfg CrdConfig, schema interface{}) apiext.CustomResourceDefinition {
+	// override fields to be object type.
+	newOrderedMap := openapi.OrderedMap{}
+	newOrderedMap.Set("type", "object")
+	for _, name := range crdCfg.FieldsOverride {
+		schema = overrideFieldValue(name, newOrderedMap, schema)
+	}
+
 	// convert the schema from an OrderedMap to JSONSchemaProps
 	b, err := json.Marshal(schema)
 	if err != nil {
@@ -49,4 +60,33 @@ func (x *builder) getCRD(crdCfg CrdConfig, schema interface{}) apiext.CustomReso
 	crd.Status.StoredVersions = []string{}
 
 	return crd
+}
+
+// override the value of a field in the OrderedMap.
+// If field is not found, the schema returned is unchanged.
+func overrideFieldValue(field string, value openapi.OrderedMap, schema interface{}) interface{} {
+	f := strings.Split(field, ".")
+
+	return findAndReplace(f, 0, value, schema)
+}
+
+func findAndReplace(f []string, index int, value openapi.OrderedMap, schema interface{}) interface{} {
+	if index >= len(f) {
+		return schema
+	}
+
+	if reflect.TypeOf(schema) == reflect.TypeOf(openapi.OrderedMap{}) {
+		s := schema.(openapi.OrderedMap)
+		for _, kvs := range s.Pairs() {
+			if kvs.Key == f[index] {
+				if index == len(f)-1 {
+					s.Set(kvs.Key, value)
+					return s
+				}
+				return findAndReplace(f, index+1, value, &kvs.Value)
+			}
+		}
+	}
+
+	return schema
 }
