@@ -27,7 +27,7 @@ rules:
   resources: ["customresourcedefinitions"]
   verbs: ["*"]
 - apiGroups: ["extensions"]
-  resources: ["thirdpartyresources", "thirdpartyresources.extensions", "ingresses", "ingresses/status"]
+  resources: ["thirdpartyresources", "thirdpartyresources.extensions", "ingresses", "ingresses/status", "deployments", "deployments/scale"]
   verbs: ["*"]
 - apiGroups: [""]
   resources: ["configmaps", "endpoints", "pods", "services", "namespaces", "secrets", "replicationcontrollers"]
