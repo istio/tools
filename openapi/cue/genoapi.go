@@ -268,14 +268,11 @@ func main() {
 		if c.Crd == nil {
 			log.Fatalf("Must specify the crd section in the configuration")
 		}
-		if c.Crd.IstioVersion == "" {
-			log.Fatalf("Must specify Istio version in the configuration")
-		}
-		if c.Crd.Fileprefix == "" {
-			c.Crd.Fileprefix = "crd"
+		if c.Crd.Filename == "" {
+			c.Crd.Filename = "customresourcedefinitions"
 		}
 		if c.Crd.Dir == "" {
-			c.Crd.Dir = "crd"
+			c.Crd.Dir = "kubernetes"
 		}
 		builder.genCRD()
 	} else {
@@ -548,8 +545,8 @@ func (x *builder) writeCRDFiles(crds []apiext.CustomResourceDefinition) {
 	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
 		log.Fatalf("Cannot create directory for CRD output: %v", err)
 	}
-	filename := fmt.Sprintf("%v-%v.gen.yaml", x.Config.Crd.Fileprefix, x.Config.Crd.IstioVersion)
-	path := filepath.Join(x.cwd, "crd", filename)
+	filename := fmt.Sprintf("%v.gen.yaml", x.Config.Crd.Filename)
+	path := filepath.Join(x.cwd, x.Config.Crd.Dir, filename)
 	fmt.Printf("Writing CRDs into %v...\n", path)
 	out, err := os.Create(path)
 	if err != nil {
@@ -565,6 +562,8 @@ func (x *builder) writeCRDFiles(crds []apiext.CustomResourceDefinition) {
 		if err != nil {
 			log.Fatalf("Error marsahling CRD to yaml: %v", err)
 		}
+		// keep the quotes in the output which is required by helm.
+		y = bytes.ReplaceAll(y, []byte("helm.sh/resource-policy: keep"), []byte(`"helm.sh/resource-policy": keep`))
 		n, err := out.Write(append([]byte("\n---\n"), y...))
 		if err != nil {
 			log.Fatalf("Error writing to yaml file: %v", err)

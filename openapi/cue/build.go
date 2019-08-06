@@ -85,10 +85,7 @@ type Grouping struct {
 type CrdGen struct {
 	Dir string // empty indicates the default directory.
 
-	Fileprefix string // empty indicates the default prefix.
-
-	// The Istio version of the CRDs to be generated.
-	IstioVersion string
+	Filename string // empty indicates the default prefix.
 
 	// Mapping of CRD name and its output configuration.
 	CrdConfigs map[string]CrdConfig

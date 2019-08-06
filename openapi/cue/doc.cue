@@ -79,9 +79,7 @@ crd?: {
 	dir?: string
 
 	// the output filename of the CRDs.
-	fileprefix?: string
-
-	istioversion: string
+	filename?: string
 
 	// the list of APIs that have CRDs generated and their details.
 	crdconfigs? <ProtoName>: [...{}]
