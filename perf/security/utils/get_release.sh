@@ -18,28 +18,25 @@ release_url=""
 function get_release_url() {
   local release_type=$1
   local release=$2
+  ostype=""
   case "${OSTYPE}" in
-    darwin*)
-      if [[ "$release_type" == "daily" ]]; then
-          release_url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-osx.tar.gz"
-      elif [[ "$release_type" == "release" ]]; then
-          release_url="https://github.com/istio/istio/releases/download/${release}/istio-${release}-osx.tar.gz"
-      elif [[ "$release_type" == "pre-release" ]]; then
-          release_url="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-osx.tar.gz"
-      else
-          echo "Please specify RELEASETYPE"
-      fi ;;
-    linux*)
-      if [[ "$release_type" == "daily" ]]; then
-          release_url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
-      elif [[ "$release_type" == "release" ]]; then
-          release_url="https://github.com/istio/istio/releases/download/${release}/istio-${release}-linux.tar.gz"
-      elif [[ "$release_type" == "pre-release" ]]; then
-          release_url="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-linux.tar.gz"
-      else
-          echo "Please specify RELEASETYPE"
-      fi ;;
-    *) echo "unsupported OS: ${OSTYPE}" ;;
+    darwin*) ostype="osx" ;;
+    linux*) ostype="linux" ;;
+    *)
+        echo "unsupported OS: ${OSTYPE}"
+        return ;;
+  esac
+
+  case "${release_type}" in
+    daily*)
+        release_url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-${ostype}.tar.gz" ;;
+    release*)
+        release_url="https://github.com/istio/istio/releases/download/${release}/istio-${release}-${ostype}.tar.gz" ;;
+    pre-release*)
+        release_url="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-${ostype}.tar.gz" ;;
+    *)
+        echo "Please specify RELEASETYPE"
+        return ;;
   esac
   echo "Release URL is $release_url"
 }
