@@ -9,6 +9,7 @@ ENV PROTOTOOL_VERSION=v1.8.0
 ENV COUNTERFEITER_VERSION=v6.2.2
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV GOLANGCI_LINT_VERSION=v1.16.0
+ENV VFSGEN_VERSION=6a9ea43bcacdf716a5c1b38efff722c07adf0069
 
 ENV OUTDIR=/out
 
@@ -53,9 +54,15 @@ RUN GO111MODULE=on go get golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
 RUN go get github.com/jteeuwen/go-bindata/go-bindata
 
-# Install latest versions of custom Istio tools
+
+# Install per-repo binaries
+# Anything that is installed for use with go generate needs to be installed
+# here for correct operation on MacOS and Windows platforms.
+## https://github.com/istio/istio.io
 RUN go get istio.io/tools/protoc-gen-docs
 RUN go get istio.io/tools/cmd/annotations_prep
+## https://github.com/istio/operator
+RUN GO111MODULE=on go get github.com/shurcooL/vfsgen@${VFSGEN_VERSION}
 
 # Put the stuff we need in its final output location
 RUN mkdir -p ${OUTDIR}/go/bin
@@ -101,5 +108,12 @@ COPY --from=golang_context /usr/local/go/ /go/
 
 RUN mkdir -p /gocache
 RUN mkdir -p /go/pkg/mod
+
+# TODO must sort out how to use uid mapping in docker so these don't need to be 777
+# They are created as root 755.  As a result they are not writeable, which fails in
+# the developer environment as a volume or bind mount inherits the permissions of
+# the directory mounted rather then overridding with the permission of the volume file.
+RUN chmod 777 /gocache
+RUN chmod 777 /go/pkg/mod
 
 WORKDIR /
