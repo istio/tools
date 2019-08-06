@@ -13,14 +13,9 @@ fi
 
 source ../../utils/get_release.sh
 get_release_url $RELEASETYPE $RELEASE
-if [[ $release_url == *"RELEASETYPE"* ]]; then
-  echo "$release_url"
-  exit
-elif [[ $release_url == *"unsupported OS"* ]]; then
-  echo "$release_url"
+if [[ -z "$release_url" ]]; then
   exit
 fi
-echo "Release URL is $release_url"
 
 curl -JLo "$WD/istio-${RELEASE}.tar.gz" "${release_url}"
 tar xfz ${WD}/istio-${RELEASE}.tar.gz -C $WD

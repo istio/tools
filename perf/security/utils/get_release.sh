@@ -27,7 +27,7 @@ function get_release_url() {
       elif [[ "$release_type" == "pre-release" ]]; then
           release_url="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-osx.tar.gz"
       else
-          release_url="Please specify RELEASETYPE"
+          echo "Please specify RELEASETYPE"
       fi ;;
     linux*)
       if [[ "$release_type" == "daily" ]]; then
@@ -37,8 +37,9 @@ function get_release_url() {
       elif [[ "$release_type" == "pre-release" ]]; then
           release_url="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-linux.tar.gz"
       else
-          release_url="Please specify RELEASETYPE"
+          echo "Please specify RELEASETYPE"
       fi ;;
-    *) release_url="unsupported OS: ${OSTYPE}" ;;
+    *) echo "unsupported OS: ${OSTYPE}" ;;
   esac
+  echo "Release URL is $release_url"
 }
