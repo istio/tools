@@ -3,7 +3,7 @@ module istio.io/tools
 go 1.12
 
 require (
-	cuelang.org/go v0.0.5-0.20190805140455-1372f3e73eee
+	cuelang.org/go v0.0.5-0.20190806224909-ca05b5f041fe
 	fortio.org/fortio v1.1.0
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
@@ -30,11 +30,13 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/spf13/cobra v0.0.3
+	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	golang.org/x/tools v0.0.0-20190328211700-ab21143f2384
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
 	k8s.io/api v0.0.0-20190118113203-912cbe2bfef3
+	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000
 	k8s.io/apimachinery v0.0.0-20190223001710-c182ff3b9841
 	k8s.io/client-go v8.0.0+incompatible
 	k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6
@@ -42,4 +44,10 @@ require (
 	k8s.io/klog v0.1.0 // indirect
 )
 
-replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
+replace (
+	gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
+	k8s.io/api => k8s.io/api v0.0.0-20190708094356-59223ed9f6ce
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190708094842-2e94e9ac9840
+	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190221084156-01f179d85dbc
+	k8s.io/client-go => k8s.io/client-go v0.0.0-20190708094436-77c08c6b86df
+)
