@@ -96,9 +96,6 @@ type CrdConfig struct {
 	// the name of the schema to use for this CRD.
 	SchemaName string
 
-	// fields to be overriden to object type.
-	FieldsOverride []string
-
 	// the base of the CRD.
 	Metadata metav1.ObjectMeta
 	Spec     apiext.CustomResourceDefinitionSpec

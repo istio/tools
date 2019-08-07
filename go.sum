@@ -1,6 +1,6 @@
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-cuelang.org/go v0.0.5-0.20190805140455-1372f3e73eee h1:dqWjHIOw3Qp9RcgFnb0tI7tAtx4s3611VPqaYtLIJ+4=
-cuelang.org/go v0.0.5-0.20190805140455-1372f3e73eee/go.mod h1:OAdLfdGxe13aC28unQv7SRp65Is2a8V/UlppVc+6dbo=
+cuelang.org/go v0.0.5-0.20190806224909-ca05b5f041fe h1:P3qDAN39pN082GBQ9KsUUk7kb3+O8AbeVKCv5NRkNLE=
+cuelang.org/go v0.0.5-0.20190806224909-ca05b5f041fe/go.mod h1:OAdLfdGxe13aC28unQv7SRp65Is2a8V/UlppVc+6dbo=
 fortio.org/fortio v1.1.0 h1:RcZTb73HO2NXj6K9U6DZ02BVeA2TzmCdqFD80Y/AU8Y=
 fortio.org/fortio v1.1.0/go.mod h1:Go0fRqoPJ1xy5JOWcS23jyF58byVZxFyEePYsGmCR0k=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=

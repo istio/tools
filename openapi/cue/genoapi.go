@@ -358,8 +358,9 @@ func (x *builder) genAll(g *Grouping) {
 
 func (x *builder) genCRD() {
 	cfg := &load.Config{
-		Dir:    x.cwd,
-		Module: x.Module,
+		Dir:     x.cwd,
+		Module:  x.Module,
+		Overlay: x.overlay,
 	}
 
 	instances := load.Instances([]string{"./..."}, cfg)

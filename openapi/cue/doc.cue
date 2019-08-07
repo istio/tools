@@ -80,7 +80,4 @@ crd?: {
 
 	// the output filename of the CRDs.
 	filename?: string
-
-	// the list of APIs that have CRDs generated and their details.
-	crdconfigs? <ProtoName>: [...{}]
 }
