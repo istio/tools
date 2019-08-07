@@ -20,8 +20,9 @@ check-stability:
 	./metrics/check_metrics.py
 
 lint:
-	@scripts/check_license.sh
-	@scripts/run_golangci.sh
+	# These PATH hacks are temporary until prow properly sets its paths
+	@PATH=${PATH}:${GOPATH}/bin scripts/check_license.sh
+	@PATH=${PATH}:${GOPATH}/bin scripts/run_golangci.sh
 
 fmt:
 	@scripts/run_gofmt.sh
