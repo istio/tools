@@ -26,9 +26,13 @@ require (
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
+<<<<<<< HEAD
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/spf13/cobra v0.0.3
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
+=======
+	github.com/spf13/cobra v0.0.4
+>>>>>>> update go module to make build work
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	golang.org/x/tools v0.0.0-20190614205625-5aca471b1d59
 	gopkg.in/inf.v0 v0.9.1 // indirect
