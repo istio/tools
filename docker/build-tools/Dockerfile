@@ -9,7 +9,6 @@ ENV PROTOTOOL_VERSION=v1.8.0
 ENV COUNTERFEITER_VERSION=v6.2.2
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV GOLANGCI_LINT_VERSION=v1.16.0
-ENV VFSGEN_VERSION=6a9ea43bcacdf716a5c1b38efff722c07adf0069
 
 ENV OUTDIR=/out
 
@@ -59,7 +58,7 @@ RUN go get github.com/jteeuwen/go-bindata/go-bindata
 RUN go get istio.io/tools/protoc-gen-docs
 RUN go get istio.io/tools/cmd/annotations_prep
 ## https://github.com/istio/operator
-RUN GO111MODULE=on go get github.com/shurcooL/vfsgen@${VFSGEN_VERSION}
+RUN go get istio.io/tools/cmd/vfsgen
 
 # Put the stuff we need in its final output location
 RUN mkdir -p ${OUTDIR}/go/bin
