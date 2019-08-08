@@ -20,9 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     upx \
  && rm -rf /var/lib/apt/lists/*
 
-# Prepare common output directories
-RUN mkdir -p /usr/bin /usr/include
-
 # Install protoc
 WORKDIR /tmp
 ADD https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip /tmp/
@@ -58,24 +55,26 @@ RUN go get github.com/jteeuwen/go-bindata/go-bindata
 ## https://github.com/istio/api
 RUN go get istio.io/tools/protoc-gen-docs
 RUN go get istio.io/tools/cmd/annotations_prep
+RUN go get istio.io/tools/openapi/cue
 ## https://github.com/istio/operator
 RUN go get istio.io/tools/cmd/vfsgen
 
 # Put the stuff we need in its final output location
 RUN mkdir -p ${OUTDIR}/go/bin
+RUN mkdir -p ${OUTDIR}/usr/bin
 RUN mkdir -p ${OUTDIR}/usr/include
 
-RUN cp -aR /tmp/bin/protoc ${OUTDIR}/go/bin
+RUN cp -aR /tmp/bin/protoc ${OUTDIR}/usr/bin
 RUN cp -aR /tmp/include/* ${OUTDIR}/usr/include
 RUN cp -aR /go/bin/* ${OUTDIR}/go/bin
 
-# Use inplace decompression on the go toolchain binaries
+# Use inplace decompression on the go binaries
 RUN upx --lzma ${OUTDIR}/go/bin/*
 
 # Create a golang toolchain context
 FROM golang:1.12 as golang_context
 
-# Build a base os context
+# Build a base OS context
 FROM ubuntu:xenial as base_os_context
 
 # required for golang: ca-certificates, gcc, libc-dev,git
@@ -92,7 +91,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Not in a sharing moood
+# Not in a sharing mood
 RUN rm -fr /usr/share
 
 # Prepare final output image
