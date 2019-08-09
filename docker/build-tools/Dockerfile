@@ -41,8 +41,9 @@ RUN for f in code error_details status http; do \
         done
 RUN curl -L -o ${OUTDIR}/usr/include/protobuf/gogoproto/gogo.proto https://raw.githubusercontent.com/gogo/protobuf/master/gogoproto/gogo.proto
 
-# Install external dependencies
+# Install general tools used throughout the project
 RUN GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
 RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
 RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
 RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
@@ -53,9 +54,12 @@ RUN GO111MODULE=on go get golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
 RUN go get github.com/jteeuwen/go-bindata/go-bindata
 
-# Install latest versions of custom Istio tools
+# Install per-repo tools
+## https://github.com/istio/api
 RUN go get istio.io/tools/protoc-gen-docs
 RUN go get istio.io/tools/cmd/annotations_prep
+## https://github.com/istio/operator
+RUN go get istio.io/tools/cmd/vfsgen
 
 # Put the stuff we need in its final output location
 RUN mkdir -p ${OUTDIR}/go/bin
