@@ -26,28 +26,20 @@ require (
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
+	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
-	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
+	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/spf13/cobra v0.0.3
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	golang.org/x/tools v0.0.0-20190328211700-ab21143f2384
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
-	k8s.io/api v0.0.0-20190118113203-912cbe2bfef3
-	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000
-	k8s.io/apimachinery v0.0.0-20190223001710-c182ff3b9841
-	k8s.io/client-go v8.0.0+incompatible
+	k8s.io/api v0.0.0-20190708094356-59223ed9f6ce
+	k8s.io/apiextensions-apiserver v0.0.0-20190708094842-2e94e9ac9840
+	k8s.io/apimachinery v0.0.0-20190221084156-01f179d85dbc
+	k8s.io/client-go v0.0.0-20190708094436-77c08c6b86df
 	k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6
 	k8s.io/helm v2.12.0+incompatible
 	k8s.io/klog v0.1.0 // indirect
-)
-
-replace (
-	gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
-	k8s.io/api => k8s.io/api v0.0.0-20190708094356-59223ed9f6ce
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190708094842-2e94e9ac9840
-	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190221084156-01f179d85dbc
-	k8s.io/client-go => k8s.io/client-go v0.0.0-20190708094436-77c08c6b86df
 )
