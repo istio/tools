@@ -13,7 +13,6 @@ require (
 	github.com/gogo/protobuf v1.2.2-0.20190730201129-28a6bbf47e48
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
-	github.com/google/btree v1.0.0 // indirect
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/google/uuid v0.0.0-20161128191214-064e2069ce9c
 	github.com/googleapis/gnostic v0.2.0 // indirect
@@ -26,16 +25,17 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
-	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
+	github.com/prometheus/client_golang v0.9.3
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/spf13/cobra v0.0.3
+	github.com/spf13/viper v1.4.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
-	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	golang.org/x/tools v0.0.0-20190328211700-ab21143f2384
 	gopkg.in/inf.v0 v0.9.1 // indirect
+	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190708094356-59223ed9f6ce
 	k8s.io/apiextensions-apiserver v0.0.0-20190708094842-2e94e9ac9840
 	k8s.io/apimachinery v0.0.0-20190221084156-01f179d85dbc
