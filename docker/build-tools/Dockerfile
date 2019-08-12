@@ -31,6 +31,7 @@ RUN unzip /tmp/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip
 # Install necessary protoc includes
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/protobuf
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/rpc
+RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/api
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/gogoproto
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/validate
 
