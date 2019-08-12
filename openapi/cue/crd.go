@@ -18,14 +18,32 @@ import (
 	"encoding/json"
 	"log"
 
+	"cuelang.org/go/encoding/openapi"
+
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Interim solution to build the Istio CRDs before we move to KubeBuilder.
 func (x *builder) getCRD(crdCfg CrdConfig, schema interface{}) apiext.CustomResourceDefinition {
+	// boilerplate OrderMap for CRD spec
+	m := &openapi.OrderedMap{}
+	m.Set("spec", schema)
+	kvs := []openapi.KeyValue{
+		{
+			Key:   "type",
+			Value: "object",
+		},
+		{
+			Key:   "properties",
+			Value: m,
+		},
+	}
+	schemaMap := &openapi.OrderedMap{}
+	schemaMap.SetAll(kvs)
+
 	// convert the schema from an OrderedMap to JSONSchemaProps
-	b, err := json.Marshal(schema)
+	b, err := schemaMap.MarshalJSON()
 	if err != nil {
 		log.Fatalf("Cannot marshal OpenAPI schema for %v", crdCfg.Metadata.Name)
 	}

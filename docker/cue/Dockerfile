@@ -23,7 +23,7 @@ RUN apk add --no-cache curl && \
         for f in code error_details status http; do \
             curl -L -o /protobuf/google/rpc/${f}.proto https://raw.githubusercontent.com/istio/gogo-genproto/master/googleapis/google/rpc/${f}.proto; \
             # cue generator requires go_package to be specified in the proto files.
-            sed -i '/option java_multiple_files = true;/ioption go_package = "google.golang.org/genproto/googleapis/rpc/'${f}';'${f}'";' /protobuf/google/rpc/${f}.proto; \
+            #sed -i '/option java_multiple_files = true;/ioption go_package = "google.golang.org/genproto/googleapis/rpc/'${f}';'${f}'";' /protobuf/google/rpc/${f}.proto; \
         done && \
     mkdir -p /protobuf/gogoproto && \
         curl -L -o /protobuf/gogoproto/gogo.proto https://raw.githubusercontent.com/gogo/protobuf/master/gogoproto/gogo.proto && \
