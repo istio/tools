@@ -10,7 +10,8 @@ ENV COUNTERFEITER_VERSION=v6.2.2
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV GOLANGCI_LINT_VERSION=v1.16.0
 ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
-ENV GOGO_GRPC_GATEWAY_VERSION=v1.1.0
+ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
+ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
 
 ENV OUTDIR=/out
 
@@ -31,6 +32,7 @@ RUN unzip /tmp/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/protobuf
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/rpc
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/gogoproto
+RUN mkdir -p ${OUTDIR}/usr/include/protobuf/validate
 
 RUN for f in any duration descriptor empty struct timestamp wrappers; do \
             curl -L -o ${OUTDIR}/usr/include/protobuf/google/protobuf/${f}.proto https://raw.githubusercontent.com/google/protobuf/master/src/google/protobuf/${f}.proto; \
@@ -40,7 +42,8 @@ RUN for f in code error_details status; do \
         done
 RUN for f in http annotations; do \
             curl -L -o ${OUTDIR}/usr/include/protobuf/google/api/${f}.proto https://raw.githubusercontent.com/istio/gogo-genproto/master/googleapis/google/api/${f}.proto; \
-        done	
+        done
+RUN curl -L -o ${OUTDIR}/usr/include/protobuf/validate/validate.proto https://raw.githubusercontent.com/envoyproxy/protoc-gen-validate/${PROTOC_GEN_VALIDATE_VERSION}/validate/validate.proto	
 RUN curl -L -o ${OUTDIR}/usr/include/protobuf/gogoproto/gogo.proto https://raw.githubusercontent.com/gogo/protobuf/master/gogoproto/gogo.proto
 
 # Install general tools used throughout the project
@@ -54,6 +57,9 @@ RUN GO111MODULE=on go get github.com/nilslice/protolock/cmd/protolock@${PROTOLOC
 RUN GO111MODULE=on go get github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
 RUN GO111MODULE=on go get golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN GO111MODULE=on go get github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
+RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
 RUN go get github.com/jteeuwen/go-bindata/go-bindata
 
 # Install per-repo tools
@@ -63,8 +69,6 @@ RUN go get istio.io/tools/cmd/annotations_prep
 RUN go get istio.io/tools/openapi/cue
 ## https://github.com/istio/operator
 RUN go get istio.io/tools/cmd/vfsgen
-RUN go get github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
-RUN go get github.com/gogo/gateway@${GOGO_GRPC_GATEWAY_VERSION}
 
 # Put the stuff we need in its final output location
 RUN mkdir -p ${OUTDIR}/go/bin
