@@ -17,12 +17,10 @@ ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
 ENV OUTDIR=/out
 
 # Update distro and install dependencies
-# TODO we probably don't need all this stuff...
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
-    upx \
- && rm -rf /var/lib/apt/lists/*
+    upx
 
 # Install protoc
 WORKDIR /tmp
@@ -85,6 +83,13 @@ RUN upx --lzma ${OUTDIR}/go/bin/*
 # Create a golang toolchain context
 FROM golang:1.12 as golang_context
 
+# Cleanup stuff we don't need in the final image
+RUN rm -fr /usr/local/go/doc
+RUN rm -fr /usr/local/go/test
+RUN rm -fr /usr/local/go/api
+RUN rm -fr /usr/local/go/bin/godoc
+RUN rm -fr /usr/local/go/bin/gofmt
+
 # Build a base OS context
 FROM ubuntu:xenial as base_os_context
 
@@ -94,15 +99,15 @@ FROM ubuntu:xenial as base_os_context
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
-	gcc \
+    gcc \
     git \
-	libc-dev \
-	make \
-	pkg-config \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+    libc-dev \
+    make \
+    pkg-config \
+    wget
 
-# Not in a sharing mood
+# Clean up stuff we don't need in the final image
+RUN rm -rf /var/lib/apt/lists/*
 RUN rm -fr /usr/share
 
 # Prepare final output image
@@ -110,22 +115,23 @@ FROM scratch
 
 # Setup to run the Go compiler with host-side build cache, test cache, and module cache
 ENV GO111MODULE=on
+ENV GOPROXY=https://proxy.golang.org
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
 ENV PATH /go/bin:$PATH
 
 COPY --from=base_os_context / /
-COPY --from=build_tools_context /out/ /
 COPY --from=golang_context /usr/local/go/ /go/
+COPY --from=build_tools_context /out/ /
 
-RUN mkdir -p /gocache
-RUN mkdir -p /go/pkg/mod
+RUN mkdir -p /gocache && \
+    mkdir -p /go/pkg/mod
 
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
 # They are created as root 755.  As a result they are not writeable, which fails in
 # the developer environment as a volume or bind mount inherits the permissions of
 # the directory mounted rather then overridding with the permission of the volume file.
-RUN chmod 777 /gocache
-RUN chmod 777 /go/pkg/mod
+RUN chmod 777 /gocache && \
+    chmod 777 /go/pkg/mod
 
 WORKDIR /
