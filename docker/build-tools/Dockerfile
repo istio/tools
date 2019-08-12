@@ -9,6 +9,8 @@ ENV PROTOTOOL_VERSION=v1.8.0
 ENV COUNTERFEITER_VERSION=v6.2.2
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV GOLANGCI_LINT_VERSION=v1.16.0
+ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
+ENV GOGO_GRPC_GATEWAY_VERSION=v1.1.0
 
 ENV OUTDIR=/out
 
@@ -33,9 +35,12 @@ RUN mkdir -p ${OUTDIR}/usr/include/protobuf/gogoproto
 RUN for f in any duration descriptor empty struct timestamp wrappers; do \
             curl -L -o ${OUTDIR}/usr/include/protobuf/google/protobuf/${f}.proto https://raw.githubusercontent.com/google/protobuf/master/src/google/protobuf/${f}.proto; \
         done
-RUN for f in code error_details status http; do \
+RUN for f in code error_details status; do \
             curl -L -o ${OUTDIR}/usr/include/protobuf/google/rpc/${f}.proto https://raw.githubusercontent.com/istio/gogo-genproto/master/googleapis/google/rpc/${f}.proto; \
         done
+RUN for f in http annotations; do \
+            curl -L -o ${OUTDIR}/usr/include/protobuf/google/api/${f}.proto https://raw.githubusercontent.com/istio/gogo-genproto/master/googleapis/google/api/${f}.proto; \
+        done	
 RUN curl -L -o ${OUTDIR}/usr/include/protobuf/gogoproto/gogo.proto https://raw.githubusercontent.com/gogo/protobuf/master/gogoproto/gogo.proto
 
 # Install general tools used throughout the project
@@ -58,6 +63,8 @@ RUN go get istio.io/tools/cmd/annotations_prep
 RUN go get istio.io/tools/openapi/cue
 ## https://github.com/istio/operator
 RUN go get istio.io/tools/cmd/vfsgen
+RUN go get github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
+RUN go get github.com/gogo/gateway@${GOGO_GRPC_GATEWAY_VERSION}
 
 # Put the stuff we need in its final output location
 RUN mkdir -p ${OUTDIR}/go/bin
