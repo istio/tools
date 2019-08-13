@@ -116,7 +116,7 @@ var (
 
 	inplace = flag.Bool("inplace", false, "generate configurations in place")
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
-	verbose = flag.Bool("v", false, "print debugging output")
+	verbose = flag.Bool("verbose", false, "print debugging output")
 
 	// manually configuring builds
 	all = flag.Bool("all", false, "combine all the matched outputs in a single file; the 'all' section must be specified in the configuration")
@@ -446,7 +446,7 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 		// CRD schema does not allow $ref fields.
 		gen.ExpandReferences = true
 
-		gen.FieldFilter = "default|required|minimum|maximum"
+		gen.FieldFilter = "min.*|max.*"
 	}
 
 	return gen.Schemas(inst)
@@ -455,13 +455,14 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 // reference defines the references format based on the protobuf naming.
 func (x *builder) reference(goPkg string, path []string) string {
 	name := strings.Join(path, ".")
-	// Map CUE names to proto names.
-	name = strings.Replace(name, "_", ".", -1)
 
 	pkg := x.protoNames[goPkg]
 	if pkg == "" {
-		log.Fatalf("No protoname for pkg with import path %q", goPkg)
+		// Not a proto package, expand in place.
+		return ""
 	}
+	// Map CUE names to proto names.
+	name = strings.Replace(name, "_", ".", -1)
 	return pkg + "." + name
 }
 
