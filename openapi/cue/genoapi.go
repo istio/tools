@@ -94,6 +94,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -404,6 +405,11 @@ func (x *builder) genCRD() {
 			fmt.Printf("CRD for %v is not generated\n", n)
 		}
 	}
+
+	// make sure the generated CRDs are in the same order over time.
+	sort.Slice(crds, func(i, j int) bool {
+		return crds[i].GetObjectMeta().GetName() < crds[j].GetObjectMeta().GetName()
+	})
 
 	x.writeCRDFiles(crds)
 }
