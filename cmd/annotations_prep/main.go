@@ -110,7 +110,7 @@ var (
 	nameSeparator = regexp.MustCompile(`[._\-]`)
 
 	rootCmd = cobra.Command{
-		Use:   "gen",
+		Use:   "annotations_prep",
 		Short: "Generates a Go source file and HTML file containing annotations.",
 		Long:  "Generates a Go source file and HTML file containing annotation definitions based on an input YAML file.",
 		Run: func(cmd *cobra.Command, args []string) {
