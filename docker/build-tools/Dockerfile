@@ -91,15 +91,15 @@ RUN rm -fr /usr/local/go/bin/godoc
 RUN rm -fr /usr/local/go/bin/gofmt
 
 # Build a hugo context
-FROM golang:1.12 as build_hugo_context
+FROM ubuntu:xenial as build_hugo_context
 
 ENV HUGO_VERSION=0.55.5
 RUN mkdir -p /out
 ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz /tmp
 RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C /out
 
-# Build a nodejs context
-FROM ubuntu:xenial as node_tools_context
+# Build a nodejs tools context
+FROM ubuntu:xenial as nodejs_tools_context
 ENV NODEJS_VERSION=12.8.0
 
 ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz /tmp
@@ -120,10 +120,7 @@ RUN npm install -g \
 RUN npm install --save-dev @babel/core @babel/cli @babel/preset-env
 RUN npm install --save @babel/polyfill
 
-# TODO(sdake) Unclear if this is needed
-#RUN chmod -R 777 /root
-
-# Build Ruby context
+# Build a ruby tools context
 FROM ubuntu:xenial as ruby_tools_context
 ENV RUBY_VERSION=2.6.3
 RUN apt-get -y update
@@ -180,16 +177,12 @@ ENV RUBYOPT="-KU -E utf-8:utf-8"
 
 COPY --from=base_os_context / /
 COPY --from=golang_context /usr/local/go/ /go/
-
-# The build_nodejs_context needs attention - probably need to build nodejs from source
-#COPY --from=build_nodejs_context / /
-
 COPY --from=build_hugo_context /out/ /usr/local/bin
 COPY --from=build_tools_context /out/ /
 COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
 COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
-COPY --from=node_tools_context /usr/local /usr/local
-COPY --from=node_tools_context /package.json /
+COPY --from=nodejs_tools_context /usr/local /usr/local
+COPY --from=nodejs_tools_context /package.json /
 
 RUN mkdir -p /gocache && \
     mkdir -p /go/pkg/mod
