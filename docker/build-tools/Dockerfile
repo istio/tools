@@ -90,11 +90,64 @@ RUN rm -fr /usr/local/go/api
 RUN rm -fr /usr/local/go/bin/godoc
 RUN rm -fr /usr/local/go/bin/gofmt
 
+# Build a hugo context
+FROM golang:1.12 as build_hugo_context
+
+ENV HUGO_VERSION=0.55.5
+RUN mkdir -p /out
+ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz /tmp
+RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C /out
+
+# Build a nodejs context
+FROM ubuntu:xenial as node_tools_context
+ENV NODEJS_VERSION=12.8.0
+
+ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz /tmp
+RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-linux-x64.tar.gz --strip-components=1 -C /usr/local
+
+ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-headers.tar.gz /tmp
+RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-headers.tar.gz --strip-components=1 -C /usr/local
+
+RUN npm init -y
+RUN npm install -g \
+    sass \
+    sass-lint \
+    typescript \
+    tslint \
+    markdown-spellcheck \
+    svgstore-cli \
+    svgo
+RUN npm install --save-dev @babel/core @babel/cli @babel/preset-env
+RUN npm install --save @babel/polyfill
+
+# TODO(sdake) Unclear if this is needed
+#RUN chmod -R 777 /root
+
+# Build Ruby context
+FROM ubuntu:xenial as ruby_tools_context
+ENV RUBY_VERSION=2.6.3
+RUN apt-get -y update
+RUN apt-get -y install build-essential zlib1g-dev libssl-dev
+
+ADD https://cache.ruby-lang.org/pub/ruby/2.6/ruby-${RUBY_VERSION}.tar.gz /tmp
+WORKDIR /tmp
+RUN tar -xzf ruby-${RUBY_VERSION}.tar.gz
+WORKDIR /tmp/ruby-${RUBY_VERSION}
+RUN ./configure
+RUN make
+RUN make install
+
+# Install istio.io verification tools
+RUN gem install --no-wrappers mdl
+RUN gem install --no-wrappers html-proofer -v 3.9.2
+RUN gem install --no-wrappers awesome_bot
+
 # Build a base OS context
 FROM ubuntu:xenial as base_os_context
 
-# required for golang: ca-certificates, gcc, libc-dev,git
+# required for golang: ca-certificates, gcc, libc-dev, git
 # required for general build: make, wget, curl
+# required for ruby: libcurl4-openssl-dev
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -104,6 +157,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc-dev \
     make \
     pkg-config \
+    libcurl4-openssl-dev \
     wget
 
 # Clean up stuff we don't need in the final image
@@ -118,11 +172,24 @@ ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
-ENV PATH /go/bin:$PATH
+ENV PATH=/go/bin:$PATH
+ENV HOME=/root
+
+# Uhh ya. Ruby.
+ENV RUBYOPT="-KU -E utf-8:utf-8"
 
 COPY --from=base_os_context / /
 COPY --from=golang_context /usr/local/go/ /go/
+
+# The build_nodejs_context needs attention - probably need to build nodejs from source
+#COPY --from=build_nodejs_context / /
+
+COPY --from=build_hugo_context /out/ /usr/local/bin
 COPY --from=build_tools_context /out/ /
+COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
+COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
+COPY --from=node_tools_context /usr/local /usr/local
+COPY --from=node_tools_context /package.json /
 
 RUN mkdir -p /gocache && \
     mkdir -p /go/pkg/mod
@@ -132,6 +199,7 @@ RUN mkdir -p /gocache && \
 # the developer environment as a volume or bind mount inherits the permissions of
 # the directory mounted rather then overridding with the permission of the volume file.
 RUN chmod 777 /gocache && \
-    chmod 777 /go/pkg/mod
+    chmod 777 /go/pkg/mod && \
+    chmod 777 /root
 
 WORKDIR /
