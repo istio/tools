@@ -81,16 +81,16 @@ func (x *builder) getCRD(crdCfg CrdConfig, schema interface{}) apiextv1beta1.Cus
 func validateStructural(s *apiextv1beta1.JSONSchemaProps) error {
 	out := &apiext.JSONSchemaProps{}
 	if err := apiextv1beta1.Convert_v1beta1_JSONSchemaProps_To_apiextensions_JSONSchemaProps(s, out, nil); err != nil {
-		return fmt.Errorf("Cannot convert v1beta1 JSONSchemaProps to v1 JSONSchemaProps: %v", err)
+		return fmt.Errorf("cannot convert v1beta1 JSONSchemaProps to v1 JSONSchemaProps: %v", err)
 	}
 
 	r, err := structuralschema.NewStructural(out)
 	if err != nil {
-		return fmt.Errorf("Cannot convert to a structural schema: %v", err)
+		return fmt.Errorf("cannot convert to a structural schema: %v", err)
 	}
 
 	if errs := structuralschema.ValidateStructural(r, nil); len(errs) != 0 {
-		return fmt.Errorf("Schema is not structural: %v", errs.ToAggregate().Error())
+		return fmt.Errorf("schema is not structural: %v", errs.ToAggregate().Error())
 	}
 
 	return nil
