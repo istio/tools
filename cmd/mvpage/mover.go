@@ -58,7 +58,12 @@ func (m *mover) move(srcFile string, dstFile string) error {
 		return err
 	}
 
-	if m.srcLinkRegex, err = regexp.Compile(regexp.QuoteMeta("(" + m.srcLink)); err != nil {
+	if _, err = os.Stat(m.dstFile); err == nil {
+		return fmt.Errorf("destination '%s' already exists", m.dstFile)
+	}
+
+	re := `\((` + regexp.QuoteMeta(m.srcLink) + `(/|))(#.*|)\)`
+	if m.srcLinkRegex, err = regexp.Compile(re); err != nil {
 		return err
 	}
 
@@ -96,7 +101,9 @@ func (m *mover) validate(file string) (absFile string, link string, err error) {
 
 	absDir := filepath.Dir(absFile)
 	for lang, contentDir := range m.config.contentRootPerLanguage {
+		// see if the file is within the particular content directory
 		if strings.HasPrefix(absFile, contentDir) {
+			// now generate the link to the file by using the relative path from the content directory
 			if lang == m.config.defaultContentLanguage {
 				link = strings.TrimPrefix(absDir, contentDir)
 			} else {
@@ -127,7 +134,8 @@ func (m *mover) updateContentDir(contentDir string) error {
 			return fmt.Errorf("unable to read file '%s': %v", path, err)
 		}
 
-		output := m.srcLinkRegex.ReplaceAllLiteral(input, []byte(m.dstLink))
+		rep := "(" + regexp.QuoteMeta(m.dstLink) + "$2$3)"
+		output := m.srcLinkRegex.ReplaceAll(input, []byte(rep))
 
 		if path == m.srcFile {
 			// the file being moved gets an alias

@@ -14,6 +14,11 @@
 
 package main
 
+// TODO:
+//  * Optionally use "git mv" to ensure git tracks the renamed file
+//  * Move images next to the markdown file to the new location, updating any links accordingly
+//  * Support moving a whole directory to a new location
+
 import (
 	"flag"
 	"fmt"
