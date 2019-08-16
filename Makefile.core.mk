@@ -33,5 +33,8 @@ fmtpy-checkandupdate:
 fmtpy-checkonly:
 	@scripts/check_pyfmt.sh false
 
+containers:
+	@cd docker/build-tools && ./build-and-push.sh
+
 include Makefile.common.mk
 include perf/stability/stability.mk
