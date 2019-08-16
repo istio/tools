@@ -66,7 +66,6 @@ RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swag
 RUN GO111MODULE=on go get istio.io/tools/protoc-gen-docs
 RUN GO111MODULE=on go get istio.io/tools/cmd/annotations_prep
 RUN GO111MODULE=on go get istio.io/tools/openapi/cue
-RUN GO111MODULE=on go get istio.io/tools/cmd/vfsgen
 
 # Put the stuff we need in its final output location
 RUN mkdir -p ${OUTDIR}/go/bin
