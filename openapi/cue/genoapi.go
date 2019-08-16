@@ -451,8 +451,6 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 	if *crd {
 		// CRD schema does not allow $ref fields.
 		gen.ExpandReferences = true
-
-		gen.FieldFilter = "min.*|max.*"
 	}
 
 	return gen.Schemas(inst)
