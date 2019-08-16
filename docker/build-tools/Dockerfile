@@ -193,6 +193,7 @@ RUN mkdir -p /gocache && \
 # the directory mounted rather then overridding with the permission of the volume file.
 RUN chmod 777 /gocache && \
     chmod 777 /go/pkg/mod && \
-    chmod 777 /root
+    chmod 777 /root && \
+    chmod 777 /go/src
 
 WORKDIR /
