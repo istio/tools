@@ -117,6 +117,7 @@ RUN npm install -g \
     svgstore-cli \
     svgo
 RUN npm install --save-dev @babel/core @babel/cli @babel/preset-env
+RUN npm install --save-dev babel-preset-minify
 RUN npm install --save @babel/polyfill
 
 # Build a ruby tools context
@@ -182,6 +183,7 @@ COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
 COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
 COPY --from=nodejs_tools_context /usr/local /usr/local
 COPY --from=nodejs_tools_context /package.json /
+COPY --from=nodejs_tools_context /node_modules/ /node_modules/
 
 RUN mkdir -p /gocache && \
     mkdir -p /go/pkg/mod
