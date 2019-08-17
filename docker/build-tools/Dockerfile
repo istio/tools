@@ -1,4 +1,8 @@
-FROM golang:1.12 as build_tools_context
+#############
+# Binary tools
+#############
+
+FROM golang:1.12 as binary_tools_context
 
 # Pinned versions of stuff we pull in
 ENV PROTOBUF_VERSION=3.6.1
@@ -13,6 +17,9 @@ ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
 ENV GO_BINDATA_VERSION=v3.0.8-0.20180305030458-6025e8de665b
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
+ENV SHELLCHECK_VERSION=v0.7.0
+ENV HUGO_VERSION=0.55.5
+ENV HADOLINT_VERSION=v1.17.1
 
 ENV OUTDIR=/out
 
@@ -20,7 +27,8 @@ ENV OUTDIR=/out
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
-    upx
+    upx \
+    xz-utils
 
 # Install protoc
 WORKDIR /tmp
@@ -76,11 +84,19 @@ RUN cp -aR /tmp/bin/protoc ${OUTDIR}/usr/bin
 RUN cp -aR /tmp/include/* ${OUTDIR}/usr/include
 RUN cp -aR /go/bin/* ${OUTDIR}/go/bin
 
+# ShellCheck linter
+ADD https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
+RUN tar -xJf /tmp/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz -C ${OUTDIR}/usr/bin
+
+# Hadolint linter
+ADD https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64 ${OUTDIR}/usr/bin/hadolint
+
+# Hugo static site generator
+ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz /tmp
+RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C ${OUTDIR}/usr/bin
+
 # Use inplace decompression on the go binaries
 RUN upx --lzma ${OUTDIR}/go/bin/*
-
-# Create a golang toolchain context
-FROM golang:1.12 as golang_context
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
@@ -89,16 +105,12 @@ RUN rm -fr /usr/local/go/api
 RUN rm -fr /usr/local/go/bin/godoc
 RUN rm -fr /usr/local/go/bin/gofmt
 
-# Build a hugo context
-FROM ubuntu:xenial as build_hugo_context
+#############
+# Nodejs
+#############
 
-ENV HUGO_VERSION=0.55.5
-RUN mkdir -p /out
-ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz /tmp
-RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C /out
-
-# Build a nodejs tools context
 FROM ubuntu:xenial as nodejs_tools_context
+
 ENV NODEJS_VERSION=12.8.0
 
 ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz /tmp
@@ -108,7 +120,7 @@ ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSIO
 RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-headers.tar.gz --strip-components=1 -C /usr/local
 
 RUN npm init -y
-RUN npm install -g \
+RUN npm install --production -g \
     sass \
     sass-lint \
     typescript \
@@ -116,13 +128,21 @@ RUN npm install -g \
     markdown-spellcheck \
     svgstore-cli \
     svgo
-RUN npm install --save-dev @babel/core @babel/cli @babel/preset-env
-RUN npm install --save-dev babel-preset-minify
-RUN npm install --save @babel/polyfill
+RUN npm install --production --save-dev @babel/core @babel/cli @babel/preset-env
+RUN npm install --production --save-dev babel-preset-minify
+RUN npm install --production --save @babel/polyfill
 
-# Build a ruby tools context
+#############
+# Ruby
+#############
+
 FROM ubuntu:xenial as ruby_tools_context
+
 ENV RUBY_VERSION=2.6.3
+ENV HTMLPROOFER_VERSION=3.9.2
+ENV MDL_VERSION=0.5.0
+ENV AWESOMEBOT_VERSION=1.19.1
+
 RUN apt-get -y update
 RUN apt-get -y install build-essential zlib1g-dev libssl-dev
 
@@ -135,11 +155,14 @@ RUN make
 RUN make install
 
 # Install istio.io verification tools
-RUN gem install --no-wrappers mdl
-RUN gem install --no-wrappers html-proofer -v 3.9.2
-RUN gem install --no-wrappers awesome_bot
+RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
+RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
+RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 
-# Build a base OS context
+#############
+# BaseOS
+#############
+
 FROM ubuntu:xenial as base_os_context
 
 # required for golang: ca-certificates, gcc, libc-dev, git
@@ -154,6 +177,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc-dev \
     make \
     pkg-config \
+    yamllint \
     libcurl4-openssl-dev \
     wget
 
@@ -161,24 +185,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN rm -rf /var/lib/apt/lists/*
 RUN rm -fr /usr/share
 
+#############
+# Final image
+#############
+
 # Prepare final output image
 FROM scratch
 
-# Setup to run the Go compiler with host-side build cache, test cache, and module cache
+# General
+ENV HOME=/root
+
+# Go support
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
 ENV PATH=/go/bin:$PATH
-ENV HOME=/root
 
-# Uhh ya. Ruby.
+# Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
 
 COPY --from=base_os_context / /
-COPY --from=golang_context /usr/local/go/ /go/
-COPY --from=build_hugo_context /out/ /usr/local/bin
-COPY --from=build_tools_context /out/ /
+COPY --from=binary_tools_context /out/ /
+COPY --from=binary_tools_context /usr/local/go/ /go/
 COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
 COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
 COPY --from=nodejs_tools_context /usr/local /usr/local
