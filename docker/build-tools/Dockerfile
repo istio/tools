@@ -1,8 +1,34 @@
+# Copyright 2019 Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This is used to build Istio's primary build container, which contains all the tools
+# necessary to perform and all build activities in all Istio repos.
+#
+# The container is built using different contexts, one per execution environment (plain binaries, Ruby, nodejs), and
+# then combined into the final image.
+#
+# We pin versions of stuff we install. Modify the various XXX_VERSION variables within the indivudual build contexts
+# in order to control these versions.
+#
+# NOTE: This is still a work-in-progress and only some Istio repos use this. More tools will be
+# added here as we onboard more repos.
+
 #############
 # Binary tools
 #############
 
-FROM golang:1.12 as binary_tools_context
+FROM golang:1.12.5 as binary_tools_context
 
 # Pinned versions of stuff we pull in
 ENV PROTOBUF_VERSION=3.6.1
@@ -86,7 +112,8 @@ RUN cp -aR /go/bin/* ${OUTDIR}/go/bin
 
 # ShellCheck linter
 ADD https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
-RUN tar -xJf /tmp/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz -C ${OUTDIR}/usr/bin
+RUN tar -xJf /tmp/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz -C /tmp
+RUN cp /tmp/shellcheck-${SHELLCHECK_VERSION}/shellcheck ${OUTDIR}/usr/bin/shellcheck
 
 # Hadolint linter
 ADD https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64 ${OUTDIR}/usr/bin/hadolint
@@ -112,6 +139,17 @@ RUN rm -fr /usr/local/go/bin/gofmt
 FROM ubuntu:xenial as nodejs_tools_context
 
 ENV NODEJS_VERSION=12.8.0
+ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
+ENV SASS_LINT_VERSION=v1.13.1
+ENV TYPESCRIPT_VERSION=v3.5.3
+ENV TSLINT_VERSION=v5.18.0
+ENV SASS_VERSION=v1.22.10
+ENV SVGO_VERSION=v1.3.0
+ENV SVGSTORE_CLI_VERSION=v1.3.1
+ENV BABEL_CLI_VERSION=v7.5.5
+ENV BABEL_CORE_VERSION=v7.5.5
+ENV BABEL_PRESET_ENV=v7.5.5
+ENV BABEL_PRESET_MINIFY_VERSION=v0.5.1
 
 ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz /tmp
 RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-linux-x64.tar.gz --strip-components=1 -C /usr/local
@@ -120,17 +158,21 @@ ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSIO
 RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-headers.tar.gz --strip-components=1 -C /usr/local
 
 RUN npm init -y
-RUN npm install --production -g \
-    sass \
-    sass-lint \
-    typescript \
-    tslint \
-    markdown-spellcheck \
-    svgstore-cli \
-    svgo
-RUN npm install --production --save-dev @babel/core @babel/cli @babel/preset-env
-RUN npm install --production --save-dev babel-preset-minify
-RUN npm install --production --save @babel/polyfill
+RUN npm install --production --global \
+    sass@${SASS_VERSION} \
+    sass-lint@${SASS_LINT_VERSION} \
+    typescript@${TYPESCRIPT_VERSION} \
+    tslint@${TSLINT_VERSION} \
+    markdown-spellcheck@${MARKDONN_SPELLCHECK_VERSION} \
+    svgstore-cli@${SVGSTORE_CLI_VERSION} \
+    svgo@${SVGO_VERSION}
+
+RUN npm install --production --global \
+    @babel/core@${BABEL_CORE_VERSION} \
+    @babel/cli@${BABEL_CLI_VERSION} \
+    @babel/preset-env@${BABEL_PRESET_ENV_VERSION} \
+    babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
+RUN npm install --save @babel/polyfill
 
 #############
 # Ruby
@@ -143,8 +185,10 @@ ENV HTMLPROOFER_VERSION=3.9.2
 ENV MDL_VERSION=0.5.0
 ENV AWESOMEBOT_VERSION=1.19.1
 
-RUN apt-get -y update
-RUN apt-get -y install build-essential zlib1g-dev libssl-dev
+RUN apt-get -y update && apt-get -y install --no-install-recommends \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev
 
 ADD https://cache.ruby-lang.org/pub/ruby/2.6/ruby-${RUBY_VERSION}.tar.gz /tmp
 WORKDIR /tmp
@@ -160,7 +204,7 @@ RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSIO
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 
 #############
-# BaseOS
+# Base OS
 #############
 
 FROM ubuntu:xenial as base_os_context
