@@ -117,6 +117,7 @@ RUN cp /tmp/shellcheck-${SHELLCHECK_VERSION}/shellcheck ${OUTDIR}/usr/bin/shellc
 
 # Hadolint linter
 ADD https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64 ${OUTDIR}/usr/bin/hadolint
+RUN chmod 555 ${OUTDIR}/usr/bin/hadolint
 
 # Hugo static site generator
 ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz /tmp
@@ -226,11 +227,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     git \
     libc-dev \
+    libcurl4-openssl-dev \
     make \
     pkg-config \
-    yamllint \
-    libcurl4-openssl-dev \
-    wget
+    python3-pkg-resources \
+    wget \
+    yamllint
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
