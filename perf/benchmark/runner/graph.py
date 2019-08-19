@@ -69,16 +69,17 @@ def generate_chart(mesh, csv, x_label, y_label_short):
 def get_series(df, x_label, metric):
 
     # map CSV label regex --> cleaner labels for graph legend
-    modes = {'^serveronly': 'serveronly',
-             "nomix.*_serveronly": "nomixer_serveronly",
-             "nomix.*_both": "nomixer_both",
-             "base": "base",
-             "^both": "both"}
+    modes = [('^serveronly', 'serveronly'),
+             ("nomix.*_serveronly", "nomixer_serveronly"),
+             ("nomix.*_both", "nomixer_both"),
+             ("base", "base"),
+             # Make sure this set of data is last, because both type always have data to make sure rows are not empty.
+             ("^both", "both")]
 
     # get y axis
     series = {}
-    for m, k in modes.items():
-        rows = df[df.Labels.str.contains(m)]
+    for mode in modes:
+        rows = df[df.Labels.str.contains(mode[0])]
         vals = list(rows[metric])
 
         # if y-axis metric is latency, convert microseconds to milliseconds
@@ -87,7 +88,7 @@ def get_series(df, x_label, metric):
             vals = [v / 1000 for v in vals]
         # reverse to match sorted numthreads, below
         vals.reverse()
-        series[k] = vals
+        series[mode[1]] = vals
 
     # only include test modes that were in the input CSV - (if nomixer not
     # included, don't attempt to plot it)
