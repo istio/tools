@@ -20,8 +20,12 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"os"
+	"strconv"
 	"sync"
 	"time"
+
+	"istio.io/tools/isotope/convert/pkg/consts"
 
 	multierror "github.com/hashicorp/go-multierror"
 

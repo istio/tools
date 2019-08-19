@@ -87,7 +87,7 @@ var (
 				"requestSize": 516,
 				"responseSize": 128,
 				"script": [
-					{"sleep": {"type": "static", "data": {"time": "100ms"}}}
+					{"sleep": {"SleepCommand": [{"Load": {"Min": 0, "Max": 100}, "type": "static", "data": {"time": "100ms"}}]}}
 				]
 			},
 			"services": [
@@ -104,7 +104,7 @@ var (
 								"size": "1KiB"
 							}
 						},
-						{"sleep": {"type": "static", "data": {"time": "10ms"}}}
+						{"sleep": {"SleepCommand": [{"Load": {"Min": 0, "Max": 100}, "type": "static", "data": {"time": "10ms"}}]}}
 					]
 				},
 				{
@@ -118,7 +118,7 @@ var (
 							{ "call": "a" },
 							{ "call": "b" }
 						],
-						{"sleep": {"type": "static", "data": {"time": "10ms"}}}
+						{"sleep": {"SleepCommand": [{"Load": {"Min": 0, "Max": 100}, "type": "static", "data": {"time": "10ms"}}]}}
 					]
 				}
 			]
@@ -132,7 +132,7 @@ var (
 			ErrorRate:    0.1,
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
-				script.SleepCommand{"static", script.SleepCommandStatic{100 * time.Millisecond}},
+				script.SleepCommand{[]script.SleepCommandData{script.SleepCommandData{script.Range{uint64(0),uint64(100)}, script.Static, script.SleepCommandStatic{100 * time.Millisecond}}}},
 			}),
 		},
 		{
@@ -143,7 +143,7 @@ var (
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
 				script.RequestCommand{ServiceName: "a", Size: 1024},
-				script.SleepCommand{"static", script.SleepCommandStatic{10 * time.Millisecond}},
+				script.SleepCommand{[]script.SleepCommandData{script.SleepCommandData{script.Range{uint64(0),uint64(100)}, script.Static, script.SleepCommandStatic{10 * time.Millisecond}}}},
 			}),
 		},
 		{
@@ -157,7 +157,7 @@ var (
 					script.RequestCommand{ServiceName: "a", Size: 516},
 					script.RequestCommand{ServiceName: "b", Size: 516},
 				},
-				script.SleepCommand{"static", script.SleepCommandStatic{10 * time.Millisecond}},
+				script.SleepCommand{[]script.SleepCommandData{script.SleepCommandData{script.Range{uint64(0),uint64(100)}, script.Static, script.SleepCommandStatic{10 * time.Millisecond}}}},
 			}),
 		},
 	}}
@@ -182,7 +182,7 @@ var (
 					"script": [
 						[
 							[{ "call": "a" }, { "call": "a" }],
-							{ "sleep": {"10ms": 100} }
+							{"sleep": {"SleepCommand": [{"Load": {"Min": 0, "Max": 100}, "type": "static", "data": {"time": "10ms"}}]}}
 						]
 					]
 				}
