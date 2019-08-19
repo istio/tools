@@ -18,6 +18,7 @@ package kubernetes
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -59,7 +60,8 @@ func ServiceGraphToKubernetesManifests(
 	serviceMaxIdleConnectionsPerHost int,
 	clientNodeSelector map[string]string,
 	clientImage string,
-	environmentName string) ([]byte, error) {
+	environmentName string,
+	loadLevel int) ([]byte, error) {
 	numServices := len(serviceGraph.Services)
 	numManifests := numManifestsPerService*numServices + numConfigMaps
 	manifests := make([]string, 0, numManifests)
@@ -91,7 +93,8 @@ func ServiceGraphToKubernetesManifests(
 	for _, service := range serviceGraph.Services {
 		k8sDeployment := makeDeployment(
 			service, serviceNodeSelector, serviceImage,
-			serviceMaxIdleConnectionsPerHost)
+			serviceMaxIdleConnectionsPerHost,
+			loadLevel)
 		innerErr := appendManifest(k8sDeployment)
 		if innerErr != nil {
 			return nil, innerErr
@@ -187,8 +190,10 @@ func makeService(service svc.Service) (k8sService apiv1.Service) {
 
 func makeDeployment(
 	service svc.Service, nodeSelector map[string]string,
-	serviceImage string, serviceMaxIdleConnectionsPerHost int) (
+	serviceImage string, serviceMaxIdleConnectionsPerHost int,
+	loadLevel int) (
 	k8sDeployment appsv1.Deployment) {
+
 	k8sDeployment.APIVersion = "apps/v1"
 	k8sDeployment.Kind = "Deployment"
 	k8sDeployment.ObjectMeta.Name = service.Name
@@ -224,6 +229,7 @@ func makeDeployment(
 						},
 						Env: []apiv1.EnvVar{
 							{Name: consts.ServiceNameEnvKey, Value: service.Name},
+							{Name: consts.LoadEnvKey, Value: strconv.Itoa(loadLevel)},
 						},
 						VolumeMounts: []apiv1.VolumeMount{
 							{

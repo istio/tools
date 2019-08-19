@@ -56,7 +56,20 @@ func execute(
 }
 
 func executeSleepCommand(cmd script.SleepCommand) {
-	time.Sleep(cmd.Data.Duration())
+	loadLevel, _ := os.LookupEnv(consts.LoadEnvKey)
+	load, err := strconv.Atoi(loadLevel)
+	if err != nil {
+		log.Fatalf(`env var "%s" is not an integer`, consts.LoadEnvKey)
+	}
+
+	for _, command := range cmd.SleepCommand {
+		if uint64(load) >= command.Load.Minimum && uint64(load) <= command.Load.Maximum {
+			time.Sleep(command.Data.Duration() * time.Microsecond)
+			return
+		}
+	}
+
+	log.Fatalf(`Load Level Outside Range`)
 }
 
 func executeRequestCommandHelper(cmd script.RequestCommand) bool {
