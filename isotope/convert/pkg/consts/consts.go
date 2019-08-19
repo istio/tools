@@ -41,6 +41,9 @@ const (
 	// the name of the service.
 	ServiceNameEnvKey = "SERVICE_NAME"
 
+	// Load Level (QPS) of the experiment.
+	LoadEnvKey = "LOAD"
+
 	// FortioMetricsPort is the port on which /metrics is available.
 	FortioMetricsPort = 42422
 )

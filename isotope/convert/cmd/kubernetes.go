@@ -58,6 +58,9 @@ var kubernetesCmd = &cobra.Command{
 		environmentName, err := cmd.PersistentFlags().GetString("environment-name")
 		exitIfError(err)
 
+		loadLevel, err := cmd.PersistentFlags().GetInt("load-level")
+		exitIfError(err)
+
 		yamlContents, err := ioutil.ReadFile(inPath)
 		exitIfError(err)
 
@@ -66,7 +69,7 @@ var kubernetesCmd = &cobra.Command{
 
 		manifests, err := kubernetes.ServiceGraphToKubernetesManifests(
 			serviceGraph, serviceNodeSelector, serviceImage,
-			serviceMaxIdleConnectionsPerHost, clientNodeSelector, clientImage, environmentName)
+			serviceMaxIdleConnectionsPerHost, clientNodeSelector, clientImage, environmentName, loadLevel)
 		exitIfError(err)
 
 		fmt.Println(string(manifests))
@@ -88,6 +91,8 @@ func init() {
 		"client-node-selector", "", "the node selector for client workloads")
 	kubernetesCmd.PersistentFlags().String(
 		"service-node-selector", "", "the node selector for service workloads")
+	kubernetesCmd.PersistentFlags().Int(
+		"load-level", 1, "load-level (QPS) of the experiment")
 }
 
 func splitByEquals(s string) (k string, v string, err error) {

@@ -126,6 +126,13 @@ def _test_service_graph(yaml_path: str, test_result_output_path: str,
 
     wait.until_namespace_is_deleted(consts.SERVICE_GRAPH_NAMESPACE)
 
+def _set_env_variable(namespace: str, env_var_key: str, env_var_value: str):
+    sh.run_kubectl([
+        'set', 'env', '-n', namespace, 'deployments', '--all',
+        env_var_key + "=" + env_var_value
+    ])
+    wait.until_deployments_are_ready(consts.SERVICE_GRAPH_NAMESPACE)
+    time.sleep(30)
 
 def _run_load_test(result_output_path: str, test_target_url: str,
                    test_qps: Optional[int], test_duration: str,
@@ -147,7 +154,10 @@ def _run_load_test(result_output_path: str, test_target_url: str,
     logging.info('starting load test')
     with kubectl.port_forward("app", consts.CLIENT_NAME, consts.CLIENT_PORT,
                               consts.DEFAULT_NAMESPACE) as local_port:
+
         qps = -1 if test_qps is None else test_qps  # -1 indicates max QPS.
+        _set_env_variable(consts.SERVICE_GRAPH_NAMESPACE, "LOAD", str(qps))
+        
         url = ('http://localhost:{}/fortio'
                '?json=on&qps={}&t={}&c={}&load=Start&url={}').format(
                    local_port, qps, test_duration,
