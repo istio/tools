@@ -37,7 +37,7 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 		{
 			[]byte(`[{"sleep": {"SleepCommand": [{"Load": {"Min": 0, "Max": 100}, "type": "static", "data": {"time": "1s"}}]}}]`),
 			Script{
-				SleepCommand{[]SleepCommandData{SleepCommandData{Range{uint64(0),uint64(100)}, Static, SleepCommandStatic{1 * time.Second}}}},
+				SleepCommand{[]SleepCommandData{{Range{uint64(0), uint64(100)}, Static, SleepCommandStatic{1 * time.Second}}}},
 			},
 			nil,
 		},
@@ -45,7 +45,7 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 			[]byte(`[{"call": "A"}, {"sleep": {"SleepCommand": [{"Load": {"Min": 0, "Max": 100}, "type": "static", "data": {"time": "10ms"}}]}}]`),
 			Script{
 				RequestCommand{ServiceName: "A"},
-				SleepCommand{[]SleepCommandData{SleepCommandData{Range{uint64(0),uint64(100)}, Static, SleepCommandStatic{10 * time.Millisecond}}}},
+				SleepCommand{[]SleepCommandData{{Range{uint64(0), uint64(100)}, Static, SleepCommandStatic{10 * time.Millisecond}}}},
 			},
 			nil,
 		},
@@ -56,7 +56,7 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 					RequestCommand{ServiceName: "A"},
 					RequestCommand{ServiceName: "B"},
 				},
-				SleepCommand{[]SleepCommandData{SleepCommandData{Range{uint64(0),uint64(100)}, Static, SleepCommandStatic{10 * time.Millisecond}}}},
+				SleepCommand{[]SleepCommandData{{Range{uint64(0), uint64(100)}, Static, SleepCommandStatic{10 * time.Millisecond}}}},
 			},
 			nil,
 		},

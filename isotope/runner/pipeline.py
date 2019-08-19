@@ -16,10 +16,16 @@ _REPO_ROOT = os.path.join(os.getcwd(),
 _MAIN_GO_PATH = os.path.join(_REPO_ROOT, 'convert', 'main.go')
 
 
-def run(topology_path: str, env: mesh.Environment, service_image: str,
-        client_image: str, istio_archive_url: str, test_qps: Optional[int],
-        test_duration: str, test_num_concurrent_connections: int,
-        static_labels: Dict[str, str], deploy_prometheus=False) -> None:
+def run(topology_path: str,
+        env: mesh.Environment,
+        service_image: str,
+        client_image: str,
+        istio_archive_url: str,
+        test_qps: Optional[int],
+        test_duration: str,
+        test_num_concurrent_connections: int,
+        static_labels: Dict[str, str],
+        deploy_prometheus=False) -> None:
     """Runs a load test on the topology in topology_path with the environment.
 
     Args:
@@ -85,17 +91,26 @@ def _gen_yaml(topology_path: str, service_image: str,
     service_graph_node_selector = _get_gke_node_selector(
         consts.SERVICE_GRAPH_NODE_POOL_NAME)
     client_node_selector = _get_gke_node_selector(consts.CLIENT_NODE_POOL_NAME)
-    gen = sh.run(
-        [
-            'go', 'run', _MAIN_GO_PATH, 'kubernetes', '--service-image',
-            service_image, '--service-max-idle-connections-per-host',
-            str(max_idle_connections_per_host), '--client-image', client_image,
-            "--environment-name", env_name,
-            '--service-node-selector', service_graph_node_selector,
-            '--client-node-selector', client_node_selector,
-            topology_path,
-        ],
-        check=True)
+    gen = sh.run([
+        'go',
+        'run',
+        _MAIN_GO_PATH,
+        'kubernetes',
+        '--service-image',
+        service_image,
+        '--service-max-idle-connections-per-host',
+        str(max_idle_connections_per_host),
+        '--client-image',
+        client_image,
+        "--environment-name",
+        env_name,
+        '--service-node-selector',
+        service_graph_node_selector,
+        '--client-node-selector',
+        client_node_selector,
+        topology_path,
+    ],
+                 check=True)
     with open(resources.SERVICE_GRAPH_GEN_YAML_PATH, 'w') as f:
         f.write(gen.stdout)
 
@@ -126,6 +141,7 @@ def _test_service_graph(yaml_path: str, test_result_output_path: str,
 
     wait.until_namespace_is_deleted(consts.SERVICE_GRAPH_NAMESPACE)
 
+
 def _set_env_variable(namespace: str, env_var_key: str, env_var_value: str):
     sh.run_kubectl([
         'set', 'env', '-n', namespace, 'deployments', '--all',
@@ -133,6 +149,7 @@ def _set_env_variable(namespace: str, env_var_key: str, env_var_value: str):
     ])
     wait.until_deployments_are_ready(consts.SERVICE_GRAPH_NAMESPACE)
     time.sleep(30)
+
 
 def _run_load_test(result_output_path: str, test_target_url: str,
                    test_qps: Optional[int], test_duration: str,
@@ -157,7 +174,7 @@ def _run_load_test(result_output_path: str, test_target_url: str,
 
         qps = -1 if test_qps is None else test_qps  # -1 indicates max QPS.
         _set_env_variable(consts.SERVICE_GRAPH_NAMESPACE, "LOAD", str(qps))
-        
+
         url = ('http://localhost:{}/fortio'
                '?json=on&qps={}&t={}&c={}&load=Start&url={}').format(
                    local_port, qps, test_duration,
