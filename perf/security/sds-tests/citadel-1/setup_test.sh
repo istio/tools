@@ -38,4 +38,3 @@ inject_workload ${TEMP_DEPLOY_NAME}
 
 echo "Wait 60 seconds for the deployment to be ready ..."
 sleep 60
-
