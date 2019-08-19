@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"log"
 	"time"
-	"fmt"
 	"math/rand"
 
 	"github.com/jmcvetta/randutil"
@@ -81,8 +80,8 @@ type Range struct {
 }
 
 type SleepCommandWrapper struct {
-	Type CommandType `json:"Type"`
 	Load Range `json:"Load"`
+	Type CommandType `json:"Type"`
 	Data json.RawMessage `json:"Data"`
 }
 
@@ -91,7 +90,7 @@ type SleepCommand struct {
 }
 
 type SleepCommandData struct {
-	Load Range
+	Load Range `json:"Load"`
 	Type CommandType
 	Data interface {
 		Duration() time.Duration
@@ -117,8 +116,6 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 	if err != nil {
 		return
 	}
-
-	fmt.Println()
 
 	for _, command := range commands["SleepCommand"] {
 		switch command.Type {
