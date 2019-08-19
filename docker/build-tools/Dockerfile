@@ -150,6 +150,7 @@ ENV BABEL_CLI_VERSION=v7.5.5
 ENV BABEL_CORE_VERSION=v7.5.5
 ENV BABEL_PRESET_ENV=v7.5.5
 ENV BABEL_PRESET_MINIFY_VERSION=v0.5.1
+ENV BABEL_POLYFILL_VERSION=v7.4.4
 
 ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz /tmp
 RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-linux-x64.tar.gz --strip-components=1 -C /usr/local
@@ -165,14 +166,20 @@ RUN npm install --production --global \
     tslint@${TSLINT_VERSION} \
     markdown-spellcheck@${MARKDONN_SPELLCHECK_VERSION} \
     svgstore-cli@${SVGSTORE_CLI_VERSION} \
-    svgo@${SVGO_VERSION}
-
-RUN npm install --production --global \
+    svgo@${SVGO_VERSION} \
     @babel/core@${BABEL_CORE_VERSION} \
     @babel/cli@${BABEL_CLI_VERSION} \
-    @babel/preset-env@${BABEL_PRESET_ENV_VERSION} \
+    @babel/preset-env@${BABEL_PRESET_ENV_VERSION}
+
+RUN npm install --production --save-dev \
     babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
-RUN npm install --save @babel/polyfill
+
+RUN npm install --save-dev \
+    @babel/polyfill@${BABEL_POLYFILL_VERSION}
+
+# Clean up stuff we don't need in the final image
+RUN rm -rf /usr/local/sbin
+RUN rm -rf /usr/local/share
 
 #############
 # Ruby
@@ -255,7 +262,6 @@ COPY --from=binary_tools_context /usr/local/go/ /go/
 COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
 COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
 COPY --from=nodejs_tools_context /usr/local /usr/local
-COPY --from=nodejs_tools_context /package.json /
 COPY --from=nodejs_tools_context /node_modules/ /node_modules/
 
 RUN mkdir -p /gocache && \
