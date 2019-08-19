@@ -1,18 +1,15 @@
 # Note: this image must be built from the root of the repository for access to
 # the vendor folder.
 
-FROM golang:1.10.2 AS builder
-
-RUN go get -u github.com/golang/dep/cmd/dep
+FROM golang:1.12.7 AS builder
 
 WORKDIR /go/src/istio.io/tools
 
 COPY . .
-RUN dep ensure -vendor-only
 
 WORKDIR /go/src/istio.io/tools/isotope/service
 
-RUN CGO_ENABLED=0 GOOS=linux \
+RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux \
     go build -a -installsuffix cgo -o ./main ./main.go
 
 FROM scratch
