@@ -11,19 +11,14 @@ if [[ ! -d "${WD}" ]]; then
   mkdir $WD
 fi
 
-URL=""
-if [[ "$RELEASETYPE" == "daily" ]]; then
-  URL="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-elif [[ "$RELEASETYPE" == "release" ]]; then
-	URL="https://github.com/istio/istio/releases/download/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-elif [[ "$RELEASETYPE" == "pre-release" ]]; then
-	URL="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-else
-  echo "Please specify RELEASETYPE"
+source ../../utils/get_release.sh
+get_release_url $RELEASETYPE $RELEASE
+if [[ -z "$release_url" ]]; then
+  exit
 fi
 
-wget -O "$WD/istio-${RELEASE}-linux.tar.gz" "${URL}"
-tar xfz ${WD}/istio-${RELEASE}-linux.tar.gz -C $WD
+curl -JLo "$WD/istio-${RELEASE}.tar.gz" "${release_url}"
+tar xfz ${WD}/istio-${RELEASE}.tar.gz -C $WD
 
 function inject_workload() {
   local deployfile="${1:?"please specify the workload deployment file"}"
@@ -43,5 +38,3 @@ inject_workload ${TEMP_DEPLOY_NAME}
 echo "Wait 60 seconds for the deployment to be ready ..."
 sleep 60
 
-
-source collect_stats.sh

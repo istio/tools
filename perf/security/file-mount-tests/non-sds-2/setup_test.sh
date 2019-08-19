@@ -11,19 +11,14 @@ if [[ ! -d "${WD}" ]]; then
   mkdir $WD
 fi
 
-URL=""
-if [[ "$RELEASETYPE" == "daily" ]]; then
-  URL="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-elif [[ "$RELEASETYPE" == "release" ]]; then
-	URL="https://github.com/istio/istio/releases/download/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-elif [[ "$RELEASETYPE" == "pre-release" ]]; then
-	URL="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
-else
-  echo "Please specify RELEASETYPE"
+source ../../utils/get_release.sh
+get_release_url $RELEASETYPE $RELEASE
+if [[ -z "$release_url" ]]; then
+  exit
 fi
 
-wget -O "$WD/istio-${RELEASE}-linux.tar.gz" "${URL}"
-tar xfz ${WD}/istio-${RELEASE}-linux.tar.gz -C $WD
+curl -JLo "$WD/istio-${RELEASE}.tar.gz" "${release_url}"
+tar xfz ${WD}/istio-${RELEASE}.tar.gz -C $WD
 
 function inject_workload() {
   local tempdeployfile="${1:?"please specify the template workload deployment file"}"
@@ -51,8 +46,8 @@ function rotate_deployment() {
           . > "${ROTATE_WORKLOAD_YAML}"
   echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Wrote ${ROTATE_WORKLOAD_YAML}"
   # Create ConfigMap workload-deploy and load workload deployment file into ConfigMap workload-deploy.
-  echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl -n ${NAMESPACE} create "
-  "configmap "${workloaddeploymentconfig}" --from-file="${deployfile}"=${deployfile} --cluster ${CLUSTER}"
+  echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl -n ${NAMESPACE} create \
+  configmap "${workloaddeploymentconfig}" --from-file="${deployfile}"=${deployfile} --cluster ${CLUSTER}"
   kubectl -n ${NAMESPACE} create configmap "${workloaddeploymentconfig}" --from-file="${deployfile}"=${deployfile} --cluster ${CLUSTER}
   # Create ConfigMap script and load workload rotate script into ConfigMap script.
   # Create a deployment to mount the workload deployment file and rotate script, and execute the script
