@@ -17,8 +17,8 @@ package script
 import (
 	"encoding/json"
 	"log"
-	"time"
 	"math/rand"
+	"time"
 
 	"github.com/jmcvetta/randutil"
 	"gonum.org/v1/gonum/stat/distuv"
@@ -30,7 +30,7 @@ const (
 	Static       CommandType = "static"
 	Histogram    CommandType = "histogram"
 	Distribution CommandType = "dist"
-	RawData CommandType = "raw"
+	RawData      CommandType = "raw"
 )
 
 type SleepCommandRaw struct {
@@ -52,7 +52,7 @@ func (c SleepCommandStatic) Duration() time.Duration {
 
 type SleepCommandDistribution struct {
 	DistName string `json:"name"`
-	Dist interface {
+	Dist     interface {
 		Rand() float64
 	} `json:"Dist"`
 }
@@ -80,8 +80,8 @@ type Range struct {
 }
 
 type SleepCommandWrapper struct {
-	Load Range `json:"Load"`
-	Type CommandType `json:"Type"`
+	Load Range           `json:"Load"`
+	Type CommandType     `json:"Type"`
 	Data json.RawMessage `json:"Data"`
 }
 
@@ -129,7 +129,8 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 
 			var staticCmd SleepCommandStatic
 
-			switch cmd["time"].(type) {
+			t := cmd["time"]
+			switch t.(type) {
 			case string:
 				staticCmd.Time, err = time.ParseDuration(cmd["time"].(string))
 
@@ -139,7 +140,7 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 			case float64:
 				staticCmd.Time = time.Duration(cmd["time"].(float64)) * time.Nanosecond
 			}
-			
+
 			c.SleepCommand = append(c.SleepCommand, SleepCommandData{command.Load, command.Type, staticCmd})
 
 		case Distribution:
