@@ -49,10 +49,16 @@
 //   some of the gogoproto go_package definition are illformed. Be sure to use
 //   the original .proto files for the google protobuf types.
 //
-// 2. Validating generated CUE
 //
-// The generated CUE from the previous step may be combined with other sources
-// of CUE constraints. This step validates the combined sources for consistency.
+// 2. Combine and validate generated CUE
+//
+// CUE files that reside in the same directory as a .proto file and that have
+// the same package name as the corresponding Go package are automatically
+// merged into the generated CUE definitions. Merging happens based on the
+// generated CUE names.
+//
+// The combines CUE definitions are validated for consistency before proceeding
+// to the next step.
 //
 //
 // 3. Converting CUE to OpenAPI
@@ -72,7 +78,6 @@
 // explicit about any order or injection points.
 //
 // Examples of other possible CUE sources are:
-// - hand-written .cue files in each of the cue directories
 // - constraints extracted from Go code
 //
 package main
@@ -84,10 +89,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -99,6 +106,9 @@ import (
 	"cuelang.org/go/encoding/protobuf"
 	"github.com/emicklei/proto"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/ghodss/yaml"
+
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 )
 
 var (
@@ -107,10 +117,12 @@ var (
 
 	inplace = flag.Bool("inplace", false, "generate configurations in place")
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
-	verbose = flag.Bool("v", false, "print debugging output")
+	verbose = flag.Bool("verbose", false, "print debugging output")
 
 	// manually configuring builds
 	all = flag.Bool("all", false, "combine all the matched outputs in a single file; the 'all' section must be specified in the configuration")
+
+	crd = flag.Bool("crd", false, "generate CRD validation yaml based on the Istio protos and cue files")
 )
 
 const (
@@ -211,30 +223,24 @@ func main() {
 		fatal(err, "Error generating CUE from proto")
 	}
 
-	modRoot := cwd
-	if !*inplace {
-		modRoot, err = ioutil.TempDir("", "genoapi")
-		if err != nil {
-			log.Fatalf("Error creating temp dir: %v", err)
-		}
-		defer os.RemoveAll(modRoot)
-	}
-
 	c.cwd = cwd
-	c.modRoot = modRoot
 
+	overlay := map[string]load.Source{}
 	for _, f := range files {
-		b, err := format.Node(f)
-		if err != nil {
-			fatal(err, "Error formatting file: ")
-		}
 		filename := f.Filename
 		relPath, _ := filepath.Rel(cwd, filename)
-		filename = filepath.Join(modRoot, relPath)
+		filename = filepath.Join(cwd, relPath)
+		overlay[filename] = load.FromFile(f)
 
-		_ = os.MkdirAll(filepath.Dir(filename), 0755)
-		if err := ioutil.WriteFile(filename, b, 0644); err != nil {
-			log.Fatalf("Error writing file: %v", err)
+		if *inplace {
+			b, err := format.Node(f)
+			if err != nil {
+				fatal(err, "Error formatting file: ")
+			}
+			_ = os.MkdirAll(filepath.Dir(filename), 0755)
+			if err := ioutil.WriteFile(filename, b, 0644); err != nil {
+				log.Fatalf("Error writing file: %v", err)
+			}
 		}
 	}
 
@@ -250,6 +256,7 @@ func main() {
 	builder := &builder{
 		Config:     c,
 		protoNames: protoNames,
+		overlay:    overlay,
 	}
 
 	// Build the OpenAPI files.
@@ -258,6 +265,17 @@ func main() {
 			log.Fatalf("Must specify the all section in the configuration")
 		}
 		builder.genAll(c.All)
+	} else if *crd {
+		if c.Crd == nil {
+			log.Fatalf("Must specify the crd section in the configuration")
+		}
+		if c.Crd.Filename == "" {
+			c.Crd.Filename = "customresourcedefinitions"
+		}
+		if c.Crd.Dir == "" {
+			c.Crd.Dir = "kubernetes"
+		}
+		builder.genCRD()
 	} else {
 		err := c.completeBuildPlan()
 		if err != nil {
@@ -274,12 +292,14 @@ func main() {
 type builder struct {
 	*Config
 	protoNames map[string]string
+	overlay    map[string]load.Source
 }
 
 func (x *builder) gen(dir string, g *Grouping) {
 	cfg := &load.Config{
-		Dir:    x.modRoot,
-		Module: x.Module,
+		Dir:     x.cwd,
+		Module:  x.Module,
+		Overlay: x.overlay,
 	}
 
 	instances := load.Instances([]string{"./" + dir}, cfg)
@@ -302,8 +322,9 @@ func (x *builder) gen(dir string, g *Grouping) {
 
 func (x *builder) genAll(g *Grouping) {
 	cfg := &load.Config{
-		Dir:    x.modRoot,
-		Module: x.Module,
+		Dir:     x.cwd,
+		Module:  x.Module,
+		Overlay: x.overlay,
 	}
 
 	instances := load.Instances([]string{"./..."}, cfg)
@@ -336,8 +357,65 @@ func (x *builder) genAll(g *Grouping) {
 	x.writeOpenAPI(schemas, g)
 }
 
+func (x *builder) genCRD() {
+	cfg := &load.Config{
+		Dir:     x.cwd,
+		Module:  x.Module,
+		Overlay: x.overlay,
+	}
+
+	instances := load.Instances([]string{"./..."}, cfg)
+	all := cue.Build(instances)
+	for _, inst := range all {
+		if inst.Err != nil {
+			fatal(inst.Err, "Instance failed")
+		}
+	}
+
+	generated := map[string]bool{}
+
+	for n := range x.Config.Crd.CrdConfigs {
+		generated[n] = false
+	}
+
+	var crds []apiext.CustomResourceDefinition
+
+	for _, inst := range all {
+		items, err := x.genOpenAPI(inst.ImportPath, inst)
+		if err != nil {
+			fatal(err, "Error generating OpenAPI schema")
+		}
+		for _, kv := range items.Pairs() {
+			for c, v := range x.Config.Crd.CrdConfigs {
+				if generated[c] {
+					continue
+				}
+
+				if v.SchemaName == kv.Key {
+					crd := x.getCRD(v, kv.Value)
+					crds = append(crds, crd)
+					generated[c] = true
+				}
+			}
+		}
+	}
+
+	for n, b := range generated {
+		if !b {
+			fmt.Printf("CRD for %v is not generated\n", n)
+		}
+	}
+
+	// make sure the generated CRDs are in the same order over time.
+	sort.Slice(crds, func(i, j int) bool {
+		return crds[i].GetObjectMeta().GetName() < crds[j].GetObjectMeta().GetName()
+	})
+
+	x.writeCRDFiles(crds)
+}
+
 func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedMap, error) {
-	fmt.Printf("Building %s...\n", name)
+	fmt.Printf("Building OpenAPIs for %s...\n", name)
 
 	if err := inst.Value().Validate(); err != nil {
 		fatal(err, "Validation failed.")
@@ -349,23 +427,30 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 	}
 
 	gen.DescriptionFunc = func(v cue.Value) string {
-		docs := v.Doc()
-		if len(docs) > 0 {
+		for _, doc := range v.Doc() {
+			if doc.Text() == "" {
+				continue
+			}
 			// Cut off first section, but don't stop if this ends with
 			// an example, list, or the like, as it will end weirdly.
 			// Also remove any protoc-gen-docs annotations at the beginning
 			// and any new-line.
-			split := strings.Split(docs[0].Text(), "\n\n")
+			split := strings.Split(doc.Text(), "\n\n")
 			k := 1
 			for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
 			}
 			s := strings.Fields(strings.Join(split[:k], "\n"))
-			i := 1
-			for ; i < len(s) && strings.HasPrefix(s[i-1], "$"); i++ {
+			for i := 0; i < len(s) && strings.HasPrefix(s[i], "$"); i++ {
+				s[i] = ""
 			}
-			return strings.Join(s[i-1:], " ")
+			return strings.Join(s, " ")
 		}
 		return ""
+	}
+
+	if *crd {
+		// CRD schema does not allow $ref fields.
+		gen.ExpandReferences = true
 	}
 
 	return gen.Schemas(inst)
@@ -374,13 +459,14 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 // reference defines the references format based on the protobuf naming.
 func (x *builder) reference(goPkg string, path []string) string {
 	name := strings.Join(path, ".")
-	// Map CUE names to proto names.
-	name = strings.Replace(name, "_", ".", -1)
 
 	pkg := x.protoNames[goPkg]
 	if pkg == "" {
-		log.Fatalf("No protoname for pkg with import path %q", goPkg)
+		// Not a proto package, expand in place.
+		return ""
 	}
+	// Map CUE names to proto names.
+	name = strings.Replace(name, "_", ".", -1)
 	return pkg + "." + name
 }
 
@@ -452,9 +538,45 @@ func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
 	_ = json.Indent(&buf, b, "", "  ")
 
 	filename := filepath.Join(x.cwd, g.dir, g.OapiFilename)
+	fmt.Printf("Writing OpenAPI schemas into %v...\n", filename)
 	err = ioutil.WriteFile(filename, buf.Bytes(), 0644)
 	if err != nil {
 		log.Fatalf("Error writing OpenAPI file %s in dir %s: %v", g.OapiFilename, g.dir, err)
+	}
+}
+
+func (x *builder) writeCRDFiles(crds []apiext.CustomResourceDefinition) {
+	dirPath := filepath.Join(x.cwd, x.Config.Crd.Dir)
+	// ensure the directory exists
+	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
+		log.Fatalf("Cannot create directory for CRD output: %v", err)
+	}
+	filename := fmt.Sprintf("%v.gen.yaml", x.Config.Crd.Filename)
+	path := filepath.Join(x.cwd, x.Config.Crd.Dir, filename)
+	fmt.Printf("Writing CRDs into %v...\n", path)
+	out, err := os.Create(path)
+	if err != nil {
+		log.Fatalf("Cannot create file %v: %v", path, err)
+	}
+	defer out.Close()
+
+	if _, err = out.WriteString("# DO NOT EDIT - Generated by Cue OpenAPI generator."); err != nil {
+		log.Fatal(err)
+	}
+	for _, crd := range crds {
+		y, err := yaml.Marshal(crd)
+		if err != nil {
+			log.Fatalf("Error marsahling CRD to yaml: %v", err)
+		}
+		// keep the quotes in the output which is required by helm.
+		y = bytes.ReplaceAll(y, []byte("helm.sh/resource-policy: keep"), []byte(`"helm.sh/resource-policy": keep`))
+		n, err := out.Write(append([]byte("\n---\n"), y...))
+		if err != nil {
+			log.Fatalf("Error writing to yaml file: %v", err)
+		}
+		if n < len(y) {
+			log.Fatalf("Error writing to yaml file: %v", io.ErrShortWrite)
+		}
 	}
 }
 

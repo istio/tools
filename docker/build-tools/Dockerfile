@@ -1,4 +1,34 @@
-FROM golang:1.12 as build_tools_context
+# Copyright 2019 Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This is used to build Istio's primary build container, which contains all the tools
+# necessary to perform and all build activities in all Istio repos.
+#
+# The container is built using different contexts, one per execution environment (plain binaries, Ruby, nodejs), and
+# then combined into the final image.
+#
+# We pin versions of stuff we install. Modify the various XXX_VERSION variables within the indivudual build contexts
+# in order to control these versions.
+#
+# NOTE: This is still a work-in-progress and only some Istio repos use this. More tools will be
+# added here as we onboard more repos.
+
+#############
+# Binary tools
+#############
+
+FROM golang:1.12.5 as binary_tools_context
 
 # Pinned versions of stuff we pull in
 ENV PROTOBUF_VERSION=3.6.1
@@ -9,19 +39,22 @@ ENV PROTOTOOL_VERSION=v1.8.0
 ENV COUNTERFEITER_VERSION=v6.2.2
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV GOLANGCI_LINT_VERSION=v1.16.0
+ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
+ENV GO_BINDATA_VERSION=v3.0.8-0.20180305030458-6025e8de665b
+ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
+ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
+ENV SHELLCHECK_VERSION=v0.7.0
+ENV HUGO_VERSION=0.55.5
+ENV HADOLINT_VERSION=v1.17.1
 
 ENV OUTDIR=/out
 
 # Update distro and install dependencies
-# TODO we probably don't need all this stuff...
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     upx \
- && rm -rf /var/lib/apt/lists/*
-
-# Prepare common output directories
-RUN mkdir -p /usr/bin /usr/include
+    xz-utils
 
 # Install protoc
 WORKDIR /tmp
@@ -31,18 +64,25 @@ RUN unzip /tmp/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip
 # Install necessary protoc includes
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/protobuf
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/rpc
+RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/api
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/gogoproto
+RUN mkdir -p ${OUTDIR}/usr/include/protobuf/validate
 
 RUN for f in any duration descriptor empty struct timestamp wrappers; do \
             curl -L -o ${OUTDIR}/usr/include/protobuf/google/protobuf/${f}.proto https://raw.githubusercontent.com/google/protobuf/master/src/google/protobuf/${f}.proto; \
         done
-RUN for f in code error_details status http; do \
+RUN for f in code error_details status; do \
             curl -L -o ${OUTDIR}/usr/include/protobuf/google/rpc/${f}.proto https://raw.githubusercontent.com/istio/gogo-genproto/master/googleapis/google/rpc/${f}.proto; \
         done
+RUN for f in http annotations; do \
+            curl -L -o ${OUTDIR}/usr/include/protobuf/google/api/${f}.proto https://raw.githubusercontent.com/istio/gogo-genproto/master/googleapis/google/api/${f}.proto; \
+        done
+RUN curl -L -o ${OUTDIR}/usr/include/protobuf/validate/validate.proto https://raw.githubusercontent.com/envoyproxy/protoc-gen-validate/${PROTOC_GEN_VALIDATE_VERSION}/validate/validate.proto
 RUN curl -L -o ${OUTDIR}/usr/include/protobuf/gogoproto/gogo.proto https://raw.githubusercontent.com/gogo/protobuf/master/gogoproto/gogo.proto
 
-# Install external dependencies
+# Install a bunch of Go tools
 RUN GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
 RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
 RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
 RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
@@ -51,52 +91,189 @@ RUN GO111MODULE=on go get github.com/nilslice/protolock/cmd/protolock@${PROTOLOC
 RUN GO111MODULE=on go get github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
 RUN GO111MODULE=on go get golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN go get github.com/jteeuwen/go-bindata/go-bindata
+RUN GO111MODULE=on go get github.com/jteeuwen/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN GO111MODULE=on go get github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
+RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
 
-# Install latest versions of custom Istio tools
-RUN go get istio.io/tools/protoc-gen-docs
-RUN go get istio.io/tools/cmd/annotations_prep
+# Install latest version of Istio-owned tools
+RUN GO111MODULE=on go get istio.io/tools/protoc-gen-docs
+RUN GO111MODULE=on go get istio.io/tools/cmd/annotations_prep
+RUN GO111MODULE=on go get istio.io/tools/openapi/cue
 
 # Put the stuff we need in its final output location
 RUN mkdir -p ${OUTDIR}/go/bin
+RUN mkdir -p ${OUTDIR}/usr/bin
 RUN mkdir -p ${OUTDIR}/usr/include
 
-RUN cp -aR /tmp/bin/protoc ${OUTDIR}/go/bin
+RUN cp -aR /tmp/bin/protoc ${OUTDIR}/usr/bin
 RUN cp -aR /tmp/include/* ${OUTDIR}/usr/include
 RUN cp -aR /go/bin/* ${OUTDIR}/go/bin
 
-# Use inplace decompression on the go toolchain binaries
+# ShellCheck linter
+ADD https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
+RUN tar -xJf /tmp/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz -C /tmp
+RUN cp /tmp/shellcheck-${SHELLCHECK_VERSION}/shellcheck ${OUTDIR}/usr/bin/shellcheck
+
+# Hadolint linter
+ADD https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64 ${OUTDIR}/usr/bin/hadolint
+
+# Hugo static site generator
+ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz /tmp
+RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C ${OUTDIR}/usr/bin
+
+# Use inplace decompression on the go binaries
 RUN upx --lzma ${OUTDIR}/go/bin/*
 
-# Create a golang toolchain context
-FROM golang:1.12 as golang_context
+# Cleanup stuff we don't need in the final image
+RUN rm -fr /usr/local/go/doc
+RUN rm -fr /usr/local/go/test
+RUN rm -fr /usr/local/go/api
+RUN rm -fr /usr/local/go/bin/godoc
+RUN rm -fr /usr/local/go/bin/gofmt
 
-# Build a base os context
+#############
+# Nodejs
+#############
+
+FROM ubuntu:xenial as nodejs_tools_context
+
+ENV NODEJS_VERSION=12.8.0
+ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
+ENV SASS_LINT_VERSION=v1.13.1
+ENV TYPESCRIPT_VERSION=v3.5.3
+ENV TSLINT_VERSION=v5.18.0
+ENV SASS_VERSION=v1.22.10
+ENV SVGO_VERSION=v1.3.0
+ENV SVGSTORE_CLI_VERSION=v1.3.1
+ENV BABEL_CLI_VERSION=v7.5.5
+ENV BABEL_CORE_VERSION=v7.5.5
+ENV BABEL_PRESET_ENV=v7.5.5
+ENV BABEL_PRESET_MINIFY_VERSION=v0.5.1
+ENV BABEL_POLYFILL_VERSION=v7.4.4
+
+ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz /tmp
+RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-linux-x64.tar.gz --strip-components=1 -C /usr/local
+
+ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-headers.tar.gz /tmp
+RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-headers.tar.gz --strip-components=1 -C /usr/local
+
+RUN npm init -y
+RUN npm install --production --global \
+    sass@${SASS_VERSION} \
+    sass-lint@${SASS_LINT_VERSION} \
+    typescript@${TYPESCRIPT_VERSION} \
+    tslint@${TSLINT_VERSION} \
+    markdown-spellcheck@${MARKDONN_SPELLCHECK_VERSION} \
+    svgstore-cli@${SVGSTORE_CLI_VERSION} \
+    svgo@${SVGO_VERSION} \
+    @babel/core@${BABEL_CORE_VERSION} \
+    @babel/cli@${BABEL_CLI_VERSION} \
+    @babel/preset-env@${BABEL_PRESET_ENV_VERSION}
+
+RUN npm install --production --save-dev \
+    babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
+
+RUN npm install --save-dev \
+    @babel/polyfill@${BABEL_POLYFILL_VERSION}
+
+# Clean up stuff we don't need in the final image
+RUN rm -rf /usr/local/sbin
+RUN rm -rf /usr/local/share
+
+#############
+# Ruby
+#############
+
+FROM ubuntu:xenial as ruby_tools_context
+
+ENV RUBY_VERSION=2.6.3
+ENV HTMLPROOFER_VERSION=3.9.2
+ENV MDL_VERSION=0.5.0
+ENV AWESOMEBOT_VERSION=1.19.1
+
+RUN apt-get -y update && apt-get -y install --no-install-recommends \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev
+
+ADD https://cache.ruby-lang.org/pub/ruby/2.6/ruby-${RUBY_VERSION}.tar.gz /tmp
+WORKDIR /tmp
+RUN tar -xzf ruby-${RUBY_VERSION}.tar.gz
+WORKDIR /tmp/ruby-${RUBY_VERSION}
+RUN ./configure
+RUN make
+RUN make install
+
+# Install istio.io verification tools
+RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
+RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
+RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
+
+#############
+# Base OS
+#############
+
 FROM ubuntu:xenial as base_os_context
 
-# required for golang: ca-certificates, gcc, libc-dev,git
+# required for golang: ca-certificates, gcc, libc-dev, git
 # required for general build: make, wget, curl
+# required for ruby: libcurl4-openssl-dev
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    make \
-    gcc \
-    libc-dev \
-    git \
-    wget \
     curl \
- && rm -rf /var/lib/apt/lists/*
+    gcc \
+    git \
+    libc-dev \
+    make \
+    pkg-config \
+    yamllint \
+    libcurl4-openssl-dev \
+    wget
 
-# Setup to run the Go compiler with host-side build cache, test cache, and module cache
+# Clean up stuff we don't need in the final image
+RUN rm -rf /var/lib/apt/lists/*
+RUN rm -fr /usr/share
+
+#############
+# Final image
+#############
+
+# Prepare final output image
 FROM scratch
 
+# General
+ENV HOME=/root
+
+# Go support
 ENV GO111MODULE=on
+ENV GOPROXY=https://proxy.golang.org
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
-ENV PATH /go/bin:$PATH
+ENV PATH=/go/bin:$PATH
+
+# Ruby suppport
+ENV RUBYOPT="-KU -E utf-8:utf-8"
 
 COPY --from=base_os_context / /
-COPY --from=build_tools_context /out/ /
-COPY --from=golang_context /usr/local/go/ /go/
+COPY --from=binary_tools_context /out/ /
+COPY --from=binary_tools_context /usr/local/go/ /go/
+COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
+COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
+COPY --from=nodejs_tools_context /usr/local /usr/local
+COPY --from=nodejs_tools_context /node_modules/ /node_modules/
+
+RUN mkdir -p /gocache && \
+    mkdir -p /go/pkg/mod
+
+# TODO must sort out how to use uid mapping in docker so these don't need to be 777
+# They are created as root 755.  As a result they are not writeable, which fails in
+# the developer environment as a volume or bind mount inherits the permissions of
+# the directory mounted rather then overridding with the permission of the volume file.
+RUN chmod 777 /gocache && \
+    chmod 777 /go/pkg/mod && \
+    chmod 777 /root && \
+    chmod 777 /go/src
 
 WORKDIR /
