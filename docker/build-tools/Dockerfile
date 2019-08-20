@@ -123,6 +123,29 @@ RUN chmod 555 ${OUTDIR}/usr/bin/hadolint
 ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz /tmp
 RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C ${OUTDIR}/usr/bin
 
+# Replicate k8s.io/api proto structure and generated protos
+# in /usr/include/protobuf/k8s.io/api
+RUN mkdir -p ${OUTDIR}/usr/include/protobuf/k8s.io/api
+RUN git clone https://github.com/kubernetes/api.git
+WORKDIR /tmp/api
+RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/k8s.io/api \;
+
+# Replicate k8s.io/apimachinery proto structure and generated protos
+# in /usr/include/protobuf/k8s.io/apimachinery
+WORKDIR /tmp
+RUN mkdir -p ${OUTDIR}/usr/include/protobuf/k8s.io/apimachinery
+RUN git clone https://github.com/kubernetes/apimachinery.git
+WORKDIR /tmp/apimachinery
+RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/k8s.io/apimachinery \;
+
+# Replicate gogo/protobuf proto structure and generatede protos
+# in /usr/include/protobuf/github.com/gogo/protobuf
+WORKDIR /tmp
+RUN mkdir -p ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf
+RUN git clone https://github.com/gogo/protobuf.git
+WORKDIR /tmp/protobuf
+RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf \;
+
 # Use inplace decompression on the go binaries
 RUN upx --lzma ${OUTDIR}/go/bin/*
 
