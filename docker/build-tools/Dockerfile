@@ -230,9 +230,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
     make \
     pkg-config \
-    python3-pkg-resources \
-    wget \
-    yamllint
+    python3 \
+    wget
+
+# Install pip
+RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+RUN python3 get-pip.py --no-wheel
+
+# Install yamllint
+RUN pip install --user yamllint
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
@@ -247,6 +253,9 @@ FROM scratch
 
 # General
 ENV HOME=/root
+
+# Python app support
+ENV PATH=/root/.local/bin:$PATH
 
 # Go support
 ENV GO111MODULE=on
