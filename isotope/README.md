@@ -100,31 +100,60 @@ Each step in the script includes a command.
 
 `sleep`: Pauses for a duration. Useful for simulating processing time.
 
-One can pass a static value, a histogram, or a probability distribution.
+The `sleep` command is also depedent on the load (QPS). One can specify different processing times for the service for each load level i.e.
+the `sleep` command takes a piece-wise function.
+
+The load levels specified have take integer values.
+
+One can pass a static value, a histogram, a probability distribution or pure raw numbers.
 
 ##### Examples
 
-Each request would pause for 10ms
+For load levels from 0 to 100 QPS (both inclusive) all the queries take
+10ms. Specifying any load level outside the range would result in an error.
 
 ```yaml
-sleep: {type: "static", data: {time: "10ms"}}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 100}, type: "static", data: {time: "10ms"}}
 ```
 
-50\% of the requests would pause for 50ms and the other 50\% would 
+For load levels from 0 to 100 QPS (both inclusive) all the queries take
+10ms which for load levels from 101 to 200 QPS (both inclusive) all the queries take 20 ms.
+
+```yaml
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 100}, type: "static", data: {time: "10ms"}}, {Load: {Min: 101, Max: 200}, type: "static", data: {time: "20ms"}}]}
+```
+
+For load levels from 0 to 1000 QPS (both inclusive) 50\% of the requests would pause for 50ms and the other 50\% would 
 pause for 100ms.
 
 ```yaml
-sleep: {type: "histogram", data: {"50ms": 50, "100ms": 50}}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, "histogram", data: {"50ms": 50, "100ms": 50}}]}
 ```
 
-Each request's pause duration would follow a Normal Random Variable
+For load levels from 0 to 1000 QPS (both inclusive), each request's pause duration would follow a Normal Random Variable
 with mean 1.0 and stdev 0.25
 
 ```yaml
-sleep: {type: "dist", data: {"dist": "normal", "mean": 1.0, "sigma": 0.25}}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, "dist", data: {"dist": "normal", "mean": 1.0, "sigma": 0.25}}]}
 ```
 
-Currently only the "normal" and "lognormal" distributions are supported
+Currently only the following distributions are supported:
+
+1. `normal`
+2. `lognormal`
+3. `beta`
+4. `chi-squared`
+5. `exp`
+6. `f`
+7. `gamma`
+8. `gumbel-right`
+9. `inverse-gamma`
+10. `laplace`
+11. `pareto`
+12. `studentst`
+13. `weibull`
+
+Refer to gonum.org/v1/gonum/stat/distuv for more details on the distributions.
 
 ###### Send Request
 
