@@ -50,6 +50,39 @@ var (
 		"prometheus.io/scrape": "true"}
 )
 
+func GenerateFortioManifests(
+	clientNodeSelector map[string]string,
+	clientImage string) ([]byte, error) {
+	manifests := make([]string, 0, numManifestsPerService)
+
+	appendManifest := func(manifest interface{}) error {
+		yamlDoc, err := yaml.Marshal(manifest)
+		if err != nil {
+			return err
+		}
+		manifests = append(manifests, string(yamlDoc))
+		return nil
+	}
+
+	namespace := makeServiceGraphNamespace()
+	if err := appendManifest(namespace); err != nil {
+		return nil, err
+	}
+
+	fortioDeployment := makeFortioDeployment(
+		clientNodeSelector, clientImage)
+	if err := appendManifest(fortioDeployment); err != nil {
+		return nil, err
+	}
+
+	fortioService := makeFortioService()
+	if err := appendManifest(fortioService); err != nil {
+		return nil, err
+	}
+	yamlDocString := strings.Join(manifests, "---\n")
+	return []byte(yamlDocString), nil
+}
+
 // ServiceGraphToKubernetesManifests converts a ServiceGraph to Kubernetes
 // manifests.
 func ServiceGraphToKubernetesManifests(
