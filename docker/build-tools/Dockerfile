@@ -277,15 +277,14 @@ FROM scratch
 # General
 ENV HOME=/root
 
-# Python app support
-ENV PATH=/root/.local/bin:$PATH
-
 # Go support
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
-ENV PATH=/go/bin:$PATH
+# (TODO) /root/.local/bin is incorrect - but is needed for python support
+# Python packages need to be installed site-wide, not user-wide.
+ENV PATH=/go/bin:$PATH:/root/.local/bin
 
 # Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
