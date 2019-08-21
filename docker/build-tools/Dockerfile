@@ -31,23 +31,23 @@
 FROM golang:1.12.9 as binary_tools_context
 
 # Pinned versions of stuff we pull in
-ENV PROTOC_VERSION=3.6.1
-ENV GOGO_PROTOBUF_VERSION=28a6bbf47e48e0b2220b2a244750b660c83d4942
-ENV GOLANG_PROTOBUF_VERSION=v1.3.1
-ENV PROTOLOCK_VERSION=v0.14.0
-ENV PROTOTOOL_VERSION=v1.8.0
 ENV COUNTERFEITER_VERSION=v6.2.2
-ENV GOIMPORTS_VERSION=379209517ffe
-ENV GOLANGCI_LINT_VERSION=v1.16.0
-ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
 ENV GO_BINDATA_VERSION=v3.0.8-0.20180305030458-6025e8de665b
+ENV GOGO_PROTOBUF_VERSION=28a6bbf47e48e0b2220b2a244750b660c83d4942
+ENV GOIMPORTS_VERSION=379209517ffe
+ENV GOLANG_PROTOBUF_VERSION=v1.3.1
+ENV GOLANGCI_LINT_VERSION=v1.16.0
+ENV HADOLINT_VERSION=v1.17.1
+ENV HELM_VERSION=v2.10.0
+ENV HUGO_VERSION=0.55.5
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
+ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
+ENV PROTOC_VERSION=3.6.1
+ENV PROTOLOCK_VERSION=v0.14.0
+ENV PROTOTOOL_VERSION=v1.8.0
 ENV SHELLCHECK_VERSION=v0.7.0
-ENV HUGO_VERSION=0.55.5
-ENV HADOLINT_VERSION=v1.17.1
 ENV UPX_VERSION=3.95
-ENV HELM_VERSION=v2.10.0
 
 ENV OUTDIR=/out
 WORKDIR /tmp
@@ -104,13 +104,15 @@ RUN mkdir -p ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf
 RUN git clone --depth 1 --single-branch --branch master https://github.com/gogo/protobuf.git
 WORKDIR /tmp/protobuf
 RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf \;
+WORKDIR /tmp
+
+# Remove test-related stuff
 RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/test
 RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/protoc-gen-gogo/testdata
 RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/jsonpb/jsonpb_test_proto
 RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/conformance
 RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/vanity/test
 RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/proto/test_proto
-WORKDIR /tmp
 
 # Build and install a bunch of Go tools
 RUN GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
@@ -173,19 +175,20 @@ RUN rm -fr /usr/local/go/bin/gofmt
 
 FROM ubuntu:xenial as nodejs_tools_context
 
-ENV NODEJS_VERSION=12.8.0
+# Pinned versions of stuff we pull in
+ENV BABEL_CLI_VERSION=v7.5.5
+ENV BABEL_CORE_VERSION=v7.5.5
+ENV BABEL_POLYFILL_VERSION=v7.4.4
+ENV BABEL_PRESET_ENV=v7.5.5
+ENV BABEL_PRESET_MINIFY_VERSION=v0.5.1
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
+ENV NODEJS_VERSION=12.8.0
 ENV SASS_LINT_VERSION=v1.13.1
-ENV TYPESCRIPT_VERSION=v3.5.3
-ENV TSLINT_VERSION=v5.18.0
 ENV SASS_VERSION=v1.22.10
 ENV SVGO_VERSION=v1.3.0
 ENV SVGSTORE_CLI_VERSION=v1.3.1
-ENV BABEL_CLI_VERSION=v7.5.5
-ENV BABEL_CORE_VERSION=v7.5.5
-ENV BABEL_PRESET_ENV=v7.5.5
-ENV BABEL_PRESET_MINIFY_VERSION=v0.5.1
-ENV BABEL_POLYFILL_VERSION=v7.4.4
+ENV TSLINT_VERSION=v5.18.0
+ENV TYPESCRIPT_VERSION=v3.5.3
 
 ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz /tmp
 RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-linux-x64.tar.gz --strip-components=1 -C /usr/local
@@ -222,10 +225,11 @@ RUN rm -rf /usr/local/share
 
 FROM ubuntu:xenial as ruby_tools_context
 
-ENV RUBY_VERSION=2.6.3
+# Pinned versions of stuff we pull in
+ENV AWESOMEBOT_VERSION=1.19.1
 ENV HTMLPROOFER_VERSION=3.9.2
 ENV MDL_VERSION=0.5.0
-ENV AWESOMEBOT_VERSION=1.19.1
+ENV RUBY_VERSION=2.6.3
 
 RUN apt-get -y update && apt-get -y install --no-install-recommends \
     build-essential \
@@ -251,6 +255,7 @@ RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 
 FROM ubuntu:xenial as python_context
 
+# Pinned versions of stuff we pull in
 ENV YAMLLINT_VERSION=1.17.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -280,6 +285,7 @@ FROM ubuntu:xenial as base_os_context
 # required for golang: ca-certificates, gcc, libc-dev, git
 # required for general build: make, wget, curl
 # required for ruby: libcurl4-openssl-dev
+# required for python: python3
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -317,6 +323,7 @@ ENV PATH=/go/bin:$PATH
 # Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
 
+# Create the file system
 COPY --from=base_os_context / /
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go/ /go/
