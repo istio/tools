@@ -46,6 +46,7 @@ ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
 ENV SHELLCHECK_VERSION=v0.7.0
 ENV HUGO_VERSION=0.55.5
 ENV HADOLINT_VERSION=v1.17.1
+ENV UPX_VERSON=3.95
 
 ENV OUTDIR=/out
 
@@ -53,7 +54,6 @@ ENV OUTDIR=/out
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
-    upx \
     xz-utils
 
 # Install protoc
@@ -145,6 +145,12 @@ RUN mkdir -p ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf
 RUN git clone https://github.com/gogo/protobuf.git
 WORKDIR /tmp/protobuf
 RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf \;
+
+WORKDIR /tmp
+ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp
+RUN tar -xJf upx-${UPX_VERSION}-amd64_linux.tar.xz
+RUN cp /tmp/upx-${UPX_VERSION}-amd64_linux/upx /usr/bin
+RUN chmod 755 /usr/bin
 
 # Use inplace decompression on the go binaries
 RUN upx --lzma ${OUTDIR}/go/bin/*
