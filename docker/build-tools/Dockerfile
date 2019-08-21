@@ -46,6 +46,7 @@ ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
 ENV SHELLCHECK_VERSION=v0.7.0
 ENV HUGO_VERSION=0.55.5
 ENV HADOLINT_VERSION=v1.17.1
+ENV HELM_VERSION=v2.10.0
 
 ENV OUTDIR=/out
 
@@ -114,6 +115,11 @@ RUN cp -aR /go/bin/* ${OUTDIR}/go/bin
 ADD https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
 RUN tar -xJf /tmp/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz -C /tmp
 RUN cp /tmp/shellcheck-${SHELLCHECK_VERSION}/shellcheck ${OUTDIR}/usr/bin/shellcheck
+
+# Helm
+ADD https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz /tmp
+RUN tar -xf /tmp/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp
+RUN cp /tmp/linux-amd64/helm ${OUTDIR}/usr/bin/helm
 
 # Hadolint linter
 ADD https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64 ${OUTDIR}/usr/bin/hadolint
