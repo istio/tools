@@ -39,7 +39,9 @@ metadata:
   name: grafana
 spec:
   hosts:
+  {{- if not (eq $.Values.domain "local") }}
   - "grafana.{{ .Values.domain }}"
+  {{ end }}
   - "grafana.local"
   gateways:
   - istio-gateway
@@ -66,7 +68,9 @@ metadata:
   name: kiali
 spec:
   hosts:
+  {{- if not (eq $.Values.domain "local") }}
   - "kiali.{{ .Values.domain }}"
+  {{ end }}
   - "kiali.local"
   gateways:
   - istio-gateway
@@ -83,7 +87,9 @@ metadata:
   name: prom
 spec:
   hosts:
+  {{- if not (eq $.Values.domain "local") }}
   - "prom.{{ .Values.domain }}"
+  {{ end }}
   - "prom.local"
   gateways:
   - istio-gateway
@@ -110,7 +116,9 @@ metadata:
   name: tracing
 spec:
   hosts:
+  {{- if not (eq $.Values.domain "local") }}
   - "tracing.{{ .Values.domain }}"
+  {{ end }}
   - "tracing.local"
   gateways:
   - istio-gateway
