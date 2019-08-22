@@ -13,7 +13,7 @@ PID=$(pgrep envoy)
 # This is specific to the kernel version
 # example: /usr/lib/linux-tools-4.4.0-131/perf
 # provided by `linux-tools-generic`
-PERFDIR=$(find /usr/lib -name 'linux-tools-*' -type d | head)
+PERFDIR=$(find /usr/lib -name 'linux-tools-*' -type d | head -n 1)
 if [[ -z "${PERFDIR}" ]]; then
     echo "Missing perf tool. Install apt-get install linux-tools-generic"
     exit 1
