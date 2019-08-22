@@ -40,6 +40,9 @@ Flame graphs are created from data collected using linux `perf_events` by the `p
     sudo sysctl kernel.kptr_restrict=0
     ```
     This setting is very permissive so it must be used with care.
+    
+    If running perf still gives error:```You may not have permission to collect stats. Consider tweaking /proc/sys/kernel/perf_event_paranoid:```
+    after running above commands, try ssh into node and run the container with --privileged flag.
 
 3. Copy [`get_perfdata.sh`](get_perfdata.sh) to the container and run it as follows. The following command collects samples at `177Hz` for `20s`.
     ```
