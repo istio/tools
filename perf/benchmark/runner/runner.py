@@ -14,7 +14,7 @@ import time
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
 
-def pod_info(filterstr="", namespace="service-graph", multi_ok=True):
+def pod_info(filterstr="", namespace="twopods", multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
         namespace=namespace, filterstr=filterstr)
     op = subprocess.check_output(shlex.split(cmd))
@@ -75,7 +75,7 @@ class Fortio(object):
         self.duration = duration
         self.mode = mode
         self.size = size
-        self.ns = os.environ.get("NAMESPACE", "service-graph")
+        self.ns = os.environ.get("NAMESPACE", "twopods")
         # bucket resolution in seconds
         self.r = "0.00005"
         self.mixer = mixer
@@ -211,7 +211,7 @@ def perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
 
 
 def kubecp(mesh, from_file, to_file):
-    namespace = os.environ.get("NAMESPACE", "service-graph")
+    namespace = os.environ.get("NAMESPACE", "twopods")
     cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c" + mesh + \
         "-proxy".format(from_file=from_file, to_file=to_file, namespace=namespace)
     print(cmd)
@@ -219,7 +219,7 @@ def kubecp(mesh, from_file, to_file):
 
 
 def kubectl(pod, remote_cmd, runfn=run_command, container=None):
-    namespace = os.environ.get("NAMESPACE", "service-graph")
+    namespace = os.environ.get("NAMESPACE", "twopods")
     c = ""
     if container is not None:
         c = "-c " + container
