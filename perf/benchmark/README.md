@@ -13,22 +13,25 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 
 ## Setup 
 
-1. Create a Kubernetes cluster. We provide a GKE cluster-create script in this repo. **Note**: if using your own cluster, see the install [README](https://github.com/istio/tools/tree/master/perf/istio-install#istio-setup) for machine type recommendations. 
+1. Create a Kubernetes cluster. We provide a GKE cluster-create script in this repo. 
+**Note**: The CPU requirement is very high, you may need to update your quota accordingly. If you are using your own cluster, see the install [README](https://github.com/istio/tools/tree/master/perf/istio-install#istio-setup) for machine type recommendations. 
 
 ```bash
-PROJECT_ID=<your-gcp-project>
-ISTIO_VERSION=<version>
-ZONE=<a-gcp-zone>
-CLUSTER_NAME=<any-name>
-../istio-install/create_cluster.sh $CLUSTER_NAME
+cd perf/istio-install/
+export PROJECT_ID=<your-gcp-project>
+export ISTIO_VERSION=<version>
+export ZONE=<a-gcp-zone>
+export CLUSTER_NAME=<any-name>
+./create_cluster.sh $CLUSTER_NAME
 ```
 
 
 2. Install Istio:
 
 ```bash
-ISTIO_RELEASE="release-1.2-latest"  # or any Istio release
-DNS_DOMAIN=local ../istio-install/setup_istio.sh $ISTIO_RELEASE
+export ISTIO_RELEASE="release-1.2-latest"  # or any Istio release
+export DNS_DOMAIN=local 
+./setup_istio.sh $ISTIO_RELEASE
 ```
 
 Wait for all Istio pods to be `Running` and `Ready`:
@@ -43,7 +46,9 @@ kubectl get pods -n istio-system
 export NAMESPACE=twopods
 kubectl create namespace $NAMESPACE
 kubectl label namespace $NAMESPACE istio-injection=enabled
-DNS_DOMAIN=local ./setup_test.sh
+export DNS_DOMAIN=local 
+cd ../benchmark 
+./setup_test.sh
 ```
 
 ## Prepare Python Environment 
