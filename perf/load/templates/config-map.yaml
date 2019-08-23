@@ -47,7 +47,7 @@ data:
 
     ${WD}/rollout.sh &
     ${WD}/scaling.sh &
-    {{/*${WD}/rotate.sh {{ .Values.serviceNamePrefix }}0 {{ .Values.domain }} 60m &*/}}
+    ${WD}/rotate.sh {{ .Values.serviceNamePrefix }}0 {{ .Values.domain }} 60m &
     wait
   rollout.sh: |
     #!/bin/bash
