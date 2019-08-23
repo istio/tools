@@ -66,7 +66,6 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
             intermediate_file_path=resources.ISTIO_GEN_YAML_PATH,
             values=values)
 
-
         _create_ingress_rules(entrypoint_service_name,
                               entrypoint_service_namespace)
 
@@ -106,6 +105,7 @@ def _extract(archive_path: str, extracted_dir_path: str) -> str:
                 archive_path))
     return os.path.join(extracted_dir_path, extracted_items[0])
 
+
 def _apply_crds(path: str, name: str, namespace: str) -> None:
     logging.info('applying crd definitions for Istio')
     sh.run_kubectl(['create', 'namespace', namespace])
@@ -126,7 +126,6 @@ def _apply_crds(path: str, name: str, namespace: str) -> None:
     logging.info('sleeping for 30 seconds as an extra buffer')
     time.sleep(30)
     wait.until_deployments_are_ready(namespace)
-
 
 
 def _install(chart_path: str, namespace: str,

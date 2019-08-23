@@ -3,9 +3,9 @@
 # The original version of this file is located in the https://github.com/istio/common-files repo.
 # If you're looking at this file in a different repo and want to make a change, please go to the
 # common-files repo, make the change there and check it in. Then come back to this repo and run
-# "make updatecommon".
+# "make update-common".
 
-# Copyright 2019 Istio Authors
+# Copyright Istio Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ RUN =
 # figure out all the tools you need in your environment to make that work.
 export BUILD_WITH_CONTAINER ?= 0
 ifeq ($(BUILD_WITH_CONTAINER),1)
-IMG = gcr.io/istio-testing/build-tools:2019-08-16T20-50-36
+IMG = gcr.io/istio-testing/build-tools:2019-08-22T16-27-38
 UID = $(shell id -u)
 PWD = $(shell pwd)
 GOBIN_SOURCE ?= $(GOPATH)/bin
@@ -59,7 +59,7 @@ endif
 
 export GOOS ?= $(GOOS_LOCAL)
 
-RUN = docker run -t --sig-proxy=true -u $(UID) --rm \
+RUN = docker run -t -i --sig-proxy=true -u $(UID) --rm \
 	-e GOOS="$(GOOS)" \
 	-e GOARCH="$(GOARCH)" \
 	-e GOBIN="$(GOBIN)" \

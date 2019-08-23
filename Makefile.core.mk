@@ -1,37 +1,29 @@
-BASE := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-GOPATH = $(shell cd ${BASE}/../../..; pwd)
-TOP ?= $(GOPATH)
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-${GOPATH}/src/istio.io/istio:
-	mkdir -p $GOPATH/src/istio.io
-	git clone https://github.com/istio/istio.git ${GOPATH}/src/istio.io/istio
+build:
+	@go build ./...
 
-${GOPATH}/src/istio.io/installer:
-	mkdir -p $GOPATH/src/istio.io/installer
-	git clone https://github.com/istio/installer.git ${GOPATH}/src/istio.io/installer
-
-init: ${GOPATH}/src/istio.io/istio ${GOPATH}/src/istio.io/installer
-	mkdir -p ${GOPATH}/src/istio.io/istio
-
-test: init
-	$(MAKE) -C ${GOPATH}/src/istio.io/installer test $(MAKEFLAGS)
+test:
+	@go test -race ./...
 
 check-stability:
 	./metrics/check_metrics.py
 
-lint:
-	# These PATH hacks are temporary until prow properly sets its paths
-	@PATH=${PATH}:${GOPATH}/bin scripts/check_license.sh
-	@PATH=${PATH}:${GOPATH}/bin scripts/run_golangci.sh
+lint: lint-python lint-go
 
-fmt:
-	@scripts/run_gofmt.sh
-
-fmtpy-checkandupdate:
-	@scripts/check_pyfmt.sh true
-
-fmtpy-checkonly:
-	@scripts/check_pyfmt.sh false
+fmt: format-go format-python
 
 containers:
 	@cd docker/build-tools && ./build-and-push.sh
