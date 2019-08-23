@@ -10,7 +10,7 @@ function install_prometheus() {
   DIRNAME=$(cd $DIRNAME; pwd)
   INSTALLER_DIR="${DIRNAME}/installer"
 
-  git clone https://github.com/istio/installer.git  "$INSTALLER_DIR"
+  git clone https://github.com/istio/installer.git "$INSTALLER_DIR" || true # If it already exists, reuse
 
   # Create GCP SSD Storage class for Prometheus to use. May not work outside GKE
   kubectl apply -f "${WD}/../prometheus-install/ssd-storage-class.yaml"
@@ -25,9 +25,11 @@ function install_prometheus() {
   until timeout 60s kubectl get crds/podmonitors.monitoring.coreos.com; do echo "Waiting for CRDs to be created..."; done
   until timeout 60s kubectl get crds/prometheusrules.monitoring.coreos.com; do echo "Waiting for CRDs to be created..."; done
   until timeout 60s kubectl get crds/servicemonitors.monitoring.coreos.com; do echo "Waiting for CRDs to be created..."; done
-  helm template --namespace istio-prometheus "${INSTALLER_DIR}"/istio-telemetry/prometheus-operator/ -f "${INSTALLER_DIR}"/global.yaml --set prometheus.createPrometheusResource=true | kubectl apply -n istio-prometheus -f -
 
-  kubectl delete pod -l app=grafana
+  helm template --namespace istio-prometheus "${INSTALLER_DIR}"/istio-telemetry/prometheus-operator/ -f "${INSTALLER_DIR}"/global.yaml | kubectl apply -n istio-prometheus -f -
+
+  # Install Promethues
+  kubectl apply -f "${WD}/../prometheus-install/prometheus.yaml"
 }
 
 install_prometheus $1

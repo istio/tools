@@ -1,0 +1,149 @@
+---
+# Source: prometheus-operator/templates/prometheus.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus
+  namespace: istio-prometheus
+  labels:
+spec:
+  image: "docker.io/prom/prometheus:v2.8.0"
+  version: v2.8.0
+  retention: 6h
+  scrapeInterval: 15s
+  serviceAccountName: prometheus
+  serviceMonitorSelector:
+    any: true
+  serviceMonitorNamespaceSelector:
+    any: true
+  secrets: [ istio.prometheus ]
+  enableAdminAPI: false
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                  - amd64
+                  - ppc64le
+                  - s390x
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 2
+          preference:
+            matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                  - amd64
+        - weight: 2
+          preference:
+            matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                  - ppc64le
+        - weight: 2
+          preference:
+            matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                  - s390x
+  podMetadata:
+    labels:
+      app: prometheus
+    annotations:
+      sidecar.istio.io/inject: "false"
+  resources:
+    requests:
+      memory: 400Mi
+  securityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+  storage:
+    volumeClaimTemplate:
+      selector: {}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 500Gi
+        storageClassName: ssd
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-istio-prometheus
+  labels:
+    app: prometheus
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - services
+      - endpoints
+      - pods
+      - nodes/proxy
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources:
+      - configmaps
+    verbs: ["get"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-istio-prometheus
+  labels:
+    app: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-istio-prometheus
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: istio-prometheus
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: prometheus
+  namespace: istio-prometheus
+spec:
+  host: prometheus.istio-prometheus.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: istio-prometheus
+  namespace: istio-prometheus
+  annotations:
+    prometheus.io/scrape: 'true'
+  labels:
+    app: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - name: http-prometheus
+      protocol: TCP
+      port: 9090
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: istio-prometheus
+  labels:
+    app: prometheus
