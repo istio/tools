@@ -40,6 +40,7 @@ ENV GOLANGCI_LINT_VERSION=v1.16.0
 ENV HADOLINT_VERSION=v1.17.1
 ENV HELM_VERSION=v2.10.0
 ENV HUGO_VERSION=0.55.5
+ENV KUBECTL_VERSION=1.15.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
 ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
@@ -87,18 +88,6 @@ RUN curl -L -o ${OUTDIR}/usr/include/protobuf/validate/validate.proto https://ra
 
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/gogoproto
 RUN curl -L -o ${OUTDIR}/usr/include/protobuf/gogoproto/gogo.proto https://raw.githubusercontent.com/gogo/protobuf/master/gogoproto/gogo.proto
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/k8s.io/api
-RUN git clone --depth 1 --single-branch --branch master https://github.com/kubernetes/api.git
-WORKDIR /tmp/api
-RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/k8s.io/api \;
-WORKDIR /tmp
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/k8s.io/apimachinery
-RUN git clone --depth 1 --single-branch --branch master https://github.com/kubernetes/apimachinery.git
-WORKDIR /tmp/apimachinery
-RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/k8s.io/apimachinery \;
-WORKDIR /tmp
 
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf
 RUN git clone --depth 1 --single-branch --branch master https://github.com/gogo/protobuf.git
@@ -161,6 +150,10 @@ RUN mv /tmp/hugo ${OUTDIR}/usr/bin
 ADD https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz /tmp
 RUN tar -xf /tmp/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp
 RUN mv /tmp/linux-amd64/helm ${OUTDIR}/usr/bin
+
+# Kubectl
+ADD https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl ${OUTDIR}/usr/bin/kubectl
+RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
@@ -256,6 +249,7 @@ RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 FROM ubuntu:xenial as python_context
 
 # Pinned versions of stuff we pull in
+ENV AUTOPEP8_VERSION=1.4.4
 ENV YAMLLINT_VERSION=1.17.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -269,7 +263,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
 RUN python3 get-pip.py --no-wheel
 
-# Install yamllint
+# Install Pyhton stuff
+RUN pip install autopep8==${AUTOPEP8_VERSION}
 RUN pip install yamllint==${YAMLLINT_VERSION}
 
 # Clean up stuff we don't need in the final image
