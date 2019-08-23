@@ -17,6 +17,10 @@ prometheus_scrape: false
 
 # time between config changes
 configSleep: 120
+
+# time between replicas changes
+replicasSleep: 10
+
 # tcp does not support permissive mode
 # so readinessProbe
 #tcpReadinessProbe:
