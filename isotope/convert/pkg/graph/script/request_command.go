@@ -24,6 +24,10 @@ import (
 // RequestCommand describes a command to send an HTTP request to another
 // service.
 type RequestCommand struct {
+	Services []RequestCommandData `json:"services"`
+}
+
+type RequestCommandData struct {
 	ServiceName string `json:"service"`
 	// Size is the number of bytes in the request body.
 	Size size.ByteSize `json:"size"`
@@ -48,21 +52,25 @@ func (c *RequestCommand) UnmarshalJSON(b []byte) (err error) {
 		if err != nil {
 			return
 		}
-		c.ServiceName = s
-	} else {
-		// Wrap the RequestCommand to dodge the custom UnmarshalJSON.
-		unmarshallableRequestCommand := unmarshallableRequestCommand(*c)
-		err = json.Unmarshal(b, &unmarshallableRequestCommand)
-		if err != nil {
-			return
-		}
 
-		*c = RequestCommand(unmarshallableRequestCommand)
+		b = []byte(s)
+	}
 
-		if c.Probability < 0 || c.Probability > 100 {
+	// Wrap the RequestCommand to dodge the custom UnmarshalJSON.
+	unmarshallableRequestCommand := unmarshallableRequestCommand(*c)
+	err = json.Unmarshal(b, &unmarshallableRequestCommand)
+	if err != nil {
+		return
+	}
+
+	*c = RequestCommand(unmarshallableRequestCommand)
+
+	for _, req := range c.Services {
+		if req.Probability < 0 || req.Probability > 100 {
 			return errors.New("math: invalid probability, outside range: [0,100]")
 		}
 	}
+
 	return
 }
 

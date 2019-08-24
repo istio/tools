@@ -1,17 +1,39 @@
 defaults:
   requestSize: 1 KB
-  responseSize: 1 KB
   numRbacPolicies: 3
 services:
 - name: a
-- name: b
-- name: c
-  script:
-  - call: a
-  - call: b
-- name: d
+  responseSize: {type: static, data: {number: 1, size: 1KiB}}
+  errorSize: {type: static, data: {number: 1, size: 1B}}
   isEntrypoint: true
   script:
-  - - call: a
-    - call: c
-  - call: b
+  - - call: {service: b, probability: 100}
+    - call: {service: c, probability: 100}
+    - call: {service: d, probability: 100}
+- name: b
+  responseSize: {type: static, data: {number: 1, size: 1KiB}}
+  errorSize: {type: static, data: {number: 1, size: 1B}}
+  script:
+  - call: {service: c, probability: 100}
+- name: c
+  responseSize: {type: static, data: {number: 1, size: 1KiB}}
+  errorSize: {type: static, data: {number: 1, size: 1B}}
+  script:
+  - call: {service: e, probability: 100}
+- name: d
+  responseSize: {type: static, data: {number: 1, size: 1KiB}}
+  errorSize: {type: static, data: {number: 1, size: 1B}}
+  script:
+  - call: {service: c, probability: 100}
+- name: e
+  responseSize: {type: static, data: {number: 1, size: 1KiB}}
+  errorSize: {type: static, data: {number: 1, size: 1B}}
+  script:
+  - - call: {service: f, probability: 100}
+    - call: {service: g, probability: 100}
+- name: f
+  responseSize: {type: static, data: {number: 1, size: 1KiB}}
+  errorSize: {type: static, data: {number: 1, size: 1B}}
+- name: g
+  responseSize: {type: static, data: {number: 1, size: 1KiB}}
+  errorSize: {type: static, data: {number: 1, size: 1B}}

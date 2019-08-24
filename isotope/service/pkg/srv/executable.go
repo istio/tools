@@ -59,15 +59,19 @@ func executeSleepCommand(cmd script.SleepCommand) {
 	time.Sleep(time.Duration(cmd))
 }
 
-func executeRequestCommandHelper(cmd script.RequestCommand) bool {
+func executeRequestCommandHelper(cmd script.RequestCommand) (bool, int) {
 	rand.Seed(time.Now().UnixNano())
+
+	index := rand.Intn(len(cmd.Services))
+	svc := cmd.Services[index]
+
 	number := rand.Intn(100 + 1)
 	ret := true
 
-	if number < cmd.Probability {
+	if number < svc.Probability {
 		ret = false
 	}
-	return ret
+	return ret, index
 }
 
 // Execute sends an HTTP request to another service. Assumes DNS is available
@@ -77,20 +81,23 @@ func executeRequestCommand(
 	forwardableHeader http.Header,
 	serviceTypes map[string]svctype.ServiceType) error {
 
-	if executeRequestCommandHelper(cmd) {
+	ret, index := executeRequestCommandHelper(cmd)
+
+	if ret {
 		return nil
 	}
 
-	destName := cmd.ServiceName
+	svc := cmd.Services[index]
+	destName := svc.ServiceName
 	_, ok := serviceTypes[destName]
 	if !ok {
 		return fmt.Errorf("service %s does not exist", destName)
 	}
-	response, err := sendRequest(destName, cmd.Size, forwardableHeader)
+	response, err := sendRequest(destName, svc.Size, forwardableHeader)
 	if err != nil {
 		return err
 	}
-	prometheus.RecordRequestSent(destName, uint64(cmd.Size))
+	prometheus.RecordRequestSent(destName, uint64(svc.Size))
 	log.Debugf("%s responded with %s", destName, response.Status)
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf(

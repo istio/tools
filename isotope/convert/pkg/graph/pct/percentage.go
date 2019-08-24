@@ -83,7 +83,7 @@ func FromString(s string) (Percentage, error) {
 
 // FromFloat64 converts a float64 to a Percentage if it is between 0 and 1.
 func FromFloat64(f float64) (p Percentage, err error) {
-	isValidPercentage := 0 <= f && f <= 1
+	isValidPercentage := f >= 0 && f <= 1
 	if isValidPercentage {
 		p = Percentage(f)
 	} else {

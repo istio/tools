@@ -100,8 +100,13 @@ var (
 					"script": [
 						{
 							"call": {
-								"service": "a",
-								"size": "1KiB"
+								"Services": [
+									{
+										"service": "a",
+							      		"probability": 100,
+							      		"size": "1KiB"
+							    	}
+								]
 							}
 						},
 						{ "sleep": "10ms" }
@@ -115,8 +120,28 @@ var (
 					"responseSize": "1K",
 					"script": [
 						[
-							{ "call": "a" },
-							{ "call": "b" }
+							{ 
+								"call": {
+									"Services": [
+										{
+											"service": "a",
+								      		"probability": 100,
+								      		"size": "516"
+								    	}
+									]
+								}
+							},
+							{ 
+								"call": {
+									"Services": [
+										{
+											"service": "a",
+								      		"probability": 100,
+								      		"size": "516"
+								    	}
+									]
+								}
+							}
 						],
 						{ "sleep": "10ms" }
 					]
@@ -142,7 +167,7 @@ var (
 			ErrorRate:    0.1,
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
-				script.RequestCommand{ServiceName: "a", Size: 1024},
+				script.RequestCommand{Services: []script.RequestCommandData{{ServiceName: "a", Probability: 100, Size: 1024}}},
 				script.SleepCommand(10 * time.Millisecond),
 			}),
 		},
@@ -154,8 +179,8 @@ var (
 			ResponseSize: 1024,
 			Script: script.Script([]script.Command{
 				script.ConcurrentCommand{
-					script.RequestCommand{ServiceName: "a", Size: 516},
-					script.RequestCommand{ServiceName: "b", Size: 516},
+					script.RequestCommand{Services: []script.RequestCommandData{{ServiceName: "a", Probability: 100, Size: 516}}},
+					script.RequestCommand{Services: []script.RequestCommandData{{ServiceName: "a", Probability: 100, Size: 516}}},
 				},
 				script.SleepCommand(10 * time.Millisecond),
 			}),
@@ -166,7 +191,7 @@ var (
 			"services": [
 				{
 					"name": "a",
-					"script": [{ "call": "b"}]
+					"script": [{ "call": {"Services": [{"service": "b", "probability": 100}]} }]
 				}
 			]
 		}
@@ -181,7 +206,8 @@ var (
 					"name": "b",
 					"script": [
 						[
-							[{ "call": "a" }, { "call": "a" }],
+							[{ "call": {"Services": [{"service": "a", "probability": 100}]} }, 
+							 { "call": {"Services": [{"service": "a", "probability": 100}]} }],
 							{ "sleep": "10ms" }
 						]
 					]

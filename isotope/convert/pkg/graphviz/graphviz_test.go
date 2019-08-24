@@ -53,10 +53,10 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ResponseSize: "10KiB",
 				Steps: [][]string{
 					{
-						"CALL \"a\" 10KiB",
+						"CALL a (Size: 10KiB, Probability: 100)",
 					},
 					{
-						"CALL \"b\" 1KiB",
+						"CALL b (Size: 1KiB, Probability: 100)",
 					},
 				},
 			},
@@ -67,14 +67,14 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ResponseSize: "10KiB",
 				Steps: [][]string{
 					{
-						"CALL \"a\" 1KiB",
-						"CALL \"c\" 1KiB",
+						"CALL a (Size: 1KiB, Probability: 100)",
+						"CALL c (Size: 1KiB, Probability: 100)",
 					},
 					{
 						"SLEEP 10ms",
 					},
 					{
-						"CALL \"b\" 1KiB",
+						"CALL b (Size: 1KiB, Probability: 100)",
 					},
 				},
 			},
@@ -131,14 +131,8 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ErrorRate:    0,
 				ResponseSize: 10240,
 				Script: []script.Command{
-					script.RequestCommand{
-						ServiceName: "a",
-						Size:        10240,
-					},
-					script.RequestCommand{
-						ServiceName: "b",
-						Size:        1024,
-					},
+					script.RequestCommand{Services: []script.RequestCommandData{{ServiceName: "a", Probability: 100, Size: 10240}}},
+					script.RequestCommand{Services: []script.RequestCommandData{{ServiceName: "b", Probability: 100, Size: 1024}}},
 				},
 			},
 			{
@@ -148,20 +142,11 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ResponseSize: 10240,
 				Script: []script.Command{
 					script.ConcurrentCommand([]script.Command{
-						script.RequestCommand{
-							ServiceName: "a",
-							Size:        1024,
-						},
-						script.RequestCommand{
-							ServiceName: "c",
-							Size:        1024,
-						},
+						script.RequestCommand{Services: []script.RequestCommandData{{ServiceName: "a", Probability: 100, Size: 1024}}},
+						script.RequestCommand{Services: []script.RequestCommandData{{ServiceName: "c", Probability: 100, Size: 1024}}},
 					}),
 					script.SleepCommand(10 * time.Millisecond),
-					script.RequestCommand{
-						ServiceName: "b",
-						Size:        1024,
-					},
+					script.RequestCommand{Services: []script.RequestCommandData{{ServiceName: "b", Probability: 100, Size: 1024}}},
 				},
 			},
 		},

@@ -42,8 +42,10 @@ func validateCommands(cmds []script.Command, svcNames map[string]bool) error {
 	for _, cmd := range cmds {
 		switch cmd := cmd.(type) {
 		case script.RequestCommand:
-			if !svcNames[cmd.ServiceName] {
-				return ErrRequestToUndefinedService{cmd.ServiceName}
+			for _, req := range cmd.Services {
+				if !svcNames[req.ServiceName] {
+					return ErrRequestToUndefinedService{req.ServiceName}
+				}
 			}
 		case script.ConcurrentCommand:
 			if err := validateCommands(cmd, svcNames); err != nil {
