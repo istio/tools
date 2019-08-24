@@ -99,15 +99,24 @@ class Fortio(object):
             sys.exit("invalid mesh %s, must be istio or linkerd" % mesh)
 
     def nosidecar(self, fortio_cmd):
-        return fortio_cmd + "_base http://{svc}:{port}/echo?size={size}".format(
+        basestr = "http://{svc}:{port}/echo?size={size}"
+        if self.mode == "grpc":
+            basestr = "-payload-size {size} {svc}:{port}"
+        return fortio_cmd + "_base " + basestr.format(
             svc=self.server.ip, port=self.ports[self.mode]["direct_port"], size=self.size)
 
     def serversidecar(self, fortio_cmd):
-        return fortio_cmd + "_serveronly http://{svc}:{port}/echo?size={size}".format(
+        basestr = "http://{svc}:{port}/echo?size={size}"
+        if self.mode == "grpc":
+            basestr = "-payload-size {size} {svc}:{port}"
+        return fortio_cmd + "_serveronly " + basestr.format(
             svc=self.server.ip, port=self.ports[self.mode]["port"], size=self.size)
 
     def bothsidecar(self, fortio_cmd):
-        return fortio_cmd + "_both http://{svc}:{port}/echo?size={size}".format(
+        basestr = "http://{svc}:{port}/echo?size={size}"
+        if self.mode == "grpc":
+            basestr = "-payload-size {size} {svc}:{port}"
+        return fortio_cmd + "_both " + basestr.format(
             svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
 
     def ingress(self, fortio_cmd):
@@ -141,13 +150,17 @@ class Fortio(object):
         if self.labels is not None:
             labels += "_" + self.labels
 
+        grpc = ""
+        if self.mode == "grpc":
+            grpc = "-grpc -ping"
+
         fortio_cmd = (
-            "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} -httpbufferkb=128 " +
+            "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {grpc} -httpbufferkb=128 " +
             "-labels {labels}").format(
             conn=conn,
             qps=qps,
             duration=duration,
-            r=self.r,
+            r=self.r, grpc=grpc,
             labels=labels)
 
         if self.run_ingress:
@@ -213,7 +226,8 @@ def perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
 def kubecp(mesh, from_file, to_file):
     namespace = os.environ.get("NAMESPACE", "twopods")
     cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c" + mesh + \
-        "-proxy".format(from_file=from_file, to_file=to_file, namespace=namespace)
+        "-proxy".format(from_file=from_file,
+                        to_file=to_file, namespace=namespace)
     print(cmd)
     return run_command_sync(cmd)
 
@@ -249,7 +263,7 @@ def run(args):
         baseline=args.baseline,
         serversidecar=args.serversidecar,
         clientsidecar=args.clientsidecar,
-        ingress=args.ingress,
+        ingress=args.ingress, mode=args.mode,
         mesh=args.mesh)
 
     for conn in args.conn:
@@ -290,6 +304,7 @@ def getParser():
         "--ingress", help="run traffic thru ingress", default=None)
 
     parser.add_argument("--labels", help="extra labels", default=None)
+    parser.add_argument("--mode", help="http or grpc", default="http")
     return parser
 
 
