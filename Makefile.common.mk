@@ -3,9 +3,9 @@
 # The original version of this file is located in the https://github.com/istio/common-files repo.
 # If you're looking at this file in a different repo and want to make a change, please go to the
 # common-files repo, make the change there and check it in. Then come back to this repo and run
-# "make updatecommon".
+# "make update-common".
 
-# Copyright 2019 Istio Authors
+# Copyright Istio Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,9 +19,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-updatecommon:
+lint-dockerfiles:
+	@find . -path ./vendor -prune -o -type f -name 'Dockerfile*' -print0 | xargs -0 hadolint -c ./.hadolint.yml
+
+lint-scripts:
+	@find . -path ./vendor -prune -o -type f -name '*.sh' -print0 | xargs -0 shellcheck
+
+lint-yaml:
+	@find . -path ./vendor -prune -o -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 | xargs -0 yamllint -c ./.yamllint.yml
+
+lint-copyright-banner:
+	@scripts/lint_copyright_banner.sh
+
+lint-go:
+	@golangci-lint run -j 8
+
+lint-python:
+	@find . -path ./vendor -prune -o -type f -name '*.py' -print0 | xargs -0 autopep8 --max-line-length 160 --exit-code -d
+
+format-go:
+	@find . -path ./vendor -prune -o -type f -name '*.go' ! -name '*.gen.go' ! -name '*.pb.go' -print0 | xargs -0 goimports -w -local "istio.io"
+
+format-python:
+	@find . -path ./vendor -prune -o -type f -name '*.py' -print0 | xargs -0 autopep8 --max-line-length 160 --aggressive --aggressive -i
+
+update-common:
 	@git clone --depth 1 --single-branch --branch master https://github.com/istio/common-files
 	@cd common-files ; git rev-parse HEAD >.commonfiles.sha
 	@cp -r common-files/files/* common-files/.commonfiles.sha common-files/files/.[^.]* .
 	@rm -fr common-files
 	@touch Makefile.overrides.mk  # make sure this at least exists
+	# temporary, until cleaned up in all repos
+	@rm -fr scripts/check_license.sh
+
+.PHONY: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-pyhton format-go format-python update-common
