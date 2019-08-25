@@ -9,8 +9,9 @@ function install_prometheus() {
   local DIRNAME="$1" # should be like tools/perf/istio/tmp
   DIRNAME=$(cd $DIRNAME; pwd)
   INSTALLER_DIR="${DIRNAME}/installer"
-
-  git clone https://github.com/istio/installer.git "$INSTALLER_DIR" || true # If it already exists, reuse
+  if [[ -e "$INSTALLER_DIR" ]]; then
+    git clone https://github.com/istio/installer.git "$INSTALLER_DIR"
+  fi
 
   # Create GCP SSD Storage class for Prometheus to use. May not work outside GKE
   kubectl apply -f "${WD}/../prometheus-install/ssd-storage-class.yaml"
