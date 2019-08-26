@@ -9,7 +9,7 @@ function install_prometheus() {
   local DIRNAME="$1" # should be like tools/perf/istio/tmp
   DIRNAME=$(cd $DIRNAME; pwd)
   INSTALLER_DIR="${DIRNAME}/installer"
-  if [[ -e "$INSTALLER_DIR" ]]; then
+  if [[ ! -e "$INSTALLER_DIR" ]]; then
     git clone https://github.com/istio/installer.git "$INSTALLER_DIR"
   fi
 
