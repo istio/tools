@@ -49,7 +49,7 @@ ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=v1.8.0
 ENV SHELLCHECK_VERSION=v0.7.0
 ENV UPX_VERSION=3.95
-ENV DOCKER_VERSION=18.06.1
+ENV DOCKER_VERSION=18.06.1~ce~3-0
 
 ENV OUTDIR=/out
 WORKDIR /tmp
@@ -165,7 +165,7 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg >/tmp/dkey
 RUN apt-key add /tmp/dkey
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
-RUN apt-get update && apt-get -qqy install --no-install-recommends docker-ce="${DOCKER_VERSION}~ce~3-0~ubuntu"
+RUN apt-get update && apt-get -qqy install --no-install-recommends docker-ce="${DOCKER_VERSION}~ubuntu"
 RUN mv /usr/bin/docker ${OUTDIR}/usr/bin
 
 # Cleanup stuff we don't need in the final image
@@ -204,16 +204,16 @@ RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-headers.tar.gz --strip-components=1 -C
 
 RUN npm init -y
 RUN npm install --production --global \
-    "sass@${SASS_VERSION}" \
-    "sass-lint@${SASS_LINT_VERSION}" \
-    "typescript@${TYPESCRIPT_VERSION}" \
-    "tslint@${TSLINT_VERSION}" \
-    "markdown-spellcheck@${MARKDOWN_SPELLCHECK_VERSION}" \
-    "svgstore-cli@${SVGSTORE_CLI_VERSION}" \
-    "svgo@${SVGO_VERSION}" \
-    "@babel/core@${BABEL_CORE_VERSION}" \
-    "@babel/cli@${BABEL_CLI_VERSION}" \
-    "@babel/preset-env@${BABEL_PRESET_ENV_VERSION}"
+    sass@"${SASS_VERSION}" \
+    sass-lint@"${SASS_LINT_VERSION}" \
+    typescript@"${TYPESCRIPT_VERSION}" \
+    tslint@"${TSLINT_VERSION}" \
+    markdown-spellcheck@"${MARKDOWN_SPELLCHECK_VERSION}" \
+    svgstore-cli@"${SVGSTORE_CLI_VERSION}" \
+    svgo@"${SVGO_VERSION}" \
+    @babel/core@"${BABEL_CORE_VERSION}" \
+    @babel/cli@"${BABEL_CLI_VERSION}" \
+    @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}"
 
 RUN npm install --production --save-dev \
     babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
