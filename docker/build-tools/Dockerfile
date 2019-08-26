@@ -49,6 +49,7 @@ ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=v1.8.0
 ENV SHELLCHECK_VERSION=v0.7.0
 ENV UPX_VERSION=3.95
+ENV DOCKER_VERSION=18.06.1~ce~3-0
 
 ENV OUTDIR=/out
 WORKDIR /tmp
@@ -56,6 +57,11 @@ WORKDIR /tmp
 # Update distro and install dependencies
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg2 \
+    software-properties-common \
     unzip \
     xz-utils
 
@@ -155,6 +161,13 @@ RUN mv /tmp/linux-amd64/helm ${OUTDIR}/usr/bin
 ADD https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl ${OUTDIR}/usr/bin/kubectl
 RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
 
+# Docker
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg >/tmp/dkey
+RUN apt-key add /tmp/dkey
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+RUN apt-get update && apt-get -qqy install --no-install-recommends docker-ce="${DOCKER_VERSION}~ubuntu"
+RUN mv /usr/bin/docker ${OUTDIR}/usr/bin
+
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
 RUN rm -fr /usr/local/go/test
@@ -191,16 +204,16 @@ RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-headers.tar.gz --strip-components=1 -C
 
 RUN npm init -y
 RUN npm install --production --global \
-    sass@${SASS_VERSION} \
-    sass-lint@${SASS_LINT_VERSION} \
-    typescript@${TYPESCRIPT_VERSION} \
-    tslint@${TSLINT_VERSION} \
-    markdown-spellcheck@${MARKDONN_SPELLCHECK_VERSION} \
-    svgstore-cli@${SVGSTORE_CLI_VERSION} \
-    svgo@${SVGO_VERSION} \
-    @babel/core@${BABEL_CORE_VERSION} \
-    @babel/cli@${BABEL_CLI_VERSION} \
-    @babel/preset-env@${BABEL_PRESET_ENV_VERSION}
+    sass@"${SASS_VERSION}" \
+    sass-lint@"${SASS_LINT_VERSION}" \
+    typescript@"${TYPESCRIPT_VERSION}" \
+    tslint@"${TSLINT_VERSION}" \
+    markdown-spellcheck@"${MARKDOWN_SPELLCHECK_VERSION}" \
+    svgstore-cli@"${SVGSTORE_CLI_VERSION}" \
+    svgo@"${SVGO_VERSION}" \
+    @babel/core@"${BABEL_CORE_VERSION}" \
+    @babel/cli@"${BABEL_CLI_VERSION}" \
+    @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}"
 
 RUN npm install --production --save-dev \
     babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
@@ -224,7 +237,8 @@ ENV HTMLPROOFER_VERSION=3.9.2
 ENV MDL_VERSION=0.5.0
 ENV RUBY_VERSION=2.6.3
 
-RUN apt-get -y update && apt-get -y install --no-install-recommends \
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libssl-dev \
     zlib1g-dev
@@ -252,6 +266,7 @@ FROM ubuntu:xenial as python_context
 ENV AUTOPEP8_VERSION=1.4.4
 ENV YAMLLINT_VERSION=1.17.0
 
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
@@ -277,16 +292,18 @@ RUN rm -fr /usr/local/lib/python3.5/dist-packages/pip
 
 FROM ubuntu:xenial as base_os_context
 
-# required for golang: ca-certificates, gcc, libc-dev, git
+# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
 # required for general build: make, wget, curl
 # required for ruby: libcurl4-openssl-dev
-# required for python: python3
+# required for python: python3, pkg-config
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     gcc \
     git \
+    iptables \
+    libltdl7 \
     libc-dev \
     libcurl4-openssl-dev \
     make \
@@ -296,7 +313,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
+# hadolint ignore=SC2114
 RUN rm -fr /usr/share
+RUN rm -fr /tmp/*
 
 #############
 # Final image

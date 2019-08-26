@@ -28,5 +28,5 @@ fmt: format-go format-python
 containers:
 	@cd docker/build-tools && ./build-and-push.sh
 
-include Makefile.common.mk
+include common/Makefile.common.mk
 include perf/stability/stability.mk
