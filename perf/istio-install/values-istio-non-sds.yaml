@@ -18,7 +18,7 @@ gateways:
 
 security:
   # Short lived cert to test rotation.
-  workloadCertTtl: 30m
+  workloadCertTtl: 300m
 
 nodeagent:
   enabled: false
