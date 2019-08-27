@@ -95,6 +95,18 @@ RUN curl -L -o ${OUTDIR}/usr/include/protobuf/validate/validate.proto https://ra
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/gogoproto
 RUN curl -L -o ${OUTDIR}/usr/include/protobuf/gogoproto/gogo.proto https://raw.githubusercontent.com/gogo/protobuf/master/gogoproto/gogo.proto
 
+RUN mkdir -p ${OUTDIR}/usr/include/protobuf/k8s.io/api
+RUN git clone --depth 1 --single-branch --branch master https://github.com/kubernetes/api.git
+WORKDIR /tmp/api
+RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/k8s.io/api \;
+WORKDIR /tmp
+
+RUN mkdir -p ${OUTDIR}/usr/include/protobuf/k8s.io/apimachinery
+RUN git clone --depth 1 --single-branch --branch master https://github.com/kubernetes/apimachinery.git
+WORKDIR /tmp/apimachinery
+RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/k8s.io/apimachinery \;
+WORKDIR /tmp
+
 RUN mkdir -p ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf
 RUN git clone --depth 1 --single-branch --branch master https://github.com/gogo/protobuf.git
 WORKDIR /tmp/protobuf
