@@ -7,7 +7,6 @@ import requests
 import argparse
 from datetime import datetime
 import calendar
-import pytz
 import csv
 
 import prom
@@ -254,12 +253,19 @@ def getParser():
         "--table",
         help="Name of the BigQuery table to send results to, like istio_perf_01.perf",
         default=None)
-    parser.add_argument("--selector", help="timestamps to match for import")
+    parser.add_argument(
+        "--selector",
+        help="timestamps to match for import")
     parser.add_argument(
         "--csv",
         help="columns in the csv file",
-        default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
-    parser.add_argument("url", help="url to fetch fortio json results from")
+        default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,"
+                "cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,"
+                "cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_"
+                "ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
+    parser.add_argument(
+        "url",
+        help="url to fetch fortio json results from")
     parser.add_argument(
         "--prometheus",
         help="url to fetch prometheus results from. if blank, will only output Fortio metrics.",
