@@ -81,82 +81,86 @@ python runner/runner.py <conn> <qps> <duration> --OPTIONAL-FLAGS
 Required fields:
 - `conn` = number of concurrent connections 
 - `qps` = queries per second for each connection 
-- `duration` = number of seconds to run each test for  (min: 92 seconds)
+- `duration` = number of seconds to run each test for  (the minimum value for duration should be: 92 seconds)
 
 ```
 optional arguments:
   -h, --help          show this help message and exit
-  --size SIZE         size of the payload
-  --mesh MESH         istio or linkerd
+  --size SIZE         size of the payload, default is 1024
+  --mesh MESH         istio or linkerd, default is istio
   --client CLIENT     where to run the test from
   --server SERVER     pod ip of the server
-  --perf              also run perf and produce flamegraph
+  --perf              also run perf and produce flame graph, default is false
   --baseline          run baseline for all
   --no-baseline       do not run baseline for all
   --serversidecar     run serversidecar-only for all
   --no-serversidecar  do not run serversidecar-only for all
-  --clientsidecar     run clientsidecar and serversidecar for all
+  --clientsidecar     run clientsidecar and serversidecar for all, this is corresponding to the "both" mode, which will be executed by default
   --no-clientsidecar  do not run clientsidecar and serversidecar for all
-  --ingress INGRESS   run traffic thru ingress
+  --ingress INGRESS   run traffic through ingress
   --labels LABELS     extra labels
 ```
 
 
-### Example 1 
+### Example 1
 
 `runner.py` will run all combinations of the parameters given. For example:
 
 
 ```bash
-python runner/runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar 
+python runner/runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar
 ```
 
-- This will run separate tests for the `both` and `serversidecar` modes 
-- Separate tests for 1 to 64 concurrent connections 
-- Each connection will send **1000** QPS 
+- This will run separate tests for the `both` and `serversidecar` modes
+- Separate tests for 1 to 64 concurrent connections
+- Each connection will send **1000** QPS
 - Each test will run for **240** seconds
 
-### Example 2 
+### Example 2
 
 ```bash
 python runner/runner.py 16,64 1000,4000 180 --serversidecar --baseline
 ```
 
-- 12 tests total, each for **180** seconds, with all combinations of: 
-- **16** and **64** connections 
-- **1000** and **4000** QPS 
-- `both`,  `serversidecar`, and `baseline` proxy modes 
+- 12 tests total, each for **180** seconds, with all combinations of:
+- **16** and **64** connections
+- **1000** and **4000** QPS
+- `both`,  `serversidecar`, and `baseline` proxy modes
 
 
-## [Optional] Disable Mixer 
+## [Optional] Disable Mixer
 
 Calls to Istio's Mixer component (policy and telemetry) adds latency to the sidecar proxy. To disable Istio's mixer and re-run the performance tests:
 
 
-1. Disable Mixer 
+1. Disable Mixer
 
-```bash 
+```bash
 kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
 python ../../bin/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f /tmp/meshconfig.yaml
 ```
 
 2. Run `runner.py`, in any sidecar mode, with the `--labels=nomixer` flag.
 
-3. Re-enable Mixer: 
+3. Re-enable Mixer:
 
-```bash 
+```bash
 kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
 python ../../bin/update_mesh_config.py enable_mixer /tmp/meshconfig.yaml  | kubectl -n istio-system apply -
 ```
 
-## Gather Result Metrics 
+## Gather Result Metrics
 
-Once `runner.py` has completed, extract the results from Fortio and Prometheus. 
+Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 
-1. Set `FORTIO_CLIENT_URL` to the `fortioclient` Service's `EXTERNAL_IP`: 
+1. Set `FORTIO_CLIENT_URL` to the `fortioclient` Service's `EXTERNAL_IP`:
 
 ```bash
 kubectl get svc -n $NAMESPACE fortioclient
+NAME           TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)                                                       AGE
+fortioclient   LoadBalancer   xxxx          xxxx       8080:31759/TCP,8079:30495/TCP,8078:31107/TCP,8077:31034/TCP   16h
+
+export FORTIO_CLIENT_URL=http://$(kubectl get services -n twopods fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}"):8080
 ```
 
 2. Set `PROMETHEUS_URL`: 
@@ -181,7 +185,7 @@ This script will generate two output files (one JSON, one CSV), both containing 
 The `graph.py` script uses the output CSV file from `fortio.py` to generate a [Bokeh](https://bokeh.pydata.org/en/1.2.0/) interactive graph. The output format is `.html`, from which you can save a PNG image.
 
 ```bash 
-runner/graph.py <PATH_TO_CSV> <METRIC>
+python runner/graph.py <PATH_TO_CSV> <METRIC>
 ```
 
 Options: 
