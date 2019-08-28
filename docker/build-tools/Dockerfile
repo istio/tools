@@ -71,48 +71,6 @@ RUN unzip /tmp/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 RUN mkdir -p ${OUTDIR}/usr/bin
 RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 
-# Install necessary protoc includes
-# TODO: Need to pin include file versions
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/protobuf
-RUN for f in any duration descriptor empty struct timestamp wrappers; do \
-            curl -L -o ${OUTDIR}/usr/include/protobuf/google/protobuf/${f}.proto https://raw.githubusercontent.com/google/protobuf/master/src/google/protobuf/${f}.proto; \
-        done
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/rpc
-RUN for f in code error_details status; do \
-            curl -L -o ${OUTDIR}/usr/include/protobuf/google/rpc/${f}.proto https://raw.githubusercontent.com/istio/gogo-genproto/master/googleapis/google/rpc/${f}.proto; \
-        done
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/google/api
-RUN for f in http annotations; do \
-            curl -L -o ${OUTDIR}/usr/include/protobuf/google/api/${f}.proto https://raw.githubusercontent.com/istio/gogo-genproto/master/googleapis/google/api/${f}.proto; \
-        done
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/validate
-RUN curl -L -o ${OUTDIR}/usr/include/protobuf/validate/validate.proto https://raw.githubusercontent.com/envoyproxy/protoc-gen-validate/${PROTOC_GEN_VALIDATE_VERSION}/validate/validate.proto
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/gogoproto
-RUN curl -L -o ${OUTDIR}/usr/include/protobuf/gogoproto/gogo.proto https://raw.githubusercontent.com/gogo/protobuf/master/gogoproto/gogo.proto
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/k8s.io/api
-RUN git clone --depth 1 --single-branch --branch master https://github.com/kubernetes/api.git
-WORKDIR /tmp/api
-RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/k8s.io/api \;
-WORKDIR /tmp
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/k8s.io/apimachinery
-RUN git clone --depth 1 --single-branch --branch master https://github.com/kubernetes/apimachinery.git
-WORKDIR /tmp/apimachinery
-RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/k8s.io/apimachinery \;
-WORKDIR /tmp
-
-RUN mkdir -p ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf
-RUN git clone --depth 1 --single-branch --branch master https://github.com/gogo/protobuf.git
-WORKDIR /tmp/protobuf
-RUN find . -name \*proto -exec cp -a --parents {} ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf \;
-WORKDIR /tmp
-
 # Remove test-related stuff
 RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/test
 RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/protoc-gen-gogo/testdata
