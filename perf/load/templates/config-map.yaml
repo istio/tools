@@ -69,11 +69,13 @@ data:
 
     deployments=$(kubectl get deployments -n {{ .Values.Namespace }} -l app=service-graph -o jsonpath="{.items[*].metadata.name}")
 
-    for deployment in ${deployments}; do
-      kubectl scale deployments -n {{ .Values.Namespace }} ${deployment} --replicas $((1 + RANDOM % 3))
-      sleep {{ .Values.replicasSleep }}
-      # add jitter
-      sleep $[ ( $RANDOM % {{ .Values.replicasSleep }} )  + 1 ]s
+    while [[ true ]];do
+      for deployment in ${deployments}; do
+        kubectl scale deployments -n {{ .Values.Namespace }} ${deployment} --replicas $((1 + RANDOM % 3))
+        sleep {{ .Values.replicasSleep }}
+        # add jitter
+        sleep $[ ( $RANDOM % {{ .Values.replicasSleep }} )  + 1 ]s
+      done
     done
   rotate.sh: |
     set -x
