@@ -104,7 +104,7 @@ type CrdConfig struct {
 func loadConfig(filename string) (c *Config, err error) {
 	r := &cue.Runtime{}
 
-	f, err := assets.Open("/")
+	f, err := docCueBytes()
 	if err != nil {
 		return nil, err
 	}

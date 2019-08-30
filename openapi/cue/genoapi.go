@@ -82,7 +82,7 @@
 //
 package main
 
-//go:generate go run assets_dev.go assets_gen.go
+//go:generate go-bindata --nocompress --nometadata --pkg main -o assets.gen.go doc.cue
 
 import (
 	"bytes"
@@ -161,11 +161,10 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 
 	if *help {
-		f, err := assets.Open("/")
+		b, err := docCueBytes()
 		if err != nil {
 			log.Fatal(err)
 		}
-		b, _ := ioutil.ReadAll(f)
 		if split := bytes.Split(b, []byte("\n\n")); len(split) > 2 {
 			b = bytes.Join(split[2:], []byte("\n\n"))
 		}

@@ -51,6 +51,7 @@ ENV PROTOTOOL_VERSION=v1.8.0
 ENV SHELLCHECK_VERSION=v0.7.0
 ENV UPX_VERSION=3.95
 ENV DOCKER_VERSION=18.06.1~ce~3-0
+ENV KIND_VERSION=v0.5.1
 
 ENV OUTDIR=/out
 WORKDIR /tmp
@@ -96,6 +97,7 @@ RUN GO111MODULE=on go get github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN
 RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
 RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
 RUN GO111MODULE=on go get -u github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN GO111MODULE=on go get -u sigs.k8s.io/kind@${KIND_VERSION}
 
 # Install latest version of Istio-owned tools
 RUN GO111MODULE=on go get istio.io/tools/protoc-gen-docs
