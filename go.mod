@@ -3,11 +3,11 @@ module istio.io/tools
 go 1.12
 
 require (
-	cuelang.org/go v0.0.6-0.20190813183605-13c97184d726
+	cuelang.org/go v0.0.8
 	fortio.org/fortio v1.1.0
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
-	github.com/emicklei/proto v1.6.11
+	github.com/emicklei/proto v1.6.15
 	github.com/getkin/kin-openapi v0.1.1-0.20190507152207-d3180292eead
 	github.com/ghodss/yaml v1.0.0
 	github.com/gogo/protobuf v1.2.2-0.20190730201129-28a6bbf47e48
