@@ -33,6 +33,7 @@ FROM golang:1.12.9 as binary_tools_context
 # Pinned versions of stuff we pull in
 ENV COUNTERFEITER_VERSION=v6.2.2
 ENV GO_BINDATA_VERSION=v3.0.8-0.20180305030458-6025e8de665b
+ENV GO_JUNIT_REPORT_VERSION=af01ea7f8024089b458d804d5cdf190f962a9a0c
 ENV GOGO_PROTOBUF_VERSION=28a6bbf47e48e0b2220b2a244750b660c83d4942
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV GOLANG_PROTOBUF_VERSION=v1.3.1
@@ -94,6 +95,7 @@ RUN GO111MODULE=on go get github.com/jteeuwen/go-bindata/go-bindata@${GO_BINDATA
 RUN GO111MODULE=on go get github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
 RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
 RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
+RUN GO111MODULE=on go get -u github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
 
 # Install latest version of Istio-owned tools
 RUN GO111MODULE=on go get istio.io/tools/protoc-gen-docs
@@ -283,8 +285,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
-# hadolint ignore=SC2114
-RUN rm -fr /usr/share
+RUN rm -fr /usr/share/perl
+RUN rm -fr /usr/share/perl5
+RUN rm -fr /usr/share/python
+RUN rm -fr /usr/share/bash-completion
+RUN rm -fr /usr/share/bug
+RUN rm -fr /usr/share/doc
+RUN rm -fr /usr/share/dh-python
+RUN rm -fr /usr/share/locale
+RUN rm -fr /usr/share/man
 RUN rm -fr /tmp/*
 
 #############
