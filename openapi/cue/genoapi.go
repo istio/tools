@@ -215,6 +215,12 @@ func main() {
 		if !strings.HasSuffix(path, ".proto") {
 			return nil
 		}
+		// skip the imported protos to avoid circular dependency.
+		for _, i := range importPaths[1:] {
+			if strings.HasPrefix(path, i) {
+				return nil
+			}
+		}
 		return b.AddFile(path, nil)
 	})
 
