@@ -20,9 +20,7 @@ require (
 	github.com/kr/pretty v0.1.0
 	github.com/prometheus/client_golang v0.9.3
 	github.com/russross/blackfriday/v2 v2.0.1
-	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/spf13/cobra v0.0.4
 	github.com/spf13/viper v1.4.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
