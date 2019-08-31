@@ -19,7 +19,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FINDFILES=find . \( -path ./vendor -o -path ./.git \) -prune -o -type f
+FINDFILES=find . \( -path ./common-protos -o -path ./.git \) -prune -o -type f
 XARGS = xargs -0 -r
 
 lint-dockerfiles:
@@ -72,6 +72,7 @@ update-common:
 update-common-protos:
 	@git clone -q --depth 1 --single-branch --branch master https://github.com/istio/common-files
 	@cd common-files ; git rev-parse HEAD > common-protos/.commonfiles.sha
+	@rm -fr common-protos
 	@cp -ar common-files/common-protos common-protos
 	@rm -fr common-files
 

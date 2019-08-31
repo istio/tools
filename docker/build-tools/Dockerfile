@@ -307,10 +307,12 @@ FROM scratch
 
 # General
 ENV HOME=/root
+ENV LANG=C.UTF-8
 
 # Go support
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
+ENV GOSUMDB=https://sum.golang.org
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
 ENV PATH=/go/bin:$PATH
