@@ -40,11 +40,6 @@ elif [[ -n ${ISTIO_VERSION} ]]; then
   VERSION="${ISTIO_VERSION}"
 fi
 
-DOCKER_HUB="docker.io/istio"
-if [[ -n ${ISTIO_DOCKER_HUB} ]]; then
-  DOCKER_HUB="${ISTIO_DOCKER_HUB}"
-fi
-
 # used by common/scripts/gobuild.sh
 echo "istio.io/pkg/version.buildVersion=${VERSION}"
 echo "istio.io/pkg/version.buildGitRevision=${BUILD_GIT_REVISION}"
