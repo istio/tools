@@ -18,7 +18,7 @@ kind: DestinationRule
 metadata:
   name: fortiottlssmall
 spec:
-  host:  fortiottlssmall.test.svc.cluster.local
+  host: fortiottlssmall.test.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
@@ -50,7 +50,6 @@ spec:
       annotations:
         sidecar.istio.io/proxyCPU: 100m
         sidecar.istio.io/proxyMemory: 128M
-        sidecar.istio.io/controlPlaneAuthPolicy: MUTUAL_TLS
         sidecar.istio.io/controlPlaneAuthPolicy: MUTUAL_TLS
         sidecar.istio.io/discoveryAddress: pilot.istio-system:15012
       labels:
