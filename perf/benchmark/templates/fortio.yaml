@@ -115,6 +115,8 @@ spec:
         emptyDir: {}
       containers:
       - name: captured
+        securityContext:
+          runAsUser: 1
         volumeMounts:
         - name: shared-data
           mountPath: /var/lib/fortio
@@ -133,14 +135,18 @@ spec:
 {{ toYaml $.Values.appresources | indent 10 }}
 {{- end }}
       - name: shell
+        securityContext:
+          runAsUser: 1
         volumeMounts:
         - name: shared-data
           mountPath: /var/lib/fortio
-        image: tutum/curl:trusty
+        image: {{ $.Values.curlImage }}
         args:
         - /bin/sleep
         - infinity
       - name: uncaptured
+        securityContext:
+          runAsUser: 1
         image: {{ $.Values.fortioImage }}
         args:
 {{- if eq $.name "fortioclient" }}
