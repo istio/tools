@@ -20,15 +20,17 @@
 # get default cluster version for zone
 function default_cluster() {
   local zone=${1:?"zone required"}
-  local temp_ver=$(mktemp)
+  local temp_ver
+  temp_ver=$(mktemp)
 
-  gcloud container get-server-config --zone "${zone}"  >${temp_ver} 2>&1
+  gcloud container get-server-config --zone "${zone}"  >"${temp_ver}" 2>&1
+  # shellcheck disable=SC2181
   if [[ $? -ne 0 ]];then
     cat "${temp_ver}"
     exit 1
   fi
 
-  ver=$(cat "${temp_ver}" | grep defaultClusterVersion | awk '{print $2}')
+  ver=$(grep defaultClusterVersion "${temp_ver}" | awk '{print $2}')
   echo "${ver}"
   rm -Rf "${temp_ver}"
 }
@@ -51,6 +53,7 @@ MAXPODS_PER_NODE=100
 # Labels and version
 ISTIO_VERSION=${ISTIO_VERSION:?"Istio version label"}
 DEFAULT_GKE_VERSION=$(default_cluster "${ZONE}")
+# shellcheck disable=SC2181
 if [[ $? -ne 0 ]];then
   echo "${DEFAULT_GKE_VERSION}"
   exit 1
@@ -58,7 +61,7 @@ fi
 GKE_VERSION=${GKE_VERSION-${DEFAULT_GKE_VERSION}}
 
 # default scope for reference
-SCOPES_DEFAULT="https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append"
+# SCOPES_DEFAULT="https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append"
 
 # Full scope is needed for the context graph API
 SCOPES_FULL="https://www.googleapis.com/auth/cloud-platform"
@@ -66,25 +69,28 @@ SCOPES_FULL="https://www.googleapis.com/auth/cloud-platform"
 SCOPES="${SCOPES_FULL}"
 
 # A label cannot have "." in it.
-ISTIO_VERSION=$(echo ${ISTIO_VERSION} | sed 's/\./_/g')
+# shellcheck disable=SC2001
+ISTIO_VERSION=$(echo "${ISTIO_VERSION}" | sed 's/\./_/g')
 
 function gc() {
-  echo $*
+  echo "$*"
 
-  if [[ ! -z "${DRY_RUN}" ]];then
+  if [[ -n "${DRY_RUN}" ]];then
     return
   fi
 
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2048
   gcloud $*
 }
 
 NETWORK_SUBNET="--create-subnetwork name=${CLUSTER_NAME}-subnet"
-if [[ ! -z "${USE_SUBNET}" ]];then
+if [[ -n "${USE_SUBNET}" ]];then
   NETWORK_SUBNET="--network ${USE_SUBNET}"
 fi
 
 ADDONS="HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard"
-if [[ ! -z "${ISTIO_ADDON}" ]];then
+if [[ -n "${ISTIO_ADDON}" ]];then
   ADDONS+=",Istio"
 fi
 gc beta container \
@@ -97,7 +103,7 @@ gc beta container \
   --num-nodes "${MIN_NODES}" --enable-autoscaling --min-nodes "${MIN_NODES}" --max-nodes "${MAX_NODES}" --max-pods-per-node "${MAXPODS_PER_NODE}" \
   --enable-stackdriver-kubernetes \
   --enable-ip-alias \
-  ${NETWORK_SUBNET} \
+  "${NETWORK_SUBNET}" \
   --default-max-pods-per-node "${MAXPODS_PER_NODE}" \
   --addons "${ADDONS}" \
-  --enable-network-policy --enable-autoupgrade --enable-autorepair --labels test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
+  --enable-network-policy --enable-autoupgrade --enable-autorepair --labels test-date="$(date +%Y-%m-%d)",version="${ISTIO_VERSION}",operator=user_"${USER}"

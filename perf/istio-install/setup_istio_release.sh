@@ -18,8 +18,8 @@ set -ex
 
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org"}
 
-WD=$(dirname $0)
-WD=$(cd $WD; pwd)
+WD=$(dirname "$0")
+WD=$(cd "${WD}"; pwd)
 mkdir -p "${WD}/tmp"
 
 release="${1:?"release"}"
@@ -41,4 +41,4 @@ else
   esac
 fi
 
-${WD}/setup_istio.sh "${release}"
+"${WD}/setup_istio.sh" "${release}"

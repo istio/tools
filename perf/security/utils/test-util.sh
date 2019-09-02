@@ -24,12 +24,11 @@
 NAMESPACE=${NAMESPACE:?"specify the namespace for running the test"}
 CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
 
-OPERRATION=${1:-help}
 LOGLEVEL=${2:-info}
 
 proxyconfig() {
-  sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster ${CLUSTER})
-  httpbin_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster ${CLUSTER})
+  sleep_pods=$(kubectl get pods -n "${NAMESPACE}" -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster "${CLUSTER}")
+  httpbin_pods=$(kubectl get pods -n "${NAMESPACE}" -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster "${CLUSTER}")
 
   pods=()
 
@@ -52,13 +51,13 @@ proxyconfig() {
     configpath="/tmp/${configdir}/${pod}-proxy.config"
     touch "${configpath}"
     echo "Dump istio-proxy config from pod ${pod} into ${configpath}"
-    kubectl exec -it -n ${NAMESPACE} "${pod}" -c istio-proxy --cluster ${CLUSTER} -- curl 127.0.0.1:15000/config_dump  > "${configpath}"
+    kubectl exec -it -n "${NAMESPACE}" "${pod}" -c istio-proxy --cluster "${CLUSTER}" -- curl 127.0.0.1:15000/config_dump  > "${configpath}"
   done
 }
 
 proxylog() {
-  sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster ${CLUSTER})
-  httpbin_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster ${CLUSTER})
+  sleep_pods=$(kubectl get pods -n "${NAMESPACE}" -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster "${CLUSTER}")
+  httpbin_pods=$(kubectl get pods -n "${NAMESPACE}" -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster "${CLUSTER}")
 
   pods=()
 
@@ -81,13 +80,13 @@ proxylog() {
     logpath="/tmp/${logdir}/${pod}.log"
     touch "${logpath}"
     echo "Dump istio-proxy logs from pod ${pod} into ${logpath}"
-    kubectl logs -n ${NAMESPACE} "${pod}" -c istio-proxy --cluster ${CLUSTER} > "${logpath}"
+    kubectl logs -n "${NAMESPACE}" "${pod}" -c istio-proxy --cluster "${CLUSTER}" > "${logpath}"
   done
 }
 
 setproxyloglevel() {
-  sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster ${CLUSTER})
-  httpbin_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster ${CLUSTER})
+  sleep_pods=$(kubectl get pods -n "${NAMESPACE}" -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster "${CLUSTER}")
+  httpbin_pods=$(kubectl get pods -n "${NAMESPACE}" -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster "${CLUSTER}")
 
   pods=()
 
@@ -105,13 +104,13 @@ setproxyloglevel() {
   for pod in "${pods[@]}"
   do
     echo "Set istio-proxy log level in pod ${pod} to ${LOGLEVEL}"
-    kubectl exec -it -n ${NAMESPACE} "${pod}" -c istio-proxy --cluster ${CLUSTER} -- curl -X POST 127.0.0.1:15000/logging?level="${LOGLEVEL}"
+    kubectl exec -it -n "${NAMESPACE}" "${pod}" -c istio-proxy --cluster "${CLUSTER}" -- curl -X POST 127.0.0.1:15000/logging?level="${LOGLEVEL}"
   done
 }
 
 proxycert() {
-  sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster ${CLUSTER})
-  httpbin_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster ${CLUSTER})
+  sleep_pods=$(kubectl get pods -n "${NAMESPACE}" -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster "${CLUSTER}")
+  httpbin_pods=$(kubectl get pods -n "${NAMESPACE}" -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster "${CLUSTER}")
 
   pods=()
 
@@ -130,7 +129,7 @@ proxycert() {
   for pod in "${pods[@]}"
   do
     echo "Dump certs of istio-proxy from pod ${pod}"
-    kubectl exec -it -n ${NAMESPACE} "${pod}" -c istio-proxy --cluster ${CLUSTER} -- curl 127.0.0.1:15000/certs
+    kubectl exec -it -n "${NAMESPACE}" "${pod}" -c istio-proxy --cluster "${CLUSTER}" -- curl 127.0.0.1:15000/certs
   done
 }
 

@@ -16,8 +16,8 @@
 
 set -ex
 
-WD=$(dirname $0)
-WD=$(cd $WD; pwd)
+WD=$(dirname "$0")
+WD=$(cd "${WD}"; pwd)
 
 function setup_test() {
   local DIRNAME="${1:?"test directory"}"
@@ -27,7 +27,7 @@ function setup_test() {
   mkdir -p "${WD}/tmp"
   local OUTFILE="${WD}/tmp/${DIRNAME}.yaml"
 
-  helm --namespace "${NAMESPACE}" template "${WD}/${DIRNAME}" ${HELM_ARGS} > "${OUTFILE}"
+  helm --namespace "${NAMESPACE}" template "${WD}/${DIRNAME}" "${HELM_ARGS}" > "${OUTFILE}"
 
   if [[ -z "${DRY_RUN}" ]]; then
     kubectl create ns "${NAMESPACE}" || true

@@ -26,7 +26,7 @@ if ! command -v c++filt > /dev/null; then
     exit 1
 fi
 
-cd "${WD}" || exit -1
+cd "${WD}" || exit
 
 if [[ ! -d ${FLAMEDIR} ]]; then
     echo "Cloning FlameGraph repo in ${WD}"
@@ -42,6 +42,6 @@ SVGNAME="${BASE}.svg"
 "${FLAMEDIR}/stackcollapse-perf.pl" "${FILE}" | c++filt -n | "${FLAMEDIR}/flamegraph.pl" --cp > "${SVGNAME}"
 
 echo "Wrote ${SVGNAME}"
-if [[ ! -z "${BUCKET}" ]];then
+if [[ -n "${BUCKET}" ]];then
     gsutil cp "${SVGNAME}" "${BUCKET}"
 fi

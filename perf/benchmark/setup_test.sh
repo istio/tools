@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-WD=$(dirname $0)
-WD=$(cd "${WD}"; pwd)
-cd "${WD}"
+WD=$(dirname "$0")
+WD=$(cd "${WD}" || exit; pwd)
+cd "${WD}" || exit
 
 set -x
 NAMESPACE="twopods"
@@ -38,17 +38,17 @@ function svc_ip_range() {
 }
 
 function run_test() {
-  helm -n ${NAMESPACE} template \
+  helm -n "${NAMESPACE}" template \
       --set rbac.enabled="${RBAC_ENABLED}" \
-      --set includeOutboundIPRanges=$(svc_ip_range) \
+      --set includeOutboundIPRanges="$(svc_ip_range)" \
       --set injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
-          . > ${TMPDIR}/twopods.yaml
+          . > "${TMPDIR}/twopods.yaml"
   echo "Wrote ${TMPDIR}/twopods.yaml"
 
   # remove stdio rules
-  kubectl apply -n ${NAMESPACE} -f ${TMPDIR}/twopods.yaml
-  echo ${TMPDIR}/twopods.yaml
+  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/twopods.yaml"
+  echo "${TMPDIR}/twopods.yaml"
 }
 
 for ((i=1; i<=$#; i++)); do

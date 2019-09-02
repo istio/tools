@@ -17,8 +17,8 @@
 
 #set -ex
 
-WD=$(dirname $0)
-WD=$(cd $WD; pwd)
+WD=$(dirname "$0")
+WD=$(cd "${WD}" || exit; pwd)
 
 function setup_test() {
   local NAMESPACE="${NAMESPACE:-"pilot-load"}"

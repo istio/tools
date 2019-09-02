@@ -16,13 +16,13 @@
 
 set -ex
 
-WD=$(dirname $0)
-WD=$(cd $WD; pwd)
+WD=$(dirname "$0")
+WD=$(cd "${WD}"; pwd)
 mkdir -p "${WD}/tmp"
 
 function install_prometheus() {
   local DIRNAME="$1" # should be like tools/perf/istio/tmp
-  DIRNAME=$(cd $DIRNAME; pwd)
+  DIRNAME=$(cd "${DIRNAME}"; pwd)
   INSTALLER_DIR="${DIRNAME}/installer"
   if [[ ! -e "$INSTALLER_DIR" ]]; then
     git clone https://github.com/istio/installer.git "$INSTALLER_DIR"
@@ -48,4 +48,4 @@ function install_prometheus() {
   kubectl apply -f "${WD}/../prometheus-install/prometheus.yaml"
 }
 
-install_prometheus $1
+install_prometheus "$1"

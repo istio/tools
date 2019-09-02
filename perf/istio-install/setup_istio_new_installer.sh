@@ -18,8 +18,8 @@ set -ex
 
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org"}
 
-WD=$(dirname $0)
-WD=$(cd $WD; pwd)
+WD=$(dirname "$0")
+WD=$(cd "${WD}"; pwd)
 mkdir -p "${WD}/tmp"
 
 HUB="${HUB:-"gcr.io/istio-release"}"
@@ -28,7 +28,8 @@ GOPATH="${GOPATH:?go path is required}"
 INSTALLER="${GOPATH}/src/istio.io/installer"
 
 if [[ "${TAG}" == *-latest ]];then
-  TAG=$(curl -f -L https://storage.googleapis.com/istio-prerelease/daily-build/${TAG}.txt)
+  TAG=$(curl -f -L https://storage.googleapis.com/istio-prerelease/daily-build/"${TAG}".txt)
+  # shellcheck disable=SC2181
   if [[ $? -ne 0 ]];then
     echo "${TAG} branch does not exist"
     exit 1
@@ -38,12 +39,14 @@ fi
 function setup_admin_binding() {
   kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
-    --user=$(gcloud config get-value core/account) || true
+    --user="$(gcloud config get-value core/account)" || true
 }
 
 function iop() {
   export HUB=$HUB
-  BASE="${INSTALLER}" HUB=${HUB} TAG=${TAG} ${INSTALLER}/bin/iop $* \
+  # shellcheck disable=SC2048
+  # shellcheck disable=SC2086
+  BASE="${INSTALLER}" HUB="${HUB}" TAG="${TAG}" "${INSTALLER}/bin/iop" $* \
     --values "${WD}/values-new-installer.yaml" \
     --set global.istioNamespace=istio-control \
     --set global.configNamespace=istio-control \
@@ -59,20 +62,19 @@ function install_istio() {
     opts+="--values values-large.yaml"
   fi
 
-  mkdir -p ${DIRNAME}/
-  mkdir -p ${DIRNAME}/control
-  mkdir -p ${DIRNAME}/telemetry
-	cp -aR ${INSTALLER}/crds/files ${DIRNAME}/crds
-	iop istio-system istio-system-security ${INSTALLER}/security/citadel -t ${opts} > ${DIRNAME}/citadel.yaml
-	iop istio-control istio-config ${INSTALLER}/istio-control/istio-config -t ${opts} > ${DIRNAME}/control/istio-config.yaml
-	iop istio-control istio-discovery ${INSTALLER}/istio-control/istio-discovery -t ${opts} > ${DIRNAME}/control/istio-discovery.yaml
-	iop istio-control istio-autoinject ${INSTALLER}/istio-control/istio-autoinject -t ${opts} > ${DIRNAME}/control/istio-autoinject.yaml
-	iop istio-ingress istio-ingress ${INSTALLER}/gateways/istio-ingress -t ${opts} > ${DIRNAME}/istio-ingress.yaml
-	iop istio-egress istio-egress ${INSTALLER}/gateways/istio-egress -t ${opts} > ${DIRNAME}/istio-egress.yaml
-	iop istio-telemetry istio-telemetry ${INSTALLER}/istio-telemetry/mixer-telemetry -t ${opts} > ${DIRNAME}/telemetry/istio-telemetry.yaml
-	iop istio-telemetry istio-grafana ${INSTALLER}/istio-telemetry/grafana -t ${opts} > ${DIRNAME}/telemetry/istio-grafana.yaml
-	iop istio-prometheus istio-prometheus ${INSTALLER}/istio-telemetry/prometheus-operator -t ${opts} > ${DIRNAME}/telemetry/istio-prometheus-operator.yaml
-	iop istio-policy istio-policy ${INSTALLER}/istio-policy -t ${opts} > ${DIRNAME}/istio-policy.yaml
+  mkdir -p "${DIRNAME}/control"
+  mkdir -p "${DIRNAME}/telemetry"
+	cp -aR "${INSTALLER}/crds/files" "${DIRNAME}/crds"
+	iop istio-system istio-system-security "${INSTALLER}/security/citadel" -t "${opts}" > "${DIRNAME}/citadel.yaml"
+	iop istio-control istio-config "${INSTALLER}/istio-control/istio-config" -t "${opts}" > "${DIRNAME}/control/istio-config.yaml"
+	iop istio-control istio-discovery "${INSTALLER}/istio-control/istio-discovery" -t "${opts}" > "${DIRNAME}/control/istio-discovery.yaml"
+	iop istio-control istio-autoinject "${INSTALLER}/istio-control/istio-autoinject" -t "${opts}" > "${DIRNAME}/control/istio-autoinject.yaml"
+	iop istio-ingress istio-ingress "${INSTALLER}/gateways/istio-ingress" -t "${opts}" > "${DIRNAME}/istio-ingress.yaml"
+	iop istio-egress istio-egress "${INSTALLER}/gateways/istio-egress" -t "${opts}" > "${DIRNAME}/istio-egress.yaml"
+	iop istio-telemetry istio-telemetry "${INSTALLER}/istio-telemetry/mixer-telemetry" -t "${opts}" > "${DIRNAME}/telemetry/istio-telemetry.yaml"
+	iop istio-telemetry istio-grafana "${INSTALLER}/istio-telemetry/grafana" -t "${opts}" > "${DIRNAME}/telemetry/istio-grafana.yaml"
+	iop istio-prometheus istio-prometheus "${INSTALLER}/istio-telemetry/prometheus-operator" -t "${opts}" > "${DIRNAME}/telemetry/istio-prometheus-operator.yaml"
+	iop istio-policy istio-policy "${INSTALLER}/istio-policy" -t "${opts}" > "${DIRNAME}/istio-policy.yaml"
 
   if [[ -z "${DRY_RUN}" ]]; then
     kubectl create namespace istio-system || true

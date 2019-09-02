@@ -16,8 +16,8 @@
 
 set -ex
 
-WD=$(dirname $0)
-WD=$(cd $WD; pwd)
+WD=$(dirname "$0")
+WD=$(cd "${WD}"; pwd)
 
 command -v gcloud >/dev/null 2>&1 || {
   echo >&2 "This scenario automatically creates necessary DNS-records in order"
@@ -34,7 +34,7 @@ command -v gcloud >/dev/null 2>&1 || {
 DNS_ZONE=${DNS_ZONE:?"Name of GCloud DNS zone to use for a new domain record"}
 
 DNS_NAME=$(gcloud dns managed-zones \
-  describe $DNS_ZONE --format='value(dnsName)')
+  describe "${DNS_ZONE}" --format='value(dnsName)')
 
 if [[ -z "${DNS_NAME}" ]]; then
   echo "Failed to resolve DNS_NAME of the provided DNS_ZONE: ${DNS_ZONE}" 1>&2
@@ -44,7 +44,7 @@ else
   echo "The following ingress domain will be configured: ${INGRESS_DOMAIN}"
 fi
 
-${WD}/../setup_test.sh "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-certmanager"} --set ingressDomain=${INGRESS_DOMAIN}"
+"${WD}/../setup_test.sh" "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-certmanager"} --set ingressDomain=${INGRESS_DOMAIN}"
 
  if [[ -z "${DRY_RUN}" ]]; then
   # Waiting until LoadBalancer is created and retrieving the assigned
@@ -52,8 +52,8 @@ ${WD}/../setup_test.sh "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-cert
   echo "Awaiting LoadBalancer creation and fetching assigned external IP..."
 
   while : ; do
-    INGRESS_IP=$(kubectl -n $NAMESPACE \
-      get service istio-ingress-$NAMESPACE \
+    INGRESS_IP=$(kubectl -n "${NAMESPACE}" \
+      get service "istio-ingress-${NAMESPACE}" \
       -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
     if [[ -z "${INGRESS_IP}" ]]; then
@@ -79,7 +79,7 @@ ${WD}/../setup_test.sh "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-cert
     --name "${INGRESS_DOMAIN}." \
     --format "value(rrdatas)")
 
-  if [[ ! -z "${OLD_IP}" ]]; then
+  if [[ -n "${OLD_IP}" ]]; then
     OLD_TTL=$(gcloud dns record-sets list \
       --zone "$DNS_ZONE" \
       --name "${INGRESS_DOMAIN}." \
@@ -97,11 +97,11 @@ ${WD}/../setup_test.sh "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-cert
       "${OLD_IP}"
   fi
 
-  gcloud dns record-sets transaction add $INGRESS_IP \
+  gcloud dns record-sets transaction add "$INGRESS_IP" \
     --zone "$DNS_ZONE" \
     --name "${INGRESS_DOMAIN}." \
     --ttl "60" \
     --type "A"
   gcloud dns record-sets transaction execute \
-    --zone $DNS_ZONE
+    --zone "${DNS_ZONE}"
 fi

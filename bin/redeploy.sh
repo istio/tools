@@ -15,17 +15,16 @@
 # limitations under the License.
 
 function redeploy() {
-  local dlp=${1:?"deployment"}
   local namespace=${2:?"namespace"}
   kubectl patch deployment "${dpl}" \
-      -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}" \
+      -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"$(date +'%s')\"}}}}}" \
       -n "${namespace}"
 }
 
 
 function redeploy_ns() {
   local namespace=${1:?"namespace"}
-  for dpl in $(kubectl get deployments -o jsonpath="{.items[*].metadata.name}" -n ${namespace});do
+  for dpl in $(kubectl get deployments -o jsonpath="{.items[*].metadata.name}" -n "${namespace}");do
     echo "Redeploy ${namespace}"
     redeploy "${dpl}" "${namespace}"
   done

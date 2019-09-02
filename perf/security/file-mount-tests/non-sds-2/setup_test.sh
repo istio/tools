@@ -20,27 +20,29 @@ RELEASE=${RELEASE:?"specify the Istio release, e.g., release-1.1-20190208-09-16"
 CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
 
 # Download the istioctl
-WD=$(dirname $0)/tmp
+WD=$(dirname "$0")/tmp
 if [[ ! -d "${WD}" ]]; then
-  mkdir $WD
+  mkdir "${WD}"
 fi
 
+# shellcheck disable=SC1091
 source ../../utils/get_release.sh
-get_release_url $RELEASETYPE $RELEASE
+get_release_url "${RELEASETYPE}" "${RELEASE}"
+# shellcheck disable=SC2154
 if [[ -z "$release_url" ]]; then
   exit
 fi
 
-curl -JLo "$WD/istio-${RELEASE}.tar.gz" "${release_url}"
-tar xfz ${WD}/istio-${RELEASE}.tar.gz -C $WD
+curl -JLo "${WD}/istio-${RELEASE}.tar.gz" "${release_url}"
+tar xfz "${WD}/istio-${RELEASE}.tar.gz" -C "${WD}"
 
 function inject_workload() {
   local tempdeployfile="${1:?"please specify the template workload deployment file"}"
   local deployfile="${2:?"please specify the workload deployment file"}"
   # This test uses perf/istio/values-istio-sds-auth.yaml, in which
   # Istio auto sidecar injector is not enabled.
-  $WD/istio-${RELEASE}/bin/istioctl kube-inject -f "${tempdeployfile}" -o "${deployfile}"
-  kubectl apply -n ${NAMESPACE} -f "${deployfile}" --cluster ${CLUSTER}
+  "${WD}/istio-${RELEASE}/bin/istioctl" kube-inject -f "${tempdeployfile}" -o "${deployfile}"
+  kubectl apply -n "${NAMESPACE}" -f "${deployfile}" --cluster "${CLUSTER}"
 
   echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Wait 180 seconds to generate some traffic ..."
   sleep 180
@@ -52,7 +54,7 @@ function rotate_deployment() {
   local workloadlife=180
   ROTATE_WORKLOAD_YAML="rotate_workload_deploy.yaml"
 
-  helm -n ${NAMESPACE} template \
+  helm -n "${NAMESPACE}" template \
     --set Namespace="${NAMESPACE}" \
     --set DeployYaml="${deployfile}" \
     --set WorkloadLife="${workloadlife}" \
@@ -60,17 +62,16 @@ function rotate_deployment() {
           . > "${ROTATE_WORKLOAD_YAML}"
   echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Wrote ${ROTATE_WORKLOAD_YAML}"
   # Create ConfigMap workload-deploy and load workload deployment file into ConfigMap workload-deploy.
-  echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl -n ${NAMESPACE} create \
-  configmap "${workloaddeploymentconfig}" --from-file="${deployfile}"=${deployfile} --cluster ${CLUSTER}"
-  kubectl -n ${NAMESPACE} create configmap "${workloaddeploymentconfig}" --from-file="${deployfile}"=${deployfile} --cluster ${CLUSTER}
+  echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl -n ${NAMESPACE} create configmap ${workloaddeploymentconfig} --from-file=${deployfile}=${deployfile} --cluster ${CLUSTER}"
+  kubectl -n "${NAMESPACE}" create configmap "${workloaddeploymentconfig}" --from-file="${deployfile}"="${deployfile}" --cluster "${CLUSTER}"
   # Create ConfigMap script and load workload rotate script into ConfigMap script.
   # Create a deployment to mount the workload deployment file and rotate script, and execute the script
   # to rotate workload deployment periodically.
   echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") kubectl apply -n ${NAMESPACE} -f ${ROTATE_WORKLOAD_YAML} --cluster ${CLUSTER}"
-  kubectl apply -n ${NAMESPACE} -f ${ROTATE_WORKLOAD_YAML} --cluster ${CLUSTER}
+  kubectl apply -n "${NAMESPACE}" -f ${ROTATE_WORKLOAD_YAML} --cluster "${CLUSTER}"
 }
 
-kubectl create ns ${NAMESPACE} --cluster ${CLUSTER}
+kubectl create ns "${NAMESPACE}" --cluster "${CLUSTER}"
 
 TEMP_DEPLOY_FILE="temp_httpbin_sleep_deploy.yaml"
 helm template --set replicas="${NUM}" ../../workload-deployments/ > "${TEMP_DEPLOY_FILE}"

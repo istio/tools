@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-WD=$(dirname $0)
+WD=$(dirname "$0")
 WD=$(cd "${WD}"; pwd)
 cd "${WD}"
 
@@ -35,7 +35,7 @@ SERVICEHOST="${NAMEPREFIX}0.local"
 
 function run_test() {
   YAML=$(mktemp).yml
-  helm -n ${NAMESPACE} template \
+  helm -n "${NAMESPACE}" template \
 	  --set serviceHost="${SERVICEHOST}" \
     --set Namespace="${NAMESPACE}" \
     --set ingress="${GATEWAY_URL}" \
