@@ -162,7 +162,7 @@ export FORTIO_CLIENT_URL=http://$(kubectl get services -n twopods fortioclient -
 or if you don't have an external IP:
 
 ```bash
-kubectl -n istio-performance port-forward svc/fortioclient 8080:8080 &
+kubectl -n twopods port-forward svc/fortioclient 8080:8080 &
 export FORTIO_CLIENT_URL=http://localhost:8080
 ```
 
