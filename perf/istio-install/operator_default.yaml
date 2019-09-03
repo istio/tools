@@ -4,8 +4,8 @@ spec:
   autoInjection:
     components:
       injector:
-        enabled: false
-    enabled: false
+        enabled: true
+    enabled: true
   configManagement:
     components:
       galley:
@@ -192,8 +192,6 @@ spec:
           memory: 256Mi
     servicegraph:
       enabled: false
-    sidecar-injector:
-      enabled: true
     tracing:
       enabled: true
       jaeger:
