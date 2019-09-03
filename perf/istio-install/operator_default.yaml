@@ -1,0 +1,200 @@
+apiVersion: install.istio.io/v1alpha2
+kind: IstioControlPlane
+spec:
+  autoInjection:
+    components:
+      injector:
+        enabled: false
+    enabled: false
+  configManagement:
+    components:
+      galley:
+        enabled: false
+    enabled: false
+  gateways:
+    components:
+      egressGateway:
+        enabled: true
+        k8s:
+          env:
+            - name: ISTIO_META_REQUESTED_NETWORK_VIEW
+              value: external
+      ingressGateway:
+        enabled: true
+        k8s:
+          resources:
+            limits:
+              cpu: 6000m
+              memory: 512Mi
+            requests:
+              cpu: 4000m
+              memory: 512Mi
+    enabled: true
+  policy:
+    components:
+      policy:
+        enabled: false
+    enabled: false
+  security:
+    components:
+      certManager:
+        enabled: false
+      citadel:
+        enabled: false
+      nodeAgent:
+        enabled: true
+        k8s:
+          env:
+            - name: SECRET_GRACE_DURATION
+              value: 10m
+            - name: SECRET_JOB_RUN_INTERVAL
+              value: 30s
+            - name: SECRET_TTL
+              value: 20m
+            - name: VALID_TOKEN
+              value: "true"
+            - name: CA_ADDR
+              value: istio-citadel:8060
+            - name: CA_PROVIDER
+              value: Citadel
+    enabled: true
+  telemetry:
+    components:
+      telemetry:
+        enabled: true
+        k8s:
+          hpaSpec:
+            maxReplicas: 15
+            metrics:
+              - resource:
+                  name: cpu
+                  targetAverageUtilization: 80
+                type: Resource
+            minReplicas: 1
+            scaleTargetRef:
+              apiVersion: apps/v1
+              kind: Deployment
+              name: istio-mixer.telemetry
+          replicaCount: 1
+    enabled: true
+  trafficManagement:
+    components:
+      pilot:
+        enabled: true
+        k8s:
+          env:
+            - name: PILOT_PUSH_THROTTLE
+              value: "50"
+            - name: GODEBUG
+              value: gctrace=2
+          replicaCount: 2
+          resources:
+            limits:
+              cpu: 5800m
+              memory: 12G
+            requests:
+              cpu: 4800m
+              memory: 2G
+    enabled: true
+  values:
+    certmanager:
+      certificates:
+        - ingress.v10.istio.webinf.info
+      commonName: ingress.v10.istio.webinf.info
+      email: mjog@google.com
+    gateways:
+      istio-ilbgateway:
+        type: NodePort
+      istio-ingressgateway:
+        labels:
+          app: istio-ingressgateway
+          istio: ingressgateway
+          name: gateway
+          ver: ingress10
+        meshExpansion: true
+        replicas: 3
+        secretVolumes:
+        - mountPath: /etc/istio/ingressgateway-certs
+          name: istio-ingressgateway-certs
+          secretName: istio-ingressgateway-certs
+        type: LoadBalancer
+    global:
+      controlPlaneSecurityEnabled: false
+      imagePullPolicy: Always
+      k8sIngressSelector: ingressgateway
+      meshExpansion:
+        enabled: true
+        useILB: true
+      mtls:
+        enabled: true
+      multiCluster:
+        enabled: true
+      podDNSSearchNamespaces:
+        - global
+        - '{{ valueOrDefault .DeploymentMeta.Namespace "default" }}.global'
+      refreshInterval: 30s
+      sds:
+        enabled: true
+        udsPath: unix:/var/run/sds/uds_path
+        useNormalJwt: true
+    grafana:
+      datasources:
+        datasources:
+          yaml:
+            apiVersion: 1
+            datasources:
+            - access: proxy
+              editable: true
+              isDefault: true
+              jsonData:
+                timeInterval: 5s
+              name: Prometheus
+              orgId: 1
+              type: prometheus
+              url: http://istio-prometheus.istio-prometheus:9090
+      enabled: true
+    ingress:
+      enabled: false
+    istiocoredns:
+      enabled: true
+    kiali:
+      enabled: false
+      tag: latest
+    mixer:
+      resources:
+        limits:
+          cpu: 5800m
+          memory: 5G
+        requests:
+          cpu: 3800m
+          memory: 4G
+      telemetry:
+        sessionAffinityEnabled: false
+    nodeagent:
+      image: node-agent-k8s
+    pilot:
+      sidecar: true
+    prometheus:
+      enabled: false
+    proxy:
+      accessLogFile: ""
+      concurrency: 2
+      enableCoreDump: true
+      envoyAccessLogService:
+        enabled: false
+        host: accesslog-grpc.istio-system.svc.cluster.local
+        port: 18090
+      resources:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 500m
+          memory: 256Mi
+    servicegraph:
+      enabled: false
+    sidecar-injector:
+      enabled: true
+    tracing:
+      enabled: true
+      jaeger:
+        enabled: true
