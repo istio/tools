@@ -100,6 +100,7 @@ optional arguments:
   --ingress INGRESS   run traffic through ingress
   --labels LABELS     extra labels
 ```
+Note: If you want to run with optional arguments `--perf`, you need to first `cd` to the `flame` folder.
 
 ### Example 1
 

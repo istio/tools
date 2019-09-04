@@ -35,7 +35,12 @@ Flame graphs are created from data collected using linux `perf_events` by the `p
 2. Ensure that you can run `perf record` 
 
     Running `perf record` from container requires the host to permit this activity. This is done by running the following command on the vm host.
+    For example, if you are running on a GKE cluster, you should `ssh` to the node using the command:
+    ```bash
+    gcloud compute ssh gke-perf-test-default-pool-xxxxxx
     ```
+    Then run the following command:
+    ```base
     sudo sysctl kernel.perf_event_paranoid=-1
     sudo sysctl kernel.kptr_restrict=0
     ```
