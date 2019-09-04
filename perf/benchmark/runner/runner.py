@@ -237,8 +237,7 @@ def kubecp(mesh, from_file, to_file):
         namespace=namespace,
         from_file=from_file,
         to_file=to_file,
-        mesh=mesh
-        )
+        mesh=mesh)
     print(cmd)
     return run_command_sync(cmd)
 
