@@ -15,10 +15,7 @@
 from __future__ import print_function
 import json
 import os
-import tempfile
-import subprocess
 import requests
-import argparse
 from datetime import datetime
 import calendar
 import csv
