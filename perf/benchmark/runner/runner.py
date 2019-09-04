@@ -235,7 +235,7 @@ def perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
 
 def kubecp(mesh, from_file, to_file):
     namespace = os.environ.get("NAMESPACE", "twopods")
-    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c" + mesh + \
+    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c " + mesh + \
         "-proxy".format(from_file=from_file,
                         to_file=to_file,
                         namespace=namespace)
