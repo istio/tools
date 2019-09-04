@@ -125,6 +125,14 @@ python runner/runner.py 16,64 1000,4000 180 --serversidecar --baseline
 - **1000** and **4000** QPS
 - `both`,  `serversidecar`, and `baseline` proxy modes
 
+
+### Example 3
+Example 1 and 2 is to gather the latency results by increasing the number of connections. If you want to gather CPU and memory related
+results, you should increasing the number of QPS, like:
+```bash
+python runner/runner.py 10 100,500,1000,2000,4000 240  --serversidecar --baseline 
+```
+
 ## [Optional] Disable Mixer
 
 Calls to Istio's Mixer component (policy and telemetry) adds latency to the sidecar proxy. To disable Istio's mixer and re-run the performance tests:
@@ -136,8 +144,11 @@ kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
 python ../../bin/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f /tmp/meshconfig.yaml
 ```
 
-2. Run `runner.py`, in any sidecar mode, with the `--labels=nomixer` flag.
-
+2. Run `runner.py`, in any sidecar mode, with the `--labels=nomixer` flag. If you run this command:
+```bash
+python runner/runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar --baseline --labels=nomixer
+```
+it will generate the output showing in the `Example Output` section. Which includes both with Mixer and without Mixer test results.
 3. Re-enable Mixer:
 
 ```bash

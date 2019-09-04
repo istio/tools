@@ -9,7 +9,7 @@ metadata:
 spec:
   image: "docker.io/prom/prometheus:v2.8.0"
   version: v2.8.0
-  retention: 6h
+  retention: 72h
   scrapeInterval: 15s
   serviceAccountName: prometheus
   serviceMonitorSelector:

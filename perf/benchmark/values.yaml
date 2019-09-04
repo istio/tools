@@ -11,8 +11,7 @@ appresources1:
     memory: "1000m"
 
 fortioImage: fortio/fortio:latest_release
-# access log service
-alsImage: gcr.io/mixologist-142215/als:v001
+curlImage: tutum/curl:trusty
 domain: local
 gateway: fortio-gateway
 rbac:
