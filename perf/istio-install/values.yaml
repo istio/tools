@@ -107,7 +107,7 @@ pilot:
       cpu: 5800m
       memory: 12G
 
-sidecar-injector:
+sidecarInjectorWebhook:
   enabled: true
 
 grafana:
