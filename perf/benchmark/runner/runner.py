@@ -226,19 +226,19 @@ def perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
         container=mesh + "-proxy")
 
     print(perf)
-
-    print(kubecp(mesh, pod + ":" + filepath + ".perf", filename + ".perf"))
-
+    kubecp(mesh, pod + ":" + filepath + ".perf", filename + ".perf")
     run_command_sync("./flame.sh " + filename + ".perf")
     return perf
 
 
 def kubecp(mesh, from_file, to_file):
     namespace = os.environ.get("NAMESPACE", "twopods")
-    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c " + mesh + \
-        "-proxy".format(from_file=from_file,
-                        to_file=to_file,
-                        namespace=namespace)
+    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {mesh}-proxy".format(
+        namespace=namespace,
+        from_file=from_file,
+        to_file=to_file,
+        mesh=mesh
+        )
     print(cmd)
     return run_command_sync(cmd)
 
@@ -249,7 +249,10 @@ def kubectl(pod, remote_cmd, runfn=run_command, container=None):
     if container is not None:
         c = "-c " + container
     cmd = "kubectl --namespace {namespace} exec -i -t {pod} {c} -- {remote_cmd}".format(
-        pod=pod, remote_cmd=remote_cmd, c=c, namespace=namespace)
+        pod=pod,
+        remote_cmd=remote_cmd,
+        c=c,
+        namespace=namespace)
     print(cmd)
     return runfn(cmd)
 
