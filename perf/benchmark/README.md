@@ -2,7 +2,7 @@
 
 This directory contains Python scripts to benchmark Istio's data plane performance.
 
-See the [Istio Performance and Scalability Guide](https://istio.io/docs/concepts/performance-and-scalability/) for performance data against the latest Istio release.  
+See the [Istio Performance and Scalability Guide](https://istio.io/docs/concepts/performance-and-scalability/) for performance data against the latest Istio release.
 
 For instructions on how to run these scripts with Linkerd, see the [linkerd/](linkerd/) directory.
 
@@ -29,7 +29,7 @@ export CLUSTER_NAME=<any-name>
 
 ```bash
 export ISTIO_RELEASE="release-1.2-latest"  # or any Istio release
-export DNS_DOMAIN=local 
+export DNS_DOMAIN=local
 ./setup_istio.sh $ISTIO_RELEASE
 ```
 
@@ -39,7 +39,7 @@ Wait for all Istio pods to be `Running` and `Ready`:
 kubectl get pods -n istio-system
 ```
 
-3. Deploy the workloads to measure performance against. The test environment is two [Fortio](http://fortio.org/) pods (one client, one server), set to communicate over HTTP1, using mutual TLS authentication. By default, the client pod will make HTTP requests with a 1KB payload. 
+3. Deploy the workloads to measure performance against. The test environment is two [Fortio](http://fortio.org/) pods (one client, one server), set to communicate over HTTP1, using mutual TLS authentication. By default, the client pod will make HTTP requests with a 1KB payload.
 
 ```bash
 export NAMESPACE=twopods
@@ -80,7 +80,7 @@ python runner/runner.py <conn> <qps> <duration> --OPTIONAL-FLAGS
 Required fields:
 
 - `conn` = number of concurrent connections
-- `qps` = queries per second for each connection 
+- `qps` = queries per second for each connection
 - `duration` = number of seconds to run each test for  (the minimum value for duration should be: 92 seconds)
 
 ```bash
@@ -131,7 +131,7 @@ python runner/runner.py 16,64 1000,4000 180 --serversidecar --baseline
 Example 1 and 2 is to gather the latency results by increasing the number of connections. If you want to gather CPU and memory related
 results, you should increasing the number of QPS, like:
 ```bash
-python runner/runner.py 10 100,500,1000,2000,4000 240  --serversidecar --baseline 
+python runner/runner.py 10 100,500,1000,2000,4000 240  --serversidecar --baseline
 ```
 
 ## [Optional] Disable Mixer
@@ -180,8 +180,11 @@ export FORTIO_CLIENT_URL=http://localhost:8080
 
 2. Set `PROMETHEUS_URL`:
 
+This command can be used if you installed Prometheus over the `./setup_istio.sh` script.
+Otherwise your Prometheus maybe in a different namespace and differently named.
+
 ```bash
-kubectl -n istio-prometheus port-forward svc/prometheus 9090:9090 &
+kubectl -n istio-prometheus port-forward svc/istio-prometheus 9090:9090 &
 export PROMETHEUS_URL=http://localhost:9090
 ```
 
