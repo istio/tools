@@ -14,8 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2164
 WD=$(cd "${WD}"; pwd)
+# shellcheck disable=SC2164
 cd "${WD}"
 
 set -x
@@ -38,6 +41,7 @@ function svc_ip_range() {
 }
 
 function run_test() {
+  # shellcheck disable=SC2046
   helm -n ${NAMESPACE} template \
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set includeOutboundIPRanges=$(svc_ip_range) \

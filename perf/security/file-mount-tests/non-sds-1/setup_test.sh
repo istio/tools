@@ -20,31 +20,40 @@ RELEASE=${RELEASE:?"specify the Istio release, e.g., release-1.1-20190208-09-16"
 CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
 
 # Download the istioctl
+# shellcheck disable=SC2086
 WD=$(dirname $0)/tmp
 if [[ ! -d "${WD}" ]]; then
+  # shellcheck disable=SC2086
   mkdir $WD
 fi
 
+# shellcheck disable=SC1091
 source ../../utils/get_release.sh
+# shellcheck disable=SC2086
 get_release_url $RELEASETYPE $RELEASE
+# shellcheck disable=SC2154
 if [[ -z "$release_url" ]]; then
   exit
 fi
 
 curl -JLo "$WD/istio-${RELEASE}.tar.gz" "${release_url}"
+# shellcheck disable=SC2086
 tar xfz ${WD}/istio-${RELEASE}.tar.gz -C $WD
 
 function inject_workload() {
   local deployfile="${1:?"please specify the workload deployment file"}"
   # This test uses perf/istio/values-istio-sds-auth.yaml, in which
   # Istio auto sidecar injector is not enabled.
+  # shellcheck disable=SC2086
   $WD/istio-${RELEASE}/bin/istioctl kube-inject -f "${deployfile}" -o temp-workload-injected.yaml
+  # shellcheck disable=SC2086
   kubectl apply -n ${NAMESPACE} -f temp-workload-injected.yaml --cluster ${CLUSTER}
 }
 
 TEMP_DEPLOY_NAME="temp_httpbin_sleep_deploy.yaml"
 helm template --set replicas="${NUM}" ../../workload-deployments/ > "${TEMP_DEPLOY_NAME}"
 
+# shellcheck disable=SC2086
 kubectl create ns ${NAMESPACE} --cluster ${CLUSTER}
 
 inject_workload ${TEMP_DEPLOY_NAME}

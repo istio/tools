@@ -52,10 +52,13 @@ ISTIOCTL="${ISTIOCTL:-istioctl}"
 KUBECONFIG1="${KUBECONFIG1:-${HOME}/.kube/config}"
 KUBECONFIG2="${KUBECONFIG2:-${HOME}/.kube/config}"
 # KUBECONTEXT: empty value defaults to "current" context of given kubeconfig file
+# shellcheck disable=SC2086
 KUBECONTEXT1="${KUBECONTEXT1:-$(kubectl --kubeconfig=${KUBECONFIG1} config current-context)}"
+# shellcheck disable=SC2086
 KUBECONTEXT2="${KUBECONTEXT2:-$(kubectl --kubeconfig=${KUBECONFIG2} config current-context)}"
 
 ### simple sanity check
+# shellcheck disable=SC2053
 if [[ $KUBECONFIG1 == $KUBECONFIG2 ]] && [[ $KUBECONTEXT1 == $KUBECONTEXT2 ]]; then
   echo
   echo " [FAIL] KUBECONFIG{1,2}/KUBECONTEXT{1,2} pairs refer to the same cluster"
@@ -68,12 +71,14 @@ fi
 BASE_DIR=$(dirname "$0")
 TEMP_DIR=$(mktemp -d)
 
+# shellcheck disable=SC2086
 if [[ -z "$ISTIO_INSTALLER_PATH" ]]; then
   echo
   echo " [*] Istio Installer path was not provided. Cloning it into a temp location."
   echo
 
   ISTIO_INSTALLER_PATH="${TEMP_DIR}/installer"
+  # shellcheck disable=SC2086
   git clone https://github.com/istio/installer.git $ISTIO_INSTALLER_PATH
 fi
 
@@ -87,8 +92,11 @@ function copy_istio_secrets {
   $KUBECTL_DST -n istio-system delete secret istio-ca-secret || true
   $KUBECTL_DST -n istio-system delete secret cacerts || true
 
+  # shellcheck disable=SC2006
   for ns in `$KUBECTL_DST get ns -o=jsonpath="{.items[*].metadata.name}"`; do
+    # shellcheck disable=SC2086
     echo $ns
+    # shellcheck disable=SC2086
     $KUBECTL_DST -n $ns delete secret istio.default || true
   done
 
@@ -119,15 +127,24 @@ function install_k8s_secrets {
   local KUBECTL_MASTER="kubectl --kubeconfig=${KUBECONFIG_MASTER} --context=${KUBECONTEXT_MASTER}"
   local KUBECTL_SLAVE="kubectl --kubeconfig=${KUBECONFIG_SLAVE} --context=${KUBECONTEXT_SLAVE}"
 
+  # shellcheck disable=SC2155
   local CLUSTER_NAME=$($KUBECTL_SLAVE config view -o jsonpath="{.contexts[?(@.name == \"${KUBECONTEXT_SLAVE}\")].context.cluster}")
+  # shellcheck disable=SC2155
   local SERVER=$($KUBECTL_SLAVE config view -o jsonpath="{.clusters[?(@.name == \"${CLUSTER_NAME}\")].cluster.server}")
   local SERVICE_ACCOUNT=istio-pilot-service-account
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2155
   local SECRET_NAME=$($KUBECTL_SLAVE get sa ${SERVICE_ACCOUNT} -n ${NAMESPACE_SLAVE} -o jsonpath="{.secrets[].name}")
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2155
   local CA_DATA=$($KUBECTL_SLAVE get secret ${SECRET_NAME} -n ${NAMESPACE_SLAVE} -o jsonpath="{.data['ca\.crt']}")
 
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2155
   local TOKEN=$($KUBECTL_SLAVE get secret ${SECRET_NAME} -n ${NAMESPACE_SLAVE} -o jsonpath="{.data['token']}" | base64 --decode)
 
   local KUBECFG_FILE=$TEMP_DIR/kubeconfig
+  # shellcheck disable=SC2086
   cat > $KUBECFG_FILE <<EOF
 apiVersion: v1
 kind: Config
@@ -149,9 +166,13 @@ users:
     token: ${TOKEN}
 EOF
 
+  # shellcheck disable=SC2155
+  # shellcheck disable=SC2002
   local SECRET_NAME=$(cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
 
+  # shellcheck disable=SC2086
   $KUBECTL_MASTER create secret generic ${SECRET_NAME} --from-file ${KUBECFG_FILE} -n ${NAMESPACE_MASTER}
+  # shellcheck disable=SC2086
   $KUBECTL_MASTER label secret ${SECRET_NAME} istio/multiCluster=true -n ${NAMESPACE_MASTER}
 
   sleep 5
@@ -164,6 +185,7 @@ KUBECTL2="kubectl --kubeconfig=${KUBECONFIG2} --context=${KUBECONTEXT2}"
 echo
 echo " [*] Installing Istio CRDs"
 echo
+# shellcheck disable=SC2086
 $KUBECTL2 apply -f $ISTIO_INSTALLER_PATH/crds/files
 
 echo
@@ -171,6 +193,7 @@ echo " [*] Copying Citadel secrets from the primary cluster and installing Citad
 echo
 $KUBECTL2 create ns istio-system || true
 copy_istio_secrets "$KUBECTL1" "$KUBECTL2"
+# shellcheck disable=SC2086
 helm template \
   --namespace istio-system \
   -n citadel \
@@ -183,10 +206,17 @@ helm template \
 echo
 echo " [*] Installing test scenarios"
 echo
+# shellcheck disable=SC2086
 $KUBECTL2 create ns $APPS_NAMESPACE || true
 
+# shellcheck disable=SC1090
+# shellcheck disable=SC2086
 ( . $BASE_DIR/default/setup.sh )
+# shellcheck disable=SC1090
+# shellcheck disable=SC2086
 ( . $BASE_DIR/locality-distribute/setup.sh )
+# shellcheck disable=SC1090
+# shellcheck disable=SC2086
 ( . $BASE_DIR/locality-failover/setup.sh )
 
 echo

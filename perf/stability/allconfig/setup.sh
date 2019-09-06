@@ -16,9 +16,12 @@
 
 set -ex
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 
 gateway=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 domain=${DNS_DOMAIN:-qualistio.org}
+# shellcheck disable=SC2086
 ${WD}/../setup_test.sh "allconfig" "--set ingress=${gateway} --set domain=${domain}"

@@ -16,16 +16,20 @@
 
 set -ex
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 
 NAMESPACE="${NAMESPACE:-"istio-stability-gateway-bouncer"}"
+# shellcheck disable=SC2086
 ${WD}/../setup_test.sh "gateway-bouncer" "--set namespace=${NAMESPACE}"
 
-if [ -z ${DRY_RUN}; then
+if [[ -z ${DRY_RUN} ]]; then
   # Waiting until LoadBalancer is created and retrieving the assigned
   # external IP address.
   while : ; do
+    # shellcheck disable=SC2086
     INGRESS_IP=$(kubectl -n ${NAMESPACE} \
       get service istio-ingress-${NAMESPACE} \
       -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -39,9 +43,13 @@ if [ -z ${DRY_RUN}; then
 
   # Populating a ConfigMap with the external IP address and restarting the
   # client to pick up the new version of the ConfigMap.
+  # shellcheck disable=SC2086
   kubectl -n ${NAMESPACE} delete configmap fortio-client-config
+  # shellcheck disable=SC2086
   kubectl -n ${NAMESPACE} create configmap fortio-client-config \
     --from-literal=external_addr=${INGRESS_IP}
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2006
   kubectl -n ${NAMESPACE} patch deployment fortio-client \
     -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
 fi

@@ -24,11 +24,12 @@
 NAMESPACE=${NAMESPACE:?"specify the namespace for running the test"}
 CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
 
-OPERRATION=${1:-help}
 LOGLEVEL=${2:-info}
 
 proxyconfig() {
+  # shellcheck disable=SC2086
   sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster ${CLUSTER})
+  # shellcheck disable=SC2086
   httpbin_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster ${CLUSTER})
 
   pods=()
@@ -52,12 +53,15 @@ proxyconfig() {
     configpath="/tmp/${configdir}/${pod}-proxy.config"
     touch "${configpath}"
     echo "Dump istio-proxy config from pod ${pod} into ${configpath}"
+    # shellcheck disable=SC2086
     kubectl exec -it -n ${NAMESPACE} "${pod}" -c istio-proxy --cluster ${CLUSTER} -- curl 127.0.0.1:15000/config_dump  > "${configpath}"
   done
 }
 
 proxylog() {
+  # shellcheck disable=SC2086
   sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster ${CLUSTER})
+  # shellcheck disable=SC2086
   httpbin_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster ${CLUSTER})
 
   pods=()
@@ -81,12 +85,15 @@ proxylog() {
     logpath="/tmp/${logdir}/${pod}.log"
     touch "${logpath}"
     echo "Dump istio-proxy logs from pod ${pod} into ${logpath}"
+    # shellcheck disable=SC2086
     kubectl logs -n ${NAMESPACE} "${pod}" -c istio-proxy --cluster ${CLUSTER} > "${logpath}"
   done
 }
 
 setproxyloglevel() {
+  # shellcheck disable=SC2086
   sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster ${CLUSTER})
+  # shellcheck disable=SC2086
   httpbin_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster ${CLUSTER})
 
   pods=()
@@ -105,12 +112,15 @@ setproxyloglevel() {
   for pod in "${pods[@]}"
   do
     echo "Set istio-proxy log level in pod ${pod} to ${LOGLEVEL}"
+    # shellcheck disable=SC2086
     kubectl exec -it -n ${NAMESPACE} "${pod}" -c istio-proxy --cluster ${CLUSTER} -- curl -X POST 127.0.0.1:15000/logging?level="${LOGLEVEL}"
   done
 }
 
 proxycert() {
+  # shellcheck disable=SC2086
   sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster ${CLUSTER})
+  # shellcheck disable=SC2086
   httpbin_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=httpbin --cluster ${CLUSTER})
 
   pods=()
@@ -130,6 +140,7 @@ proxycert() {
   for pod in "${pods[@]}"
   do
     echo "Dump certs of istio-proxy from pod ${pod}"
+    # shellcheck disable=SC2086
     kubectl exec -it -n ${NAMESPACE} "${pod}" -c istio-proxy --cluster ${CLUSTER} -- curl 127.0.0.1:15000/certs
   done
 }

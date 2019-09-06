@@ -16,7 +16,9 @@
 
 set -ex
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 
 command -v gcloud >/dev/null 2>&1 || {
@@ -33,6 +35,7 @@ command -v gcloud >/dev/null 2>&1 || {
 
 DNS_ZONE=${DNS_ZONE:?"Name of GCloud DNS zone to use for a new domain record"}
 
+# shellcheck disable=SC2086
 DNS_NAME=$(gcloud dns managed-zones \
   describe $DNS_ZONE --format='value(dnsName)')
 
@@ -44,6 +47,7 @@ else
   echo "The following ingress domain will be configured: ${INGRESS_DOMAIN}"
 fi
 
+# shellcheck disable=SC2086
 ${WD}/../setup_test.sh "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-certmanager"} --set ingressDomain=${INGRESS_DOMAIN}"
 
  if [[ -z "${DRY_RUN}" ]]; then
@@ -52,6 +56,7 @@ ${WD}/../setup_test.sh "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-cert
   echo "Awaiting LoadBalancer creation and fetching assigned external IP..."
 
   while : ; do
+    # shellcheck disable=SC2086
     INGRESS_IP=$(kubectl -n $NAMESPACE \
       get service istio-ingress-$NAMESPACE \
       -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -79,6 +84,7 @@ ${WD}/../setup_test.sh "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-cert
     --name "${INGRESS_DOMAIN}." \
     --format "value(rrdatas)")
 
+  # shellcheck disable=SC2236
   if [[ ! -z "${OLD_IP}" ]]; then
     OLD_TTL=$(gcloud dns record-sets list \
       --zone "$DNS_ZONE" \
@@ -97,11 +103,13 @@ ${WD}/../setup_test.sh "sds-certmanager" "--set namespace=${NAMESPACE:-"sds-cert
       "${OLD_IP}"
   fi
 
+  # shellcheck disable=SC2086
   gcloud dns record-sets transaction add $INGRESS_IP \
     --zone "$DNS_ZONE" \
     --name "${INGRESS_DOMAIN}." \
     --ttl "60" \
     --type "A"
+  # shellcheck disable=SC2086
   gcloud dns record-sets transaction execute \
     --zone $DNS_ZONE
 fi

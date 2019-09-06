@@ -18,8 +18,11 @@ set -ex
 
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org"}
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
+# shellcheck disable=SC2086
 mkdir -p "${WD}/tmp"
 
 release="${1:?"release"}"
@@ -41,4 +44,5 @@ else
   esac
 fi
 
+# shellcheck disable=SC2086
 ${WD}/setup_istio.sh "${release}"

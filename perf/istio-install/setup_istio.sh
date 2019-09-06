@@ -18,14 +18,18 @@ set -ex
 
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org"}
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
 
 release="${1:?"release"}"
 
 if [[ "${release}" == *-latest ]];then
+  # shellcheck disable=SC2086
   release=$(curl -f -L https://storage.googleapis.com/istio-prerelease/daily-build/${release}.txt)
+  # shellcheck disable=SC2181
   if [[ $? -ne 0 ]];then
     echo "${release} branch does not exist"
     exit 1
@@ -39,12 +43,16 @@ function download() {
   local release="$2"
 
   local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  # shellcheck disable=SC2236
   if [[ ! -z "${RELEASE_URL}" ]];then
     url="${RELEASE_URL}"
   fi
   local outfile="${DIRNAME}/istio-${release}.tgz"
   if [[ ! -f "${outfile}" ]]; then
+    # shellcheck disable=SC2091
+    # shellcheck disable=SC2086
     $(curl -fJL -o "${outfile}" ${url})
+    # shellcheck disable=SC2181
     if [[ $? -ne 0 ]];then
       echo ""
       exit 1
@@ -56,10 +64,12 @@ function download() {
 
 function trim(){
     [[ "$1" =~ [^[:space:]](.*[^[:space:]])? ]]
+    # shellcheck disable=SC2128
     printf "%s" "$BASH_REMATCH"
 }
 
 function setup_admin_binding() {
+  # shellcheck disable=SC2046
   kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
     --user=$(gcloud config get-value core/account) || true
@@ -69,17 +79,21 @@ function install_istio() {
   local DIRNAME="${1:?"output dir"}"
   local release="${2:?"release"}"
 
+  # shellcheck disable=SC2155
+  # shellcheck disable=SC2086
   local outfile="$(download ${DIRNAME} ${release})"
   if [[ "$outfile" == "" ]];then
     echo "failed to download istio release"
     exit 1
   fi
+  # shellcheck disable=SC2086
   outfile=$(trim $outfile);
 
   if [[ ! -d "${DIRNAME}/${release}" ]];then
       DN=$(mktemp -d)
       tar -xzf "${outfile}" -C "${DN}" --strip-components 1
       mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
+      # shellcheck disable=SC2086
       rm -Rf ${DN}
   fi
 
@@ -115,6 +129,7 @@ function install_istio() {
     extravalues="--values ${extravalues}"
   fi
 
+  # shellcheck disable=SC2086
   helm template --name istio --namespace istio-system \
        ${opts} \
        --values ${values} \
@@ -124,6 +139,7 @@ function install_istio() {
   if [[ -z "${DRY_RUN}" ]];then
       kubectl apply -f "${FILENAME}"
       if [[ -z "${SKIP_PROMETHEUS}" ]];then
+          # shellcheck disable=SC2086
           "$WD/setup_prometheus.sh" ${DIRNAME}
       fi
   fi
@@ -139,5 +155,7 @@ function install_gateways() {
 }
 
 setup_admin_binding
+# shellcheck disable=SC2048
+# shellcheck disable=SC2086
 install_istio "${WD}/tmp" "${release}" $*
 install_gateways

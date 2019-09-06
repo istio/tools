@@ -30,6 +30,7 @@ install_k8s_secrets "$KUBECONFIG2" "$KUBECONTEXT2" "$NAMESPACE" "$KUBECONFIG1" "
 REGION1=$($KUBECTL1 get nodes -o jsonpath='{.items[0].metadata.labels.failure-domain\.beta\.kubernetes\.io/region}')
 REGION2=$($KUBECTL2 get nodes -o jsonpath='{.items[0].metadata.labels.failure-domain\.beta\.kubernetes\.io/region}')
 
+# shellcheck disable=SC2086
 cat > ${TEMP_DIR}/values-${SCENARIO}.yaml <<EOF
 global:
   hub: ${HUB}
@@ -54,6 +55,7 @@ pilot:
     PILOT_ENABLE_LOCALITY_LOAD_BALANCING: "1"
 EOF
 
+# shellcheck disable=SC2086
 helm template \
   --namespace $NAMESPACE \
   -n galley-$NAMESPACE \
@@ -62,6 +64,7 @@ helm template \
   -f ${TEMP_DIR}/values-${SCENARIO}.yaml \
   | $KUBECTL2 apply -f -
 
+# shellcheck disable=SC2086
 helm template \
   --namespace $NAMESPACE \
   -n pilot-$NAMESPACE \
@@ -70,6 +73,7 @@ helm template \
   -f ${TEMP_DIR}/values-${SCENARIO}.yaml \
   | $KUBECTL2 apply -f -
 
+# shellcheck disable=SC2086
 helm template \
   --namespace $NAMESPACE \
   -n autoinject-$NAMESPACE \
@@ -78,9 +82,13 @@ helm template \
   -f ${TEMP_DIR}/values-${SCENARIO}.yaml \
   | $KUBECTL2 apply -f -
 
+# shellcheck disable=SC2086
 $KUBECTL2 -n $NAMESPACE rollout status deployment istio-galley
+# shellcheck disable=SC2086
 $KUBECTL2 -n $NAMESPACE rollout status deployment istio-pilot
+# shellcheck disable=SC2086
 $KUBECTL2 -n $NAMESPACE rollout status deployment istio-sidecar-injector
 
+# shellcheck disable=SC2086
 $ISTIOCTL kube-inject --context=$KUBECONTEXT2 -i $NAMESPACE -f "$BASE_DIR/$SCENARIO/setup.yaml" \
   | $KUBECTL2 -n $APPS_NAMESPACE apply -f -
