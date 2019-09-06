@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# this program checks the config push latency for the pilot.
-import check_metrics
-from prometheus import Query, Alarm, Prometheus
+
 import sys
 import os
 import time
@@ -24,9 +22,18 @@ import typing
 import subprocess
 import argparse
 
+# TODO: is this the pythonic way to add customized path?
+sys.path.append('../../../metrics/')
+
+import check_metrics
+from prometheus import Query, Alarm, Prometheus
 
 def init_mesh():
-  pass
+  print('Intialize the mesh...')
+  p = subprocess.Popen([
+      './setup.sh',
+  ])
+  p.wait()
 
 
 def deploy_workloads(server_sidecar, server_nosidecar, wait=False):
@@ -34,15 +41,15 @@ def deploy_workloads(server_sidecar, server_nosidecar, wait=False):
   Updates deployments with or without Envoy sidecar.
   wait indicates whether the command wait till all pods become ready.
   '''
-  pass
-
-
-def start_requets():
-  pass
-
-
-def stop_requests():
-  pass
+  cmd = ('kubectl scale deployment.v1.apps/httpbin-sidecar --replicas={} -nauto-mtls').format(
+    server_sidecar)
+  p = subprocess.Popen(cmd.split(' '))
+  print(cmd)
+  p.wait()
+  cmd = ('kubectl scale deployment.v1.apps/httpbin-nosidecar --replicas={} -nauto-mtls').format(
+    server_nosidecar)
+  p = subprocess.Popen(cmd.split(' '))
+  p.wait()
 
 
 def gather_metrics():
@@ -51,8 +58,11 @@ def gather_metrics():
 
 def runtest():
   init_mesh()
-  start_requets()
-  stop_requests()
+  deploy_workloads(3, 1)
+  time.sleep(20)
+  deploy_workloads(1,3)
+  time.sleep(20)
+  # TODO(incfly): more scale up and down to trigger mTLS autopilot behaivor.
   gather_metrics()
 
 

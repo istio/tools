@@ -1,0 +1,17 @@
+global:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 256Mi
+    limits:
+      memory: 256Mi
+
+  mtls:
+    # Default setting for service-to-service mtls. Can be set explicitly using
+    # destination rules or service annotations.
+    enabled: false
+    # TODO: wait till https://github.com/istio/istio/pull/16636 is merged.
+    automatic: true
+
+  # Default is 10s second
+  refreshInterval: 1s

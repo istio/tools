@@ -1,38 +1,34 @@
----
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
   name: httpbin
+  labels:
+    app: httpbin
+spec:
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 80
+  selector:
+    app: httpbin
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin-sidecar
 spec:
   replicas: {{ .Values.sidecarCount }}
+  selector:
+    matchLabels:
+      app: httpbin
+      sidecar: "true"
   template:
     metadata:
       annotations:
         sidecar.istio.io/inject: "true"
       labels:
         app: httpbin
-        sidecar: false
-    spec:
-      containers:
-      - image: docker.io/kennethreitz/httpbin
-        imagePullPolicy: IfNotPresent
-        name: httpbin
-        ports:
-        - containerPort: 80
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: httpbin
-spec:
-  replicas: {{ .Values.noSidecarCount }}
-  template:
-    metadata:
-      annotations:
-        sidecar.istio.io/inject: "false"
-      labels:
-        app: httpbin
-        sidecar: true
+        sidecar: "true"
     spec:
       containers:
       - image: docker.io/kennethreitz/httpbin
@@ -44,9 +40,52 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: httpbin-nosidecar
+spec:
+  replicas: {{ .Values.noSidecarCount }}
+  selector:
+    matchLabels:
+      app: httpbin
+      sidecar: "false"
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: httpbin
+        sidecar: "false"
+    spec:
+      containers:
+      - image: docker.io/kennethreitz/httpbin
+        imagePullPolicy: IfNotPresent
+        name: httpbin
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sleep
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sleep
+  labels:
+    app: sleep
+spec:
+  ports:
+  - port: 80
+    name: http
+  selector:
+    app: sleep
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: sleep
 spec:
-  replicas: {{ .Values.clientCount }}
+  replicas: 1
   selector:
     matchLabels:
       app: sleep
@@ -58,7 +97,18 @@ spec:
       serviceAccountName: sleep
       containers:
       - name: sleep
-        image: governmentpaas/curl-ssl
-        command: ["/bin/sleep", "3650d"]
+        image: tutum/curl:trusty
+        args:
+        - bash
+        - -c
+        - |-
+          sleep 10
+          i=1
+          while :
+          do
+            echo "Sending request, $i"
+            curl -s http://httpbin:8000/ip
+            i=$((i+1))
+            sleep 3
+          done
         imagePullPolicy: IfNotPresent
----
