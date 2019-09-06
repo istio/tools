@@ -21,6 +21,7 @@ cd perf/istio-install/
 export PROJECT_ID=<your-gcp-project>
 export ISTIO_VERSION=<version>
 export ZONE=<a-gcp-zone>
+export GKE_VERSION=1.13.7-gke.xx
 export CLUSTER_NAME=<any-name>
 ./create_cluster.sh $CLUSTER_NAME
 ```
