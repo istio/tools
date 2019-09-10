@@ -3,7 +3,7 @@
 Isotope (**is**ti**o** **to**pology **pe**rformance) benchmarks Istio against
 various service graph topologies.
 
-# Repository Structure
+## Repository Structure
 
 | Item                          | Role                                              |
 |-------------------------------|---------------------------------------------------|
@@ -14,11 +14,11 @@ various service graph topologies.
 | [runner/](runner/README.md)   | Python module used by `run_tests.py`              |
 | create_tree_topology.py       | Python script to create a hierarchical topology   |
 
-# Topology Converter
+## Topology Converter
 
 The topology converter, located under the convert/ direcory, is a Go Utility for simulating real world microservice topologies in Kubernetes.  The converter accepts a yaml file which describes one or more microservices as a workflow graph (ie service A waits 100 ms, then calls services B and C in paralell, each of which return a 1MB payload, etc).  `converter kubernetes` processes a yaml file, producing kubernetes manifests, as described below.  `converter graphviz` produces a visualization of your microservice architecture specified in service-graph.yaml.
 
-## service-graph.yaml
+### service-graph.yaml
 
 Describes a service graph to be tested which mocks a real world service-oriented
 architecture.
@@ -141,7 +141,6 @@ script:
 - sleep: 10ms
 - call: D
 ```
-
 
 ### Full example
 
@@ -289,11 +288,11 @@ spec:
 ---
 ```
 
-# Test Runner
+## Test Runner
 
 The test runner is a python script which automates the running of tests against service-graph.yaml on GKE.  It expects a test config file, and sets up a GKE cluster with the specified resources to run configured tests against the requested topology, using each of the environments (Istio, Raw K8s, etc) listed in the test config.  See [example-config.toml](example-config.toml) for more details.  The Test Runner is at an alpha level of readiness, and may require updating based on your environment.
 
-## Getting Started
+### Getting Started
 
 To run automatic tests in "run_tests.py" and from "runner/", there are
 dependencies that must be installed.
@@ -311,8 +310,7 @@ dependencies that must be installed.
 1. Modify "example-config.toml" to match your desired test configuration
 1. From "isotope/", run `./run_tests.py example-config.toml`
 
-
-## Prometheus Metrics
+### Prometheus Metrics
 
 The system deploys a Prometheus instance to collect and label metrics
 throughout the tests. The current implementation connects it to a [Persistent

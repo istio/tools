@@ -29,7 +29,7 @@
 export BUILD_WITH_CONTAINER ?= 0
 
 ifeq ($(BUILD_WITH_CONTAINER),1)
-IMG = gcr.io/istio-testing/build-tools:2019-08-31T04-48-30
+IMG = gcr.io/istio-testing/build-tools:2019-09-04T21-28-42
 UID = $(shell id -u)
 PWD = $(shell pwd)
 GOBIN_SOURCE ?= $(GOPATH)/bin
@@ -78,9 +78,14 @@ export GOBIN ?= ./out/bin
 RUN =
 endif
 
+# The top level makefile does not understand Makefile.core.mk phony targets
+# So we make all commands depend on this phony target, so it will always run.
+.PHONY: always_run
+always_run:
+
 MAKE = $(RUN) make --no-print-directory -e -f Makefile.core.mk
 
-%:
+%: always_run
 	@$(MAKE) $@
 
 default:

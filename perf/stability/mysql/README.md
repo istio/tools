@@ -12,6 +12,6 @@ a few commands from the cli to the server.
 
 ## How To Run The Test
 
-``bash
+```bash
 make mysql
 ```

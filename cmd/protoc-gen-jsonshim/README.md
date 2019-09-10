@@ -45,28 +45,28 @@ var _ = math.Inf
 
 // MarshalJSON is a custom marshaler supporting oneof fields for LoadBalancerSettings
 func (this *LoadBalancerSettings) MarshalJSON() ([]byte, error) {
-	str, err := DestinationRuleMarshaler.MarshalToString(this)
-	return []byte(str), err
+    str, err := DestinationRuleMarshaler.MarshalToString(this)
+    return []byte(str), err
 }
 
 // UnmarshalJSON is a custom unmarshaler supporting oneof fields for LoadBalancerSettings
 func (this *LoadBalancerSettings) UnmarshalJSON(b []byte) error {
-	return DestinationRuleUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+    return DestinationRuleUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
 // MarshalJSON is a custom marshaler supporting oneof fields for LoadBalancerSettings_ConsistentHashLB
 func (this *LoadBalancerSettings_ConsistentHashLB) MarshalJSON() ([]byte, error) {
-	str, err := DestinationRuleMarshaler.MarshalToString(this)
-	return []byte(str), err
+    str, err := DestinationRuleMarshaler.MarshalToString(this)
+    return []byte(str), err
 }
 
 // UnmarshalJSON is a custom unmarshaler supporting oneof fields for LoadBalancerSettings_ConsistentHashLB
 func (this *LoadBalancerSettings_ConsistentHashLB) UnmarshalJSON(b []byte) error {
-	return DestinationRuleUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+    return DestinationRuleUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
 var (
-	DestinationRuleMarshaler   = &github_com_gogo_protobuf_jsonpb.Marshaler{}
-	DestinationRuleUnmarshaler = &github_com_gogo_protobuf_jsonpb.Unmarshaler{}
+    DestinationRuleMarshaler   = &github_com_gogo_protobuf_jsonpb.Marshaler{}
+    DestinationRuleUnmarshaler = &github_com_gogo_protobuf_jsonpb.Unmarshaler{}
 )
 ```

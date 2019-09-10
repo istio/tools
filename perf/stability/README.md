@@ -19,7 +19,7 @@ For details on the tests, read the README in each directory.
 
 * http10 - tests http 1.0 support
 * graceful-shutdown - tests graceful termination of connections when services are terminated.
-* gateway-bouncer - tests gateway readiness features 
+* gateway-bouncer - tests gateway readiness features
 * redis - installs a Redis setup with master, slave, and client
 * mysql
 
@@ -34,7 +34,7 @@ These tests are not enabled by default, but can be run individually or with `mak
 * istio-upgrader - disabled by default, as impacts the entire Istio install by redeploying Istio components.
 * allconfig - currently has some bugs
 * sds-certmanager - requires gcloud to configure GCP DNS, and a gcp DNS zone set as env variable DNS_ZONE
-  
+
 ## Deleting Tests
 
 To delete all installed tests, run `make clean-stability`.

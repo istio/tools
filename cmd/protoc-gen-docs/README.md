@@ -1,4 +1,3 @@
-
 # What's this for?
 
 `protoc-gen-docs` is a plugin for the Google protocol buffer compiler to generate
@@ -21,6 +20,7 @@ processing library (blackfriday):
 ```bash
 go get github.com/golang/protobuf/proto && go get -u gopkg.in/russross/blackfriday.v2
 ```
+
 To build, run the following command from this project directory:
 
 ```bash
@@ -50,7 +50,9 @@ protoc --docs_out=output_directory input_directory/file.proto
 
 With that input, the output will be written to
 
-	output_directory/file.pb.html
+```plain
+output_directory/file.pb.html
+```
 
 Using the `mode` option, you can control the output format from the plugin. The
 `html_page` mode is the default and produces a fully self-contained HTML page.
@@ -132,7 +134,7 @@ package pkg;
 
 // This documents the message as a whole
 message MyMsg {
-    // This documents this field 
+    // This documents this field.
     // It can contain many lines.
     int32 field1 = 1;
 
@@ -167,11 +169,12 @@ Within a proto file, you can insert special comments which provide additional me
 use in producing quality documentation. Within a package, optionally include an unattached
 comment of the form:
 
-```
+```plain
 // $title: My Title
 // $description: My Overview
 // $location: https://mysite.com/mypage.html
 ```
+
 `$title` provides a title for the generated package documentation. This is used for things like the
 title of the generated HTML. `$description` is a one-line description of the package, useful for
 tables of contents or indexes. Finally, `$location` indicates the expected URL for the generated
@@ -181,7 +184,7 @@ the documentation, and is used when creating documentation links from other pack
 Additional lines starting with a $ are inserted as-is in the front-matter portion of generated
 HTML fragments.
 
-```
+```plain
 // $weight: 10
 ```
 

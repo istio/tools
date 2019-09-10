@@ -14,14 +14,15 @@ connectivity.
 
 Use the following command to (re)install the scenario into a new/existing
 namespace (set `DRY_RUN=1` for a dry run):
-```
+
+```bash
 NAMESPACE=sds-certmanager DNS_ZONE=myzone ./setup.sh
 ```
 
 Assuming "myzone" has an "example.com" domain associated with it, the following
 subdomain will be configured and used in this scenario:
 
-```
+```plain
 ingress.sds-certmanager.ns.example.com
 ```
 

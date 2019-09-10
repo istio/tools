@@ -6,7 +6,7 @@ This test runs an instance of RabbitMQ, as well as a client that sends messages 
 
 The base template was generated with:
 
-```
+```bash
 helm template stable/rabbitmq --name rabbitmq --set rabbitmq.password=istio --set rabbitmq.username=istio
 ```
 

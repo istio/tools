@@ -1,3 +1,12 @@
+#!/bin/bash
+
+# WARNING: DO NOT EDIT, THIS FILE IS PROBABLY A COPY
+#
+# The original version of this file is located in the https://github.com/istio/common-files repo.
+# If you're looking at this file in a different repo and want to make a change, please go to the
+# common-files repo, make the change there and check it in. Then come back to this repo and run
+# "make update-common".
+
 # Copyright Istio Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,23 +21,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-build:
-	@go build ./...
-
-test:
-	@go test -race ./...
-
-check-stability:
-	./metrics/check_metrics.py
-
-MARKDOWN_LINT_WHITELIST=mysite.com/mypage.html,github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz,localhost
-
-lint: lint-python lint-go lint-copyright-banner lint-yaml lint-dockerfiles lint-scripts lint-markdown
-
-fmt: format-go format-python
-
-containers:
-	@cd docker/build-tools && ./build-and-push.sh
-
-include common/Makefile.common.mk
-include perf/stability/stability.mk
+golangci-lint run -j 8 -c ./common/config/.golangci.yml

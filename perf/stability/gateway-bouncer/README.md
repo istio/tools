@@ -24,6 +24,7 @@ co-exist in a single cluster.
 
 Use the following command to (re)install the scenario into a new/existing
 namespace (set `DRY_RUN=1` for a dry run):
-```
+
+```bash
 NAMESPACE=gateway-bouncer ./setup.sh
 ```
