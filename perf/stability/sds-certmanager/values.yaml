@@ -8,3 +8,5 @@ certManagerImage: quay.io/jetstack/cert-manager-controller:v0.6.2
 numOfClientConns: 10
 numOfClientQps: 100
 clientConnTimeoutDuration: 15s
+
+namespace: test
