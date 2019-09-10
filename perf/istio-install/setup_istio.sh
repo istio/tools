@@ -43,9 +43,12 @@ function download() {
     url="${RELEASE_URL}"
   fi
   local outfile="${DIRNAME}/istio-${release}.tgz"
-
   if [[ ! -f "${outfile}" ]]; then
-    curl -JLo "${outfile}" "${url}"
+    $(curl -fJL -o "${outfile}" ${url})
+    if [[ $? -ne 0 ]];then
+      echo ""
+      exit 1
+    fi
   fi
 
   echo "${outfile}"
@@ -67,6 +70,10 @@ function install_istio() {
   local release="${2:?"release"}"
 
   local outfile="$(download ${DIRNAME} ${release})"
+  if [[ "$outfile" == "" ]];then
+    echo "failed to download istio release"
+    exit 1
+  fi
   outfile=$(trim $outfile);
 
   if [[ ! -d "${DIRNAME}/${release}" ]];then
