@@ -10,3 +10,4 @@ numOfClientQps: 100
 clientConnTimeoutDuration: 15s
 
 namespace: test
+ingressDomain: ""

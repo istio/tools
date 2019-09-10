@@ -1,6 +1,10 @@
 
 #excludeOutboundIPRanges exclude pod ips
-excludeOutboundIPRanges: 
+excludeOutboundIPRanges: ""
+includeOutboundIPRanges: ""
+
+appresources: {}
+
 proxy:
   cpu: "1000m"
   memory: "512m"

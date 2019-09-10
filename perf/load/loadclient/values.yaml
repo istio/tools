@@ -6,13 +6,17 @@ qps: 50
 size: 1024
 serviceHost: svc-0.local
 runDuration: 0  # 0 means run forever
-#serviceURL: productpage
 #image: tahler/fortio:prometheus
 image: fortio/fortio
 replicas: 2
 https: false
+
+# The service url, for example "productpage"
+serviceURL: ""
+
+ingress: ""
+
 # add additionalHeaders, key: Value
 # The following show how to add a jwt token
-
-#additionalHeaders:
+additionalHeaders: {}
 #  Authorization: "Bearer eyJhbGciOiJFUzI1NiIsImtpZCI6IkRIRmJwb0lVcXJZOHQyenBBMnFYZkNtcjVWTzVaRXI0UnpIVV8tZW52dlEiLCJ0eXAiOiJKV1QifQo.eyJleHAiOjE1NzE0MTkyNTIsImZvbyI6ImJsYWJsYSIsImlhdCI6MTU2MTQxOTI1MiwiaXNzIjoidGVzdGluZ0BzZWN1cmUuaXN0aW8uaW8iLCJzdWIiOiJ0ZXN0aW5nQHNlY3VyZS5pc3Rpby5pbyJ9.JJnYan0ItEmTSPC9sETO5j46Ve0yQkC0_4uEyfShbhDzejhVavlUdrL5sE2JEq9W-SYUhwGt2eIPMxKl1E1sQn0a_4f6iU6ZxhXnXU91g2SB8-JF6wrc_I3iybrUrj39kxUZQNr-w8MRp1YBDMmKg1har98AeL0xHzdyF_gf3K57u-9_yyBoymCjQraMQPWX-MuOI18i7w9MmwfIplxD3sGpnivAma1hSAJWfRFuz_rHst08cZOl_6ZK8ineqqYL19lHLLJns3dzYIvVxdOdRs87Z5UwCyYjLlxupiLo6MHFBWNMFNgZis7wsUauWH47D-ga0JjcmVL4MRgyoP43mA"
