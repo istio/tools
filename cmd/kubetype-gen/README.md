@@ -9,13 +9,13 @@ The type definitions take the form:
 ```go
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type SomeType struct {
-	v1.TypeMeta `json:",inline"`
-	// +optional
-	v1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+    v1.TypeMeta `json:",inline"`
+    // +optional
+    v1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	// Spec defines the implementation of this definition.
-	// +optional
-	Spec pkg.SomeType `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+    // Spec defines the implementation of this definition.
+    // +optional
+    Spec pkg.SomeType `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 }
 ```
 
@@ -52,11 +52,11 @@ in the types from all those packages being generated into the same output
 package and registered with the same *group/version*.
 
 Example `doc.go`:
+
 ```go
 // Package v1alpha1 tags supporting code generate
 //+kubetype-gen:groupVersion=authentication.istio.io/v1alpha1
 package v1alpha1
-
 ```
 
 ### Type Tags
@@ -85,6 +85,7 @@ comments.  The following tags are available:
 > once for each *tag* that should be added to the generated type.
 
 Example type comments:
+
 ```go
 // +kubetype-gen
 // +kubetype-gen:groupVersion=authentication.istio.io/v1alpha1
@@ -116,11 +117,11 @@ may have to manually implement functions for some types.  You will also want to
 run the generator manually so you have direct control over the input packages,
 e.g.
 
-```
+```bash
 ${GOPATH}/bin/deepcopy-gen -i istio.io/api/authentication/... -O zz_generated.deepcopy -h vendor/istio.io/tools/cmd/kubetype-gen/boilerplate.go.txt
 ```
 
-#### Protobuf Serializers ####
+#### Protobuf Serializers
 
 If using protobuf for the source types, you will need to ensure that the
 packages for the source types include a `generated.proto` file.  The Kubernetes

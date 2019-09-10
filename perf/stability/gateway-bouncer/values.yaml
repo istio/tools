@@ -8,3 +8,5 @@ pilotDowntimeDurationSec: 60s
 numOfClientConns: 10
 numOfClientQps: 100
 clientConnTimeoutDuration: 15s
+
+namespace: test

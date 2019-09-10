@@ -16,8 +16,12 @@
 
 set -ex
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 
+# shellcheck disable=SC2086
 ${WD}/../setup_test.sh "mysql" "--set Name=mtls"
+# shellcheck disable=SC2086
 ${WD}/../setup_test.sh "mysql" "--set Name=plaintext"

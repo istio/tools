@@ -16,17 +16,22 @@
 
 set -ex
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 
 git clone https://github.com/istio/tools
 cd tools/perf/istio-install
 helm init --client-only
 RELEASE_MAJOR_MINOR="release-1.1"
+# shellcheck disable=SC2236
 if [[ ! -z "${TARGET_VERSION}" ]];then
   RELEASE_MAJOR_MINOR="${TARGET_VERSION}"
 fi
+# shellcheck disable=SC2086
 LATEST_BUILD=$(curl -L https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$RELEASE_MAJOR_MINOR-latest.txt)
+# shellcheck disable=SC2086
 SKIP_PROMETHEUS=true HELMREPO_URL=https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$LATEST_BUILD/charts/ RELEASE_URL=https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/$LATEST_BUILD/istio-$LATEST_BUILD-linux.tar.gz ./setup_istio.sh $RELEASE_MAJOR_MINOR
 
 # trigger redeploy on services to get new sidecars

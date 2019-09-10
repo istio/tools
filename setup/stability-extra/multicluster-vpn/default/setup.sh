@@ -27,6 +27,7 @@ $KUBECTL2 create ns $NAMESPACE || true
 $KUBECTL2 -n $NAMESPACE delete secrets -l "istio/multiCluster=true"
 install_k8s_secrets "$KUBECONFIG2" "$KUBECONTEXT2" "$NAMESPACE" "$KUBECONFIG1" "$KUBECONTEXT1" "istio-system"
 
+# shellcheck disable=SC2086
 cat > ${TEMP_DIR}/values-${SCENARIO}.yaml <<EOF
 global:
   hub: ${HUB}
@@ -42,6 +43,7 @@ pilot:
   configNamespace: ${NAMESPACE}
 EOF
 
+# shellcheck disable=SC2086
 helm template \
   --namespace $NAMESPACE \
   -n galley-$NAMESPACE \
@@ -50,6 +52,7 @@ helm template \
   -f ${TEMP_DIR}/values-${SCENARIO}.yaml \
   | $KUBECTL2 apply -f -
 
+# shellcheck disable=SC2086
 helm template \
   --namespace $NAMESPACE \
   -n pilot-$NAMESPACE \
@@ -58,6 +61,7 @@ helm template \
   -f ${TEMP_DIR}/values-${SCENARIO}.yaml \
   | $KUBECTL2 apply -f -
 
+# shellcheck disable=SC2086
 helm template \
   --namespace $NAMESPACE \
   -n autoinject-$NAMESPACE \
@@ -66,9 +70,13 @@ helm template \
   -f ${TEMP_DIR}/values-${SCENARIO}.yaml \
   | $KUBECTL2 apply -f -
 
+# shellcheck disable=SC2086
 $KUBECTL2 -n $NAMESPACE rollout status deployment istio-galley
+# shellcheck disable=SC2086
 $KUBECTL2 -n $NAMESPACE rollout status deployment istio-pilot
+# shellcheck disable=SC2086
 $KUBECTL2 -n $NAMESPACE rollout status deployment istio-sidecar-injector
 
+# shellcheck disable=SC2086
 $ISTIOCTL kube-inject --context=$KUBECONTEXT2 -i $NAMESPACE -f "$BASE_DIR/$SCENARIO/setup.yaml" \
   | $KUBECTL2 -n $APPS_NAMESPACE apply -f -
