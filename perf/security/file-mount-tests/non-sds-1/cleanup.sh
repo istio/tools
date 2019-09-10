@@ -18,6 +18,7 @@ set -xe
 NAMESPACE=${NAMESPACE:?"specify the namespace to delete"}
 CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
 
+# shellcheck disable=SC2086
 kubectl delete ns ${NAMESPACE} --cluster ${CLUSTER}
 
 # If you need to delete the Istio deployment, run the following command also.

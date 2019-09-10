@@ -16,12 +16,16 @@
 
 set -ex
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
+# shellcheck disable=SC2086
 mkdir -p "${WD}/tmp"
 
 function install_prometheus() {
   local DIRNAME="$1" # should be like tools/perf/istio/tmp
+  # shellcheck disable=SC2086
   DIRNAME=$(cd $DIRNAME; pwd)
   INSTALLER_DIR="${DIRNAME}/installer"
   if [[ ! -e "$INSTALLER_DIR" ]]; then
@@ -48,4 +52,5 @@ function install_prometheus() {
   kubectl apply -f "${WD}/../prometheus-install/prometheus.yaml"
 }
 
+# shellcheck disable=SC2086
 install_prometheus $1

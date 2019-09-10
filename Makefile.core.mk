@@ -21,7 +21,7 @@ test:
 check-stability:
 	./metrics/check_metrics.py
 
-lint: lint-python lint-go lint-copyright-banner lint-yaml lint-dockerfiles
+lint: lint-python lint-go lint-copyright-banner lint-yaml lint-dockerfiles lint-scripts
 
 fmt: format-go format-python
 

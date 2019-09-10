@@ -17,7 +17,10 @@
 
 #set -ex
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
+# shellcheck disable=SC2164
 WD=$(cd $WD; pwd)
 
 function setup_test() {

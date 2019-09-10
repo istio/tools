@@ -17,8 +17,8 @@
 # this is a copy of istio.io/tools/bin/redeploy.sh because kustomize can't
 # handle references outside the current directory.
 function redeploy() {
-  local dlp=${1:?"deployment"}
   local namespace=${2:?"namespace"}
+  # shellcheck disable=SC2006
   kubectl patch deployment "${dpl}" \
       -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}" \
       -n "${namespace}"
@@ -27,6 +27,7 @@ function redeploy() {
 
 function redeploy_ns() {
   local namespace=${1:?"namespace"}
+  # shellcheck disable=SC2086
   for dpl in $(kubectl get deployments -o jsonpath="{.items[*].metadata.name}" -n ${namespace});do
     echo "Redeploy ${namespace}"
     redeploy "${dpl}" "${namespace}"

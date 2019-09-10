@@ -28,11 +28,14 @@ curl -sL https://run.linkerd.io/install | sh
 export PATH=$PATH:$HOME/.linkerd2/bin
 linkerd version
 
+# shellcheck disable=SC2046
+# shellcheck disable=SC2086
 kubectl create clusterrolebinding cluster-admin-binding-$USER \
     --clusterrole=cluster-admin --user=$(gcloud config get-value account)
 
 linkerd check --pre
 
+# shellcheck disable=SC2086
 linkerd install --linkerd-version=$release --proxy-auto-inject | kubectl apply -f -
 
 linkerd check

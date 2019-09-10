@@ -27,6 +27,7 @@ function run_test() {
   local prefix=${2:?"prefix name for service. typically svc-"}
 
    YAML=$(mktemp).yml
+  # shellcheck disable=SC2086
   helm -n ${ns} template \
           --set serviceNamePrefix="${prefix}" \
           --set Namespace="${ns}" \
@@ -53,6 +54,7 @@ function start_servicegraphs() {
   local nn=${1:?"number of namespaces"}
   local min=${2:-"0"}
 
+   # shellcheck disable=SC2004
    for ((ii=$min; ii<$nn; ii++)) {
     ns=$(printf 'service-graph%.2d' $ii)
     prefix=$(printf 'svc%.2d-' $ii)

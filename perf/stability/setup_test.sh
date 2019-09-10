@@ -16,7 +16,9 @@
 
 set -ex
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 
 function setup_test() {
@@ -27,6 +29,7 @@ function setup_test() {
   mkdir -p "${WD}/tmp"
   local OUTFILE="${WD}/tmp/${DIRNAME}.yaml"
 
+  # shellcheck disable=SC2086
   helm --namespace "${NAMESPACE}" template "${WD}/${DIRNAME}" ${HELM_ARGS} > "${OUTFILE}"
 
   if [[ -z "${DRY_RUN}" ]]; then
