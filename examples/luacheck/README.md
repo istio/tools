@@ -5,5 +5,5 @@ To install the Lua filter, please invoke the following commands:
 ```bash
 $ git clone git@github.com:istio/tools.git
 $ cd tools/examples/luacheck/
-$ ./setup.sh 
+$ ./setup.sh
 ```

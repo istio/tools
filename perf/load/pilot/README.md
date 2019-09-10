@@ -19,6 +19,6 @@ TODO
 - Add annotation for emiting the specific clusters, "sidecar.istio.io/statsInclusionPrefixes": "TBD"
 - Using new proxy image: gcr.io/mixologist-142215/proxyv2:suffix4
 - Removing Promethues load report drop config
-  - `regex: '(outbound|inbound|prometheus_stats).*'`, 
+  - `regex: '(outbound|inbound|prometheus_stats).*'`,
   - `regex: 'envoy_cluster_(lb|retry|bind|internal|max|original).*'`
 - Change to `envoy_cluster_manager_cds_version{namespace="pilot-load"}` focusing on the testing namespace.

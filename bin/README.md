@@ -1,4 +1,4 @@
-## export_grafana_snapshot
+# export_grafana_snapshot
 
 Description:
 
@@ -12,17 +12,17 @@ Dependency:
 
 Setup:
 
-1. Verify grafana working, reference: https://istio.io/docs/tasks/telemetry/metrics/using-istio-dashboard/
+1. Verify grafana working, reference: <https://istio.io/docs/tasks/telemetry/metrics/using-istio-dashboard/>
 1. Set grafana_api_tolen env variable. Navigate to local running grafana url to get the API key, if no one exists, generate a new one with admin permission
-2. Set GOOGLE_APPLICATION_CREDENTIALS env variable. Follow the instruction here: https://cloud.google.com/docs/authentication/getting-started
-3. Setup google cloud datastore, go to google cloud console and enable datastore in datastore mode.
-4. If you do not have ChromeDriver in your PATH, download corresponding release to PATH from here: http://chromedriver.chromium.org/downloads
+1. Set GOOGLE_APPLICATION_CREDENTIALS env variable. Follow the instruction here: <https://cloud.google.com/docs/authentication/getting-started>
+1. Setup google cloud datastore, go to google cloud console and enable datastore in datastore mode.
+1. If you do not have ChromeDriver in your PATH, download corresponding release to PATH from here: <http://chromedriver.chromium.org/downloads>
 
 Run:
 
 command line arguments:
 1. --period: interval to export the snapshot url, default=1
-2. --dashboard_name: name of dashboard to export, default="istio performance"
+1. --dashboard_name: name of dashboard to export, default="istio performance"
 
 TODO:
 1. Add multiple dashboards support
