@@ -78,14 +78,9 @@ export GOBIN ?= ./out/bin
 RUN =
 endif
 
-# The top level makefile does not understand Makefile.core.mk phony targets
-# So we make all commands depend on this phony target, so it will always run.
-.PHONY: always_run
-always_run:
-
 MAKE = $(RUN) make --no-print-directory -e -f Makefile.core.mk
 
-%: always_run
+%:
 	@$(MAKE) $@
 
 default:
