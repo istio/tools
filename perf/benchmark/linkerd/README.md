@@ -25,8 +25,6 @@ See the [example-comparison](example-comparison/) directory for how to run the s
 
 ```bash
 export NAMESPACE="twopods"
-kubectl create namespace $NAMESPACE
-kubectl annotate namespace $NAMESPACE linkerd.io/inject=enabled
 DNS_DOMAIN=local LINKERD_INJECT=enabled ./setup_test.sh
 ```
 

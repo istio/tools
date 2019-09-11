@@ -10,6 +10,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 
 1. [Python3](https://docs.python-guide.org/starting/installation/#installation-guides)
 1. [`pipenv`](https://docs.python-guide.org/dev/virtualenvs/#virtualenvironments-ref)
+1. [helm](https://helm.sh/docs/using_helm/#install-helm)
 
 ## Setup
 
@@ -44,8 +45,6 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 
     ```bash
     export NAMESPACE=twopods
-    kubectl create namespace $NAMESPACE
-    kubectl label namespace $NAMESPACE istio-injection=enabled
     export DNS_DOMAIN=local
     cd ../benchmark
     ./setup_test.sh
@@ -174,13 +173,13 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
     NAME           TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)                                                       AGE
     fortioclient   LoadBalancer   xxxx          xxxx       8080:31759/TCP,8079:30495/TCP,8078:31107/TCP,8077:31034/TCP   16h
 
-    export FORTIO_CLIENT_URL=http://$(kubectl get services -n twopods fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}"):8080
+    export FORTIO_CLIENT_URL=http://$(kubectl get services -n $NAMESPACE fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}"):8080
     ```
 
     or if you don't have an external IP:
 
     ```bash
-    kubectl -n twopods port-forward svc/fortioclient 8080:8080 &
+    kubectl -n $NAMESPACE port-forward svc/fortioclient 8080:8080 &
     export FORTIO_CLIENT_URL=http://localhost:8080
     ```
 
