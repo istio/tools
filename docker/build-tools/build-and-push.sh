@@ -14,8 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# support other container tools, e.g. podman
+CONTAINER_CLI=${CONTAINER_CLI:-docker}
 HUB=gcr.io/istio-testing
 VERSION=$(date +%Y-%m-%dT%H-%M-%S)
 
-docker build --no-cache -t "${HUB}/build-tools:${VERSION}" .
-docker push "${HUB}/build-tools:${VERSION}"
+${CONTAINER_CLI} build --no-cache -t "${HUB}/build-tools:${VERSION}" .
+${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
