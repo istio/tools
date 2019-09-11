@@ -35,7 +35,7 @@ def pod_info(filterstr="", namespace="twopods", multi_ok=True):
     if not multi_ok and len(items) > 1:
         raise Exception("more than one found " + op)
 
-    if len(items) < 1:
+    if not items:
         raise Exception("no pods found with command [" + cmd + "]")
 
     i = items[0]
@@ -53,7 +53,7 @@ def run_command_sync(command):
     return op.strip()
 
 
-class Fortio(object):
+class Fortio():
     ports = {
         "http": {"direct_port": 8077, "port": 8080, "ingress": 80},
         "grpc": {"direct_port": 8076, "port": 8079, "ingress": 80},
@@ -163,12 +163,12 @@ class Fortio(object):
         fortio_cmd = (
             "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {grpc} -httpbufferkb=128 " +
             "-labels {labels}").format(
-            conn=conn,
-            qps=qps,
-            duration=duration,
-            r=self.r,
-            grpc=grpc,
-            labels=labels)
+                conn=conn,
+                qps=qps,
+                duration=duration,
+                r=self.r,
+                grpc=grpc,
+                labels=labels)
 
         if self.run_ingress:
             p = kubectl(self.client.name, self.ingress(fortio_cmd))
