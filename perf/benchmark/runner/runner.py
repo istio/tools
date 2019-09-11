@@ -21,6 +21,7 @@ import argparse
 import subprocess
 import shlex
 import uuid
+from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
@@ -268,6 +269,11 @@ def rc(command):
 
 
 def run(args):
+    min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
+    if args.duration <= min_duration:
+        print(f"Duration must be greater than {min_duration}")
+        exit(1)
+
     fortio = Fortio(
         conn=args.conn,
         qps=args.qps,
