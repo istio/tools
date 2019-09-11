@@ -21,7 +21,7 @@ from bokeh.palettes import Dark2_5 as palette
 
 
 # generate_chart displays numthreads vs. metric, writes to interactive HTML
-def generate_chart(mesh, csv, x_label, y_label_short):
+def generate_chart(mesh, csv, x_label, y_label_short, charts_output):
     print(
         "Generating chart, x_label=%s, y_label=%s, csv=%s ..." %
         (x_label, y_label_short, csv))
@@ -62,9 +62,10 @@ def generate_chart(mesh, csv, x_label, y_label_short):
             mesh, y_label_short, threads, seconds)
 
     # 4. prep file-write
-    fn = "".join(title.split())
-    f = "/tmp/" + fn + ".html"
-    output_file(f)
+    if charts_output == "":
+        fn = "".join(title.split())
+        charts_output = "/tmp/" + fn + ".html"
+    output_file(charts_output)
 
     # 5. create chart -> save as interactive HTML
     p = build_chart(title, x_label, x_series, y_label, y_label_short, y_series)
@@ -166,22 +167,27 @@ def build_chart(title, x_label, x_series, y_label, y_label_short, y_series):
 
 
 def main(argv):
-    args = getParser().parse_args(argv)
-    return generate_chart(args.mesh, args.csv, args.xaxis, args.metric)
+    args = get_parser().parse_args(argv)
+    return generate_chart(args.mesh, args.csv, args.xaxis, args.metric, args.charts_output)
 
 
-def getParser():
+def get_parser():
     parser = argparse.ArgumentParser(
         "Service Mesh Performance Graph Generator")
     parser.add_argument("csv", help="csv file", default="")
+    parser.add_argument(
+        "metric",
+        help="y-axis: one of: p50, p90, p99, mem, cpu",
+        default="")
     parser.add_argument(
         "--xaxis",
         help="one of: connections, qps",
         default="connections")
     parser.add_argument(
-        "metric",
-        help="y-axis: one of: p50, p90, p99, mem, cpu",
-        default="")
+        "--charts_output",
+        help="output path of generated charts",
+        default=""
+    )
     parser.add_argument(
         "--mesh",
         help="which service mesh tool: istio, linkerd",
