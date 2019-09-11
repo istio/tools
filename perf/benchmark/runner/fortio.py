@@ -197,7 +197,7 @@ def syncFortio(url, table, selector=None, promUrl="", csv=None):
                            METRICS_SUMMARY_DURATION)
             p = prom.Prom(promUrl, duration, start=prom_start)
             prom_metrics = p.fetch_cpu_and_mem()
-            if prom_metrics:
+            if not prom_metrics:
                 print("... Not found")
                 continue
             else:

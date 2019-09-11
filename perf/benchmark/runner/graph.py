@@ -12,19 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import sys
 import argparse
 import itertools  # for cycling through colors
 import pandas as pd
-import numpy as np
 from bokeh.plotting import figure, output_file, show
-from bokeh.io import output_notebook
-from bokeh.models import ColumnDataSource, HoverTool
-from bokeh.models.tools import CustomJSHover
 from bokeh.palettes import Dark2_5 as palette
-from bokeh.models import Legend
-
 
 # generate_chart displays numthreads vs. metric, writes to interactive HTML
 def generate_chart(mesh, csv, x_label, y_label_short):
