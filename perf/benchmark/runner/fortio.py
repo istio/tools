@@ -197,7 +197,7 @@ def syncFortio(url, table, selector=None, promUrl="", csv=None):
                            METRICS_SUMMARY_DURATION)
             p = prom.Prom(promUrl, duration, start=prom_start)
             prom_metrics = p.fetch_cpu_and_mem()
-            if len(prom_metrics) == 0:
+            if not prom_metrics:
                 print("... Not found")
                 continue
             else:
@@ -225,7 +225,6 @@ def syncFortio(url, table, selector=None, promUrl="", csv=None):
 def write_csv(keys, data):
     fd, datafile = tempfile.mkstemp(suffix=".csv")
     out = os.fdopen(fd, "wt")
-    cnt = 0
     lst = keys.split(',')
     out.write(keys + "\n")
 

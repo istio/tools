@@ -15,18 +15,14 @@
 from __future__ import print_function
 import datetime
 import calendar
-import requests
 import collections
 import os
 import json
 import argparse
 import logging
-try:
-    # Python 3
-    import http.client as http_client
-except ImportError:
-    # Python 2
-    import httplib as http_client
+import http.client as http_client
+import requests
+
 
 if os.environ.get("DEBUG", "0") != "0":
     http_client.HTTPConnection.debuglevel = 1
@@ -37,7 +33,7 @@ if os.environ.get("DEBUG", "0") != "0":
     req_log.propagate = True
 
 
-class Prom(object):
+class Prom():
     # url: base url for prometheus
     #
 
@@ -123,7 +119,7 @@ class Prom(object):
             str(
                 self.nseconds) +
             's]))')
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             return data["data"]["result"][0]["values"]
         return []
 
@@ -132,15 +128,15 @@ class Prom(object):
         data_404 = self.fetch_num_requests_by_response_code(404)
         data_503 = self.fetch_num_requests_by_response_code(503)
         data_504 = self.fetch_num_requests_by_response_code(504)
-        if len(data_404) > 0:
+        if data_404:
             res["istio_requests_total_404"] = data_404[-1][1]
         else:
             res["istio_requests_total_404"] = "0"
-        if len(data_503) > 0:
+        if data_503:
             res["istio_requests_total_503"] = data_503[-1][1]
         else:
             res["istio_requests_total_503"] = "0"
-        if len(data_504) > 0:
+        if data_504:
             res["istio_requests_total_504"] = data_504[-1][1]
         else:
             res["istio_requests_total_504"] = "0"
@@ -149,7 +145,7 @@ class Prom(object):
     def fetch_mixer_rules_count_by_metric_name(self, metric_name):
         data = self.fetch_by_query(
             'scalar(topk(1, max(' + metric_name + ') by (configID)))')
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             return data["data"]["result"][0]["values"]
         return []
 
@@ -170,31 +166,31 @@ class Prom(object):
         attribute_count = self.fetch_mixer_rules_count_by_metric_name(
             "mixer_config_attribute_count")
 
-        if len(config_count) > 0:
+        if config_count:
             res["mixer_config_rule_config_count"] = config_count[-1][1]
         else:
             res["mixer_config_rule_config_count"] = "0"
-        if len(config_error_count) > 0:
+        if config_error_count:
             res["mixer_config_rule_config_error_count"] = config_error_count[-1][1]
         else:
             res["mixer_config_rule_config_error_count"] = "0"
-        if len(config_match_error_count) > 0:
+        if config_match_error_count:
             res["mixer_config_rule_config_match_error_count"] = config_match_error_count[-1][1]
         else:
             res["mixer_config_rule_config_match_error_count"] = "0"
-        if len(unsatisfied_action_handler_count) > 0:
+        if unsatisfied_action_handler_count:
             res["mixer_config_unsatisfied_action_handler_count"] = unsatisfied_action_handler_count[-1][1]
         else:
             res["mixer_config_unsatisfied_action_handler_count"] = "0"
-        if len(instance_count) > 0:
+        if instance_count:
             res["mixer_config_instance_config_count"] = instance_count[-1][1]
         else:
             res["mixer_config_instance_config_count"] = "0"
-        if len(handler_count) > 0:
+        if handler_count:
             res["mixer_config_handler_config_count"] = handler_count[-1][1]
         else:
             res["mixer_config_handler_config_count"] = "0"
-        if len(attribute_count) > 0:
+        if attribute_count:
             res["mixer_config_attribute_count"] = attribute_count[-1][1]
         else:
             res["mixer_config_attribute_count"] = "0"
@@ -208,12 +204,12 @@ class Prom(object):
 
         data = self.fetch_by_query(query)
         res = {}
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             if groupby is not None:
                 for i in range(len(data["data"]["result"])):
                     key = data["data"]["result"][i]["metric"][groupby]
                     values = data["data"]["result"][i]["values"]
-                    if len(values) > 0:
+                    if values:
                         res[metric + "_" + key] = values[-1][1]
                     else:
                         res[metric + "_" + key] = "0"
@@ -231,11 +227,11 @@ class Prom(object):
 
         data = self.fetch_by_query(query)
         res = {}
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             for i in range(len(data["data"]["result"])):
                 key = data["data"]["result"][i]["metric"][groupby]
                 values = data["data"]["result"][i]["values"]
-                if len(values) > 0:
+                if values:
                     res[metric + "_" + percent + "_" +
                         key] = values[-1][1]
                 else:
@@ -247,11 +243,11 @@ class Prom(object):
             self.nseconds) + 's])) by (grpc_method)'
         data = self.fetch_by_query(query)
         res = {}
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             for i in range(len(data["data"]["result"])):
                 key = data["data"]["result"][i]["metric"]["grpc_method"]
                 values = data["data"]["result"][i]["values"]
-                if len(values) > 0:
+                if values:
                     res["grpc_server_handled_total_5xx_" +
                         key] = values[-1][1]
                 else:
@@ -265,11 +261,11 @@ class Prom(object):
             self.nseconds) + 's])) by (grpc_method)'
         data = self.fetch_by_query(query)
         res = {}
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             for i in range(len(data["data"]["result"])):
                 key = data["data"]["result"][i]["metric"]["groupby"]
                 values = data["data"]["result"][i]["values"]
-                if len(values) > 0:
+                if values:
                     res["grpc_server_handled_total_4xx_" +
                         key] = values[-1][1]
                 else:
@@ -408,7 +404,7 @@ def computeMinMaxAvg(d, groupby=None, xform=None, aggregate=True):
             for idx in range(len(values)):
                 try:
                     values[idx] += float(v[idx][1])
-                except IndexError as err:
+                except IndexError:
                     # Data about that time is not yet populated.
                     break
         if aggregate:

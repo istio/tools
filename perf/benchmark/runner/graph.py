@@ -12,18 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from bokeh.plotting import figure, output_file, show
-import pandas as pd
-import os
-import numpy as np
-from bokeh.io import output_notebook
-from bokeh.models import ColumnDataSource, HoverTool
-from bokeh.models.tools import CustomJSHover
-from bokeh.palettes import Dark2_5 as palette
-import itertools  # for cycling through colors
-from bokeh.models import Legend
 import sys
 import argparse
+import itertools  # for cycling through colors
+import pandas as pd
+from bokeh.plotting import figure, output_file, show
+from bokeh.palettes import Dark2_5 as palette
 
 
 # generate_chart displays numthreads vs. metric, writes to interactive HTML
@@ -108,7 +102,7 @@ def get_series(df, x_label, metric):
     # included, don't attempt to plot it)
     useries = {}
     for k, v in series.items():
-        if len(v) > 0:
+        if v:
             useries[k] = v
     y = useries
 
@@ -130,7 +124,7 @@ def build_chart(title, x_label, x_series, y_label, y_label_short, y_series):
     # generate y-axis label with units
     print(y_label)
     if y_label.startswith('p'):
-        y_axis_label = metric = " latency, milliseconds"
+        y_axis_label = " latency, milliseconds"
     else:
         if y_label.startswith('mem'):
             y_axis_label = "max memory usage, server proxy (MB)"
@@ -196,5 +190,4 @@ def getParser():
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main(sys.argv[1:]))

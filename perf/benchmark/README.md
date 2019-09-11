@@ -126,7 +126,7 @@ python runner/runner.py 16,64 1000,4000 180 --serversidecar --baseline
 - 12 tests total, each for **180** seconds, with all combinations of:
 - **16** and **64** connections
 - **1000** and **4000** QPS
-- `both`,  `serversidecar`, and `baseline` proxy modes
+- `both`, `serversidecar`, and `baseline` proxy modes
 
 ### Example 3
 
