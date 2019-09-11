@@ -19,6 +19,7 @@ import pandas as pd
 from bokeh.plotting import figure, output_file, show
 from bokeh.palettes import Dark2_5 as palette
 
+
 # generate_chart displays numthreads vs. metric, writes to interactive HTML
 def generate_chart(mesh, csv, x_label, y_label_short):
     print(
