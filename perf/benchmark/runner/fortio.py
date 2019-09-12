@@ -157,7 +157,7 @@ METRICS_END_SKIP_DURATION = 30
 METRICS_SUMMARY_DURATION = 180
 
 
-def syncFortio(url, table, selector=None, promUrl="", csv=None):
+def syncFortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
     listurl = url + "/fortio/data/"
     listdata = requests.get(listurl)
     fd, datafile = tempfile.mkstemp(suffix=".json")
@@ -211,10 +211,10 @@ def syncFortio(url, table, selector=None, promUrl="", csv=None):
         cnt += 1
 
     out.close()
-    print("Wrote {} records to {}".format(cnt, datafile))
+    print("Wrote {} json records to {}".format(cnt, datafile))
 
     if csv is not None:
-        write_csv(csv, data)
+        write_csv(csv, data, csv_output)
 
     if table:
         return write_table(table, datafile)
@@ -222,9 +222,13 @@ def syncFortio(url, table, selector=None, promUrl="", csv=None):
     return 0
 
 
-def write_csv(keys, data):
-    fd, datafile = tempfile.mkstemp(suffix=".csv")
-    out = os.fdopen(fd, "wt")
+def write_csv(keys, data, csv_output):
+    if csv_output == "":
+        fd, csv_output = tempfile.mkstemp(suffix=".csv")
+        out = os.fdopen(fd, "wt")
+    else:
+        out = open(csv_output, "w+")
+
     lst = keys.split(',')
     out.write(keys + "\n")
 
@@ -236,7 +240,7 @@ def write_csv(keys, data):
         out.write(','.join(row) + "\n")
 
     out.close()
-    print("Wrote {} records to {}".format(len(data), datafile))
+    print("Wrote {} csv records to {}".format(len(data), csv_output))
 
 
 def write_table(table, datafile):
@@ -250,16 +254,17 @@ def write_table(table, datafile):
 
 
 def main(argv):
-    args = getParser().parse_args(argv)
+    args = get_parser().parse_args(argv)
     return syncFortio(
         args.url,
         args.table,
         args.selector,
         args.prometheus,
-        args.csv)
+        args.csv,
+        args.csv_output)
 
 
-def getParser():
+def get_parser():
     parser = argparse.ArgumentParser("Fetch and upload results to bigQuery")
     parser.add_argument(
         "--table",
@@ -275,6 +280,9 @@ def getParser():
                 "cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,"
                 "cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_"
                 "ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
+    parser.add_argument(
+        "--csv_output",
+        help="output path of csv file")
     parser.add_argument(
         "url",
         help="url to fetch fortio json results from")
