@@ -7,6 +7,10 @@ import typing
 import subprocess
 import argparse
 
+# Prbobabily of all workloads are migrated to sidecar by scaling.
+ALL_SIDECAR_PROB = 0.2
+ROLLOUT_INTERVAL_SEC = 60
+
 
 def get_deployment_replicas(namespace, deployment: str):
   cmd = 'kubectl get deployment {dep} -n{ns} {jsonpath}'.format(

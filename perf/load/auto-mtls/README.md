@@ -10,10 +10,16 @@ This feature can be affected by
 Thus we setup the test to simulate traffic meanwhile updating deployments with or without Envoy
 sidecar simutaneously.
 
-A service graph instance with 5 workloads, service 0, 1, 2 calls service 3 and 4.
+A service graph instance with 5 workloads, service 0, 1, 2 calls service 3 and automtls.
 
-- Service 3 all workloads instances have sidecar injected.
-- Service 4 has workloads with and without sidecar in mixed mode.
+- Service `automtls` has workloads with and without sidecar in mixed mode.
+- All other services workloads instances have sidecar injected.
+
+TODO(incfly):
+
+1. Add script to update the authn policy.
+2. Generate load using load client, plus required virtual service.
+3. Verify the grafana dashboard load.
 
 ## Steps to Run Test
 
