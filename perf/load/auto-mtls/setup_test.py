@@ -52,9 +52,6 @@ def deploy_workloads(server_sidecar, server_nosidecar, wait=False):
   p.wait()
 
 
-def gather_metrics():
-  pass
-
 
 def runtest():
   init_mesh()
@@ -62,8 +59,6 @@ def runtest():
   time.sleep(20)
   deploy_workloads(1,3)
   time.sleep(20)
-  # TODO(incfly): more scale up and down to trigger mTLS autopilot behaivor.
-  gather_metrics()
 
 
 if __name__ == "__main__":

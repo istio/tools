@@ -1,4 +1,9 @@
+# Copied from values-large.yaml
+# TODO(incfly): de-duplicate.
 global:
+  mtls:
+    enable: false
+    automatic: true
   resources:
     requests:
       cpu: 500m
@@ -6,12 +11,38 @@ global:
     limits:
       memory: 256Mi
 
-  mtls:
-    # Default setting for service-to-service mtls. Can be set explicitly using
-    # destination rules or service annotations.
-    enabled: false
-    # TODO: wait till https://github.com/istio/istio/pull/16636 is merged.
-    automatic: true
+gateways:
+  istio-ingressgateway:
+    replicas: 3
+    autoscaleMin: 3
+    autoscaleMax: 5
+    resources:
+      limits:
+        cpu: 6000m
+        memory: 512Mi
+      requests:
+        cpu: 4000m
+        memory: 512Mi
 
-  # Default is 10s second
-  refreshInterval: 1s
+pilot:
+  replicaCount: 2
+  autoscaleMax: 10
+  resources:
+    requests:
+      cpu: 4800m
+      memory: 2G
+    limits:
+      cpu: 5800m
+      memory: 12G
+
+mixer:
+  resources:
+    requests:
+      cpu: 3800m
+      memory: 4G
+    limits:
+      cpu: 5800m
+      memory: 5G
+  autoscaleEnabled: true
+  autoscaleMin: 1
+  autoscaleMax: 15
