@@ -76,8 +76,11 @@ spec:
           defaultMode: 0744
       containers:
       - args:
-        - python3
         - /script/scale.py
+        env:
+        # Needed to flush the output for python in detached container mode.
+        - name: PYTHONUNBUFFERED
+          value: "0"
         image: gcr.io/jianfeih-test/hyperkube:v1.12.1
         imagePullPolicy: IfNotPresent
         name: config-change
