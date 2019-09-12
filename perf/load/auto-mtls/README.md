@@ -27,4 +27,6 @@ popd
 
 ```bash
 ./setup_test.py
+# TODO, figure it out.
+krm meshpolicy default 
 ```
