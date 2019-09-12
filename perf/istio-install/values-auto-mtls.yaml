@@ -2,7 +2,8 @@
 # TODO(incfly): de-duplicate.
 global:
   mtls:
-    enable: false
+    # false will evaluate the mesh policy to be STRICT!
+    #enable: false
     automatic: true
   resources:
     requests:

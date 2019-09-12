@@ -28,6 +28,7 @@ sys.path.append('../../../metrics/')
 import check_metrics
 from prometheus import Query, Alarm, Prometheus
 
+
 def init_mesh():
   print('Intialize the mesh...')
   p = subprocess.Popen([
