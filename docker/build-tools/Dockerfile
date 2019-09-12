@@ -102,7 +102,7 @@ RUN GO111MODULE=on go get -u sigs.k8s.io/kind@${KIND_VERSION}
 # Install latest version of Istio-owned tools
 RUN GO111MODULE=on go get istio.io/tools/cmd/protoc-gen-docs
 RUN GO111MODULE=on go get istio.io/tools/cmd/annotations_prep
-RUN GO111MODULE=on go get istio.io/tools/cmd/cue
+RUN GO111MODULE=on go get istio.io/tools/cmd/cue-gen
 
 # Compress the Go tools and put them in their final location
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp
