@@ -16,10 +16,10 @@
 
 set -ex
 
-WD=$(dirname $0)
-WD=$(cd $WD; pwd)
+WD=$(dirname "$0")
+WD=$(cd "$WD"; pwd)
 DIRNAME="${WD}/tmp"
-mkdir -p ${DIRNAME}
+mkdir -p "${DIRNAME}"
 export GO111MODULE=on
 
 ISTIO_OPERATOR_DIR="${DIRNAME}/operator"
@@ -27,7 +27,7 @@ if [[ ! -d "${ISTIO_OPERATOR_DIR}" ]]; then
   git clone https://github.com/istio/operator.git "$ISTIO_OPERATOR_DIR"
 fi
 
-SHA=`cat ${WD}/istio_operator.sha`
+SHA=$(cat "${WD}"/istio_operator.sha)
 
 pushd .
 cd "${ISTIO_OPERATOR_DIR}"
@@ -42,16 +42,16 @@ defaultCR="${WD}/operator_default.yaml"
 function setup_admin_binding() {
   kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
-    --user=$(gcloud config get-value core/account) || true
+    --user="$(gcloud config get-value core/account)" || true
 }
 
 function install_istio() {
     local CR_FILENAME=${1}
-    pushd ${ISTIO_OPERATOR_DIR}
-    go run ./cmd/mesh.go manifest apply -f ${CR_FILENAME} --wait --set defaultNamespace=${defaultNamespace}
+    pushd "${ISTIO_OPERATOR_DIR}"
+    go run ./cmd/mesh.go manifest apply -f "${CR_FILENAME}" --wait --set defaultNamespace=${defaultNamespace}
     popd
     echo "installation is done"
 }
 
 setup_admin_binding
-install_istio ${defaultCR}
+install_istio "${defaultCR}"
