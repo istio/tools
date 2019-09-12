@@ -20,7 +20,7 @@ data:
             service: {{ .Values.serviceNamePrefix }}0-3
             size: {{ .Values.requestSize }}
         - call:
-            service: {{ .Values.serviceNamePrefix }}0-4
+            service: {{ .Values.serviceNamePrefix }}0-automtls
             size: {{ .Values.requestSize }}
       type: http
     - name: {{ .Values.serviceNamePrefix }}0-0
@@ -31,7 +31,7 @@ data:
             service: {{ .Values.serviceNamePrefix }}0-0-0
             size: {{ .Values.requestSize }}
         - call:
-            service: {{ .Values.serviceNamePrefix }}0-4
+            service: {{ .Values.serviceNamePrefix }}0-automtls
             size: {{ .Values.requestSize }}
       type: http
     - name: {{ .Values.serviceNamePrefix }}0-1
@@ -42,7 +42,7 @@ data:
             service: {{ .Values.serviceNamePrefix }}0-1-0
             size: {{ .Values.requestSize }}
         - call:
-            service: {{ .Values.serviceNamePrefix }}0-4
+            service: {{ .Values.serviceNamePrefix }}0-automtls
             size: {{ .Values.requestSize }}
       type: http
     - name: {{ .Values.serviceNamePrefix }}0-2
@@ -61,12 +61,12 @@ data:
             service: {{ .Values.serviceNamePrefix }}0-3-0
             size: {{ .Values.requestSize }}
       type: http
-    - name: {{ .Values.serviceNamePrefix }}0-4
+    - name: {{ .Values.serviceNamePrefix }}0-automtls
       numReplicas: {{ .Values.replicas }}
       responseSize: {{ .Values.responseSize }}
       script:
       - - call:
-            service: {{ .Values.serviceNamePrefix }}0-4-0
+            service: {{ .Values.serviceNamePrefix }}0-automtls-0
             size: {{ .Values.requestSize }}
       type: http
     - name: {{ .Values.serviceNamePrefix }}0-0-0
@@ -85,7 +85,7 @@ data:
       numReplicas: {{ .Values.replicas }}
       responseSize: {{ .Values.responseSize }}
       type: http
-    - name: {{ .Values.serviceNamePrefix }}0-4-0
+    - name: {{ .Values.serviceNamePrefix }}0-automtls-0
       numReplicas: {{ .Values.replicas }}
       responseSize: {{ .Values.responseSize }}
       type: http
@@ -469,12 +469,12 @@ kind: Deployment
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-4
+  name: {{ .Values.serviceNamePrefix }}0-automtls-sidecar
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.serviceNamePrefix }}0-4
+      app: {{ .Values.serviceNamePrefix }}0-automtls
   template:
     metadata:
       annotations:
@@ -482,7 +482,7 @@ spec:
         prometheus.io/scrape: "true"
 {{- end }}
       labels:
-        app: {{ .Values.serviceNamePrefix }}0-4
+        app: {{ .Values.serviceNamePrefix }}0-automtls
         role: service
         version: v1
     spec:
@@ -491,7 +491,58 @@ spec:
         - --max-idle-connections-per-host=32
         env:
         - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}0-4
+          value: {{ .Values.serviceNamePrefix }}0-automtls
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+{{- if .Values.livenessProbe }}
+        livenessProbe: {{ toJson .Values.livenessProbe }}
+{{- end}}
+{{- if .Values.readinessProbe }}
+        readinessProbe: {{ toJson .Values.readinessProbe }}
+{{- end}}
+        resources: {{ toJson .Values.resources }}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-automtls-nosidecar
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceNamePrefix }}0-automtls
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+{{- if .Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+{{- end }}
+      labels:
+        app: {{ .Values.serviceNamePrefix }}0-automtls
+        role: service
+        version: v1
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: {{ .Values.serviceNamePrefix }}0-automtls
         image: {{ .Values.serviceGraphImage }}
         name: mock-service
         ports:
@@ -519,13 +570,13 @@ kind: Service
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-4
+  name: {{ .Values.serviceNamePrefix }}0-automtls
 spec:
   ports:
   - name: http-web
     port: 8080
   selector:
-    app: {{ .Values.serviceNamePrefix }}0-4
+    app: {{ .Values.serviceNamePrefix }}0-automtls
 status:
 ---
 apiVersion: apps/v1
@@ -789,12 +840,12 @@ kind: Deployment
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-4-0
+  name: {{ .Values.serviceNamePrefix }}0-automtls-0
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.serviceNamePrefix }}0-4-0
+      app: {{ .Values.serviceNamePrefix }}0-automtls-0
   template:
     metadata:
       annotations:
@@ -802,7 +853,7 @@ spec:
         prometheus.io/scrape: "true"
 {{- end }}
       labels:
-        app: {{ .Values.serviceNamePrefix }}0-4-0
+        app: {{ .Values.serviceNamePrefix }}0-automtls-0
         role: service
         version: v1
     spec:
@@ -811,7 +862,7 @@ spec:
         - --max-idle-connections-per-host=32
         env:
         - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}0-4-0
+          value: {{ .Values.serviceNamePrefix }}0-automtls-0
         image: {{ .Values.serviceGraphImage }}
         name: mock-service
         ports:
@@ -839,11 +890,11 @@ kind: Service
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-4-0
+  name: {{ .Values.serviceNamePrefix }}0-automtls-0
 spec:
   ports:
   - name: http-web
     port: 8080
   selector:
-    app: {{ .Values.serviceNamePrefix }}0-4-0
+    app: {{ .Values.serviceNamePrefix }}0-automtls-0
 status:
