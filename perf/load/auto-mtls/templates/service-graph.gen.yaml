@@ -464,76 +464,29 @@ spec:
     app: {{ .Values.serviceNamePrefix }}0-3
 status:
 ---
+{{- range $name := list "sidecar" "nosidecar" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-automtls-sidecar
+  name: {{ $.Values.serviceNamePrefix }}0-automtls-{{$name}}
 spec:
-  replicas: {{ .Values.replicas }}
+  replicas: {{ $.Values.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.serviceNamePrefix }}0-automtls
+      app: {{ $.Values.serviceNamePrefix }}0-automtls
   template:
     metadata:
       annotations:
-{{- if .Values.prometheus_scrape }}
+{{- if $.Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
-      labels:
-        app: {{ .Values.serviceNamePrefix }}0-automtls
-        role: service
-        version: v1
-    spec:
-      containers:
-      - args:
-        - --max-idle-connections-per-host=32
-        env:
-        - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}0-automtls
-        image: {{ .Values.serviceGraphImage }}
-        name: mock-service
-        ports:
-        - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
-{{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
-{{- end}}
-        resources: {{ toJson .Values.resources }}
-        volumeMounts:
-        - mountPath: /etc/config
-          name: config-volume
-      volumes:
-      - configMap:
-          items:
-          - key: service-graph
-            path: service-graph.yaml
-          name: service-graph-config
-        name: config-volume
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-automtls-nosidecar
-spec:
-  replicas: {{ .Values.replicas }}
-  selector:
-    matchLabels:
-      app: {{ .Values.serviceNamePrefix }}0-automtls
-  template:
-    metadata:
-      annotations:
+{{- if eq $name "nosidecar" }}
         sidecar.istio.io/inject: "false"
-{{- if .Values.prometheus_scrape }}
-        prometheus.io/scrape: "true"
-{{- end }}
+{{- end}}
       labels:
-        app: {{ .Values.serviceNamePrefix }}0-automtls
+        app: {{ $.Values.serviceNamePrefix }}0-automtls
         role: service
         version: v1
     spec:
@@ -542,18 +495,18 @@ spec:
         - --max-idle-connections-per-host=32
         env:
         - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}0-automtls
-        image: {{ .Values.serviceGraphImage }}
+          value: {{ $.Values.serviceNamePrefix }}0-automtls
+        image: {{ $.Values.serviceGraphImage }}
         name: mock-service
         ports:
         - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
+{{- if $.Values.livenessProbe }}
+        livenessProbe: {{ toJson $.Values.livenessProbe }}
 {{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
+{{- if $.Values.readinessProbe }}
+        readinessProbe: {{ toJson $.Values.readinessProbe }}
 {{- end}}
-        resources: {{ toJson .Values.resources }}
+        resources: {{ toJson $.Values.resources }}
         volumeMounts:
         - mountPath: /etc/config
           name: config-volume
@@ -565,6 +518,7 @@ spec:
           name: service-graph-config
         name: config-volume
 ---
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:
