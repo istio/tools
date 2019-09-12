@@ -1,3 +1,4 @@
+Namespace: auto-mtls
 serverSidecar: 1
 serverNoSidecar: 1
 clientCount: 1
