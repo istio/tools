@@ -102,7 +102,12 @@ check() {
   fi
 
   rootDate=$(openssl x509 -in ca.cert -noout -enddate | cut -f2 -d'=')
-  rootSec=$(date -d "${rootDate}" '+%s')
+  if [[ "$(uname)" == "Darwin" ]]; then
+    rootSec=$(date -jf "%b  %e %k:%M:%S %Y %Z" "${rootDate}" '+%s')
+  else
+    rootSec=$(date -d "${rootDate}" '+%s')
+  fi
+
   # shellcheck disable=SC2006
   nowSec=`date '+%s'`
   remainDays=$(echo "(${rootSec} - ${nowSec}) / (3600 * 24)" | bc)
