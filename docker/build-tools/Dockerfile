@@ -1,4 +1,4 @@
-# Copyright 2019 Istio Authors
+# Copyright Istio Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@
 #
 # We pin versions of stuff we install. Modify the various XXX_VERSION variables within the indivudual build contexts
 # in order to control these versions.
-#
-# NOTE: This is still a work-in-progress and only some Istio repos use this. More tools will be
-# added here as we onboard more repos.
 
 #############
 # Binary tools
