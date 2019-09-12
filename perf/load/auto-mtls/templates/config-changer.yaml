@@ -76,9 +76,9 @@ spec:
           defaultMode: 0744
       containers:
       - args:
-        - /bin/sleep
-        - infinity
-        image: gcr.io/mixologist-142215/hyperkube:v1.12.1
+        - python3
+        - /script/scale.py
+        image: gcr.io/jianfeih-test/hyperkube:v1.12.1
         imagePullPolicy: IfNotPresent
         name: config-change
         volumeMounts:

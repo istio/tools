@@ -34,6 +34,6 @@ data:
 
 
     if __name__ == '__main__':
-      simulate_sidecar_rollout()
+      simulate_sidecar_rollout(0, 0)
 
 
