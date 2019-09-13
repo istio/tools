@@ -34,3 +34,4 @@ replicasSleep: 10
 # ingress should be set correctly
 ingress: 127.0.0.1
 https: false
+domain: "incfly.local"
