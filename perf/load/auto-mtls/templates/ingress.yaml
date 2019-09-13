@@ -1,18 +1,31 @@
 apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ .Values.serviceNamePrefix }}0-gateway
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - {{ .Values.serviceNamePrefix }}0.local
+---
+apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: entrypoint
+  name: automtls
 spec:
-  gateways:
-  - entrypoint-gateway
   hosts:
   - {{ .Values.serviceNamePrefix }}0.local
-  - {{ .Values.serviceNamePrefix }}0.{{ .Values.domain }}
+  gateways:
+  - {{ .Values.serviceNamePrefix }}0-gateway
   http:
   - route:
     - destination:
-        host: {{ .Values.serviceNamePrefix }}0
         port:
           number: 8080
-        weight: 100
-
+        host: {{ .Values.serviceNamePrefix }}0
+---

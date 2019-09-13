@@ -35,6 +35,9 @@ function setup_test() {
 
   if [[ -z "${DRY_RUN}" ]]; then
       kubectl --namespace "${NAMESPACE}" apply -f "${OUTFILE}"
+      pushd ../loadclient
+      ./setup_test.sh ${NAMESPACE} "svc-"
+      popd
   fi
 }
 
