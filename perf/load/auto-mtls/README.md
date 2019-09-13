@@ -17,8 +17,9 @@ A service graph instance with 5 workloads, service 0, 1, 2 calls service 3 and a
 
 TODO(incfly):
 
-1. Add script to update the authn policy.
-2. Generate load using load client, plus required virtual service.
+1. Generate load using load client, plus required virtual service. (still ingress not curl-able)
+  reason, virtual service and gateway defined wrong.
+2. Add script to update the authn policy.
 3. Verify the grafana dashboard load.
 
 ## Steps to Run Test
@@ -26,18 +27,16 @@ TODO(incfly):
 1. Install Istio:
 
 ```bash
-pushd ../../istio-install
 export ISTIO_RELEASE="release-1.2-latest"  # or any Istio release
 export DNS_DOMAIN=local
 export EXTRA_VALUES=values-auto-mtls.yaml
-./setup_istio.sh $ISTIO_RELEASE
-popd
+# Install istio
+./istio.sh
 ```
 
 1. Setup the Tests
 
 ```bash
-./setup_test.py
-# TODO, figure it out.
-krm meshpolicy default
+# Setup the test.
+./setup.sh
 ```
