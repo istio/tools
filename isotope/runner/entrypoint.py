@@ -22,7 +22,7 @@ from . import consts
 def extract_name(topology_path: str) -> str:
     """Returns the name of the entrypoint service in the topology."""
     with open(topology_path, 'r') as f:
-        topology = yaml.load(f)
+        topology = yaml.load(f, Loader=yaml.FullLoader)
 
     services = topology['services']
     entrypoint_services = [svc for svc in services if svc.get('isEntrypoint')]
