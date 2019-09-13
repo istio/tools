@@ -11,4 +11,4 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - "svc-0.incfly.local"
+    - "svc-0.local"

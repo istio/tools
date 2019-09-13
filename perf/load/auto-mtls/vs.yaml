@@ -4,7 +4,7 @@ metadata:
   name: httpbin
 spec:
   hosts:
-  - "svc-0.incfly.local"
+  - "svc-0.local"
   gateways:
   - svc-0-gateway
   http:
