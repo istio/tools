@@ -1,4 +1,4 @@
-# Copyright 2019 Istio Authors
+# Copyright Istio Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@
 #
 # We pin versions of stuff we install. Modify the various XXX_VERSION variables within the indivudual build contexts
 # in order to control these versions.
-#
-# NOTE: This is still a work-in-progress and only some Istio repos use this. More tools will be
-# added here as we onboard more repos.
 
 #############
 # Binary tools
@@ -32,15 +29,18 @@ FROM golang:1.12.9 as binary_tools_context
 
 # Pinned versions of stuff we pull in
 ENV COUNTERFEITER_VERSION=v6.2.2
+ENV FORTIO_VERSION=v1.3.1
 ENV GO_BINDATA_VERSION=v3.0.8-0.20180305030458-6025e8de665b
 ENV GO_JUNIT_REPORT_VERSION=af01ea7f8024089b458d804d5cdf190f962a9a0c
+ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOGO_PROTOBUF_VERSION=28a6bbf47e48e0b2220b2a244750b660c83d4942
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV GOLANG_PROTOBUF_VERSION=v1.3.1
-ENV GOLANGCI_LINT_VERSION=v1.16.0
+ENV GOLANGCI_LINT_VERSION=v1.18.0
 ENV HADOLINT_VERSION=v1.17.1
 ENV HELM_VERSION=v2.10.0
 ENV HUGO_VERSION=0.55.5
+ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV KUBECTL_VERSION=1.15.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
@@ -73,14 +73,6 @@ RUN unzip /tmp/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 RUN mkdir -p ${OUTDIR}/usr/bin
 RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 
-# Remove test-related stuff
-RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/test
-RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/protoc-gen-gogo/testdata
-RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/jsonpb/jsonpb_test_proto
-RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/conformance
-RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/vanity/test
-RUN rm -fr ${OUTDIR}/usr/include/protobuf/github.com/gogo/protobuf/proto/test_proto
-
 # Build and install a bunch of Go tools
 RUN GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
 RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
@@ -96,13 +88,18 @@ RUN GO111MODULE=on go get github.com/jteeuwen/go-bindata/go-bindata@${GO_BINDATA
 RUN GO111MODULE=on go get github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
 RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
 RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
-RUN GO111MODULE=on go get -u github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN GO111MODULE=on go get github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
 RUN GO111MODULE=on go get -u sigs.k8s.io/kind@${KIND_VERSION}
+RUN GO111MODULE=on go get github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
+RUN GO111MODULE=on go get github.com/fortio/fortio@${FORTIO_VERSION}
+RUN GO111MODULE=on go get github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 
 # Install latest version of Istio-owned tools
 RUN GO111MODULE=on go get istio.io/tools/cmd/protoc-gen-docs
 RUN GO111MODULE=on go get istio.io/tools/cmd/annotations_prep
-RUN GO111MODULE=on go get istio.io/tools/cmd/cue
+RUN GO111MODULE=on go get istio.io/tools/cmd/cue-gen
+RUN go get -u istio.io/test-infra/toolbox/githubctl
+RUN go get -u istio.io/test-infra/boskos/cmd/mason_client
 
 # Compress the Go tools and put them in their final location
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp

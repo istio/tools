@@ -23,7 +23,7 @@ check-stability:
 
 MARKDOWN_LINT_WHITELIST=mysite.com/mypage.html,github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz,localhost
 
-lint: lint-python lint-go lint-copyright-banner lint-yaml lint-dockerfiles lint-scripts lint-markdown lint-helm
+lint: lint-all
 
 fmt: format-go format-python
 
