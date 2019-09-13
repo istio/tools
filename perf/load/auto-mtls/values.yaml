@@ -4,6 +4,7 @@ serverNoSidecar: 1
 clientCount: 1
 
 # Copied from root/perf/load/values.yaml
+livenessProbe: false
 serviceGraphImage: tahler/isotope-service:1
 serviceNamePrefix: svc-
 requestSize: 128B
