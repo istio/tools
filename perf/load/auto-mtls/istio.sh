@@ -1,9 +1,9 @@
 #!/bin/bash
 
-pushd ../../istio-install
+pushd ../../istio-install || exit
 export ISTIO_RELEASE=${ISTIO_RELEASE:-"release-1.2-latest"}
 export DNS_DOMAIN=${DNS_DOMAIN:-"istio-automtls.local"}
 export VALUES="values-auto-mtls.yaml"
-./setup_istio.sh $ISTIO_RELEASE
-popd
+./setup_istio.sh "${ISTIO_RELEASE}"
+popd || exit
 
