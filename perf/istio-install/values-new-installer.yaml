@@ -43,6 +43,10 @@ global:
     udsPath: "unix:/var/run/sds/uds_path"
     useNormalJwt: true
 
+# needed for multi cluster
+istiocoredns:
+  enabled: true
+
 gateways:
   istio-ilbgateway:
     enabled: true
@@ -98,19 +102,19 @@ sidecarInjectorWebhook:
 grafana:
   enabled: true
   prometheusNamespace: istio-prometheus
-   datasources:
-     datasources.yaml:
-       apiVersion: 1
-       datasources:
-         - name: Prometheus
-           type: prometheus
-           orgId: 1
-           url: http://istio-prometheus.istio-prometheus:9090
-           access: proxy
-           # isDefault: true
-           jsonData:
-             timeInterval: 5s
-           editable: true
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        orgId: 1
+        url: http://istio-prometheus.istio-prometheus:9090
+        access: proxy
+        # isDefault: true
+        jsonData:
+          timeInterval: 5s
+        editable: true
 
 mixer:
   telemetry:
