@@ -10,12 +10,38 @@ global:
   refreshInterval: 30s
   k8sIngressSelector: ingressgateway
 
-  controlPlaneSecurityEnabled: true
+  controlPlaneSecurityEnabled: false
+
+  meshExpansion:
+    enabled: true
+    useILB: true
 
   proxy:
     enableCoreDump: true
     concurrency: 2
     accessLogFile: ""
+
+    envoyAccessLogService:
+      enabled: false
+      host: accesslog-grpc.istio-system.svc.cluster.local
+      port: 18090
+
+  mtls:
+    # Default setting for service-to-service mtls. Can be set explicitly using
+    # destination rules or service annotations.
+    enabled: true
+
+  multiCluster:
+    enabled: true
+
+    # Provides dns resolution for global services
+  podDNSSearchNamespaces:
+    - global
+    - "{{ valueOrDefault .DeploymentMeta.Namespace \"default\" }}.global"
+  sds:
+    enabled: true
+    udsPath: "unix:/var/run/sds/uds_path"
+    useNormalJwt: true
 
 gateways:
   istio-ilbgateway:
@@ -72,19 +98,19 @@ sidecarInjectorWebhook:
 grafana:
   enabled: true
   prometheusNamespace: istio-prometheus
-  # datasources:
-  #   datasources.yaml:
-  #     apiVersion: 1
-  #     datasources:
-  #       - name: Prometheus
-  #         type: prometheus
-  #         orgId: 1
-  #         url: http://istio-prometheus.istio-prometheus:9090
-  #         access: proxy
-  #         # isDefault: true
-  #         jsonData:
-  #           timeInterval: 5s
-  #         editable: true
+   datasources:
+     datasources.yaml:
+       apiVersion: 1
+       datasources:
+         - name: Prometheus
+           type: prometheus
+           orgId: 1
+           url: http://istio-prometheus.istio-prometheus:9090
+           access: proxy
+           # isDefault: true
+           jsonData:
+             timeInterval: 5s
+           editable: true
 
 mixer:
   telemetry:
@@ -96,7 +122,7 @@ mixer:
 
 
 tracing:
-  enabled: false
+  enabled: true
   jaeger:
     enabled: true
 
@@ -113,7 +139,7 @@ kiali:
   tag: latest
 
 certmanager:
-  enabled: true
+  enabled: false
   email: mjog@google.com
   commonName: ingress.v10.istio.webinf.info
   certificates:
