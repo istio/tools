@@ -18,9 +18,8 @@ import (
 	"os"
 	"strings"
 
-	"istio.io/istio/tools/checker/envvarlinter/rules"
-
-	"istio.io/istio/tools/checker"
+	"istio.io/tools/cmd/envvarlinter/rules"
+	"istio.io/tools/pkg/checker"
 )
 
 // RulesMatcher filters out test files.

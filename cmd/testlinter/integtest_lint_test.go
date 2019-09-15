@@ -18,8 +18,8 @@ import (
 	"reflect"
 	"testing"
 
-	"istio.io/istio/tools/checker"
-	"istio.io/istio/tools/checker/testlinter/rules"
+	"istio.io/tools/cmd/testlinter/rules"
+	"istio.io/tools/pkg/checker"
 )
 
 func TestIntegTestSkipByIssueRule(t *testing.T) {

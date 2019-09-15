@@ -15,20 +15,38 @@
 package main
 
 import (
-	"istio.io/istio/tools/checker"
-	"istio.io/istio/tools/checker/testlinter/rules"
+	"flag"
+	"fmt"
+	"os"
+
+	"istio.io/tools/pkg/checker"
 )
 
-// LintRulesList is a map that maps test type to list of lint rules. Linter applies corresponding
-// list of lint rules to each type of tests.
-var LintRulesList = map[TestType][]checker.Rule{
-	UnitTest: { // list of rules which should apply to unit test file
-		rules.NewSkipByIssue(),
-	},
-	IntegTest: { // list of rules which should apply to integration test file
-		rules.NewSkipByIssue(),
-	},
-	E2eTest: { // list of rules which should apply to e2e test file
-		rules.NewSkipByIssue(),
-	},
+func main() {
+	flag.Parse()
+	exitCode := 0
+
+	items, err := getReport(flag.Args())
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		exitCode = 2
+	} else {
+		for _, r := range items {
+			fmt.Fprintln(os.Stderr, r)
+			exitCode = 2
+		}
+	}
+	os.Exit(exitCode)
+}
+
+func getReport(args []string) ([]string, error) {
+	matcher := RulesMatcher{}
+	whitelist := checker.NewWhitelist(Whitelist)
+	report := checker.NewLintReport()
+
+	err := checker.Check(args, &matcher, whitelist, report)
+	if err != nil {
+		return []string{}, err
+	}
+	return report.Items(), nil
 }

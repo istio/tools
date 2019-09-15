@@ -18,27 +18,25 @@ import (
 	"go/ast"
 	"go/token"
 
-	"istio.io/istio/tools/checker"
+	"istio.io/tools/pkg/checker"
 )
 
-// NoSleep requires that time.Sleep() is not allowed.
-type NoSleep struct{}
+// NoGoroutine requires that go f(x, y, z) is not allowed.
+type NoGoroutine struct{}
 
-// NewNoSleep creates and returns a NoSleep object.
-func NewNoSleep() *NoSleep {
-	return &NoSleep{}
+// NewNoGoroutine creates and returns a NoGoroutine object.
+func NewNoGoroutine() *NoGoroutine {
+	return &NoGoroutine{}
 }
 
-// GetID returns no_sleep_rule.
-func (lr *NoSleep) GetID() string {
+// GetID returns no_goroutine_rule.
+func (lr *NoGoroutine) GetID() string {
 	return GetCallerFileName()
 }
 
-// Check verifies if aNode is not time.Sleep. If verification fails lrp creates a new report.
-func (lr *NoSleep) Check(aNode ast.Node, fs *token.FileSet, lrp *checker.Report) {
-	if ce, ok := aNode.(*ast.CallExpr); ok {
-		if MatchCallExpr(ce, "time", "Sleep") {
-			lrp.AddItem(fs.Position(ce.Pos()), lr.GetID(), "time.Sleep() is disallowed.")
-		}
+// Check verifies if aNode is not goroutine. If verification fails lrp creates new report.
+func (lr *NoGoroutine) Check(aNode ast.Node, fs *token.FileSet, lrp *checker.Report) {
+	if gs, ok := aNode.(*ast.GoStmt); ok {
+		lrp.AddItem(fs.Position(gs.Pos()), lr.GetID(), "goroutine is disallowed.")
 	}
 }
