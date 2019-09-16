@@ -98,6 +98,8 @@ RUN GO111MODULE=on go get github.com/imsky/junit-merger/src/junit-merger@${JUNIT
 RUN GO111MODULE=on go get istio.io/tools/cmd/protoc-gen-docs
 RUN GO111MODULE=on go get istio.io/tools/cmd/annotations_prep
 RUN GO111MODULE=on go get istio.io/tools/cmd/cue-gen
+RUN GO111MODULE=on go get istio.io/tools/cmd/envvarlinter
+RUN GO111MODULE=on go get istio.io/tools/cmd/testlinter
 RUN go get -u istio.io/test-infra/toolbox/githubctl
 RUN go get -u istio.io/test-infra/boskos/cmd/mason_client
 
