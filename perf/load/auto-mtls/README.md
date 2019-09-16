@@ -17,10 +17,9 @@ A service graph instance with 5 workloads, service 0, 1, 2 calls service 3 and a
 
 TODO(incfly):
 
-1. Generate load using load client, plus required virtual service. (still ingress not curl-able)
-  reason, virtual service and gateway defined wrong.
 1. Add script to update the authn policy.
 1. Verify the grafana dashboard load.
+1. Optional, emit metrics to correlate the config chang with traffic stability on Prometheus.
 
 ## Steps to Run Test
 
