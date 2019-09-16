@@ -18,9 +18,9 @@ Example:
 
 ### End-to-end test rules
 
-1. All skipped tests must be associated with an github issue.
+1. All skipped tests must be associated with a GitHub issue.
 
-1. All tests should be skipped if testing.short() is true.  This makes it easier to filter out long running tests
+1. (TBD) All tests should be skipped if testing.short() is true.  This makes it easier to filter out long running tests
    using “go test -short ./…”.. Example (from [golang testing doc](https://golang.org/pkg/testing/)):
 
     ```go
@@ -48,7 +48,8 @@ Example:
 ### Integration Test Rules
 
 1. All skipped tests must be associated with an github issue.
-1. All tests should be skipped if testing.short() is true. (TBD)
+
+1. (TBD) All tests should be skipped if testing.short() is true.
 
 ## Unit Tests
 
@@ -64,9 +65,11 @@ Example:
 
 ### Unit Test Rules
 
-1. All skipped tests must be associated with an github issue.
-1. Must not fork a new process.
-1. Must not sleep, as unit tests are supposed to finish quickly. (Open to debate)
+1. All skipped tests must be associated with an GitHub issue.
+
+1. (TBD) Must not fork a new process.
+
+1. (TBD) Must not sleep, as unit tests are supposed to finish quickly. (Open to debate)
 
 ## Whitelist
 
@@ -87,14 +90,6 @@ var Whitelist = map[string][]string{
 
 ## Running testlinter
 
-There are two ways to run this linter.
-
 ```bash
-go install
-testlinter <target path>
-```
-
-```bash
-go install
-gometalinter --config=gometalinter.json <target path>
+go run testlinter <target path>
 ```

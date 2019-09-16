@@ -2,8 +2,6 @@
 
 envvarlinter ensures that non-test files don't use os.Getenv and os.LookupEnv and instead use the functions from pkg/env.
 
-envvarlinter is based on [Checker](../README.md), and this package provides the [custom rules](rules) implementation.
-
 ## Whitelist
 
 If, for some reason, you want to disable lint rule for a file, you can add the file path and rule ID in
@@ -21,11 +19,8 @@ var Whitelist = map[string][]string{
 }
 ```
 
-## Running testlinter
-
-There are two ways to run this linter.
+## Running envvarlinter
 
 ```bash
-go install
-testlinter <target path>
+go run envvarlinter <target path>
 ```
