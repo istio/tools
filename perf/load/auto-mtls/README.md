@@ -19,8 +19,8 @@ TODO(incfly):
 
 1. Generate load using load client, plus required virtual service. (still ingress not curl-able)
   reason, virtual service and gateway defined wrong.
-2. Add script to update the authn policy.
-3. Verify the grafana dashboard load.
+1. Add script to update the authn policy.
+1. Verify the grafana dashboard load.
 
 ## Steps to Run Test
 
