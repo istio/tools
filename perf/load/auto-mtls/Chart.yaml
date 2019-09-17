@@ -1,0 +1,11 @@
+apiVersion: v1
+name: auto-mtls
+version: 1.0
+description: Istio Auto MTLS Testing
+keywords:
+  - istio
+  - mtls
+  - qualification
+sources:
+  - http://github.com/istio/istio
+engine: gotpl

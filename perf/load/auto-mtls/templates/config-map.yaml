@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: script
+data:
+  scale.py: |
+{{ .Files.Get "scale.py" | indent 4 }}
