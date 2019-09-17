@@ -243,7 +243,7 @@ func main() {
 		relPath, _ := filepath.Rel(cwd, filename)
 		filename = filepath.Join(cwd, relPath)
 		// TODO: remove fix snake case here
-		// temporary solution to accomodate for fields that can be
+		// temporary solution to accommodate for fields that can be
 		// used in snake cases.
 		if *crd && len(snakeFields) > 0 {
 			fixSnakes(f, snakeFields)
@@ -543,7 +543,7 @@ OUTER:
 		case *openapi.OrderedMap:
 			// remove the deprecated field.
 			for _, okv := range v.Pairs() {
-				if okv.Key == "deprecated" && okv.Value.(bool) == true {
+				if okv.Key == "deprecated" && okv.Value.(bool) {
 					continue OUTER
 				}
 			}
