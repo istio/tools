@@ -94,11 +94,14 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/ast"
+	"cuelang.org/go/cue/ast/astutil"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/load"
@@ -123,6 +126,8 @@ var (
 	all = flag.Bool("all", false, "combine all the matched outputs in a single file; the 'all' section must be specified in the configuration")
 
 	crd = flag.Bool("crd", false, "generate CRD validation yaml based on the Istio protos and cue files")
+
+	snake = flag.String("snake", "", "comma-separated fields to add a snake case")
 )
 
 const (
@@ -214,12 +219,6 @@ func main() {
 		if !strings.HasSuffix(path, ".proto") {
 			return nil
 		}
-		// skip the imported protos to avoid circular dependency.
-		for _, i := range importPaths[1:] {
-			if strings.HasPrefix(path, i) {
-				return nil
-			}
-		}
 		return b.AddFile(path, nil)
 	})
 
@@ -228,6 +227,8 @@ func main() {
 		fatal(err, "Error generating CUE from proto")
 	}
 
+	snakeFields := strings.Split(*snake, ",")
+
 	c.cwd = cwd
 
 	overlay := map[string]load.Source{}
@@ -235,6 +236,12 @@ func main() {
 		filename := f.Filename
 		relPath, _ := filepath.Rel(cwd, filename)
 		filename = filepath.Join(cwd, relPath)
+		// TODO: remove fix snake case here
+		// temporary solution to accomodate for fields that can be
+		// used in snake cases.
+		if *crd && len(snakeFields) > 0 {
+			fixSnakes(f, snakeFields)
+		}
 		overlay[filename] = load.FromFile(f)
 
 		if *inplace {
@@ -247,9 +254,10 @@ func main() {
 				log.Fatalf("Error writing file: %v", err)
 			}
 		}
+
 	}
 
-	// Gernate the OpenAPI
+	// Generate the OpenAPI
 	protoNames := map[string]string{}
 
 	// build map of CUE package import paths (Go paths) to proto package paths.
@@ -391,13 +399,14 @@ func (x *builder) genCRD() {
 			fatal(err, "Error generating OpenAPI schema")
 		}
 		for _, kv := range items.Pairs() {
+			o := x.simplifyCRDSchema(kv.Value.(*openapi.OrderedMap))
 			for c, v := range x.Config.Crd.CrdConfigs {
 				if generated[c] {
 					continue
 				}
 
 				if v.SchemaName == kv.Key {
-					crd := x.getCRD(v, kv.Value)
+					crd := x.getCRD(v, o)
 					crds = append(crds, crd)
 					generated[c] = true
 				}
@@ -495,7 +504,6 @@ func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *Grouping) {
 				if v.Name == "go_package" {
 					goPkg, _ = strconv.Unquote(v.Constant.SourceRepresentation())
 				}
-
 			case *proto.Message:
 				m.markReference(x.reference(goPkg, []string{v.Name}))
 
@@ -515,6 +523,87 @@ func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *Grouping) {
 		}
 	}
 	m.schemas.SetAll(pairs[:k])
+}
+
+func (x *builder) simplifyCRDSchema(items *openapi.OrderedMap) *openapi.OrderedMap {
+	p := &openapi.OrderedMap{}
+OUTER:
+	for _, kv := range items.Pairs() {
+		// remove the description field in schemas.
+		if kv.Key == "description" && reflect.TypeOf(kv.Value).Kind() == reflect.String {
+			continue
+		}
+		switch v := kv.Value.(type) {
+		case *openapi.OrderedMap:
+			// remove the deprecated field.
+			for _, okv := range v.Pairs() {
+				if okv.Key == "deprecated" && okv.Value.(bool) == true {
+					continue OUTER
+				}
+			}
+			p.Set(kv.Key, x.simplifyCRDSchema(v))
+		case []*openapi.OrderedMap:
+			o := []*openapi.OrderedMap{}
+			for _, m := range v {
+				o = append(o, x.simplifyCRDSchema(m))
+			}
+			p.Set(kv.Key, o)
+		default:
+			p.Set(kv.Key, kv.Value)
+
+		}
+	}
+	return p
+}
+
+func fixSnakes(f *ast.File, sf []string) {
+	astutil.Apply(f, func(bc astutil.Cursor) bool {
+		n := bc.Node()
+		switch x := n.(type) {
+		case *ast.Field:
+			if s := snakeField(x, sf); s != nil {
+				bc.InsertAfter(s)
+			}
+			return true
+		default:
+			return true
+		}
+
+	}, nil)
+}
+
+// snakeField returns a Field with snake_case naming, if the field is in
+// the list provided.
+func snakeField(f *ast.Field, sf []string) *ast.Field {
+	if n, i, _ := ast.LabelName(f.Label); !i || !contains(sf, n) {
+		return nil
+	}
+	snakeCase := protobufName(f)
+	if snakeCase == "" {
+		return nil
+	}
+	snaked := &ast.Field{
+		Label:    ast.NewIdent(snakeCase),
+		Optional: f.Optional,
+		Value:    f.Value,
+		Attrs:    f.Attrs,
+	}
+	astutil.CopyMeta(snaked, f) // copy comments and relative positions
+	return snaked
+}
+
+// protobufName returns the proto name of the given Field.
+func protobufName(f *ast.Field) string {
+	for _, attr := range f.Attrs {
+		if strings.HasPrefix(attr.Text, "@protobuf") {
+			for _, str := range strings.Split(attr.Text[10:len(attr.Text)-1], ",") {
+				if strings.HasPrefix(str, "name=") {
+					return str[5:]
+				}
+			}
+		}
+	}
+	return ""
 }
 
 func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
@@ -626,4 +715,13 @@ func fatal(err error, msg string) {
 	errors.Print(os.Stderr, err, nil)
 	_ = log.Output(2, msg)
 	os.Exit(1)
+}
+
+func contains(l []string, s string) bool {
+	for _, e := range l {
+		if e == s {
+			return true
+		}
+	}
+	return false
 }
