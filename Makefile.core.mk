@@ -28,6 +28,7 @@ lint: lint-all
 fmt: format-go format-python
 
 containers:
+	@gcloud auth configure-docker -q	# enable docker to authenticate with gcr.io, needed for prow
 	@cd docker/build-tools && ./build-and-push.sh
 
 include common/Makefile.common.mk
