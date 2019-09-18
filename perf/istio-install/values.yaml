@@ -1,15 +1,10 @@
 # This is used to generate istio.yaml for a stress/load test cluster.
 
 global:
-  #hub: docker.io/istionightly
-  #tag: nightly-release-0.8
+  imagePullPolicy: Always
   meshExpansion:
     enabled: true
     useILB: true
-
-  refreshInterval: 30s
-  imagePullPolicy: Always
-  k8sIngressSelector: ingressgateway
 
   proxy:
     enableCoreDump: true
@@ -51,9 +46,6 @@ global:
 istiocoredns:
   enabled: true
 
-ingress:
-  enabled: false
-
 gateways:
   istio-egressgateway:
     enabled: true
@@ -93,12 +85,8 @@ gateways:
     type: LoadBalancer #change to NodePort, ClusterIP or LoadBalancer if need be
 
 pilot:
-  replicaCount: 2
   sidecar: true
   autoscaleMax: 10
-  env:
-    PILOT_PUSH_THROTTLE: 50
-    GODEBUG: gctrace=2
   resources:
     requests:
       cpu: 4800m
@@ -125,10 +113,8 @@ grafana:
         jsonData:
           timeInterval: 5s
         editable: true
-  #image: gcr.io/istio-release/grafana:release-1.0-20180720-00-11
 
 mixer:
-  #image: gcr.io/istio-release/mixer:release-1.0-20180720-00-11
   resources:
     requests:
       cpu: 3800m
@@ -138,7 +124,6 @@ mixer:
       memory: 5G
   telemetry:
     enabled: true
-    replicaCount: 1
     autoscaleEnabled: true
     autoscaleMin: 1
     autoscaleMax: 15
@@ -151,15 +136,11 @@ tracing:
   jaeger:
     enabled: true
 
-servicegraph:
-  enabled: false
-
 prometheus:
   enabled: false
 
 kiali:
   enabled: false
-  tag: latest
 
 certmanager:
   enabled: false

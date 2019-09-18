@@ -18,6 +18,7 @@ from prometheus import Query, Alarm, Prometheus
 import subprocess
 import unittest
 import os
+import signal
 
 __unittest = True  # Will hide traceback, making test output cleaner
 
@@ -190,9 +191,7 @@ class TestAlarms(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        self.port_forward.stdout.close()  # Wait for port forward to be ready
-        self.port_forward.terminate()
-        self.port_forward.wait()
+        os.kill(self.prom.pid, signal.SIGKILL)
 
     def run_queries(self, queries):
         for query in queries:
