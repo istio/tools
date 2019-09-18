@@ -15,31 +15,31 @@
 # limitations under the License.
 
 # set -x
-# Creates a standard cluster for testing.
+# Creates a standard GKE cluster for testing.
 
-# get default cluster version for zone
-function default_cluster() {
-  local zone=${1:?"zone required"}
+# get default GKE cluster version for zone
+function default_gke_version() {
+  local zone=${1:?"zone is required"}
   # shellcheck disable=SC2155
-  local temp_ver=$(mktemp)
+  local temp_fname=$(mktemp)
 
   # shellcheck disable=SC2086
-  gcloud container get-server-config --zone "${zone}"  >${temp_ver} 2>&1
+  gcloud container get-server-config --zone "${zone}"  > ${temp_fname} 2>&1
   # shellcheck disable=SC2181
   if [[ $? -ne 0 ]];then
-    cat "${temp_ver}"
+    cat "${temp_fname}"
     exit 1
   fi
 
   # shellcheck disable=SC2002
-  ver=$(cat "${temp_ver}" | grep defaultClusterVersion | awk '{print $2}')
-  echo "${ver}"
-  rm -Rf "${temp_ver}"
+  gke_ver=$(cat "${temp_fname}" | grep defaultClusterVersion | awk '{print $2}')
+  echo "${gke_ver}"
+  rm -rf "${temp_fname}"
 }
 
 # Required params
 PROJECT_ID=${PROJECT_ID:?"project id is required"}
-CLUSTER_NAME=${1:?"cluster name"}
+CLUSTER_NAME=${1:?"cluster name is required"}
 
 # Optional params
 ZONE=${ZONE:-us-central1-a}
@@ -53,13 +53,14 @@ MAX_NODES=${MAX_NODES:-"70"}
 MAXPODS_PER_NODE=100
 
 # Labels and version
-ISTIO_VERSION=${ISTIO_VERSION:?"Istio version label"}
-DEFAULT_GKE_VERSION=$(default_cluster "${ZONE}")
+ISTIO_VERSION=${ISTIO_VERSION:?"Istio version label is required"}
+DEFAULT_GKE_VERSION=$(default_gke_version "${ZONE}")
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]];then
   echo "${DEFAULT_GKE_VERSION}"
   exit 1
 fi
+
 GKE_VERSION=${GKE_VERSION-${DEFAULT_GKE_VERSION}}
 
 # default scope for reference
@@ -71,7 +72,7 @@ SCOPES_FULL="https://www.googleapis.com/auth/cloud-platform"
 
 SCOPES="${SCOPES_FULL}"
 
-# A label cannot have "." in it.
+# A label cannot have "." in it, replace "." with "_"
 # shellcheck disable=SC2001
 ISTIO_VERSION=$(echo "${ISTIO_VERSION}" | sed 's/\./_/g')
 
@@ -81,7 +82,7 @@ function gc() {
   echo $*
 
   # shellcheck disable=SC2236
-  if [[ ! -z "${DRY_RUN}" ]];then
+  if [[ -n "${DRY_RUN}" ]];then
     return
   fi
 
@@ -92,13 +93,13 @@ function gc() {
 
 NETWORK_SUBNET="--create-subnetwork name=${CLUSTER_NAME}-subnet"
 # shellcheck disable=SC2236
-if [[ ! -z "${USE_SUBNET}" ]];then
+if [[ -n "${USE_SUBNET}" ]];then
   NETWORK_SUBNET="--network ${USE_SUBNET}"
 fi
 
 ADDONS="HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard"
 # shellcheck disable=SC2236
-if [[ ! -z "${ISTIO_ADDON}" ]];then
+if [[ -n "${ISTIO_ADDON}" ]];then
   ADDONS+=",Istio"
 fi
 # shellcheck disable=SC2086
