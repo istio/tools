@@ -22,7 +22,7 @@ WD=$(cd "${WD}"; pwd)
 cd "${WD}"
 
 set -x
-NAMESPACE="twopods"
+NAMESPACE=${NAMESPACE:-'twopods'}
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
@@ -64,4 +64,8 @@ for ((i=1; i<=$#; i++)); do
 done
 kubectl create ns ${NAMESPACE} || true
 kubectl label namespace ${NAMESPACE} istio-injection=enabled --overwrite || true
+if [[ "$LINKERD_INJECT" == "enabled" ]]
+then
+  kubectl annotate namespace ${NAMESPACE} linkerd.io/inject=enabled || true
+fi
 run_test
