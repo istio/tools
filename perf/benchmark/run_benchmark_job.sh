@@ -30,17 +30,20 @@ export VALUES="${VALUES:-values-istio-postsubmit.yaml}"
 export DNS_DOMAIN="fake-dns.org"
 export FORTIO_CLIENT_URL=""
 
-function collect_metrics() {
-  local GENERATE_GRAPH=$1
-
-  FORTIO_CLIENT_URL=http://$(kubectl get services -n twopods fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}"):8080
+function setup_metrics() {
+  # shellcheck disable=SC2155
+  export FORTIO_CLIENT_URL=http://$(kubectl get services -n twopods fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}"):8080
   if [[ -z "$FORTIO_CLIENT_URL" ]];then
     kubectl -n twopods port-forward svc/fortioclient 8080:8080 &
     export FORTIO_CLIENT_URL=http://localhost:8080
   fi
   export PROMETHEUS_URL=http://localhost:9090
   kubectl -n istio-prometheus port-forward svc/istio-prometheus 9090:9090 &>/dev/null &
+}
 
+function collect_metrics() {
+  local GENERATE_GRAPH=$1
+  local PLOT_METRIC=$2
   CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
   pipenv install
   pipenv run python fortio.py $FORTIO_CLIENT_URL --csv_output="$CSV_OUTPUT" --prometheus=$PROMETHEUS_URL \
@@ -49,39 +52,50 @@ mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_m
 mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
 
   if [[ "$GENERATE_GRAPH" = true ]];then
-    METRICS=(p99 mem cpu)
-    for metric in "${METRICS[@]}"
-    do
-      BENCHMARK_GRAPH="$(mktemp /tmp/benchmark_graph_XXXX.html)"
-      pipenv run python graph.py "${CSV_OUTPUT}" "${metric}" --charts_output="${BENCHMARK_GRAPH}"
-      dt=$(date +'%Y%m%d-%H')
-      RELEASE="$(cut -d'/' -f3 <<<"${CB_GCS_FULL_STAGING_PATH}")"
-      GRAPH_NAME="${RELEASE}.${dt}"
-      gsutil -q cp "${BENCHMARK_GRAPH}" "gs://$CB_GCS_BUILD_PATH/${GRAPH_NAME}"
-    done
+    BENCHMARK_GRAPH="$(mktemp /tmp/benchmark_graph_XXXX.html)"
+    pipenv run python graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output="${BENCHMARK_GRAPH}"
+    dt=$(date +'%Y%m%d-%H')
+    RELEASE="$(cut -d'/' -f3 <<<"${CB_GCS_FULL_STAGING_PATH}")"
+    GRAPH_NAME="${RELEASE}.${dt}.${PLOT_METRIC}"
+    gsutil -q cp "${BENCHMARK_GRAPH}" "gs://$CB_GCS_BUILD_PATH/${GRAPH_NAME}"
   fi
 }
 
 echo "Setup istio release: $TAG"
 pushd "${ROOT}/istio-install"
-  ./setup_istio.sh "${TAG}"
+   ./setup_istio.sh "${TAG}"
 popd
-
+# install dependencies
 cd "${WD}/runner"
 pipenv install
-
-EXTRA_ARGS="--serversidecar --baseline"
-CONN=16,64
-QPS=500,1000
-DURATION=300
+# setup test
 pushd "${WD}"
 ./setup_test.sh
 popd
 
+setup_metrics
 echo "Start running perf benchmark test."
-# run towards all combinations of the parameter
+# For adding or modifying configurations, refer to perf/benchmark/README.md
+# Configuration1
+EXTRA_ARGS="--serversidecar --baseline"
+CONN=16
+QPS=500,1000,1500,2000
+DURATION=300
+METRIC="cpu"
 # shellcheck disable=SC2086
 pipenv run python runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
-collect_metrics true
+collect_metrics true ${METRIC}
+METRIC="mem"
+collect_metrics true ${METRIC}
+
+# Configuration2
+CONN=4,8,16,32,64
+QPS=500
+METRIC="p90"
+# shellcheck disable=SC2086
+pipenv run python runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
+collect_metrics true ${METRIC}
+
+#TODO: Add more configurations, e.g. no mixer vs mixer comparison.
 
 echo "perf benchmark test is done."
