@@ -16,12 +16,12 @@ import sys
 import argparse
 import itertools  # for cycling through colors
 import pandas as pd
-from bokeh.plotting import figure, output_file, show
+from bokeh.plotting import figure, output_file, show, save
 from bokeh.palettes import Dark2_5 as palette
 
 
 # generate_chart displays numthreads vs. metric, writes to interactive HTML
-def generate_chart(mesh, csv, x_label, y_label_short, charts_output):
+def generate_chart(mesh, csv, x_label, y_label_short, charts_output, show_graph):
     print(
         "Generating chart, x_label=%s, y_label=%s, csv=%s ..." %
         (x_label, y_label_short, csv))
@@ -69,8 +69,11 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output):
 
     # 5. create chart -> save as interactive HTML
     p = build_chart(title, x_label, x_series, y_label, y_label_short, y_series)
-    show(p)
-    print("HTML graph saved at %s" % f)
+    if show_graph:
+        show(p)
+    else:
+        save(p)
+    print("HTML graph saved at %s" % charts_output)
 
 
 # get_series processes x_label metric / y-axis metric for different test
@@ -87,8 +90,12 @@ def get_series(df, x_label, metric):
 
     # get y axis
     series = {}
+    rows = pd.DataFrame()
     for mode in modes:
-        rows = df[df.Labels.str.contains(mode[0])]
+        temp_row = df[df.Labels.str.contains(mode[0])]
+        if temp_row.size == 0:
+            continue
+        rows = temp_row
         vals = list(rows[metric])
 
         # if y-axis metric is latency, convert microseconds to milliseconds
@@ -108,6 +115,8 @@ def get_series(df, x_label, metric):
     y = useries
 
     # get x axis
+    if rows.size == 0:
+        print("warn: size of x axis dataframe is 0")
     if x_label == "connections":
         x = list(rows.NumThreads)
     elif x_label == "qps":
@@ -118,9 +127,8 @@ def get_series(df, x_label, metric):
     x.sort()  # sort to increasing order
     return x, y
 
+
 # build_chart creates a bokeh.js plot from data
-
-
 def build_chart(title, x_label, x_series, y_label, y_label_short, y_series):
     # generate y-axis label with units
     print(y_label)
@@ -168,7 +176,8 @@ def build_chart(title, x_label, x_series, y_label, y_label_short, y_series):
 
 def main(argv):
     args = get_parser().parse_args(argv)
-    return generate_chart(args.mesh, args.csv, args.xaxis, args.metric, args.charts_output)
+    return generate_chart(args.mesh, args.csv, args.xaxis,
+                          args.metric, args.charts_output, args.show_graph)
 
 
 def get_parser():
@@ -192,6 +201,12 @@ def get_parser():
         "--mesh",
         help="which service mesh tool: istio, linkerd",
         default="istio")
+
+    parser.add_argument(
+        "--show_graph",
+        help="whether to show graph in browser or just save it",
+        action="store_true",
+    )
     return parser
 
 
