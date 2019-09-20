@@ -652,6 +652,49 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 			}
 		}
 
+		// remove comment blocks <!-- -->
+		for i := 0; i < len(lines); i++ {
+			commentStart := strings.Index(lines[i], "<!--")
+			if commentStart < 0 {
+				continue
+			}
+			commentEnd := strings.Index(lines[i][commentStart+3:], "-->")
+			if commentEnd >= 0 {
+				// strip out the commented portion
+				lines[i] = lines[i][:commentStart] + lines[i][commentEnd+3:]
+				if len(lines[i]) == 0 {
+					// remove lines that only contained comments
+					lines = append(lines[:i], lines[i+1:]...)
+				}
+				i--
+				// send it back through or process next line if it was deleted (don't increment i in either case)
+				continue
+			}
+			lines[i] = lines[i][:commentStart]
+			if len(lines[i]) == 0 {
+				// remove lines that only contained comments
+				lines = append(lines[:i], lines[i+1:]...)
+				i--
+			}
+			// find end
+			for i++; i < len(lines); {
+				commentEnd = strings.Index(lines[i][commentStart+3:], "-->")
+				if commentEnd >= 0 {
+					// strip out the commented portion
+					lines[i] = lines[i][commentEnd+3:]
+					if len(lines[i]) == 0 {
+						// remove lines that only contained comments
+						lines = append(lines[:i], lines[i+1:]...)
+					}
+					// send it back through the outer loop
+					i--
+					break
+				}
+				// remove the line
+				lines = append(lines[:i], lines[i+1:]...)
+			}
+		}
+
 		// Replace any < and > in the text with HTML entities to avoid bad HTML output
 		for i := 0; i < len(lines); i++ {
 			lines[i] = strings.Replace(lines[i], "<", "&lt;", -1)

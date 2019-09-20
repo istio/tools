@@ -41,6 +41,7 @@ ENV HADOLINT_VERSION=v1.17.2
 ENV HELM_VERSION=v2.10.0
 ENV HUGO_VERSION=0.55.5
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
+ENV K8S_CODE_GENERATOR_VERSION=1.13.10
 ENV KUBECTL_VERSION=1.15.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
@@ -100,8 +101,19 @@ RUN GO111MODULE=on go get istio.io/tools/cmd/annotations_prep
 RUN GO111MODULE=on go get istio.io/tools/cmd/cue-gen
 RUN GO111MODULE=on go get istio.io/tools/cmd/envvarlinter
 RUN GO111MODULE=on go get istio.io/tools/cmd/testlinter
+RUN GO111MODULE=on go get istio.io/tools/cmd/protoc-gen-deepcopy
+RUN GO111MODULE=on go get istio.io/tools/cmd/protoc-gen-jsonshim
+RUN GO111MODULE=on go get istio.io/tools/cmd/kubetype-gen
 RUN go get -u istio.io/test-infra/toolbox/githubctl
 RUN go get -u istio.io/test-infra/boskos/cmd/mason_client
+
+# Install k8s code generation tools
+RUN GO111MODULE=on go get k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get k8s.io/code-generator/cmd/lister-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get k8s.io/code-generator/cmd/informer-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get k8s.io/code-generator/cmd/deepcopy-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 
 # Compress the Go tools and put them in their final location
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp
@@ -313,6 +325,7 @@ ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 ENV GOSUMDB=https://sum.golang.org
 ENV GOPATH=/go
+ENV GOROOT=/go
 ENV GOCACHE=/gocache
 ENV PATH=/go/bin:$PATH
 
