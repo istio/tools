@@ -44,7 +44,7 @@ function download() {
 
   local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
   # shellcheck disable=SC2236
-  if [[ ! -z "${RELEASE_URL}" ]];then
+  if [[ -n "${RELEASE_URL}" ]];then
     url="${RELEASE_URL}"
   fi
   local outfile="${DIRNAME}/istio-${release}.tgz"
@@ -63,9 +63,9 @@ function download() {
 }
 
 function trim(){
-    [[ "$1" =~ [^[:space:]](.*[^[:space:]])? ]]
-    # shellcheck disable=SC2128
-    printf "%s" "$BASH_REMATCH"
+    if [[ "$1" =~ [^[:space:]](.*[^[:space:]])? ]]; then
+      echo "${BASH_REMATCH[0]}"
+    fi
 }
 
 function setup_admin_binding() {
@@ -87,14 +87,14 @@ function install_istio() {
     exit 1
   fi
   # shellcheck disable=SC2086
-  outfile=$(trim $outfile);
+  outfile=$(trim $outfile)
 
   if [[ ! -d "${DIRNAME}/${release}" ]];then
       DN=$(mktemp -d)
       tar -xzf "${outfile}" -C "${DN}" --strip-components 1
       mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
       # shellcheck disable=SC2086
-      rm -Rf ${DN}
+      rm -rf ${DN}
   fi
 
   kubectl create ns istio-system || true
