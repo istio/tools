@@ -168,7 +168,7 @@ func (m *packageMetadata) AddMetadataForType(rawType *types.Type, kubeTypes ...K
 	}
 
 	m.rawTypes = append(m.rawTypes, rawType)
-	m.kubeTypesForRawType[rawType] = append(kubeTypes)
+	m.kubeTypesForRawType[rawType] = kubeTypes
 	m.allKubeTypes = append(m.allKubeTypes, kubeTypes...)
 
 	return nil
