@@ -4,7 +4,7 @@ go 1.12
 
 replace (
 	k8s.io/api => k8s.io/api v0.0.0-20190817221950-ebce17126a01
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190819143637-0dbe462fe92d
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190918201827-3de75813f604
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190817221809-bf4de9df677c
 	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
 	k8s.io/code-generator => k8s.io/code-generator v0.0.0-20181117043124-c2090bec4d9b
@@ -39,10 +39,10 @@ require (
 	golang.org/x/tools v0.0.0-20190614205625-5aca471b1d59
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.2.2
-	k8s.io/api v0.0.0-20190819141258-3544db3b9e44
-	k8s.io/apiextensions-apiserver v0.0.0-00010101000000-000000000000
+	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
+	k8s.io/apiextensions-apiserver v0.0.0-20190918201827-3de75813f604
 	k8s.io/apimachinery v0.0.0-20190817020851-f2f3a405f61d
-	k8s.io/client-go v0.0.0-20190819141724-e14f31a72a77
+	k8s.io/client-go v0.0.0-20190918200256-06eb1244587a
 	k8s.io/gengo v0.0.0-20190822140433-26a664648505
 	k8s.io/helm v2.12.0+incompatible
 	k8s.io/klog v0.4.0 // indirect
