@@ -39,7 +39,9 @@ metadata:
   name: grafana
 spec:
   hosts:
+  {{- if not (eq $.Values.domain "local") }}
   - "grafana.{{ .Values.domain }}"
+  {{ end }}
   - "grafana.local"
   gateways:
   - istio-gateway
@@ -66,7 +68,9 @@ metadata:
   name: kiali
 spec:
   hosts:
+  {{- if not (eq $.Values.domain "local") }}
   - "kiali.{{ .Values.domain }}"
+  {{ end }}
   - "kiali.local"
   gateways:
   - istio-gateway
@@ -83,7 +87,9 @@ metadata:
   name: prom
 spec:
   hosts:
+  {{- if not (eq $.Values.domain "local") }}
   - "prom.{{ .Values.domain }}"
+  {{ end }}
   - "prom.local"
   gateways:
   - istio-gateway
@@ -100,6 +106,35 @@ metadata:
   name: "prom"
 spec:
   host: istio-prometheus.istio-prometheus.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: tracing
+spec:
+  hosts:
+  {{- if not (eq $.Values.domain "local") }}
+  - "tracing.{{ .Values.domain }}"
+  {{ end }}
+  - "tracing.local"
+  gateways:
+  - istio-gateway
+  http:
+  - route:
+    - destination:
+        host: tracing.istio-system.svc.cluster.local
+        port:
+          number: 80
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: "tracing"
+spec:
+  host: tracing.istio-system.svc.cluster.local
   trafficPolicy:
     tls:
       mode: DISABLE

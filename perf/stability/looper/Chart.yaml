@@ -1,0 +1,11 @@
+apiVersion: v1
+name: looper
+version: 1.0
+description: Helm chart for istio testing of envoy infinite loop cases
+keywords:
+  - istio
+  - performance
+sources:
+  - http://github.com/istio/istio
+engine: gotpl
+icon: https://istio.io/favicons/android-192x192.png

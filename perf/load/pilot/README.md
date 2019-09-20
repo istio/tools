@@ -48,3 +48,4 @@ workloads seeing "svc-0" in their outbound CDS.
 Different clusters does not show the same HASH even after long enough time to converge.
 - Consider to use annotation
   `"sidecar.istio.io/statsInclusionPrefixes": "TBD", "gcr.io/mixologist-142215/proxyv2:suffix4"`
+

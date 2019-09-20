@@ -1,3 +1,17 @@
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Defines run which follows the testing pipeline after cluster creation."""
 
 import contextlib
@@ -9,7 +23,7 @@ from typing import Dict, Generator, Optional
 import requests
 
 from . import consts, entrypoint, istio, kubectl, md5, mesh, prometheus, \
-              resources, sh, wait
+    resources, sh, wait
 
 _REPO_ROOT = os.path.join(os.getcwd(),
                           os.path.dirname(os.path.dirname(__file__)))
@@ -48,9 +62,9 @@ def run(topology_path: str, env: mesh.Environment, service_image: str,
         **static_labels,
     }
     if deploy_prometheus:
-      prometheus.apply(
-          labels,
-          intermediate_file_path=resources.PROMETHEUS_VALUES_GEN_YAML_PATH)
+        prometheus.apply(
+            labels,
+            intermediate_file_path=resources.PROMETHEUS_VALUES_GEN_YAML_PATH)
 
     with env.context() as ingress_url:
         logging.info('starting test with environment "%s"', env.name)
@@ -85,16 +99,20 @@ def _gen_yaml(topology_path: str, service_image: str,
     service_graph_node_selector = _get_gke_node_selector(
         consts.SERVICE_GRAPH_NODE_POOL_NAME)
     client_node_selector = _get_gke_node_selector(consts.CLIENT_NODE_POOL_NAME)
-    sh.run(
+    gen = sh.run(
         [
             'go', 'run', _MAIN_GO_PATH, 'kubernetes', '--service-image',
             service_image, '--service-max-idle-connections-per-host',
             str(max_idle_connections_per_host), '--client-image', client_image,
-            topology_path, resources.SERVICE_GRAPH_GEN_YAML_PATH,
-            service_graph_node_selector, client_node_selector,
-            "--environment-name", env_name
+            "--environment-name", env_name,
+            '--service-node-selector', service_graph_node_selector,
+            '--client-node-selector', client_node_selector,
+            topology_path,
         ],
         check=True)
+    with open(resources.SERVICE_GRAPH_GEN_YAML_PATH, 'w') as f:
+        f.write(gen.stdout)
+
     return resources.SERVICE_GRAPH_GEN_YAML_PATH
 
 

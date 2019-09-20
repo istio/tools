@@ -17,6 +17,10 @@ prometheus_scrape: false
 
 # time between config changes
 configSleep: 120
+
+# time between replicas changes
+replicasSleep: 10
+
 # tcp does not support permissive mode
 # so readinessProbe
 #tcpReadinessProbe:
@@ -24,3 +28,10 @@ configSleep: 120
 # ingress should be set correctly
 ingress: 127.0.0.1
 https: false
+
+Namespace: test
+
+livenessProbe: false
+tcpLivenessProbe: false
+tcpReadinessProbe: false
+domain: ""

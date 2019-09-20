@@ -1,0 +1,13 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: jwt-reject-lua-filter
+spec:
+  filters:
+  - listenerMatch:
+      listenerType: GATEWAY
+    filterName: envoy.lua
+    filterType: HTTP
+    filterConfig:
+      inlineCode: |-
+{{ .Files.Get "jwt.lua" | nindent 10 }}

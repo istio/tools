@@ -1,18 +1,37 @@
 #!/bin/bash
+
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # set -x
 # Creates a standard cluster for testing.
 
 # get default cluster version for zone
 function default_cluster() {
   local zone=${1:?"zone required"}
+  # shellcheck disable=SC2155
   local temp_ver=$(mktemp)
 
+  # shellcheck disable=SC2086
   gcloud container get-server-config --zone "${zone}"  >${temp_ver} 2>&1
+  # shellcheck disable=SC2181
   if [[ $? -ne 0 ]];then
     cat "${temp_ver}"
     exit 1
   fi
 
+  # shellcheck disable=SC2002
   ver=$(cat "${temp_ver}" | grep defaultClusterVersion | awk '{print $2}')
   echo "${ver}"
   rm -Rf "${temp_ver}"
@@ -36,25 +55,54 @@ MAXPODS_PER_NODE=100
 # Labels and version
 ISTIO_VERSION=${ISTIO_VERSION:?"Istio version label"}
 DEFAULT_GKE_VERSION=$(default_cluster "${ZONE}")
+# shellcheck disable=SC2181
 if [[ $? -ne 0 ]];then
   echo "${DEFAULT_GKE_VERSION}"
   exit 1
 fi
 GKE_VERSION=${GKE_VERSION-${DEFAULT_GKE_VERSION}}
-SCOPES="https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append"
+
+# default scope for reference
+# shellcheck disable=SC2034
+SCOPES_DEFAULT="https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append"
+
+# Full scope is needed for the context graph API
+SCOPES_FULL="https://www.googleapis.com/auth/cloud-platform"
+
+SCOPES="${SCOPES_FULL}"
+
 # A label cannot have "." in it.
-ISTIO_VERSION=$(echo ${ISTIO_VERSION} | sed 's/\./_/g')
+# shellcheck disable=SC2001
+ISTIO_VERSION=$(echo "${ISTIO_VERSION}" | sed 's/\./_/g')
 
 function gc() {
+  # shellcheck disable=SC2048
+  # shellcheck disable=SC2086
   echo $*
 
+  # shellcheck disable=SC2236
   if [[ ! -z "${DRY_RUN}" ]];then
     return
   fi
 
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2048
   gcloud $*
 }
 
+NETWORK_SUBNET="--create-subnetwork name=${CLUSTER_NAME}-subnet"
+# shellcheck disable=SC2236
+if [[ ! -z "${USE_SUBNET}" ]];then
+  NETWORK_SUBNET="--network ${USE_SUBNET}"
+fi
+
+ADDONS="HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard"
+# shellcheck disable=SC2236
+if [[ ! -z "${ISTIO_ADDON}" ]];then
+  ADDONS+=",Istio"
+fi
+# shellcheck disable=SC2086
+# shellcheck disable=SC2046
 gc beta container \
   --project "${PROJECT_ID}" \
   clusters create "${CLUSTER_NAME}" \
@@ -64,7 +112,8 @@ gc beta container \
   --scopes "${SCOPES}" \
   --num-nodes "${MIN_NODES}" --enable-autoscaling --min-nodes "${MIN_NODES}" --max-nodes "${MAX_NODES}" --max-pods-per-node "${MAXPODS_PER_NODE}" \
   --enable-stackdriver-kubernetes \
-  --enable-ip-alias --create-subnetwork name="${CLUSTER_NAME}-subnet" \
+  --enable-ip-alias \
+  ${NETWORK_SUBNET} \
   --default-max-pods-per-node "${MAXPODS_PER_NODE}" \
-  --addons HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard \
+  --addons "${ADDONS}" \
   --enable-network-policy --enable-autoupgrade --enable-autorepair --labels test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}

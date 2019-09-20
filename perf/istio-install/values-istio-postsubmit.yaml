@@ -1,7 +1,6 @@
 # This is used to generate istio.yaml for a stress/load test cluster for postsubmits for releases.
 
 global:
-  imagePullPolicy: Always
   meshExpansion: true
   meshExpansionILB: true
   refreshInterval: 30s
@@ -18,9 +17,6 @@ global:
       requests:
         cpu: 500m
         memory: 256Mi
-
-ingress:
-  enabled: false
 
 gateways:
   istio-ilbgateway:
@@ -101,7 +97,7 @@ ingress:
 prometheus:
   enabled: true
 
-sidecar-injector:
+sidecarInjectorWebhook:
   enabled: true
 
 grafana:
@@ -137,9 +133,6 @@ tracing:
 
 servicegraph:
   enabled: false
-
-prometheus:
-  enabled: true
 
 kiali:
   enabled: false

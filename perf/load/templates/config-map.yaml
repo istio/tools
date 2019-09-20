@@ -46,6 +46,7 @@ data:
     export INGRESS_IP={{ .Values.ingress }}
 
     ${WD}/rollout.sh &
+    ${WD}/scaling.sh &
     ${WD}/rotate.sh {{ .Values.serviceNamePrefix }}0 {{ .Values.domain }} 60m &
     wait
   rollout.sh: |
@@ -58,6 +59,22 @@ data:
         sleep {{ .Values.configSleep }}
         # add jitter
         sleep $[ ( $RANDOM % {{ .Values.configSleep }} )  + 1 ]s
+      done
+    done
+  scaling.sh: |
+    #!/bin/bash
+    set -ex
+    WD=$(dirname $0)
+    WD=$(cd $WD;pwd)
+
+    deployments=$(kubectl get deployments -n {{ .Values.Namespace }} -l app=service-graph -o jsonpath="{.items[*].metadata.name}")
+
+    while [[ true ]];do
+      for deployment in ${deployments}; do
+        kubectl scale deployments -n {{ .Values.Namespace }} ${deployment} --replicas $((1 + RANDOM % 3))
+        sleep {{ .Values.replicasSleep }}
+        # add jitter
+        sleep $[ ( $RANDOM % {{ .Values.replicasSleep }} )  + 1 ]s
       done
     done
   rotate.sh: |

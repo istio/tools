@@ -68,7 +68,7 @@ kind: DestinationRule
 metadata:
   name: client
 spec:
-  host:  client.default.svc.cluster.local
+  host: client.default.svc.cluster.local
   trafficPolicy:
     tls:
       mode: DISABLE
@@ -79,7 +79,7 @@ kind: DestinationRule
 metadata:
   name: grafana
 spec:
-  host:  grafana.istio-system.svc.cluster.local
+  host: grafana.istio-system.svc.cluster.local
   trafficPolicy:
     tls:
       mode: DISABLE
@@ -89,7 +89,7 @@ kind: DestinationRule
 metadata:
   name: prometheus
 spec:
-  host:  prometheus.istio-system.svc.cluster.local
+  host: prometheus.istio-system.svc.cluster.local
   trafficPolicy:
     tls:
       mode: DISABLE

@@ -18,13 +18,15 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"sync"
 	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
 
-	"istio.io/fortio/log"
+	"fortio.org/fortio/log"
+
 	"istio.io/tools/isotope/convert/pkg/graph/script"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 	"istio.io/tools/isotope/service/pkg/srv/prometheus"
@@ -57,12 +59,28 @@ func executeSleepCommand(cmd script.SleepCommand) {
 	time.Sleep(time.Duration(cmd))
 }
 
+func executeRequestCommandHelper(cmd script.RequestCommand) bool {
+	rand.Seed(time.Now().UnixNano())
+	number := rand.Intn(100 + 1)
+	ret := true
+
+	if number < cmd.Probability {
+		ret = false
+	}
+	return ret
+}
+
 // Execute sends an HTTP request to another service. Assumes DNS is available
 // which maps exe.ServiceName to the relevant URL to reach the service.
 func executeRequestCommand(
 	cmd script.RequestCommand,
 	forwardableHeader http.Header,
 	serviceTypes map[string]svctype.ServiceType) error {
+
+	if executeRequestCommandHelper(cmd) {
+		return nil
+	}
+
 	destName := cmd.ServiceName
 	_, ok := serviceTypes[destName]
 	if !ok {

@@ -1,18 +1,28 @@
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from __future__ import print_function
 import datetime
 import calendar
-import requests
 import collections
 import os
 import json
 import argparse
 import logging
-try:
-    # Python 3
-    import http.client as http_client
-except ImportError:
-    # Python 2
-    import httplib as http_client
+import http.client as http_client
+import requests
+
 
 if os.environ.get("DEBUG", "0") != "0":
     http_client.HTTPConnection.debuglevel = 1
@@ -23,11 +33,18 @@ if os.environ.get("DEBUG", "0") != "0":
     req_log.propagate = True
 
 
-class Prom(object):
+class Prom():
     # url: base url for prometheus
     #
 
-    def __init__(self, url, nseconds, end=None, host=None, start=None, aggregate=True):
+    def __init__(
+            self,
+            url,
+            nseconds,
+            end=None,
+            host=None,
+            start=None,
+            aggregate=True):
         self.url = url
         self.nseconds = nseconds
         if start is None:
@@ -56,17 +73,21 @@ class Prom(object):
             raise Exception(str(resp.text))
 
         data = resp.json()
-        return computeMinMaxAvg(data, groupby=groupby, xform=xform, aggregate=self.aggregate)
+        return computeMinMaxAvg(
+            data,
+            groupby=groupby,
+            xform=xform,
+            aggregate=self.aggregate)
 
     def fetch_cpu_by_container(self):
         return self.fetch(
-            'irate(container_cpu_usage_seconds_total{container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
+            'irate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
             metric_by_deployment_by_container,
             to_miliCpus)
 
     def fetch_memory_by_container(self):
         return self.fetch(
-            'container_memory_usage_bytes{container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}',
+            'container_memory_usage_bytes{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}',
             metric_by_deployment_by_container,
             to_megaBytes)
 
@@ -92,8 +113,13 @@ class Prom(object):
 
     def fetch_num_requests_by_response_code(self, code):
         data = self.fetch_by_query(
-            'sum(rate(istio_requests_total{reporter="destination", response_code="' + str(code) + '"}[' + str(self.nseconds) + 's]))')
-        if len(data["data"]["result"]) > 0:
+            'sum(rate(istio_requests_total{reporter="destination", response_code="' +
+            str(code) +
+            '"}[' +
+            str(
+                self.nseconds) +
+            's]))')
+        if data["data"]["result"]:
             return data["data"]["result"][0]["values"]
         return []
 
@@ -102,15 +128,15 @@ class Prom(object):
         data_404 = self.fetch_num_requests_by_response_code(404)
         data_503 = self.fetch_num_requests_by_response_code(503)
         data_504 = self.fetch_num_requests_by_response_code(504)
-        if len(data_404) > 0:
+        if data_404:
             res["istio_requests_total_404"] = data_404[-1][1]
         else:
             res["istio_requests_total_404"] = "0"
-        if len(data_503) > 0:
+        if data_503:
             res["istio_requests_total_503"] = data_503[-1][1]
         else:
             res["istio_requests_total_503"] = "0"
-        if len(data_504) > 0:
+        if data_504:
             res["istio_requests_total_504"] = data_504[-1][1]
         else:
             res["istio_requests_total_504"] = "0"
@@ -119,7 +145,7 @@ class Prom(object):
     def fetch_mixer_rules_count_by_metric_name(self, metric_name):
         data = self.fetch_by_query(
             'scalar(topk(1, max(' + metric_name + ') by (configID)))')
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             return data["data"]["result"][0]["values"]
         return []
 
@@ -140,31 +166,31 @@ class Prom(object):
         attribute_count = self.fetch_mixer_rules_count_by_metric_name(
             "mixer_config_attribute_count")
 
-        if len(config_count) > 0:
+        if config_count:
             res["mixer_config_rule_config_count"] = config_count[-1][1]
         else:
             res["mixer_config_rule_config_count"] = "0"
-        if len(config_error_count) > 0:
+        if config_error_count:
             res["mixer_config_rule_config_error_count"] = config_error_count[-1][1]
         else:
             res["mixer_config_rule_config_error_count"] = "0"
-        if len(config_match_error_count) > 0:
+        if config_match_error_count:
             res["mixer_config_rule_config_match_error_count"] = config_match_error_count[-1][1]
         else:
             res["mixer_config_rule_config_match_error_count"] = "0"
-        if len(unsatisfied_action_handler_count) > 0:
+        if unsatisfied_action_handler_count:
             res["mixer_config_unsatisfied_action_handler_count"] = unsatisfied_action_handler_count[-1][1]
         else:
             res["mixer_config_unsatisfied_action_handler_count"] = "0"
-        if len(instance_count) > 0:
+        if instance_count:
             res["mixer_config_instance_config_count"] = instance_count[-1][1]
         else:
             res["mixer_config_instance_config_count"] = "0"
-        if len(handler_count) > 0:
+        if handler_count:
             res["mixer_config_handler_config_count"] = handler_count[-1][1]
         else:
             res["mixer_config_handler_config_count"] = "0"
-        if len(attribute_count) > 0:
+        if attribute_count:
             res["mixer_config_attribute_count"] = attribute_count[-1][1]
         else:
             res["mixer_config_attribute_count"] = "0"
@@ -178,12 +204,12 @@ class Prom(object):
 
         data = self.fetch_by_query(query)
         res = {}
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             if groupby is not None:
                 for i in range(len(data["data"]["result"])):
                     key = data["data"]["result"][i]["metric"][groupby]
                     values = data["data"]["result"][i]["values"]
-                    if len(values) > 0:
+                    if values:
                         res[metric + "_" + key] = values[-1][1]
                     else:
                         res[metric + "_" + key] = "0"
@@ -201,11 +227,11 @@ class Prom(object):
 
         data = self.fetch_by_query(query)
         res = {}
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             for i in range(len(data["data"]["result"])):
                 key = data["data"]["result"][i]["metric"][groupby]
                 values = data["data"]["result"][i]["values"]
-                if len(values) > 0:
+                if values:
                     res[metric + "_" + percent + "_" +
                         key] = values[-1][1]
                 else:
@@ -217,11 +243,11 @@ class Prom(object):
             self.nseconds) + 's])) by (grpc_method)'
         data = self.fetch_by_query(query)
         res = {}
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             for i in range(len(data["data"]["result"])):
                 key = data["data"]["result"][i]["metric"]["grpc_method"]
                 values = data["data"]["result"][i]["values"]
-                if len(values) > 0:
+                if values:
                     res["grpc_server_handled_total_5xx_" +
                         key] = values[-1][1]
                 else:
@@ -235,11 +261,11 @@ class Prom(object):
             self.nseconds) + 's])) by (grpc_method)'
         data = self.fetch_by_query(query)
         res = {}
-        if len(data["data"]["result"]) > 0:
+        if data["data"]["result"]:
             for i in range(len(data["data"]["result"])):
                 key = data["data"]["result"][i]["metric"]["groupby"]
                 values = data["data"]["result"][i]["values"]
-                if len(values) > 0:
+                if values:
                     res["grpc_server_handled_total_4xx_" +
                         key] = values[-1][1]
                 else:
@@ -327,8 +353,12 @@ def metric_by_deployment_by_container(metric):
 
 
 # These deployments have columns in the table, so only these are watched.
-Watched_Deployments = set(["istio-pilot", "istio-telemetry",
-                           "istio-policy", "fortioserver", "fortioclient", "istio-ingressgateway"])
+Watched_Deployments = set(["istio-pilot",
+                           "istio-telemetry",
+                           "istio-policy",
+                           "fortioserver",
+                           "fortioclient",
+                           "istio-ingressgateway"])
 
 # returns deployment_name
 
@@ -374,7 +404,7 @@ def computeMinMaxAvg(d, groupby=None, xform=None, aggregate=True):
             for idx in range(len(values)):
                 try:
                     values[idx] += float(v[idx][1])
-                except IndexError as err:
+                except IndexError:
                     # Data about that time is not yet populated.
                     break
         if aggregate:
@@ -413,9 +443,14 @@ def getParser():
     parser.add_argument(
         "nseconds", help="duration in seconds of the extract", type=int)
     parser.add_argument(
-        "--end", help="relative time in seconds from now to end collection", type=int, default=0)
+        "--end",
+        help="relative time in seconds from now to end collection",
+        type=int,
+        default=0)
     parser.add_argument(
-        "--host", help="host header when collection is thru ingress", default=None)
+        "--host",
+        help="host header when collection is thru ingress",
+        default=None)
     parser.add_argument(
         "--indent", help="pretty print json with indent", default=None)
     parser.add_argument('--aggregate', dest='aggregate', action='store_true')

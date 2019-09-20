@@ -66,7 +66,7 @@ pilot:
 ingress:
   enabled: false
 
-sidecar-injector:
+sidecarInjectorWebhook:
   enabled: true
 
 grafana:

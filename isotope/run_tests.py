@@ -1,5 +1,19 @@
 #!/usr/bin/env python3
 
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
 import logging
 
@@ -13,7 +27,7 @@ def main(args: argparse.Namespace) -> None:
     config = cfg.from_toml_file(args.config_path)
 
     cluster.set_up_if_not_exists(
-        config.cluster_project_id, config.cluster_name, config.cluster_zone,
+        config.cluster_project_id, config.cluster_name, config.cluster_zones,
         config.cluster_version, config.server_machine_type,
         config.server_disk_size_gb, config.server_num_nodes,
         config.client_machine_type, config.client_disk_size_gb)
@@ -38,7 +52,7 @@ def parse_args() -> argparse.Namespace:
         '--log_level',
         type=str,
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
-        default='INFO')
+        default='DEBUG')
     return parser.parse_args()
 
 

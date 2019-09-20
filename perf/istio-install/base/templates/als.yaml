@@ -1,0 +1,48 @@
+{{- if $.Values.als.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: accesslog-grpc
+  name: accesslog-grpc
+spec:
+  selector:
+    matchLabels:
+      app: accesslog-grpc
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        linkerd.io/inject: "false"
+        prometheus.io/scrape: "true"
+      labels:
+        app: accesslog-grpc
+    spec:
+      containers:
+      - name: als
+        image: {{ $.Values.als.Image }}
+        ports:
+        - containerPort: 18090
+          name: grpc-accesslog
+        - containerPort: 18091
+          name: http-monitoring
+        resources:
+          requests:
+            cpu: "2000m"
+            memory: "2000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: accesslog-grpc
+spec:
+  ports:
+  - name: grpc-accesslog
+    port: 18090
+    protocol: TCP
+  - name: http-monitoring
+    port: 18091
+    protocol: TCP
+  selector:
+    app: accesslog-grpc
+{{- end }}

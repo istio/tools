@@ -64,7 +64,7 @@ spec:
   mode: 'ON'
 ---
 {{- end }}
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -85,16 +85,38 @@ spec:
         {{- end }}
         sidecar.istio.io/inject: "{{ $.V.inject }}"
         linkerd.io/inject: "{{ $.V.injectL }}"
+{{- if eq $.V.injectL "enabled" }}
+        config.linkerd.io/skip-outbound-ports: "8077" 
+        config.linkerd.io/skip-inbound-ports: "8077"
+{{- end }}
+        # exclude inbound ports of the uncaptured container
+        traffic.sidecar.istio.io/excludeInboundPorts: "8076,8077,8078"
         sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
         sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
       labels:
         app: {{ $.name }}
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+{{- if eq $.name "fortioclient" }}
+                - "fortioserver"
+{{- else }}
+                - "fortioclient"
+{{- end }}
+            topologyKey: "kubernetes.io/hostname"
       volumes:
       - name: shared-data
         emptyDir: {}
       containers:
       - name: captured
+        securityContext:
+          runAsUser: 1
         volumeMounts:
         - name: shared-data
           mountPath: /var/lib/fortio
@@ -113,14 +135,18 @@ spec:
 {{ toYaml $.Values.appresources | indent 10 }}
 {{- end }}
       - name: shell
+        securityContext:
+          runAsUser: 1
         volumeMounts:
         - name: shared-data
           mountPath: /var/lib/fortio
-        image: tutum/curl:trusty
+        image: {{ $.Values.curlImage }}
         args:
         - /bin/sleep
         - infinity
       - name: uncaptured
+        securityContext:
+          runAsUser: 1
         image: {{ $.Values.fortioImage }}
         args:
 {{- if eq $.name "fortioclient" }}
@@ -209,10 +235,7 @@ spec:
       mode: SIMPLE
       privateKey: /etc/istio/ingressgateway-certs/tls.key
       serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
-
 ---
-
-
 {{- if $.Values.cert }}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate

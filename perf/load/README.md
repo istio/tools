@@ -13,6 +13,6 @@ It will also set up an instance of [Fortio](https://github.com/fortio/fortio#for
 
 To setup a service graph, run `./setup_large_test.sh NUM`, where num is the number of instances to run.
 
-Each instance will be created in a namespace `service-graph##`. 
+Each instance will be created in a namespace `service-graph##`.
 
-Each instance requests roughly 6 vCPUs and 6Gi of memory with Istio defaults. 
+Each instance requests roughly 6 vCPUs and 6Gi of memory with Istio defaults.

@@ -1,17 +1,35 @@
 #!/bin/bash
 
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 set -ex
 
+# shellcheck disable=SC2086
 WD=$(dirname $0)
+# shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 
 NAMESPACE="${NAMESPACE:-"istio-stability-gateway-bouncer"}"
+# shellcheck disable=SC2086
 ${WD}/../setup_test.sh "gateway-bouncer" "--set namespace=${NAMESPACE}"
 
-if [ -z ${DRY_RUN}; then
+if [[ -z ${DRY_RUN} ]]; then
   # Waiting until LoadBalancer is created and retrieving the assigned
   # external IP address.
   while : ; do
+    # shellcheck disable=SC2086
     INGRESS_IP=$(kubectl -n ${NAMESPACE} \
       get service istio-ingress-${NAMESPACE} \
       -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -25,9 +43,13 @@ if [ -z ${DRY_RUN}; then
 
   # Populating a ConfigMap with the external IP address and restarting the
   # client to pick up the new version of the ConfigMap.
+  # shellcheck disable=SC2086
   kubectl -n ${NAMESPACE} delete configmap fortio-client-config
+  # shellcheck disable=SC2086
   kubectl -n ${NAMESPACE} create configmap fortio-client-config \
     --from-literal=external_addr=${INGRESS_IP}
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2006
   kubectl -n ${NAMESPACE} patch deployment fortio-client \
     -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
 fi

@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
+
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from prometheus import Query, Alarm, Prometheus
 import subprocess
 import unittest
 import os
+import signal
 
 __unittest = True  # Will hide traceback, making test output cleaner
 
@@ -27,6 +43,7 @@ def find_prometheus():
     except subprocess.CalledProcessError:
         return "istio-system", "deployment/prometheus"
 
+
 def setup_promethus():
     port = os.environ.get("PROM_PORT", "9990")
     namespace, deployment = find_prometheus()
@@ -39,6 +56,7 @@ def setup_promethus():
     ], stdout=subprocess.PIPE)
     port_forward.stdout.readline()  # Wait for port forward to be ready
     return Prometheus('http://localhost:%s/' % port, pid=port_forward.pid)
+
 
 def standard_queries(namespace, cpu_lim=50, mem_lim=64):
     """Standard queries that should be run against all tests."""
@@ -88,14 +106,14 @@ def istio_requests_sanity(namespace):
     """Ensure that there are some requests to the namespace as a sanity check.
     This won't work for tests which don't report requests through Istio."""
     return Query(
-        '%s: Total Requests/s (sanity check)' % namespace,
-        'sum(rate(istio_requests_total{destination_service_namespace="%s"}[10m]))' % namespace,
+        '%s: Total Requests/s (sanity check)' %
+        namespace,
+        'sum(rate(istio_requests_total{destination_service_namespace="%s"}[10m]))' %
+        namespace,
         Alarm(
             lambda qps: qps < 0.5,
-            'There were no requests, the test is likely not running properly.'
-        ),
-        None
-    )
+            'There were no requests, the test is likely not running properly.'),
+        None)
 
 
 def stability_query(source, test):
@@ -173,9 +191,7 @@ class TestAlarms(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        self.port_forward.stdout.close()  # Wait for port forward to be ready
-        self.port_forward.terminate()
-        self.port_forward.wait()
+        os.kill(self.prom.pid, signal.SIGKILL)
 
     def run_queries(self, queries):
         for query in queries:

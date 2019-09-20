@@ -1,5 +1,5 @@
 apiVersion: v1
-name: istio
+name: sds-certmanager
 version: 1.1.0
 description: Helm chart of the 'K8S Ingress + SDS + CertManager' scenario.
 keywords:

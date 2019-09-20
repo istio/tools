@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.namespace }}-account
+  namespace: istio-stability-{{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.namespace }}-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "delete", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Values.namespace }}-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.namespace }}-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.namespace }}-account
+    namespace: istio-stability-{{ .Values.namespace }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: istio-chaos-partial
+  namespace: istio-stability-{{ .Values.namespace }}
+  labels:
+    app: istio-chaos-partial
+spec:
+  schedule: "*/{{ .Values.chaosIntervalMinutes }} * * * *" # Every x minutes
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+          labels:
+            app: istio-chaos-partial
+        spec:
+          serviceAccountName: {{ .Values.namespace }}-account
+          containers:
+            - name: istio-chaos-partial
+              image: {{ .Values.kubectlImage }}
+              command:
+                - bash
+                - -c
+                - |-
+                  #!/bin/bash
+                  COMPONENTS=({{ .Values.components }})
+
+                  function log () {
+                      echo "`date`: $1"
+                  }
+
+                  function killer () {
+                      COMPONENT=$1
+                      PODS=$(kubectl get pods -n istio-system | grep $COMPONENT | awk '{print $1}')
+                      log "Killing all but one instance of $COMPONENT (or the single instance if there is only one)."
+
+                      # If there is more than one instance remove one at random a pod from the list to kill
+                      if [ $(kubectl get pods -n istio-system | grep $COMPONENT | wc -l) -gt 1 ]
+                      then
+                          IFS=$'\n' PODS=($(sort -R <<<"${PODS[*]}")) # Randomise pods array
+                          PODS=${PODS%${COMPONENT}*} # Remove one of the pods
+                      fi
+
+                      for POD in ${PODS[@]}
+                      do
+                          log "Killing $COMPONENT pod $POD..."
+                          kubectl delete pod -n istio-system $POD --grace-period=0 --force --wait=false
+                      done
+                  }
+
+                  # Randomise component array
+                  IFS=$'\n' COMPONENTS=($(sort -R <<<"${COMPONENTS[*]}"))
+
+                  # Select component for chaos
+                  SELECTED_COMPONENT=${COMPONENTS[0]}
+                  log "The following component has been selected for chaos: $SELECTED_COMPONENT"
+
+                  # Cause some chaos
+                  killer $SELECTED_COMPONENT
+                  log "Chaos managed."
+
+          restartPolicy: OnFailure
+

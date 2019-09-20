@@ -1,3 +1,17 @@
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from prometheus_client import start_http_server, Counter, Gauge
 import logging
 
@@ -30,15 +44,13 @@ def attempt_request(f, source, destination, valid=None):
             succeeded = True
         else:
             succeeded = False
-            logging.error("Request from {} to {} had invalid response: {}".format(
-                source,
-                destination,
-                response
-            ))
+            logging.error(
+                "Request from {} to {} had invalid response: {}".format(
+                    source, destination, response))
 
         REQUESTS.labels(source, destination, succeeded).inc()
         return response, succeeded
-    except:
+    except BaseException:
         logging.exception("Request from {} to {} had an exception".format(
             source,
             destination

@@ -1,15 +1,27 @@
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from __future__ import print_function
 import json
 import os
-import tempfile
-import subprocess
 import requests
-import argparse
 from datetime import datetime
 import calendar
-import pytz
 import csv
-
+import argparse
+import subprocess
+import tempfile
 import prom
 
 """
@@ -22,7 +34,8 @@ import prom
 def convertData(data):
     obj = {}
 
-    for key in "Labels,StartTime,RequestedQPS,ActualQPS,NumThreads,RunType,ActualDuration".split(","):
+    for key in "Labels,StartTime,RequestedQPS,ActualQPS,NumThreads,RunType,ActualDuration".split(
+            ","):
         if key == "RequestedQPS" and data[key] == "max":
             obj[key] = 99999999
             continue
@@ -87,7 +100,7 @@ def fetch(url):
                 return None
             data = d.json()
         except Exception:
-            print("Error while fetching from "+url)
+            print("Error while fetching from " + url)
             raise
     else:
         data = json.load(open(url))
@@ -100,7 +113,8 @@ def converDataToList(txt):
     lines = []
 
     marker = '<option value="'
-    # marker = 'a href="' # This used to be the marker in older version of fortio
+    # marker = 'a href="' # This used to be the marker in older version of
+    # fortio
     while True:
         idx = txt.find(marker, idx)
         if idx == -1:
@@ -120,8 +134,8 @@ def output_csv(run_stats, output_file):
             stats['ActualQPS'],
             stats['NumThreads'],
             stats['Labels'].split('_')[-1],
-            stats['p99']/1000,
-            stats['p50']/1000,
+            stats['p99'] / 1000,
+            stats['p50'] / 1000,
             stats['cpu_mili_avg_fortioserver_deployment_proxy'],
             stats['mem_MB_avg_fortioserver_deployment_proxy'],
         ]
@@ -143,10 +157,11 @@ METRICS_END_SKIP_DURATION = 30
 METRICS_SUMMARY_DURATION = 180
 
 
-def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
+def syncFortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
     listurl = url + "/fortio/data/"
     listdata = requests.get(listurl)
-    fd, datafile = tempfile.mkstemp()
+    fd, datafile = tempfile.mkstemp(suffix=".json")
+
     out = os.fdopen(fd, "wt")
     stats = []
     cnt = 0
@@ -165,39 +180,41 @@ def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
             elif selector not in gd["Labels"]:
                 continue
 
-        sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
-        print("Fetching prometheus metrics for", sd, gd["Labels"])
-        if gd['errorPercent'] > 10:
-            print("... Run resulted in", gd['errorPercent'], "% errors")
-            continue
-        min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
-        if min_duration > gd['ActualDuration']:
-            print("... {} duration={}s is less than minimum {}s".format(
-                gd["Labels"], gd['ActualDuration'], min_duration))
-            continue
-        prom_start = calendar.timegm(
-            sd.utctimetuple()) + METRICS_START_SKIP_DURATION
-        duration = min(gd['ActualDuration'] - min_duration,
-                       METRICS_SUMMARY_DURATION)
-        p = prom.Prom(promUrl, duration, start=prom_start)
-        prom_metrics = p.fetch_cpu_and_mem()
-        if len(prom_metrics) == 0:
-            print("... Not found")
-            continue
-        else:
-            print("")
+        if promUrl:
+            sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
+            print("Fetching prometheus metrics for", sd, gd["Labels"])
+            if gd['errorPercent'] > 10:
+                print("... Run resulted in", gd['errorPercent'], "% errors")
+                continue
+            min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
+            if min_duration > gd['ActualDuration']:
+                print("... {} duration={}s is less than minimum {}s".format(
+                    gd["Labels"], gd['ActualDuration'], min_duration))
+                continue
+            prom_start = calendar.timegm(
+                sd.utctimetuple()) + METRICS_START_SKIP_DURATION
+            duration = min(gd['ActualDuration'] - min_duration,
+                           METRICS_SUMMARY_DURATION)
+            p = prom.Prom(promUrl, duration, start=prom_start)
+            prom_metrics = p.fetch_cpu_and_mem()
+            if not prom_metrics:
+                print("... Not found")
+                continue
+            else:
+                print("")
 
-        gd.update(prom_metrics)
+            gd.update(prom_metrics)
+
         data.append(gd)
         out.write(json.dumps(gd) + "\n")
         stats.append(gd)
         cnt += 1
 
     out.close()
-    print("Wrote {} records to {}".format(cnt, datafile))
+    print("Wrote {} json records to {}".format(cnt, datafile))
 
     if csv is not None:
-        write_csv(csv, data)
+        write_csv(csv, data, csv_output)
 
     if table:
         return write_table(table, datafile)
@@ -205,12 +222,15 @@ def syncFortio(url, table, selector=None, promUrl="prometheus.local", csv=None):
     return 0
 
 
-def write_csv(keys, data):
-    fd, datafile = tempfile.mkstemp()
-    out = os.fdopen(fd, "wt")
-    cnt = 0
+def write_csv(keys, data, csv_output):
+    if csv_output == "":
+        fd, csv_output = tempfile.mkstemp(suffix=".csv")
+        out = os.fdopen(fd, "wt")
+    else:
+        out = open(csv_output, "w+")
+
     lst = keys.split(',')
-    out.write(keys+"\n")
+    out.write(keys + "\n")
 
     for gd in data:
         row = []
@@ -220,11 +240,11 @@ def write_csv(keys, data):
         out.write(','.join(row) + "\n")
 
     out.close()
-    print("Wrote {} records to {}".format(len(data), datafile))
+    print("Wrote {} csv records to {}".format(len(data), csv_output))
 
 
 def write_table(table, datafile):
-
+    print("table: %s, datafile: %s" % (table, datafile))
     p = subprocess.Popen("bq insert {table} {datafile}".format(
         table=table, datafile=datafile).split())
     ret = p.wait()
@@ -234,19 +254,42 @@ def write_table(table, datafile):
 
 
 def main(argv):
-    args = getParser().parse_args(argv)
-    return syncFortio(args.url, args.table, args.selector, args.prometheus, args.csv)
+    args = get_parser().parse_args(argv)
+    return syncFortio(
+        args.url,
+        args.table,
+        args.selector,
+        args.prometheus,
+        args.csv,
+        args.csv_output)
 
 
-def getParser():
+def get_parser():
     parser = argparse.ArgumentParser("Fetch and upload results to bigQuery")
     parser.add_argument(
-        "--table", help="Name of the BigQuery table to send results to, like istio_perf_01.perf", default=None)
-    parser.add_argument("--selector", help="timestamps to match for import")
-    parser.add_argument("--csv", help="columns in the csv file", default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
-    parser.add_argument("url", help="url to fetch fortio json results from")
+        "--table",
+        help="Name of the BigQuery table to send results to, like istio_perf_01.perf",
+        default=None)
     parser.add_argument(
-        "prometheus", help="url to fetch prometheus results from")
+        "--selector",
+        help="timestamps to match for import")
+    parser.add_argument(
+        "--csv",
+        help="columns in the csv file",
+        default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,"
+                "cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,"
+                "cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_"
+                "ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
+    parser.add_argument(
+        "--csv_output",
+        help="output path of csv file")
+    parser.add_argument(
+        "url",
+        help="url to fetch fortio json results from")
+    parser.add_argument(
+        "--prometheus",
+        help="url to fetch prometheus results from. if blank, will only output Fortio metrics.",
+        default="")
     return parser
 
 

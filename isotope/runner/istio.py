@@ -1,3 +1,17 @@
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Functions for manipulating the Istio environment."""
 from __future__ import print_function
 
@@ -9,10 +23,12 @@ import tempfile
 from typing import Any, Dict, Generator
 
 import yaml
+import time
 
 from . import consts, kubectl, resources, sh, wait
 
-DAILY_BUILD_URL="https://storage.googleapis.com/istio-prerelease/daily-build"
+DAILY_BUILD_URL = "https://storage.googleapis.com/istio-prerelease/daily-build"
+
 
 def convert_archive(archive_url: str) -> str:
     """Convert symbolic archive into archive url
@@ -22,9 +38,10 @@ def convert_archive(archive_url: str) -> str:
         return archive_url
 
     full_name = "{}-09-15".format(archive_url)
-    
+
     return "{daily}/{full_name}/istio-{full_name}-linux.tar.gz".format(
         daily=DAILY_BUILD_URL, full_name=full_name)
+
 
 def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
            archive_url: str, values: str) -> None:
@@ -46,8 +63,17 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
         extracted_dir_path = os.path.join(tmp_dir_path, 'istio')
         extracted_istio_path = _extract(archive_path, extracted_dir_path)
 
+        crd_path = os.path.join(extracted_istio_path, 'install',
+                                'kubernetes', 'helm', 'istio-init')
+
         chart_path = os.path.join(extracted_istio_path, 'install',
                                   'kubernetes', 'helm', 'istio')
+
+        _apply_crds(
+            crd_path,
+            'istio-init',
+            consts.ISTIO_NAMESPACE)
+
         _install(
             chart_path,
             consts.ISTIO_NAMESPACE,
@@ -94,10 +120,31 @@ def _extract(archive_path: str, extracted_dir_path: str) -> str:
     return os.path.join(extracted_dir_path, extracted_items[0])
 
 
+def _apply_crds(path: str, name: str, namespace: str) -> None:
+    logging.info('applying crd definitions for Istio')
+    sh.run_kubectl(['create', 'namespace', namespace])
+
+    istio_yaml = sh.run(
+        [
+            'helm',
+            'template',
+            path,
+            '--name',
+            name,
+            '--namespace',
+            namespace
+        ],
+        check=True).stdout
+    kubectl.apply_text(istio_yaml)
+
+    logging.info('sleeping for 30 seconds as an extra buffer')
+    time.sleep(30)
+    wait.until_deployments_are_ready(namespace)
+
+
 def _install(chart_path: str, namespace: str,
              intermediate_file_path: str, values: str) -> None:
     logging.info('installing Helm chart for Istio')
-    sh.run_kubectl(['create', 'namespace', namespace])
     istio_yaml = sh.run(
         [
             'helm',
