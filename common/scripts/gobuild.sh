@@ -26,7 +26,7 @@ fi
 SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 OUT=${1:?"output path"}
-BUILDPATH=${2:?"path to build"}
+shift
 
 set -e
 
@@ -64,4 +64,5 @@ done < "${BUILDINFO}"
 time GOOS=${BUILD_GOOS} GOARCH=${BUILD_GOARCH} ${GOBINARY} build \
         ${V} "${GOBUILDFLAGS_ARRAY[@]}" ${GCFLAGS:+-gcflags "${GCFLAGS}"} \
         -o "${OUT}" \
-        -ldflags "${LDFLAGS} ${LD_EXTRAFLAGS}" "${BUILDPATH}"
+        -trimpath \
+        -ldflags "${LDFLAGS} ${LD_EXTRAFLAGS}" "${@}"
