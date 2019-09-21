@@ -107,7 +107,7 @@ function install_istio() {
     kubectl wait --for=condition=Established -f "${DIRNAME}/crds/"
 
     kubectl apply -f "${DIRNAME}/citadel.yaml"
-    kubectl rollout status deployment istio-citadel11 -n istio-system --timeout=1m
+    kubectl rollout status deployment istio-citadel -n istio-system --timeout=1m
 
     kubectl apply -f "${DIRNAME}/control/"
     kubectl rollout status deployment istio-galley -n istio-control --timeout=1m
