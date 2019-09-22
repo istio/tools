@@ -324,10 +324,10 @@ ENV LANG=C.UTF-8
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 ENV GOSUMDB=https://sum.golang.org
-ENV GOPATH=/work/out:/gotools
+ENV GOPATH=/work/out
 ENV GOROOT=/go
 ENV GOCACHE=/gocache
-ENV PATH=/go/bin:/gotools/bin:$PATH
+ENV PATH=/go/bin:$PATH
 
 # Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
@@ -336,7 +336,7 @@ ENV RUBYOPT="-KU -E utf-8:utf-8"
 COPY --from=base_os_context / /
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go/ /go/
-COPY --from=binary_tools_context /gotools/ /gotools/
+COPY --from=binary_tools_context /gotools/bin/ /usr/bin/
 COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
 COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
 COPY --from=nodejs_tools_context /usr/local /usr/local
