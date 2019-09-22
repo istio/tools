@@ -57,6 +57,8 @@ ENV KIND_VERSION=v0.5.1
 ENV OUTDIR=/out
 WORKDIR /tmp
 
+ENV GOPATH=/gotools
+
 # Update distro and install dependencies
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -119,9 +121,9 @@ RUN GO111MODULE=on go get k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp
 RUN tar -xJf upx-${UPX_VERSION}-amd64_linux.tar.xz -C /tmp
 RUN mv /tmp/upx-${UPX_VERSION}-amd64_linux/upx /usr/bin
-RUN upx --lzma /go/bin/*
-RUN mkdir -p ${OUTDIR}/go/bin
-RUN mv /go/bin/* ${OUTDIR}/go/bin
+RUN upx --lzma /gotools/bin/*
+#RUN mkdir -p ${OUTDIR}/go/bin
+#RUN mv /go/bin/* ${OUTDIR}/go/bin
 
 # ShellCheck linter
 ADD https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
@@ -324,10 +326,10 @@ ENV LANG=C.UTF-8
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 ENV GOSUMDB=https://sum.golang.org
-ENV GOPATH=/go
+ENV GOPATH=/work/out:/gotools
 ENV GOROOT=/go
 ENV GOCACHE=/gocache
-ENV PATH=/go/bin:$PATH
+ENV PATH=/go/bin:/gotools/bin:$PATH
 
 # Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
@@ -336,6 +338,7 @@ ENV RUBYOPT="-KU -E utf-8:utf-8"
 COPY --from=base_os_context / /
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go/ /go/
+COPY --from=binary_tools_context /gotools/ /gotools/
 COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
 COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
 COPY --from=nodejs_tools_context /usr/local /usr/local
