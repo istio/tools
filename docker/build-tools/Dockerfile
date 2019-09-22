@@ -122,8 +122,6 @@ ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSI
 RUN tar -xJf upx-${UPX_VERSION}-amd64_linux.tar.xz -C /tmp
 RUN mv /tmp/upx-${UPX_VERSION}-amd64_linux/upx /usr/bin
 RUN upx --lzma /gotools/bin/*
-#RUN mkdir -p ${OUTDIR}/go/bin
-#RUN mv /go/bin/* ${OUTDIR}/go/bin
 
 # ShellCheck linter
 ADD https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
