@@ -11,7 +11,7 @@ replace (
 )
 
 require (
-	cuelang.org/go v0.0.11
+	cuelang.org/go v0.0.0-20190921151558-75b9c7fa7b70
 	fortio.org/fortio v1.1.0
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
@@ -31,6 +31,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/prometheus/client_golang v0.9.3
+	github.com/retr0h/go-gilt v0.0.0-20190206215556-f73826b37af2 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/spf13/cobra v0.0.4

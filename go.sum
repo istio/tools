@@ -1,5 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
+cuelang.org/go v0.0.0-20190921151558-75b9c7fa7b70 h1:MV22jNum2TRegWZ/D7oSRHGeP9WK5ZXk4n0+pFgTICQ=
+cuelang.org/go v0.0.0-20190921151558-75b9c7fa7b70/go.mod h1:1bVjlo3IfzlqfJeH9+0BDisn57t0kwJvDRcRmywVfFQ=
 cuelang.org/go v0.0.11 h1:t7s006dOWh6tgnwPifvO3l704eg8oPuIH7AR1hfTFYk=
 cuelang.org/go v0.0.11/go.mod h1:V6nzWY/JLJLymbvIHq8M37qsGjyD4BWTOPYZRK6+UZc=
 fortio.org/fortio v1.1.0 h1:RcZTb73HO2NXj6K9U6DZ02BVeA2TzmCdqFD80Y/AU8Y=
