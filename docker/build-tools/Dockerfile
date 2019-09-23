@@ -54,10 +54,11 @@ ENV UPX_VERSION=3.95
 ENV DOCKER_VERSION=18.06.1~ce~3-0
 ENV KIND_VERSION=v0.5.1
 
-ENV OUTDIR=/out
 WORKDIR /tmp
+ENV GOPATH=/tmp/go
 
-ENV GOPATH=/gotools
+ENV OUTDIR=/out
+RUN mkdir -p ${OUTDIR}/usr/bin
 
 # Update distro and install dependencies
 # hadolint ignore=DL3008
@@ -73,7 +74,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install protoc
 ADD https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip /tmp/
 RUN unzip /tmp/protoc-${PROTOC_VERSION}-linux-x86_64.zip
-RUN mkdir -p ${OUTDIR}/usr/bin
 RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 
 # Build and install a bunch of Go tools
@@ -121,7 +121,8 @@ RUN GO111MODULE=on go get k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp
 RUN tar -xJf upx-${UPX_VERSION}-amd64_linux.tar.xz -C /tmp
 RUN mv /tmp/upx-${UPX_VERSION}-amd64_linux/upx /usr/bin
-RUN upx --lzma /gotools/bin/*
+RUN upx --lzma /tmp/go/bin/*
+RUN mv /tmp/go/bin/* ${OUTDIR}/usr/bin
 
 # ShellCheck linter
 ADD https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
@@ -317,17 +318,17 @@ RUN rm -fr /tmp/*
 FROM scratch
 
 # General
-ENV HOME=/root
+ENV HOME=/home
 ENV LANG=C.UTF-8
 
 # Go support
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 ENV GOSUMDB=https://sum.golang.org
-ENV GOPATH=/work/out
-ENV GOROOT=/go
-ENV GOCACHE=/gocache
-ENV PATH=/go/bin:$PATH
+ENV GOROOT=/usr/local/go
+ENV GOPATH=/home/go
+ENV GOCACHE=/home/gocache
+ENV PATH=/usr/local/go/bin:/home/go/bin:$PATH
 
 # Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
@@ -335,25 +336,22 @@ ENV RUBYOPT="-KU -E utf-8:utf-8"
 # Create the file system
 COPY --from=base_os_context / /
 COPY --from=binary_tools_context /out/ /
-COPY --from=binary_tools_context /usr/local/go/ /go/
-COPY --from=binary_tools_context /gotools/bin/ /usr/bin/
+COPY --from=binary_tools_context /usr/local/go /usr/local/go
 COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
 COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
 COPY --from=nodejs_tools_context /usr/local /usr/local
-COPY --from=nodejs_tools_context /node_modules/ /node_modules/
+COPY --from=nodejs_tools_context /node_modules /node_modules
 COPY --from=python_context /usr/local/bin /usr/local/bin
 COPY --from=python_context /usr/local/lib /usr/local/lib
 
-RUN mkdir -p /gocache && \
-    mkdir -p /go/pkg/mod
+RUN mkdir -p /home/gocache && \
+    mkdir -p /home/go
 
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
 # They are created as root 755.  As a result they are not writeable, which fails in
 # the developer environment as a volume or bind mount inherits the permissions of
 # the directory mounted rather then overridding with the permission of the volume file.
-RUN chmod 777 /gocache && \
-    chmod 777 /go/pkg/mod && \
-    chmod 777 /root && \
-    chmod 777 /go/src
+RUN chmod 777 /home/gocache && \
+    chmod 777 /home/go
 
 WORKDIR /
