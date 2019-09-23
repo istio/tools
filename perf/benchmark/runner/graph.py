@@ -73,7 +73,7 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output, show_graph)
         show(p)
     else:
         save(p)
-    print("HTML graph saved at %s" % charts_output)
+        print("HTML graph saved at %s" % charts_output)
 
 
 # get_series processes x_label metric / y-axis metric for different test
