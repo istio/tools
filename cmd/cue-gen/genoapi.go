@@ -533,7 +533,6 @@ func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *Grouping) {
 
 func (x *builder) simplifyCRDSchema(items *openapi.OrderedMap) *openapi.OrderedMap {
 	p := &openapi.OrderedMap{}
-OUTER:
 	for _, kv := range items.Pairs() {
 		// remove the description field in schemas.
 		if kv.Key == "description" && reflect.TypeOf(kv.Value).Kind() == reflect.String {
@@ -541,12 +540,6 @@ OUTER:
 		}
 		switch v := kv.Value.(type) {
 		case *openapi.OrderedMap:
-			// remove the deprecated field.
-			for _, okv := range v.Pairs() {
-				if okv.Key == "deprecated" && okv.Value.(bool) {
-					continue OUTER
-				}
-			}
 			p.Set(kv.Key, x.simplifyCRDSchema(v))
 		case []*openapi.OrderedMap:
 			o := []*openapi.OrderedMap{}
