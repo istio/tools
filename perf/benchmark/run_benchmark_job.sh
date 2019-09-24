@@ -89,8 +89,8 @@ METRIC="mem"
 collect_metrics true ${METRIC}
 
 # Configuration2
-CONN=4,8,16,32,64
-QPS=500
+CONN=1,2,4,8,16,32,64
+QPS=1000
 METRIC="p90"
 # shellcheck disable=SC2086
 pipenv run python runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
