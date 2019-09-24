@@ -103,9 +103,12 @@ optional arguments:
 
 Note: If you want to run with optional arguments `--perf`, you need to first `cd` to the `flame` folder.
 
-### Example 1
+Note:  `runner.py` will run all combinations of the parameters given. However, in order to reduce ambiguity when generating the graph, it would be
+ better to change one parameter at a time and fix other parameters
 
-`runner.py` will run all combinations of the parameters given. For example:
+For example:
+
+### Example 1
 
 ```bash
 python runner/runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar
