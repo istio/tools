@@ -120,6 +120,11 @@ function install_istio() {
     opts+=" --set global.hub=gcr.io/istio-release"
   fi
 
+  if [[ -n "${MIXERLESS}" ]]; then
+    opts+=" --set mixer.telemetry.enabled=false"
+    opts+=" --set mixer.policy.enabled=false"
+  fi
+
   local values=${VALUES:-values.yaml}
   local extravalues=${EXTRA_VALUES:-""}
   if [[ ${extravalues} != "" ]]; then
@@ -138,6 +143,10 @@ function install_istio() {
       if [[ -z "${SKIP_PROMETHEUS}" ]];then
           # shellcheck disable=SC2086
           "$WD/setup_prometheus.sh" ${DIRNAME}
+      fi
+      if [[ -n "${MIXERLESS}" ]]; then
+        kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/metadata-exchange_filter.yaml
+        kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml
       fi
   fi
 
