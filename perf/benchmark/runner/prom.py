@@ -33,10 +33,9 @@ if os.environ.get("DEBUG", "0") != "0":
     req_log.propagate = True
 
 
-class Prom():
+class Prom:
     # url: base url for prometheus
     #
-
     def __init__(
             self,
             url,
@@ -73,7 +72,7 @@ class Prom():
             raise Exception(str(resp.text))
 
         data = resp.json()
-        return computeMinMaxAvg(
+        return compute_min_max_avg(
             data,
             groupby=groupby,
             xform=xform,
@@ -83,13 +82,13 @@ class Prom():
         return self.fetch(
             'irate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
             metric_by_deployment_by_container,
-            to_miliCpus)
+            to_mili_cpus)
 
     def fetch_memory_by_container(self):
         return self.fetch(
             'container_memory_usage_bytes{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}',
             metric_by_deployment_by_container,
-            to_megaBytes)
+            to_mega_bytes)
 
     def fetch_cpu_and_mem(self):
         out = flatten(self.fetch_cpu_by_container(),
@@ -323,13 +322,13 @@ def flatten(data, metric, aggregate):
 # convert float bytes to in megabytes
 
 
-def to_megaBytes(m):
+def to_mega_bytes(m):
     return int(m / (1024 * 1024))
 
 # convert float cpus to int mili cpus
 
 
-def to_miliCpus(c):
+def to_mili_cpus(c):
     return int(c * 1000.0)
 
 
@@ -371,7 +370,7 @@ def metric_by_deployment(metric):
     return depl
 
 
-def computeMinMaxAvg(d, groupby=None, xform=None, aggregate=True):
+def compute_min_max_avg(d, groupby=None, xform=None, aggregate=True):
     if d['status'] != "success":
         raise Exception("command not successful: " + d['status'] + str(d))
 
@@ -419,7 +418,7 @@ def computeMinMaxAvg(d, groupby=None, xform=None, aggregate=True):
 
 
 def main(argv):
-    args = getParser().parse_args(argv)
+    args = get_parser().parse_args(argv)
     p = Prom(args.url, args.nseconds, end=args.end,
              host=args.host, aggregate=args.aggregate)
     out = p.fetch_cpu_and_mem()
@@ -436,7 +435,7 @@ def main(argv):
     print(json.dumps(out, indent=indent))
 
 
-def getParser():
+def get_parser():
     parser = argparse.ArgumentParser(
         "Fetch cpu and memory stats from prometheus")
     parser.add_argument("url", help="prometheus base url")

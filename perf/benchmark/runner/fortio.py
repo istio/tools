@@ -31,7 +31,7 @@ import prom
 """
 
 
-def convertData(data):
+def convert_data(data):
     obj = {}
 
     for key in "Labels,StartTime,RequestedQPS,ActualQPS,NumThreads,RunType,ActualDuration".split(
@@ -105,10 +105,10 @@ def fetch(url):
     else:
         data = json.load(open(url))
 
-    return convertData(data)
+    return convert_data(data)
 
 
-def converDataToList(txt):
+def convert_data_to_list(txt):
     idx = 0
     lines = []
 
@@ -157,7 +157,7 @@ METRICS_END_SKIP_DURATION = 30
 METRICS_SUMMARY_DURATION = 180
 
 
-def syncFortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
+def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
     listurl = url + "/fortio/data/"
     listdata = requests.get(listurl)
     fd, datafile = tempfile.mkstemp(suffix=".json")
@@ -168,7 +168,7 @@ def syncFortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
 
     dataurl = url + "/data/"
     data = []
-    for fl in converDataToList(listdata.text):
+    for fl in convert_data_to_list(listdata.text):
         gd = fetch(dataurl + fl)
         if gd is None:
             continue
@@ -255,7 +255,7 @@ def write_table(table, datafile):
 
 def main(argv):
     args = get_parser().parse_args(argv)
-    return syncFortio(
+    return sync_fortio(
         args.url,
         args.table,
         args.selector,
