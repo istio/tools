@@ -11,12 +11,19 @@ the content filtering proxy.
 This test mocks an intermediate content filtering proxy.
 It uses envoy to implement the mock.
 
-1. Client - fortio client issues http requests.
-2. Intermediary - This proxy rejects requests if the post body contains a specific string.
-           Otherwise it modifies the request path and forwards the request.
-           The intermediate proxy *must not* change the host header.
-           The sidecar next to the intermediate proxy will route the request to the correct destination
-           based on the host header / cluster VIP.
-           The sidecar injected in the intermediary pod handles TLS and routing, freeing the intermediary to behave
-           like a bump-on-the-wire proxy.
-3. Server - httpbin server.
+### Client
+
+A Fortio client that issues http requests.
+
+### Intermediary
+
+The intermediary proxy rejects requests if the post body contains a specific string.
+Otherwise it modifies the request uri and forwards the request.
+
+An intermediate proxy *must not* change the host header. The sidecar associated with the intermediate
+proxy will route the request to the correct destination based on the host header and cluster VIP.
+The sidecar also handles mTLS, routing, and load balancing freeing the intermediary to behave like a bump-on-the-wire proxy.
+
+### Server
+
+An httpbin server.
