@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: intermediary
+  labels:
+    app: intermediary
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8800
+  selector:
+    app: intermediary
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intermediary
+spec:
+  selector:
+    matchLabels:
+      app: intermediary
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: intermediary
+    spec:
+      volumes:
+      - name: config
+        configMap:
+          name: intermediary-config
+      containers:
+      - image: envoyproxy/envoy:v1.11.1
+        args: [ "--base-id", "102", "--config-path", "/etc/envoy/envoy.yaml" ]   # in order to run 2 envoys in the same pod, they must have different base-id
+        imagePullPolicy: IfNotPresent
+        name: intermediary
+        ports:
+        - containerPort: 8800
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        volumeMounts:
+        - name: config
+          mountPath: /etc/envoy
