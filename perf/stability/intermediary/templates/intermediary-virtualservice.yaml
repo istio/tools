@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: httpbin
+spec:
+  hosts:
+  - httpbin
+  http:
+  - match:
+    - sourceLabels:
+        app: intermediary
+    route:
+    - destination:
+        host: httpbin
+  - route: # default destination for httpbin is the intermediary
+    - destination:
+        host: intermediary

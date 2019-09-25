@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: intermediary-config
+data:
+  envoy.yaml: |
+    admin:
+      access_log_path: "/dev/stdout"
+      address:
+        socket_address:
+          address: 127.0.0.1
+          port_value: 8801
+    static_resources:
+      listeners:
+      - name: forward_proxy
+        traffic_direction: INBOUND
+        address:
+          socket_address:
+            protocol: TCP
+            address: 127.0.0.1
+            port_value: 8800
+        filter_chains:
+        - filters:
+          - name: envoy.http_connection_manager
+            typed_config:
+              "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
+              stat_prefix: ingress_http
+              http_protocol_options:
+                allow_absolute_url: true
+              route_config:
+                name: local_route
+                virtual_hosts:
+                - name: local_service
+                  domains: ["*"]
+                  routes:
+                  - match:
+                      prefix: "/"
+                    route:
+                      cluster: dynamic_forward_proxy_cluster
+              http_filters:
+              - name: envoy.lua
+                # This filter is intended to mock content filtering intermediary.
+                # For example this could be a proxy running mod_security.
+                # The example disallows any POST requests that contains the string "DO_NOT_ALLOW".
+                # A content filter *must* not modify the host header if it wishes to use istio-proxy sidecar.
+                typed_config:
+                  "@type": type.googleapis.com/envoy.config.filter.http.lua.v2.Lua
+                  inline_code: |
+                    function envoy_on_request(request_handle)
+                      -- mock content filter, refuses request if the body contains DO_NOT_ALLOW
+                      local bodyb = request_handle:body()
+                      if bodyb then
+                        local body = bodyb:getBytes(0, bodyb:length())
+                        if body:find("DO_NOT_ALLOW") then
+                          request_handle:respond( {[":status"] = "406"}, "This behaviour is not acceptable")
+                        end
+                      end
+                      -- otherwise preprends /status to the URI
+                      -- One can use this as a forward proxy to httpbin
+                      local headers = request_handle:headers()
+                      local path = headers:get(":path")
+                      -- change request uri by prepending status
+                      headers:replace(":path", "/status" .. path)
+                    end
+              - name: envoy.filters.http.dynamic_forward_proxy
+                config:
+                  dns_cache_config:
+                    name: dynamic_forward_proxy_cache_config
+                    dns_lookup_family: V4_ONLY
+              - name: envoy.router
+              access_log:
+              - name: envoy.file_access_log
+                config:
+                  path: /dev/stdout
+      clusters:
+      - name: dynamic_forward_proxy_cluster
+        connect_timeout: 1s
+        lb_policy: CLUSTER_PROVIDED
+        cluster_type:
+          name: envoy.clusters.dynamic_forward_proxy
+          typed_config:
+            "@type": type.googleapis.com/envoy.config.cluster.dynamic_forward_proxy.v2alpha.ClusterConfig
+            dns_cache_config:
+              name: dynamic_forward_proxy_cache_config
+              dns_lookup_family: V4_ONLY
