@@ -316,7 +316,7 @@ RUN rm -fr /usr/share/locale
 RUN rm -fr /usr/share/man
 RUN rm -fr /tmp/*
 
-ADD prow-entrypoint.sh /usr/local/bin/entrypoint
+COPY prow-entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +rx /usr/local/bin/entrypoint
 
 #############
