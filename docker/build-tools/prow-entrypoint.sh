@@ -21,4 +21,4 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" || true
 fi
 
-. docker-entrypoint.sh
+. dockerd-entrypoint.sh
