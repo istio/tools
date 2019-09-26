@@ -22,4 +22,4 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
 fi
 
 # shellcheck disable=SC1091
-. dockerd-entrypoint.sh
+source dockerd-entrypoint.sh
