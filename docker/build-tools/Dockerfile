@@ -330,7 +330,7 @@ ENV LANG=C.UTF-8
 # Go support
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
-ENV GOSUMDB=https://sum.golang.org
+ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/home/go
 ENV GOCACHE=/home/gocache
