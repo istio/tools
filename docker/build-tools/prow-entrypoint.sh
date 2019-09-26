@@ -21,4 +21,5 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" || true
 fi
 
+# shellcheck disable=SC1091
 . dockerd-entrypoint.sh
