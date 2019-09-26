@@ -15,14 +15,18 @@
 from __future__ import print_function
 import datetime
 import calendar
+import requests
 import collections
 import os
 import json
 import argparse
 import logging
-import http.client as http_client
-import requests
-
+try:
+    # Python 3
+    import http.client as http_client
+except ImportError:
+    # Python 2
+    import httplib as http_client
 
 if os.environ.get("DEBUG", "0") != "0":
     http_client.HTTPConnection.debuglevel = 1
