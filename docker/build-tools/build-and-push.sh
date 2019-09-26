@@ -19,5 +19,6 @@ CONTAINER_CLI=${CONTAINER_CLI:-docker}
 HUB=gcr.io/istio-testing
 VERSION=$(date +%Y-%m-%dT%H-%M-%S)
 
-${CONTAINER_CLI} build -t "${HUB}/build-tools:${VERSION}" .
+${CONTAINER_CLI} build -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:latest" .
 ${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
+${CONTAINER_CLI} push "${HUB}/build-tools:latest"
