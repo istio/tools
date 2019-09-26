@@ -273,6 +273,12 @@ RUN rm -rf /usr/local/bin/pip*
 RUN rm -fr /usr/local/lib/python3.5/dist-packages/pip
 
 #############
+# DIND
+#############
+
+FROM docker:dind as dind_context
+
+#############
 # Base OS
 #############
 
@@ -335,6 +341,7 @@ ENV RUBYOPT="-KU -E utf-8:utf-8"
 
 # Create the file system
 COPY --from=base_os_context / /
+COPY --from=dind_context / /
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
 COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
@@ -353,5 +360,7 @@ RUN mkdir -p /home/gocache && \
 # the directory mounted rather then overridding with the permission of the volume file.
 RUN chmod 777 /home/gocache && \
     chmod 777 /home/go
+
+VOLUME /var/lib/docker
 
 WORKDIR /
