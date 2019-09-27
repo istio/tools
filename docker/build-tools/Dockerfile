@@ -316,9 +316,6 @@ RUN rm -fr /usr/share/locale
 RUN rm -fr /usr/share/man
 RUN rm -fr /tmp/*
 
-COPY prow-entrypoint.sh /usr/local/bin/entrypoint
-RUN chmod +rx /usr/local/bin/entrypoint
-
 #############
 # Final image
 #############
@@ -367,8 +364,4 @@ RUN chmod 777 /home/gocache && \
 VOLUME /var/lib/docker
 
 WORKDIR /
-
-# TODO(sdake) Need a more intelligent entrypoint script here - which can
-# somehow detect if dockerd needs to be run in this container, or not.
-# Perhaps based upon an environment variable.
-#ENTRYPOINT ["dockerd-entrypoint.sh"]
+ENTRYPOINT ["dockerd-entrypoint.sh"]
