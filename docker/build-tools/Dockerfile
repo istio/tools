@@ -312,7 +312,7 @@ RUN rm -fr /tmp/*
 
 # Run dockerd in CI
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
-RUN chmod +x usr/local/bin/entrypoint
+RUN chmod +x /usr/local/bin/entrypoint
 
 #############
 # Final image
