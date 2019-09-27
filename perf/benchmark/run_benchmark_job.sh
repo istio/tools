@@ -29,6 +29,8 @@ set -x
 export VALUES="${VALUES:-values-istio-postsubmit.yaml}"
 export DNS_DOMAIN="fake-dns.org"
 export FORTIO_CLIENT_URL=""
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
 
 function setup_metrics() {
   # shellcheck disable=SC2155
