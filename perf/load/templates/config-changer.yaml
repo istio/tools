@@ -52,6 +52,50 @@ subjects:
     name: config-change-service-account
     namespace: {{ .Values.Namespace }}
 ---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: deployment-scaler
+  namespace: {{ .Values.Namespace }}
+spec:
+  # The job takes on average 5 mins to complete, scaling 20 deployments with a 10-20s sleep in between
+  # We schedule the job for every 10min, giving us 5min on/off
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: kube
+            image: istio/kubectl:1.3.0
+            args:
+            - bash
+            - -c
+            - |-
+              set -x
+              n=0
+              until [ $n -ge 15 ]; do
+                kubectl version && break # wait for envoy
+                n=$[$n+1]
+                sleep 1
+              done
+
+              set -e
+
+              deployments=$(kubectl get deployments -n {{ .Values.Namespace }} -l app=service-graph -o jsonpath="{.items[*].metadata.name}")
+
+              for deployment in ${deployments}; do
+                kubectl scale deployments -n {{ .Values.Namespace }} ${deployment} --replicas $((1 + RANDOM % 3))
+                sleep {{ .Values.replicasSleep }}
+                  # add jitter
+                sleep $[ ( $RANDOM % {{ .Values.replicasSleep }} )  + 1 ]s
+              done
+
+              # Kill envoy
+              curl -X POST localhost:15020/quitquitquit
+          restartPolicy: Never
+          serviceAccountName: config-change-service-account
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
