@@ -67,9 +67,9 @@ spec:
         spec:
           containers:
           - name: kube
-            image: gcr.io/mixologist-142215/hyperkube:v1.12.1
+            image: istio/kubectl:1.3.0
             args:
-            - /bin/sh
+            - bash
             - -c
             - |-
               set -x
@@ -84,17 +84,15 @@ spec:
 
               deployments=$(kubectl get deployments -n {{ .Values.Namespace }} -l app=service-graph -o jsonpath="{.items[*].metadata.name}")
 
-              while [[ true ]];do
-                for deployment in ${deployments}; do
-                  kubectl scale deployments -n {{ .Values.Namespace }} ${deployment} --replicas $((1 + RANDOM % 3))
-                  sleep {{ .Values.replicasSleep }}
-                    # add jitter
-                  sleep $[ ( $RANDOM % {{ .Values.replicasSleep }} )  + 1 ]s
-                done
+              for deployment in ${deployments}; do
+                kubectl scale deployments -n {{ .Values.Namespace }} ${deployment} --replicas $((1 + RANDOM % 3))
+                sleep {{ .Values.replicasSleep }}
+                  # add jitter
+                sleep $[ ( $RANDOM % {{ .Values.replicasSleep }} )  + 1 ]s
               done
 
               # Kill envoy
-              curl localhost:15020/quitquitquit
+              curl -X POST localhost:15020/quitquitquit
           restartPolicy: Never
           serviceAccountName: config-change-service-account
 ---
