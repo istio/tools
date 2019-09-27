@@ -273,12 +273,6 @@ RUN rm -rf /usr/local/bin/pip*
 RUN rm -fr /usr/local/lib/python3.5/dist-packages/pip
 
 #############
-# DIND
-#############
-
-FROM docker:dind as dind_context
-
-#############
 # Base OS
 #############
 
@@ -316,9 +310,6 @@ RUN rm -fr /usr/share/locale
 RUN rm -fr /usr/share/man
 RUN rm -fr /tmp/*
 
-COPY prow-entrypoint.sh /usr/local/bin/entrypoint
-RUN chmod +rx /usr/local/bin/entrypoint
-
 #############
 # Final image
 #############
@@ -344,7 +335,6 @@ ENV RUBYOPT="-KU -E utf-8:utf-8"
 
 # Create the file system
 COPY --from=base_os_context / /
-COPY --from=dind_context / /
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
 COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
@@ -364,11 +354,4 @@ RUN mkdir -p /home/gocache && \
 RUN chmod 777 /home/gocache && \
     chmod 777 /home/go
 
-VOLUME /var/lib/docker
-
 WORKDIR /
-
-# TODO(sdake) Need a more intelligent entrypoint script here - which can
-# somehow detect if dockerd needs to be run in this container, or not.
-# Perhaps based upon an environment variable.
-#ENTRYPOINT ["dockerd-entrypoint.sh"]
