@@ -364,4 +364,3 @@ RUN chmod 777 /home/gocache && \
 VOLUME /var/lib/docker
 
 WORKDIR /
-ENTRYPOINT ["dockerd-entrypoint.sh"]
