@@ -33,6 +33,8 @@ image = "tahler/isotope-service:1"
 [client]
 machine_type = "n1-highcpu-4"
 disk_size_gb = 16
+# One can specify multiple load-generators (Fortio).
+num_nodes = 2
 # Necessary fork to allow Fortio's server to output Prometheus metrics.
 image = "tahler/fortio:prometheus"
 # "max" is a special string, otherwise use a number.

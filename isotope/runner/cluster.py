@@ -25,7 +25,7 @@ def set_up_if_not_exists(
         project_id: str, name: str, zones: List[str], version: str,
         service_graph_machine_type: str, service_graph_disk_size_gb: int,
         service_graph_num_nodes: int, client_machine_type: str,
-        client_disk_size_gb: int) -> None:
+        client_disk_size_gb: int, client_num_nodes: int) -> None:
     sh.run_gcloud(['config', 'set', 'project', project_id], check=True)
     zone = zones[0]
 
@@ -40,13 +40,14 @@ def set_up_if_not_exists(
         logging.debug('%s does not exist yet; creating...', name)
         set_up(project_id, name, zones, version, service_graph_machine_type,
                service_graph_disk_size_gb, service_graph_num_nodes,
-               client_machine_type, client_disk_size_gb)
+               client_machine_type, client_disk_size_gb, client_num_nodes)
 
 
 def set_up(project_id: str, name: str, zones: List[str], version: str,
            service_graph_machine_type: str, service_graph_disk_size_gb: int,
            service_graph_num_nodes: int, client_machine_type: str,
-           client_disk_size_gb: int, deploy_prometheus=False) -> None:
+           client_disk_size_gb: int, client_num_nodes: int,
+           deploy_prometheus=False) -> None:
     """Creates and sets up a GKE cluster.
 
     Args:
@@ -76,7 +77,8 @@ def set_up(project_id: str, name: str, zones: List[str], version: str,
                                     service_graph_machine_type,
                                     service_graph_disk_size_gb,
                                     zones[0])
-    _create_client_node_pool(client_machine_type, client_disk_size_gb, zones[0])
+    _create_client_node_pool(client_num_nodes, client_machine_type,
+                             client_disk_size_gb, zones[0])
 
 
 def _create_cluster(name: str, zones: List[str], version: str, machine_type: str,
@@ -107,10 +109,10 @@ def _create_service_graph_node_pool(num_nodes: int, machine_type: str,
                       machine_type, disk_size_gb, zone)
 
 
-def _create_client_node_pool(machine_type: str, disk_size_gb: int,
-                             zone: str) -> None:
+def _create_client_node_pool(client_num_nodes: int, machine_type: str,
+                             disk_size_gb: int, zone: str) -> None:
     logging.info('creating client node-pool')
-    _create_node_pool(consts.CLIENT_NODE_POOL_NAME, 1, machine_type,
+    _create_node_pool(consts.CLIENT_NODE_POOL_NAME, num_nodes, machine_type,
                       disk_size_gb, zone)
 
 

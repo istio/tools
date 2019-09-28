@@ -28,9 +28,9 @@ class RunnerConfig:
                  cluster_version: str, server_machine_type: str,
                  server_disk_size_gb: int, server_num_nodes: int,
                  server_image: str, client_machine_type: str,
-                 client_disk_size_gb: int, client_image: str,
-                 client_qps: Optional[int], client_duration: str,
-                 client_num_conc_conns: int) -> None:
+                 client_disk_size_gb: int, client_num_nodes: int,
+                 client_image: str, client_qps: Optional[int],
+                 client_duration: str, client_num_conc_conns: int) -> None:
         self.topology_paths = topology_paths
         self.environments = environments
         self.istio_archive_url = istio_archive_url
@@ -44,6 +44,7 @@ class RunnerConfig:
         self.server_image = server_image
         self.client_machine_type = client_machine_type
         self.client_disk_size_gb = client_disk_size_gb
+        self.client_num_nodes = client_num_nodes
         self.client_image = client_image
         self.client_qps = client_qps
         self.client_duration = client_duration
@@ -61,6 +62,7 @@ class RunnerConfig:
             'server_image': self.server_image,
             'client_machine_type': self.client_machine_type,
             'client_disk_size_gb': str(self.client_disk_size_gb),
+            'client_num_nodes': str(self.client_num_nodes),
             'client_image': self.client_image,
             'client_qps': str(self.client_qps),
             'client_duration': self.client_duration,
@@ -91,6 +93,7 @@ def from_dict(d: Dict[str, Any]) -> RunnerConfig:
     client = d['client']
     client_machine_type = client['machine_type']
     client_disk_size_gb = client['disk_size_gb']
+    client_num_nodes = client['num_nodes']
     client_image = client['image']
     client_qps = client['qps']
     if client_qps == 'max':
@@ -118,6 +121,7 @@ def from_dict(d: Dict[str, Any]) -> RunnerConfig:
         client_image=client_image,
         client_qps=client_qps,
         client_duration=client_duration,
+        client_num_nodes=client_num_nodes,
         client_num_conc_conns=client_num_conc_conns)
 
 
