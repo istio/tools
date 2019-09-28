@@ -46,7 +46,7 @@ ENV KUBECTL_VERSION=1.15.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
 ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
-ENV PROTOC_VERSION=3.9.1
+ENV PROTOC_VERSION=3.9.2
 ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=7df3b957ffe3d09dc57fe4e1eb96694614db8c7a
 ENV SHELLCHECK_VERSION=v0.7.0
@@ -77,45 +77,46 @@ RUN unzip /tmp/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 
 # Build and install a bunch of Go tools
-RUN GO111MODULE=on go get github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
-RUN GO111MODULE=on go get github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
-RUN GO111MODULE=on go get github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
-RUN GO111MODULE=on go get golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
-RUN GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN GO111MODULE=on go get github.com/jteeuwen/go-bindata/go-bindata@${GO_BINDATA_VERSION}
-RUN GO111MODULE=on go get github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
-RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
-RUN GO111MODULE=on go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
-RUN GO111MODULE=on go get github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
-RUN GO111MODULE=on go get sigs.k8s.io/kind@${KIND_VERSION}
-RUN GO111MODULE=on go get github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
-RUN GO111MODULE=on go get github.com/fortio/fortio@${FORTIO_VERSION}
-RUN GO111MODULE=on go get github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/jteeuwen/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/fortio/fortio@${FORTIO_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 
 # Install latest version of Istio-owned tools
-RUN GO111MODULE=on go get istio.io/tools/cmd/protoc-gen-docs
-RUN GO111MODULE=on go get istio.io/tools/cmd/annotations_prep
-RUN GO111MODULE=on go get istio.io/tools/cmd/cue-gen
-RUN GO111MODULE=on go get istio.io/tools/cmd/envvarlinter
-RUN GO111MODULE=on go get istio.io/tools/cmd/testlinter
-RUN GO111MODULE=on go get istio.io/tools/cmd/protoc-gen-deepcopy
-RUN GO111MODULE=on go get istio.io/tools/cmd/protoc-gen-jsonshim
-RUN GO111MODULE=on go get istio.io/tools/cmd/kubetype-gen
-RUN go get -u istio.io/test-infra/toolbox/githubctl
-RUN go get -u istio.io/test-infra/boskos/cmd/mason_client
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/envvarlinter
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/testlinter
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/check_licenses
+RUN go get -ldflags="-s -w" -u istio.io/test-infra/toolbox/githubctl
+RUN go get -ldflags="-s -w" -u istio.io/test-infra/boskos/cmd/mason_client
 
 # Install k8s code generation tools
-RUN GO111MODULE=on go get k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN GO111MODULE=on go get k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN GO111MODULE=on go get k8s.io/code-generator/cmd/lister-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN GO111MODULE=on go get k8s.io/code-generator/cmd/informer-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN GO111MODULE=on go get k8s.io/code-generator/cmd/deepcopy-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN GO111MODULE=on go get k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/lister-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/informer-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/deepcopy-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 
 # Compress the Go tools and put them in their final location
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp
@@ -168,10 +169,10 @@ RUN rm -fr /usr/local/go/bin/gofmt
 FROM ubuntu:xenial as nodejs_tools_context
 
 # Pinned versions of stuff we pull in
-ENV BABEL_CLI_VERSION=v7.5.5
-ENV BABEL_CORE_VERSION=v7.5.5
+ENV BABEL_CLI_VERSION=v7.6.2
+ENV BABEL_CORE_VERSION=v7.6.2
 ENV BABEL_POLYFILL_VERSION=v7.4.4
-ENV BABEL_PRESET_ENV=v7.5.5
+ENV BABEL_PRESET_ENV=v7.6.2
 ENV BABEL_PRESET_MINIFY_VERSION=v0.5.1
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
 ENV NODEJS_VERSION=12.8.0
@@ -179,8 +180,8 @@ ENV SASS_LINT_VERSION=v1.13.1
 ENV SASS_VERSION=v1.22.10
 ENV SVGO_VERSION=v1.3.0
 ENV SVGSTORE_CLI_VERSION=v1.3.1
-ENV TSLINT_VERSION=v5.18.0
-ENV TYPESCRIPT_VERSION=v3.5.3
+ENV TSLINT_VERSION=v5.20.0
+ENV TYPESCRIPT_VERSION=v3.6.3
 
 ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz /tmp
 RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-linux-x64.tar.gz --strip-components=1 -C /usr/local
@@ -219,14 +220,17 @@ FROM ubuntu:xenial as ruby_tools_context
 
 # Pinned versions of stuff we pull in
 ENV AWESOMEBOT_VERSION=1.19.1
-ENV HTMLPROOFER_VERSION=3.9.2
+ENV HTMLPROOFER_VERSION=3.12.0
+ENV LICENSEE_VERSION=9.11.0
 ENV MDL_VERSION=0.5.0
 ENV RUBY_VERSION=2.6.3
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    cmake \
     libssl-dev \
+    pkg-config \
     zlib1g-dev
 
 ADD https://cache.ruby-lang.org/pub/ruby/2.6/ruby-${RUBY_VERSION}.tar.gz /tmp
@@ -241,6 +245,7 @@ RUN make install
 RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
 RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
+RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
 
 #############
 # Python
