@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-dockerd &
+daemon dockerd
 
 # Authenticate gcloud, allow failures
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
