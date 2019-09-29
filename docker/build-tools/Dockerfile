@@ -105,7 +105,7 @@ RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/testlinter
 RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy
 RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim
 RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/check_licenses
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/license-lint
 RUN go get -ldflags="-s -w" -u istio.io/test-infra/toolbox/githubctl
 RUN go get -ldflags="-s -w" -u istio.io/test-infra/boskos/cmd/mason_client
 
