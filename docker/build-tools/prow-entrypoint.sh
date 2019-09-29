@@ -14,7 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-daemon dockerd
+# Start docker daemon with vfs storage driver and wait for dockerd to start
+daemon -U -- dockerd -s=vfs
+
+echo "Waiting for dockerd to start..."
+while :
+do
+  echo "Checking for running docker daemon."
+  if [[ $(docker info > /dev/null 2>&1) -eq 0 ]]; then
+    echo "The docker daemon is running."
+    break
+  fi
+  sleep 1
+done
 
 # Authenticate gcloud, allow failures
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
