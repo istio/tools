@@ -51,7 +51,6 @@ ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=7df3b957ffe3d09dc57fe4e1eb96694614db8c7a
 ENV SHELLCHECK_VERSION=v0.7.0
 ENV UPX_VERSION=3.95
-ENV DOCKER_VERSION=18.06.1~ce~3-0
 ENV KIND_VERSION=v0.5.1
 
 WORKDIR /tmp
@@ -147,13 +146,6 @@ RUN mv /tmp/linux-amd64/helm ${OUTDIR}/usr/bin
 # Kubectl
 ADD https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl ${OUTDIR}/usr/bin/kubectl
 RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
-
-# Docker
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg >/tmp/dkey
-RUN apt-key add /tmp/dkey
-RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
-RUN apt-get update && apt-get -qqy install --no-install-recommends docker-ce="${DOCKER_VERSION}~ubuntu"
-RUN mv /usr/bin/docker ${OUTDIR}/usr/bin
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
@@ -283,14 +275,22 @@ RUN rm -fr /usr/local/lib/python3.5/dist-packages/pip
 
 FROM ubuntu:xenial as base_os_context
 
+ENV DOCKER_VERSION=5:19.03.2~3-0~ubuntu-xenial
+ENV CONTAINERD_VERSION=1.2.6-3
+ENV OUTDIR=/out
+
 # required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
 # required for general build: make, wget, curl
 # required for ruby: libcurl4-openssl-dev
 # required for python: python3, pkg-config
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    apt-transport-https \
     ca-certificates \
     curl \
+    gnupg-agent \
+    software-properties-common \
+    ca-certificates \
     gcc \
     git \
     iptables \
@@ -301,6 +301,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     python3 \
     wget
+
+# Docker including docker-ce, docker-ce-cli, and containerd.io
+ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
+RUN apt-key add /tmp/docker-key
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+RUN apt-get update
+RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
