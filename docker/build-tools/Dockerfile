@@ -300,6 +300,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     pkg-config \
     python3 \
+    daemon \
     wget
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
