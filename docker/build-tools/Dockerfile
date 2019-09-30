@@ -52,6 +52,7 @@ ENV PROTOTOOL_VERSION=7df3b957ffe3d09dc57fe4e1eb96694614db8c7a
 ENV SHELLCHECK_VERSION=v0.7.0
 ENV UPX_VERSION=3.95
 ENV KIND_VERSION=v0.5.1
+ENV GCR_AUTH_VERSION=1.5.0
 
 WORKDIR /tmp
 ENV GOPATH=/tmp/go
@@ -146,6 +147,11 @@ RUN mv /tmp/linux-amd64/helm ${OUTDIR}/usr/bin
 # Kubectl
 ADD https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl ${OUTDIR}/usr/bin/kubectl
 RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
+
+# GCR docker credential helper
+ADD https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${GCR_AUTH_VERSION}/docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz /tmp
+RUN tar -xzf /tmp docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz -C /tmp
+RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
