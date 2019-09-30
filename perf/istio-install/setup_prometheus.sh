@@ -24,7 +24,7 @@ WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
 
 function install_prometheus() {
-  local DIRNAME="$1" # should be like tools/perf/istio/tmp
+  local DIRNAME="$1" # should be like tools/perf/istio-install/tmp
   # shellcheck disable=SC2086
   DIRNAME=$(cd $DIRNAME; pwd)
   INSTALLER_DIR="${DIRNAME}/installer"

@@ -54,7 +54,7 @@ def run_command_sync(command):
     return op.strip()
 
 
-class Fortio():
+class Fortio:
     ports = {
         "http": {"direct_port": 8077, "port": 8080, "ingress": 80},
         "grpc": {"direct_port": 8076, "port": 8079, "ingress": 80},
@@ -74,7 +74,7 @@ class Fortio():
             server="fortioserver",
             client="fortioclient",
             additional_args=None,
-            filterFn=None,
+            filter_fn=None,
             labels=None,
             baseline=False,
             serversidecar=False,
@@ -89,14 +89,14 @@ class Fortio():
         self.mode = mode
         self.ns = os.environ.get("NAMESPACE", "twopods")
         # bucket resolution in seconds
-        self.r = "0.00005"
+        self.r = "0.00005"   # do we really using this resolution????
         self.mixer = mixer
         self.mixer_cache = mixer_cache
         self.perf_record = perf_record
         self.server = pod_info("-lapp=" + server, namespace=self.ns)
         self.client = pod_info("-lapp=" + client, namespace=self.ns)
         self.additional_args = additional_args
-        self.filterFn = filterFn
+        self.filter_fn = filter_fn
         self.labels = labels
         self.run_baseline = baseline
         self.run_serversidecar = serversidecar
@@ -152,7 +152,7 @@ class Fortio():
         # labels += "mixer" if self.mixer else "nomixer"
         # labels += "_"
         # labels += "mixercache" if self.mixer_cache else "nomixercache"
-        labels += "_" + str(self.size)
+        labels += "_" + str(size)
 
         if self.labels is not None:
             labels += "_" + self.labels
@@ -297,7 +297,7 @@ def csv_to_int(s):
     return [int(i) for i in s.split(",")]
 
 
-def getParser():
+def get_parser():
     parser = argparse.ArgumentParser("Run performance test")
     parser.add_argument(
         "conn",
@@ -362,7 +362,7 @@ def define_bool(parser, opt, help_arg, default_val):
 
 
 def main(argv):
-    args = getParser().parse_args(argv)
+    args = get_parser().parse_args(argv)
     print(args)
     return run(args)
 

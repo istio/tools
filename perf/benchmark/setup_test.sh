@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -x
+set -e
 # shellcheck disable=SC2086
 WD=$(dirname $0)
 # shellcheck disable=SC2164
@@ -21,9 +23,8 @@ WD=$(cd "${WD}"; pwd)
 # shellcheck disable=SC2164
 cd "${WD}"
 
-set -x
 NAMESPACE=${NAMESPACE:-'twopods'}
-DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org or local"}
+DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
 LINKERD_INJECT="${LINKERD_INJECT:-'disabled'}"
@@ -42,17 +43,17 @@ function svc_ip_range() {
 
 function run_test() {
   # shellcheck disable=SC2046
-  helm -n ${NAMESPACE} template \
+  helm -n "${NAMESPACE}" template \
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set includeOutboundIPRanges=$(svc_ip_range) \
       --set injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
-          . > ${TMPDIR}/twopods.yaml
-  echo "Wrote ${TMPDIR}/twopods.yaml"
+          . > "${TMPDIR}"/twopods.yaml
+  echo "Wrote file ${TMPDIR}/twopods.yaml"
 
   # remove stdio rules
-  kubectl apply -n ${NAMESPACE} -f ${TMPDIR}/twopods.yaml
-  echo ${TMPDIR}/twopods.yaml
+  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}"/twopods.yaml
+  echo "${TMPDIR}"/twopods.yaml
 }
 
 for ((i=1; i<=$#; i++)); do
@@ -62,10 +63,14 @@ for ((i=1; i<=$#; i++)); do
         ;;
     esac
 done
-kubectl create ns ${NAMESPACE} || true
-kubectl label namespace ${NAMESPACE} istio-injection=enabled --overwrite || true
+
+kubectl create ns "${NAMESPACE}" || true
+
+kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite || true
+
 if [[ "$LINKERD_INJECT" == "enabled" ]]
 then
-  kubectl annotate namespace ${NAMESPACE} linkerd.io/inject=enabled || true
+  kubectl annotate namespace "${NAMESPACE}" linkerd.io/inject=enabled || true
 fi
+
 run_test
