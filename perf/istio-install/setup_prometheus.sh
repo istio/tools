@@ -38,13 +38,49 @@ function install_prometheus() {
   kubectl create ns istio-prometheus || true
   kubectl label ns istio-prometheus istio-injection=disabled --overwrite
   curl -s https://raw.githubusercontent.com/coreos/prometheus-operator/v0.31.1/bundle.yaml | sed "s/namespace: default/namespace: istio-prometheus/g" | kubectl apply -f -
+
   kubectl -n istio-prometheus wait --for=condition=available --timeout=60s deploy/prometheus-operator
-  # kubectl wait is problematic, as the CRDs may not exist before the command is issued.
-  until timeout 60s kubectl get crds/prometheuses.monitoring.coreos.com; do echo "Waiting for CRDs to be created..."; done
-  until timeout 60s kubectl get crds/alertmanagers.monitoring.coreos.com; do echo "Waiting for CRDs to be created..."; done
-  until timeout 60s kubectl get crds/podmonitors.monitoring.coreos.com; do echo "Waiting for CRDs to be created..."; done
-  until timeout 60s kubectl get crds/prometheusrules.monitoring.coreos.com; do echo "Waiting for CRDs to be created..."; done
-  until timeout 60s kubectl get crds/servicemonitors.monitoring.coreos.com; do echo "Waiting for CRDs to be created..."; done
+
+  # Check CRD
+  ATTEMPTS=0
+  CMD="kubectl get crds/prometheuses.monitoring.coreos.com"
+  until $CMD || [ $ATTEMPTS -eq 60 ]; do
+    $CMD
+    ATTEMPTS=$((ATTEMPTS + 1))
+    sleep 5
+  done
+
+  ATTEMPTS=0
+  CMD="kubectl get crds/alertmanagers.monitoring.coreos.com"
+  until $CMD || [ $ATTEMPTS -eq 60 ]; do
+    $CMD
+    ATTEMPTS=$((ATTEMPTS + 1))
+    sleep 5
+  done
+
+  ATTEMPTS=0
+  CMD="kubectl get crds/podmonitors.monitoring.coreos.com"
+  until $CMD || [ $ATTEMPTS -eq 60 ]; do
+    $CMD
+    ATTEMPTS=$((ATTEMPTS + 1))
+    sleep 5
+  done
+
+  ATTEMPTS=0
+  CMD="kubectl get crds/prometheusrules.monitoring.coreos.com"
+  until $CMD || [ $ATTEMPTS -eq 60 ]; do
+    $CMD
+    ATTEMPTS=$((ATTEMPTS + 1))
+    sleep 5
+  done
+
+  ATTEMPTS=0
+  CMD="kubectl get crds/servicemonitors.monitoring.coreos.com"
+  until $CMD || [ $ATTEMPTS -eq 60 ]; do
+    $CMD
+    ATTEMPTS=$((ATTEMPTS + 1))
+    sleep 5
+  done
 
   helm template --namespace istio-prometheus "${INSTALLER_DIR}"/istio-telemetry/prometheus-operator/ -f "${INSTALLER_DIR}"/global.yaml | kubectl apply -n istio-prometheus -f -
 
