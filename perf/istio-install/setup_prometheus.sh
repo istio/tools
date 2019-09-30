@@ -54,7 +54,20 @@ function install_prometheus() {
       ATTEMPTS=$((ATTEMPTS + 1))
       sleep 5
     done
+    if [[ $ATTEMPTS -eq 60 ]]; then
+      echo "crds were not created successfully"
+      exit 1
+    fi
   done
+
+  ATTEMPTS=0
+  until [ $ATTEMPTS -eq 60 ]
+  do
+    $CMD
+    ATTEMPTS=$((ATTEMPTS + 1))
+    sleep 5
+  done
+
 
   helm template --namespace istio-prometheus "${INSTALLER_DIR}"/istio-telemetry/prometheus-operator/ -f "${INSTALLER_DIR}"/global.yaml | kubectl apply -n istio-prometheus -f -
 
