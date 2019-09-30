@@ -40,45 +40,12 @@ func main() {
 
 	modules, _ := getLicenses()
 
-	var noLicense []*moduleInfo
-	var unknownLicenses []*licenseInfo
-	var unrestrictedLicenses []*licenseInfo
-	var reciprocalLicenses []*licenseInfo
-	var restrictedLicenses []*licenseInfo
-
-	// categorize the modules
-	for _, module := range modules {
-		// if we're not producing a report, then exclude any module on the whitelist
-		if !report && !csv {
-			if cfg.whitelistedModules[module.moduleName] {
-				continue
-			}
-		}
-
-		if len(module.licenses) == 0 {
-			// no license found
-			noLicense = append(noLicense, module)
-		} else {
-			for _, l := range module.licenses {
-				if cfg.unrestrictedLicenses[l.analysis.licenseName] {
-					unrestrictedLicenses = append(unrestrictedLicenses, l)
-				} else if cfg.reciprocalLicenses[l.analysis.licenseName] {
-					reciprocalLicenses = append(reciprocalLicenses, l)
-				} else if cfg.restrictedLicenses[l.analysis.licenseName] {
-					restrictedLicenses = append(restrictedLicenses, l)
-				} else {
-					unknownLicenses = append(unknownLicenses, l)
-				}
-			}
-		}
-	}
-
 	// now do the real work
 
 	if csv {
 		// produce a csv report
 
-		fmt.Printf("Module Name,Module Path,Whitelisted,License Path,License Name,Confidence,Exact Match,State\n")
+		fmt.Printf("Module Name,Module Path,Whitelisted,License Path,License Name,Confidence,Exact Match,Similar To,Similarity Confidence,State\n")
 		for _, module := range modules {
 			fmt.Printf("%s,%s,%v", module.moduleName, module.path, cfg.whitelistedModules[module.moduleName])
 			for _, l := range module.licenses {
@@ -92,37 +59,74 @@ func main() {
 					state = "restricted"
 				}
 
-				fmt.Printf(",%s,%s,%s,%v,%s", l.path, l.analysis.licenseName, l.analysis.confidence, l.analysis.exactMatch, state)
+				fmt.Printf(",%s,%s,%s,%v,%s,%s,%s", l.path, l.analysis.licenseName, l.analysis.confidence, l.analysis.exactMatch, l.analysis.similarLicense,
+					l.analysis.similarityConfidence, state)
 			}
 			fmt.Printf("\n")
 		}
-	} else if report {
-		// produce a human-friendly report
+	} else {
+		var unlicensedModules []*moduleInfo
+		var unrecognizedLicenses []*licenseInfo
+		var unrestrictedLicenses []*licenseInfo
+		var reciprocalLicenses []*licenseInfo
+		var restrictedLicenses []*licenseInfo
 
-		fmt.Printf("Modules with unrestricted licenses:\n")
-		if len(unrestrictedLicenses) == 0 {
-			fmt.Printf("  <none>\n")
-		} else {
-			for _, l := range unrestrictedLicenses {
-				fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
+		// categorize the modules
+		for _, module := range modules {
+			// if we're not producing a report, then exclude any module on the whitelist
+			if !report && !csv {
+				if cfg.whitelistedModules[module.moduleName] {
+					continue
+				}
+			}
+
+			if len(module.licenses) == 0 {
+				// no license found
+				unlicensedModules = append(unlicensedModules, module)
+			} else {
+				for _, l := range module.licenses {
+					if cfg.unrestrictedLicenses[l.analysis.licenseName] {
+						unrestrictedLicenses = append(unrestrictedLicenses, l)
+					} else if cfg.reciprocalLicenses[l.analysis.licenseName] {
+						reciprocalLicenses = append(reciprocalLicenses, l)
+					} else if cfg.restrictedLicenses[l.analysis.licenseName] {
+						restrictedLicenses = append(restrictedLicenses, l)
+					} else {
+						unrecognizedLicenses = append(unrecognizedLicenses, l)
+					}
+				}
 			}
 		}
-		fmt.Printf("\n")
 
-		fmt.Printf("Modules with reciprocal licenses:\n")
-		if len(unrestrictedLicenses) == 0 {
-			fmt.Printf("  <none>\n")
-		} else {
-			for _, l := range reciprocalLicenses {
-				fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
+		failLint := false
+
+		if report {
+			fmt.Printf("Modules with unrestricted licenses:\n")
+			if len(unrestrictedLicenses) == 0 {
+				fmt.Printf("  <none>\n")
+			} else {
+				for _, l := range unrestrictedLicenses {
+					fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
+				}
 			}
+			fmt.Printf("\n")
+
+			fmt.Printf("Modules with reciprocal licenses:\n")
+			if len(unrestrictedLicenses) == 0 {
+				fmt.Printf("  <none>\n")
+			} else {
+				for _, l := range reciprocalLicenses {
+					fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
+				}
+			}
+			fmt.Printf("\n")
 		}
-		fmt.Printf("\n")
 
 		fmt.Printf("Modules with restricted licenses:\n")
 		if len(restrictedLicenses) == 0 {
 			fmt.Printf("  <none>\n")
 		} else {
+			failLint = true
 			for _, l := range restrictedLicenses {
 				fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
 			}
@@ -130,53 +134,33 @@ func main() {
 		fmt.Printf("\n")
 
 		fmt.Printf("Modules with unrecognized licenses:\n")
-		if len(unknownLicenses) == 0 {
+		if len(unrecognizedLicenses) == 0 {
 			fmt.Printf("  <none>\n")
 		} else {
-			for _, l := range unknownLicenses {
-				fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
+			failLint = true
+			for _, l := range unrecognizedLicenses {
+				if l.analysis.licenseName != "" {
+					fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
+				} else if l.analysis.similarLicense != "" {
+					fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.similarLicense, l.analysis.similarityConfidence, l.path)
+				} else {
+					fmt.Printf("  %s: path '%s'\n", l.module.moduleName, l.path)
+				}
 			}
 		}
 		fmt.Printf("\n")
 
 		fmt.Printf("Modules with no discernible license:\n")
-		if len(noLicense) == 0 {
+		if len(unlicensedModules) == 0 {
 			fmt.Printf("  <none>\n")
 		} else {
-			for _, m := range noLicense {
+			failLint = true
+			for _, m := range unlicensedModules {
 				fmt.Printf("  %s\n", m.moduleName)
 			}
 		}
 
-	} else {
-		// lint
-
-		fail := false
-		if len(restrictedLicenses) > 0 {
-			_, _ = fmt.Fprint(os.Stderr, "Some modules use restricted licenses:\n")
-			for _, rl := range restrictedLicenses {
-				_, _ = fmt.Fprintf(os.Stderr, "  Module %s, license %s\n", rl.module.moduleName, rl.analysis.licenseName)
-			}
-			fail = true
-		}
-
-		if len(unknownLicenses) > 0 {
-			_, _ = fmt.Fprint(os.Stderr, "Some modules have unrecognized licenses:\n")
-			for _, rl := range unknownLicenses {
-				_, _ = fmt.Fprintf(os.Stderr, "  Module %s\n", rl.module.moduleName)
-			}
-			fail = true
-		}
-
-		if len(noLicense) > 0 {
-			_, _ = fmt.Fprint(os.Stderr, "Some modules have no discernible license:\n")
-			for _, m := range noLicense {
-				_, _ = fmt.Fprintf(os.Stderr, "  Module %s\n", m.moduleName)
-			}
-			fail = true
-		}
-
-		if fail {
+		if !report && failLint {
 			os.Exit(1)
 		}
 	}

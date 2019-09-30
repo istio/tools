@@ -21,14 +21,16 @@ import (
 
 // analysisResult describes a license.
 type analysisResult struct {
-	licenseName string
-	exactMatch  bool
-	confidence  string
+	licenseName          string
+	exactMatch           bool
+	confidence           string
+	similarLicense       string
+	similarityConfidence string
 }
 
 func analyzeLicense(path string) (analysisResult, error) {
 	// run external licensee tool to analyze a specific license
-	b, err := exec.Command("licensee", "detect", path).Output()
+	b, err := exec.Command("licensee", "detect", "--confidence=97", path).Output()
 	if err != nil {
 		return analysisResult{}, err
 	}
@@ -38,25 +40,28 @@ func analyzeLicense(path string) (analysisResult, error) {
 	// extract core analysis result
 	licenseName := getValue(lines, "License:")
 	confidence := getValue(lines, "  Confidence:")
+	similarLicense := ""
+	similarityConfidence := ""
 
 	if licenseName == "NOASSERTION" {
-		// For NOASSERTION license type, it means we are below the match threshold. Still grab the closest match and output
-		// confidence value.
-		licenseName = "UNKNOWN"
+		// For NOASSERTION, it means we are below the match threshold. Still grab the closest match and confidence value.
+		licenseName = ""
 		confidence = ""
 		for _, l := range lines {
 			if strings.Contains(l, " similarity:") {
 				fs := strings.Fields(l)
-				licenseName = fs[0]
-				confidence = fs[2]
+				similarLicense = fs[0]
+				similarityConfidence = fs[2]
 			}
 		}
 	}
 
 	return analysisResult{
-		licenseName: licenseName,
-		confidence:  confidence,
-		exactMatch:  strings.Contains(out, "Licensee::Matchers::Exact"),
+		licenseName:          licenseName,
+		confidence:           confidence,
+		exactMatch:           strings.Contains(out, "Licensee::Matchers::Exact"),
+		similarLicense:       similarLicense,
+		similarityConfidence: similarityConfidence,
 	}, nil
 }
 
