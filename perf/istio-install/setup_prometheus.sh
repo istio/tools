@@ -42,44 +42,18 @@ function install_prometheus() {
   kubectl -n istio-prometheus wait --for=condition=available --timeout=60s deploy/prometheus-operator
 
   # Check CRD
-  ATTEMPTS=0
-  CMD="kubectl get crds/prometheuses.monitoring.coreos.com"
-  until $CMD || [ $ATTEMPTS -eq 60 ]; do
-    $CMD
-    ATTEMPTS=$((ATTEMPTS + 1))
-    sleep 5
-  done
-
-  ATTEMPTS=0
-  CMD="kubectl get crds/alertmanagers.monitoring.coreos.com"
-  until $CMD || [ $ATTEMPTS -eq 60 ]; do
-    $CMD
-    ATTEMPTS=$((ATTEMPTS + 1))
-    sleep 5
-  done
-
-  ATTEMPTS=0
-  CMD="kubectl get crds/podmonitors.monitoring.coreos.com"
-  until $CMD || [ $ATTEMPTS -eq 60 ]; do
-    $CMD
-    ATTEMPTS=$((ATTEMPTS + 1))
-    sleep 5
-  done
-
-  ATTEMPTS=0
-  CMD="kubectl get crds/prometheusrules.monitoring.coreos.com"
-  until $CMD || [ $ATTEMPTS -eq 60 ]; do
-    $CMD
-    ATTEMPTS=$((ATTEMPTS + 1))
-    sleep 5
-  done
-
-  ATTEMPTS=0
-  CMD="kubectl get crds/servicemonitors.monitoring.coreos.com"
-  until $CMD || [ $ATTEMPTS -eq 60 ]; do
-    $CMD
-    ATTEMPTS=$((ATTEMPTS + 1))
-    sleep 5
+  CMDs_ARR=('kubectl get crds/prometheuses.monitoring.coreos.com' 'kubectl get crds/alertmanagers.monitoring.coreos.com'
+  'kubectl get crds/podmonitors.monitoring.coreos.com' 'kubectl get crds/prometheusrules.monitoring.coreos.com'
+  'kubectl get crds/servicemonitors.monitoring.coreos.com')
+  for CMD in "${CMDs_ARR[@]}"
+  do
+    ATTEMPTS=0
+    until $CMD || [ $ATTEMPTS -eq 60 ]
+    do
+      $CMD
+      ATTEMPTS=$((ATTEMPTS + 1))
+      sleep 5
+    done
   done
 
   helm template --namespace istio-prometheus "${INSTALLER_DIR}"/istio-telemetry/prometheus-operator/ -f "${INSTALLER_DIR}"/global.yaml | kubectl apply -n istio-prometheus -f -
