@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Start docker daemon with vfs storage driver and wait for dockerd to start
-daemon -U -- dockerd -s=vfs
+# Start docker daemon and wait for dockerd to start
+daemon -U -- dockerd
 
 echo "Waiting for dockerd to start..."
 while :
