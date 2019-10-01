@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Defines run which follows the testing pipeline after cluster creation."""
 
 import contextlib
@@ -124,7 +123,7 @@ def _gen_yaml(topology_path: str, service_image: str,
         client_node_selector,
         topology_path,
     ],
-                 check=True)
+        check=True)
     with open(resources.SERVICE_GRAPH_GEN_YAML_PATH, 'w') as f:
         f.write(gen.stdout)
 
