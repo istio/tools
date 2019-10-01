@@ -47,7 +47,7 @@ type SleepCommandStatic struct {
 }
 
 func (c SleepCommandStatic) Duration() time.Duration {
-	return c.Time * 1e6
+	return c.Time
 }
 
 type SleepCommandDistribution struct {
@@ -58,7 +58,7 @@ type SleepCommandDistribution struct {
 }
 
 func (c SleepCommandDistribution) Duration() time.Duration {
-	return time.Duration(c.Dist.Rand() * 1e6)
+	return time.Duration(c.Dist.Rand())
 }
 
 type SleepCommandHistogram struct {
@@ -71,7 +71,7 @@ func (c SleepCommandHistogram) Duration() time.Duration {
 		panic(err)
 	}
 
-	return (result.Item.(time.Duration) * 1e6)
+	return (result.Item.(time.Duration))
 }
 
 type Range struct {
@@ -138,7 +138,7 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 					return
 				}
 			case float64:
-				staticCmd.Time = time.Duration(cmd["time"].(float64)) * time.Nanosecond
+				staticCmd.Time = time.Duration(cmd["time"].(float64))
 			}
 
 			c.SleepCommand = append(c.SleepCommand, SleepCommandData{command.Load, command.Type, staticCmd})

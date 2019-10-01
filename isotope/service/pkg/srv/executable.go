@@ -66,9 +66,18 @@ func executeSleepCommand(cmd script.SleepCommand) {
 		log.Fatalf(`env var "%s" is not an integer`, consts.LoadEnvKey)
 	}
 
+	// Load is -1 when QPS is set to maximum.
+	// Picking the last array index (assuming) the highest 
+	// load level corresponds to the last index.
+	if int(load) == int(-1) {
+		lastIndex := len(cmd.SleepCommand)-1
+		time.Sleep(cmd.SleepCommand[lastIndex].Data.Duration() * time.Nanosecond)
+		return
+	}
+
 	for _, command := range cmd.SleepCommand {
 		if uint64(load) >= command.Load.Minimum && uint64(load) <= command.Load.Maximum {
-			time.Sleep(command.Data.Duration() * time.Microsecond)
+			time.Sleep(command.Data.Duration() * time.Nanosecond)
 			return
 		}
 	}
