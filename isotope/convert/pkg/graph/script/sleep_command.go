@@ -238,6 +238,8 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 
 			distCmd.DistName = cmd["name"].(string)
 			distCmd.Dist = dist
+			// Hack: To fix the not-used error by the linter.
+			distCmd.Dist.Rand()
 			c.SleepCommand = append(c.SleepCommand, SleepCommandData{command.Load, command.Type, distCmd})
 
 		case Histogram:
