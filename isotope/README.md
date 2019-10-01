@@ -113,7 +113,7 @@ For load levels from 0 to 100 QPS (both inclusive) all the queries take
 10ms. Specifying any load level outside the range would result in an error.
 
 ```yaml
-sleep: {"SleepCommand": [{Load: {Min: 0, Max: 100}, type: "static", data: {time: "10ms"}}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 100}, type: "static", data: {time: "10ms"}}]}
 ```
 
 For load levels from 0 to 100 QPS (both inclusive) all the queries take
@@ -127,14 +127,21 @@ For load levels from 0 to 1000 QPS (both inclusive) 50\% of the requests would p
 pause for 100ms.
 
 ```yaml
-sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, "histogram", data: {"50ms": 50, "100ms": 50}}]}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, Type: "histogram", data: {"50ms": 50, "100ms": 50}}]}
 ```
 
 For load levels from 0 to 1000 QPS (both inclusive), each request's pause duration would follow a Normal Random Variable
 with mean 1.0 and stdev 0.25
 
 ```yaml
-sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, "dist", data: {"dist": "normal", "mean": 1.0, "sigma": 0.25}}]}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, Type: "dist", data: {name: "normal", Dist: {"Mu": 1.0, "Sigma": 0.25}}}]}
+```
+
+For load levels from 0 to 1000 QPS (both inclusive), each request's pause distribution would follow (a random) time picked from the list of raw numbers.
+The raw numbers are interpreted as nano-seconds.
+
+```yaml
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, Type: "raw", data: {list: [1,2,3]}}]}
 ```
 
 Currently only the following distributions are supported:
