@@ -155,6 +155,8 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 			var dist interface {
 				Rand() float64
 			}
+			// To fix the not-used error by the linter.
+			distCmd.Dist = dist
 
 			switch cmd["name"] {
 			case "normal":
