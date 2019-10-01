@@ -13,7 +13,6 @@
 // limitations under the License.
 
 // TODO: Finish support for YAML output
-// TODO: consider using protoc-gen-validate frontMatter to improve doc generation
 
 package main
 

@@ -652,53 +652,34 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 			}
 		}
 
-		// remove comment blocks <!-- -->
+		// elide HTML comment blocks
 		for i := 0; i < len(lines); i++ {
 			commentStart := strings.Index(lines[i], "<!--")
 			if commentStart < 0 {
 				continue
 			}
+
 			commentEnd := strings.Index(lines[i][commentStart+3:], "-->")
 			if commentEnd >= 0 {
 				// strip out the commented portion
 				lines[i] = lines[i][:commentStart] + lines[i][commentEnd+3:]
-				if len(lines[i]) == 0 {
-					// remove lines that only contained comments
-					lines = append(lines[:i], lines[i+1:]...)
-				}
-				i--
-				// send it back through or process next line if it was deleted (don't increment i in either case)
+				i-- // run the line through the check again
 				continue
 			}
+
 			lines[i] = lines[i][:commentStart]
-			if len(lines[i]) == 0 {
-				// remove lines that only contained comments
-				lines = append(lines[:i], lines[i+1:]...)
-				i--
-			}
+
 			// find end
-			for i++; i < len(lines); {
-				commentEnd = strings.Index(lines[i][commentStart+3:], "-->")
+			for i++; i < len(lines); i++ {
+				commentEnd = strings.Index(lines[i], "-->")
 				if commentEnd >= 0 {
 					// strip out the commented portion
 					lines[i] = lines[i][commentEnd+3:]
-					if len(lines[i]) == 0 {
-						// remove lines that only contained comments
-						lines = append(lines[:i], lines[i+1:]...)
-					}
-					// send it back through the outer loop
-					i--
+					i-- // run the line through the check again
 					break
 				}
-				// remove the line
-				lines = append(lines[:i], lines[i+1:]...)
+				lines[i] = ""
 			}
-		}
-
-		// Replace any < and > in the text with HTML entities to avoid bad HTML output
-		for i := 0; i < len(lines); i++ {
-			lines[i] = strings.Replace(lines[i], "<", "&lt;", -1)
-			lines[i] = strings.Replace(lines[i], ">", "&gt;", -1)
 		}
 
 		// find any type links of the form [name][type] and turn
@@ -733,6 +714,7 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 	if g.speller != nil {
 		preBlock := false
 		for linenum, line := range lines {
+
 			trimmed := strings.Trim(line, " ")
 			if strings.HasPrefix(trimmed, "```") {
 				preBlock = !preBlock
@@ -757,7 +739,7 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 	// turn the comment from markdown into HTML
 	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.FencedCode|blackfriday.AutoHeadingIDs))
 
-	// compensate for an unexpected Blackfriday bug, where it incorrect converts expands the & in HTML entites to &amp;
+	// compensate for a Blackfriday bug, where it incorrectly expands the & in HTML entities to &amp;
 	result = bytes.Replace(result, []byte("&amp;lt;"), []byte("&lt;"), -1)
 	result = bytes.Replace(result, []byte("&amp;gt;"), []byte("&gt;"), -1)
 
