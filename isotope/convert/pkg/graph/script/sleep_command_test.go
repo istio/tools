@@ -24,6 +24,10 @@ import (
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
+// Add 3 types for each case.
+// Add 3 combined types.
+// Add edge cases.
+
 func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 	tests := []struct {
 		input   []byte
@@ -31,8 +35,13 @@ func TestSleepCommand_UnmarshalJSON(t *testing.T) {
 		err     error
 	}{
 		{
-			[]byte(`{"SleepCommand": [{"Load": {"Min": 0, "Max": 100}, "type": "static", "data": {"time": "10ms"}}]}`),
-			SleepCommand{[]SleepCommandData{{Range{uint64(0), uint64(100)}, Static, SleepCommandStatic{10 * time.Millisecond}}}},
+			[]byte(`{"SleepCommand": [{"Load": {"Min": 0, "Max": 100}, "type": "static", "data": {"time": "10ms"}}, {"Load": {"Min": 101, "Max": 200}, "type": "raw", "data": {"list": [1,2,3]}}]}`),
+			SleepCommand{[]SleepCommandData{{Range{uint64(0), uint64(100)}, Static, SleepCommandStatic{10 * time.Millisecond}}, {Range{uint64(101), uint64(200)}, RawData, SleepCommandRaw{[]float64{1,2,3}}}}},
+			nil,
+		},
+		{
+			[]byte(`{"SleepCommand": [{"Load": {"Min": 0, "Max": 100}, "type": "static", "data": {"time": "10ms"}}, {"Load": {"Min": 101, "Max": 200}, "type": "static", "data": {"time": "20ms"}}]}`),
+			SleepCommand{[]SleepCommandData{{Range{uint64(0), uint64(100)}, Static, SleepCommandStatic{10 * time.Millisecond}}, {Range{uint64(101), uint64(200)}, Static, SleepCommandStatic{20 * time.Millisecond}}}},
 			nil,
 		},
 		{
