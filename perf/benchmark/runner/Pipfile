@@ -12,5 +12,3 @@ bokeh = "*"
 pandas = "*"
 numpy = "*"
 
-[requires]
-python_version = ">=3.0.0"
