@@ -5,18 +5,25 @@ various service graph topologies.
 
 ## Repository Structure
 
-| Item                          | Role                                              |
-|-------------------------------|---------------------------------------------------|
-| example-topologies/           | Examples of topology configurations               |
-| [convert/](convert/README.md) | Go command to convert topologies to other formats |
-| [service/](service/README.md) | Go command to run as a node in the service graph  |
-| run_tests.py                  | CLI to run tests against topologies               |
-| [runner/](runner/README.md)   | Python module used by `run_tests.py`              |
-| create_tree_topology.py       | Python script to create a hierarchical topology   |
+| Item                        |Role                                             |
+|-----------------------------|-------------------------------------------------|
+|example-topologies/          |Examples of topology configurations              |
+|[convert/](convert/README.md)|Go command to convert topologies to other formats|
+|[service/](service/README.md)|Go command to run as a node in the service graph |
+|run_tests.py                 |CLI to run tests against topologies              |
+|[runner/](runner/README.md)  |Python module used by `run_tests.py`             |
+|create_tree_topology.py      |Python script to create a hierarchical topology  |
 
 ## Topology Converter
 
-The topology converter, located under the convert/ directory, is a Go Utility for simulating real world microservice topologies in Kubernetes.  The converter accepts a yaml file which describes one or more microservices as a workflow graph (ie service A waits 100 ms, then calls services B and C in paralell, each of which return a 1MB payload, etc).  `converter kubernetes` processes a yaml file, producing kubernetes manifests, as described below.  `converter graphviz` produces a visualization of your microservice architecture specified in service-graph.yaml.
+The topology converter, located under the convert/ directory, is a Go Utility
+for simulating real world microservice topologies in Kubernetes. The converter
+accepts a yaml file which describes one or more microservices as a workflow
+graph (ie service A waits 100 ms, then calls services B and C in paralell,
+each of which return a 1MB payload, etc).  `converter kubernetes` processes
+a yaml file, producing kubernetes manifests, as described below.
+`converter graphviz` produces a visualization of your microservice architecture
+specified in service-graph.yaml.
 
 ### service-graph.yaml
 
@@ -34,14 +41,16 @@ default: # Optional. Default to empty map.
   requestSize: {{ ByteSize }} # Optional. Default 0.
   responseSize: {{ ByteSize }} # Optional. Default 0.
   script: {{ Script }} # Optional. See below for spec.
-  numRbacPolicies: {{ Int }} # Optional. Number of RBAC policies generated per service. Default 0.
+  numRbacPolicies: {{ Int }} # Optional. Number of RBAC policies generated
+                             # per service. Default 0.
 services: # Required. List of services in the graph.
 - name: {{ ServiceName }}: # Required. Name of the service.
   type: {{ "http" | "grpc" }} # Optional. Default "http".
   responseSize: {{ ByteSize }} # Optional. Default 0.
   errorRate: {{ Percentage }} # Optional. Overrides default.
   script: {{ Script }} # Optional. See below for spec.
-  numRbacPolicies: {{ Int }} # Optional. Number of RBAC policies generated per service, overrides the default numRbacPolicies.
+  numRbacPolicies: {{ Int }} # Optional. Number of RBAC policies generated per
+                             # service, overrides the default numRbacPolicies.
 ```
 
 #### Default
@@ -100,65 +109,75 @@ Each step in the script includes a command.
 
 `sleep`: Pauses for a duration. Useful for simulating processing time.
 
-The `sleep` command is also depedent on the load (QPS). One can specify different processing times for the service for each load level i.e.
-the `sleep` command takes a piece-wise function.
+The `sleep` command is also depedent on the load (QPS).
+One can specify different processing times for the service
+for each load level i.e. the `sleep` command takes a piece-wise function.
 
 The load levels specified have take integer values.
 
-One can pass a static value, a histogram, a probability distribution or pure raw numbers.
+One can pass a static value, a histogram, a probability distribution
+or pure raw numbers.
 
-##### Examples
+##### Examples (Sleep Command)
 
 For load levels from 0 to 100 QPS (both inclusive) all the queries take
 10ms. Specifying any load level outside the range would result in an error.
 
 ```yaml
-sleep: {"SleepCommand": [{Load: {Min: 0, Max: 100}, type: "static", data: {time: "10ms"}}]}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 100}, type: "static",
+  data: {time: "10ms"}}]}
 ```
 
 For load levels from 0 to 100 QPS (both inclusive) all the queries take
-10ms which for load levels from 101 to 200 QPS (both inclusive) all the queries take 20 ms.
+10ms which for load levels from 101 to 200 QPS (both inclusive)
+all the queries take 20 ms.
 
 ```yaml
-sleep: {"SleepCommand": [{Load: {Min: 0, Max: 100}, type: "static", data: {time: "10ms"}}, {Load: {Min: 101, Max: 200}, type: "static", data: {time: "20ms"}}]}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 100}, type: "static",
+  data: {time: "10ms"}}, {Load: {Min: 101, Max: 200},
+  type: "static", data: {time: "20ms"}}]}
 ```
 
-For load levels from 0 to 1000 QPS (both inclusive) 50\% of the requests would pause for 50ms and the other 50\% would 
-pause for 100ms.
+For load levels from 0 to 1000 QPS (both inclusive) 50\% of the requests
+would pause for 50ms and the other 50\% would pause for 100ms.
 
 ```yaml
-sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, Type: "histogram", data: {"50ms": 50, "100ms": 50}}]}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, Type: "histogram",
+  data: {"50ms": 50, "100ms": 50}}]}
 ```
 
-For load levels from 0 to 1000 QPS (both inclusive), each request's pause duration would follow a Normal Random Variable
-with mean 1.0 and stdev 0.25
+For load levels from 0 to 1000 QPS (both inclusive), each request's pause
+duration would follow a Normal Random Variable with mean 1.0 and stdev 0.25
 
 ```yaml
-sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, Type: "dist", data: {name: "normal", Dist: {"Mu": 1.0, "Sigma": 0.25}}}]}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, Type: "dist",
+data: {name: "normal", Dist: {"Mu": 1.0, "Sigma": 0.25}}}]}
 ```
 
-For load levels from 0 to 1000 QPS (both inclusive), each request's pause distribution would follow (a random) time picked from the list of raw numbers.
-The raw numbers are interpreted as nano-seconds.
+For load levels from 0 to 1000 QPS (both inclusive), each request's
+pause distribution would follow (a random) time picked from
+the list of raw numbers. The raw numbers are interpreted as nano-seconds.
 
 ```yaml
-sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000}, Type: "raw", data: {list: [1,2,3]}}]}
+sleep: {"SleepCommand": [{Load: {Min: 0, Max: 1000},
+  Type: "raw", data: {list: [1,2,3]}}]}
 ```
 
 Currently only the following distributions are supported:
 
-1. `normal`
-2. `lognormal`
-3. `beta`
-4. `chi-squared`
-5. `exp`
-6. `f`
-7. `gamma`
-8. `gumbel-right`
-9. `inverse-gamma`
-10. `laplace`
-11. `pareto`
-12. `studentst`
-13. `weibull`
++ `normal`
++ `lognormal`
++ `beta`
++ `chi-squared`
++ `exp`
++ `f`
++ `gamma`
++ `gumbel-right`
++ `inverse-gamma`
++ `laplace`
++ `pareto`
++ `studentst`
++ `weibull`
 
 Refer to gonum.org/v1/gonum/stat/distuv for more details on the distributions.
 
@@ -179,7 +198,7 @@ call:
   payloadSize: {{ ByteSize (e.g. 1 KB) }}
 ```
 
-##### Examples
+##### Examples (Request Command)
 
 Call A, then call B _sequentially_:
 
@@ -348,7 +367,13 @@ spec:
 
 ## Test Runner
 
-The test runner is a python script which automates the running of tests against service-graph.yaml on GKE.  It expects a test config file, and sets up a GKE cluster with the specified resources to run configured tests against the requested topology, using each of the environments (Istio, Raw K8s, etc) listed in the test config.  See [example-config.toml](example-config.toml) for more details.  The Test Runner is at an alpha level of readiness, and may require updating based on your environment.
+The test runner is a python script which automates the running of tests against
+service-graph.yaml on GKE.  It expects a test config file, and sets up a GKE
+cluster with the specified resources to run configured tests against the
+requested topology, using each of the environments (Istio, Raw K8s, etc)
+listed in the test config.  See [example-config.toml](example-config.toml)
+for more details.  The Test Runner is at an alpha level of readiness, and may
+require updating based on your environment.
 
 ### Getting Started
 
