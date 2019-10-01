@@ -116,7 +116,9 @@ func TestServiceGraphToGraph(t *testing.T) {
 				ErrorRate:    0.0001,
 				ResponseSize: 10240,
 				Script: []script.Command{
-					script.SleepCommand{[]script.SleepCommandData{{script.Range{uint64(0), uint64(100)}, script.Static, script.SleepCommandStatic{100 * time.Millisecond}}}},
+					script.SleepCommand{[]script.SleepCommandData{{
+						script.Range{Minimum: uint64(0), Maximum: uint64(100)},
+						script.Static, script.SleepCommandStatic{100 * time.Millisecond}}}},
 				},
 			},
 			{
@@ -157,7 +159,9 @@ func TestServiceGraphToGraph(t *testing.T) {
 							Size:        1024,
 						},
 					}),
-					script.SleepCommand{[]script.SleepCommandData{{script.Range{uint64(0), uint64(100)}, script.Static, script.SleepCommandStatic{10 * time.Millisecond}}}},
+					script.SleepCommand{[]script.SleepCommandData{{
+						script.Range{Minimum: uint64(0), Maximum: uint64(100)},
+						script.Static, script.SleepCommandStatic{10 * time.Millisecond}}}},
 					script.RequestCommand{
 						ServiceName: "b",
 						Size:        1024,

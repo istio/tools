@@ -67,10 +67,10 @@ func executeSleepCommand(cmd script.SleepCommand) {
 	}
 
 	// Load is -1 when QPS is set to maximum.
-	// Picking the last array index (assuming) the highest 
+	// Picking the last array index (assuming) the highest
 	// load level corresponds to the last index.
-	if int(load) == int(-1) {
-		lastIndex := len(cmd.SleepCommand)-1
+	if load == -1 {
+		lastIndex := len(cmd.SleepCommand) - 1
 		time.Sleep(cmd.SleepCommand[lastIndex].Data.Duration() * time.Nanosecond)
 		return
 	}

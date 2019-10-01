@@ -258,7 +258,7 @@ func (c *SleepCommand) UnmarshalJSON(b []byte) (err error) {
 					return err
 				}
 
-				ret = append(ret, randutil.Choice{percentage, duration})
+				ret = append(ret, randutil.Choice{Weight: percentage, Item: duration})
 				totalPercentage += percentage
 			}
 
