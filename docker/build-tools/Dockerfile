@@ -222,6 +222,7 @@ ENV HTMLPROOFER_VERSION=3.12.0
 ENV LICENSEE_VERSION=9.11.0
 ENV MDL_VERSION=0.5.0
 ENV RUBY_VERSION=2.6.3
+ENV SU_EXEC_VERSION=0.2
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -244,6 +245,15 @@ RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
 RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
+
+# Install su-exec within the ruby-tools context as it contains a build-essentials package group
+ADD https://github.com/ncopa/su-exec/archive/v0.2.tar.gz /tmp
+WORKDIR /tmp
+RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
+WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
+RUN make
+RUN cp -a su-exec /usr/local/bin
+RUN chmod u+s /usr/local/bin/su-exec
 
 #############
 # Python
