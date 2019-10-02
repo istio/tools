@@ -48,14 +48,14 @@ function collect_metrics() {
   local PLOT_METRIC=$2
   CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
   pipenv install
-  pipenv run python fortio.py $FORTIO_CLIENT_URL --csv_output="$CSV_OUTPUT" --prometheus=$PROMETHEUS_URL \
+  pipenv run python3 fortio.py $FORTIO_CLIENT_URL --csv_output="$CSV_OUTPUT" --prometheus=$PROMETHEUS_URL \
    --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
 mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
 mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
 
   if [[ "$GENERATE_GRAPH" = true ]];then
     BENCHMARK_GRAPH="$(mktemp /tmp/benchmark_graph_XXXX.html)"
-    pipenv run python graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output="${BENCHMARK_GRAPH}"
+    pipenv run python3 graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output="${BENCHMARK_GRAPH}"
     dt=$(date +'%Y%m%d-%H')
     RELEASE="$(cut -d'/' -f3 <<<"${CB_GCS_FULL_STAGING_PATH}")"
     GRAPH_NAME="${RELEASE}.${dt}.${PLOT_METRIC}"
@@ -85,7 +85,7 @@ QPS=500,1000,1500,2000
 DURATION=300
 METRIC="cpu"
 # shellcheck disable=SC2086
-pipenv run python runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
+pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
 collect_metrics true ${METRIC}
 METRIC="mem"
 collect_metrics true ${METRIC}
@@ -95,7 +95,7 @@ CONN=1,2,4,8,16,32,64
 QPS=1000
 METRIC="p90"
 # shellcheck disable=SC2086
-pipenv run python runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
+pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
 collect_metrics true ${METRIC}
 
 #TODO: Add more configurations, e.g. no mixer vs mixer comparison.
