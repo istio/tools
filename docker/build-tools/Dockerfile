@@ -30,6 +30,7 @@ FROM golang:1.13.1 as binary_tools_context
 # Pinned versions of stuff we pull in
 ENV COUNTERFEITER_VERSION=v6.2.2
 ENV FORTIO_VERSION=v1.3.1
+ENV GCR_AUTH_VERSION=1.5.0
 ENV GO_BINDATA_VERSION=6025e8de665b31fa74ab1a66f2cddd8c0abf887e
 ENV GO_JUNIT_REPORT_VERSION=af01ea7f8024089b458d804d5cdf190f962a9a0c
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
@@ -42,6 +43,7 @@ ENV HELM_VERSION=v2.10.0
 ENV HUGO_VERSION=0.58.2
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.13.10
+ENV KIND_VERSION=v0.5.1
 ENV KUBECTL_VERSION=1.15.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
@@ -50,9 +52,8 @@ ENV PROTOC_VERSION=3.9.2
 ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=7df3b957ffe3d09dc57fe4e1eb96694614db8c7a
 ENV SHELLCHECK_VERSION=v0.7.0
+ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.95
-ENV KIND_VERSION=v0.5.1
-ENV GCR_AUTH_VERSION=1.5.0
 
 WORKDIR /tmp
 ENV GOPATH=/tmp/go
@@ -64,6 +65,7 @@ RUN mkdir -p ${OUTDIR}/usr/bin
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
+    build-essential \
     ca-certificates \
     curl \
     gnupg2 \
@@ -152,6 +154,14 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
 ADD https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${GCR_AUTH_VERSION}/docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz /tmp
 RUN tar -xzf /tmp/docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz -C /tmp
 RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
+
+# Install su-exec which is a tool that operates like sudo without the overhead
+ADD https://github.com/ncopa/su-exec/archive/v0.2.tar.gz /tmp
+RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
+WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
+RUN make
+RUN cp -a su-exec ${OUTDIR}/usr/bin
+RUN chmod u+s ${OUTDIR}/usr/bin/su-exec
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
