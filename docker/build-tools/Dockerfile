@@ -161,7 +161,7 @@ RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
 WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
-RUN chmod u+s ${OUTDIR}/usr/bin/su-exec
+RUN chmod u+sx ${OUTDIR}/usr/bin/su-exec
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
