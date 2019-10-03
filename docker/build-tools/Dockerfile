@@ -161,8 +161,6 @@ RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
 WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
-RUN chmod u+sx ${OUTDIR}/usr/bin/su-exec
-RUN ls -l ${OUTDIR}/usr/bin/su-exec
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
@@ -378,7 +376,8 @@ COPY --from=nodejs_tools_context /node_modules /node_modules
 COPY --from=python_context /usr/local/bin /usr/local/bin
 COPY --from=python_context /usr/local/lib /usr/local/lib
 
-RUN ls -l /usr/bin/su-exec
+# su-exec is used in place of complex sudo setup operations
+RUN chmod u+sx /usr/bin/su-exec
 
 RUN mkdir -p /home/gocache && \
     mkdir -p /home/go && \
