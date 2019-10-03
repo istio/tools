@@ -78,11 +78,11 @@ popd
 setup_metrics
 echo "Start running perf benchmark test."
 # For adding or modifying configurations, refer to perf/benchmark/README.md
-# Configuration1
+# Configuration Set1: CPU and memory
 EXTRA_ARGS="--serversidecar --baseline"
 CONN=16
-QPS=500,1000,1500,2000
-DURATION=300
+QPS=10,100,500,1000,2000,3000
+DURATION=240
 METRIC="cpu"
 # shellcheck disable=SC2086
 pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
@@ -90,14 +90,24 @@ collect_metrics true ${METRIC}
 METRIC="mem"
 collect_metrics true ${METRIC}
 
-# Configuration2
+# Configuration Set2: Latency Quantiles
 CONN=1,2,4,8,16,32,64
 QPS=1000
-METRIC="p90"
+METRIC="p50"
 # shellcheck disable=SC2086
 pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
 collect_metrics true ${METRIC}
+# shellcheck disable=SC2086
+METRIC="p90"
+collect_metrics true ${METRIC}
+# shellcheck disable=SC2086
+METRIC="p99"
+collect_metrics true ${METRIC}
 
-#TODO: Add more configurations, e.g. no mixer vs mixer comparison.
+# Configuration Set3: CPU and memory with mixer disabled
+
+# Configuration Set4: Latency Quantiles with mixer disabled
+
+# TODO: Configuration Set5: Flame Graphs
 
 echo "perf benchmark test is done."
