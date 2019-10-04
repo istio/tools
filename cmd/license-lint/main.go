@@ -38,7 +38,11 @@ func main() {
 		}
 	}
 
-	modules, _ := getLicenses()
+	modules, err := getLicenses()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+		os.Exit(1)
+	}
 
 	// now do the real work
 
@@ -73,8 +77,8 @@ func main() {
 
 		// categorize the modules
 		for _, module := range modules {
-			// if we're not producing a report, then exclude any module on the whitelist
-			if !report && !csv {
+			if !report {
+				// if we're not producing a report, then exclude any module on the whitelist
 				if cfg.whitelistedModules[module.moduleName] {
 					continue
 				}
