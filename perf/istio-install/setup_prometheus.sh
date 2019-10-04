@@ -14,11 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -ex
+set -x
 
 # shellcheck disable=SC2086
 WD=$(dirname $0)
 # shellcheck disable=SC2086
+# shellcheck disable=SC2164
 WD=$(cd $WD; pwd)
 # shellcheck disable=SC2086
 mkdir -p "${WD}/tmp"
@@ -26,6 +27,7 @@ mkdir -p "${WD}/tmp"
 function install_prometheus() {
   local DIRNAME="$1" # should be like tools/perf/istio-install/tmp
   # shellcheck disable=SC2086
+  # shellcheck disable=SC2164
   DIRNAME=$(cd $DIRNAME; pwd)
   INSTALLER_DIR="${DIRNAME}/installer"
   if [[ ! -e "$INSTALLER_DIR" ]]; then
