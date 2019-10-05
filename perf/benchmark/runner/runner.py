@@ -24,6 +24,10 @@ import uuid
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
+METADATA_EXCHANGE_YAML = "https://raw.githubusercontent.com/istio/proxy/master/" \
+                    "extensions/stats/testdata/istio/metadata-exchange_filter.yaml"
+STATS_FILTER_YAML = "https://raw.githubusercontent.com/" \
+               "istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml"
 
 
 def pod_info(filterstr="", namespace="twopods", multi_ok=True):
@@ -68,7 +72,7 @@ class Fortio:
             duration=None,
             size=None,
             mode="http",
-            mixer=True,
+            mixer_mode="mixer",
             mixer_cache=True,
             perf_record=False,
             server="fortioserver",
@@ -89,8 +93,8 @@ class Fortio:
         self.mode = mode
         self.ns = os.environ.get("NAMESPACE", "twopods")
         # bucket resolution in seconds
-        self.r = "0.00005"   # do we really using this resolution????
-        self.mixer = mixer
+        self.r = "0.00005"
+        self.mixer_mode = mixer_mode
         self.mixer_cache = mixer_cache
         self.perf_record = perf_record
         self.server = pod_info("-lapp=" + server, namespace=self.ns)
@@ -139,7 +143,7 @@ class Fortio:
         return fortio_cmd + "_ingress http://{svc}/echo?size={size}".format(
             svc=svc, size=self.size)
 
-    def run(self, conn, qps, size, duration):
+    def run(self, conn, qps, size, duration, mixer_mode):
         size = size or self.size
         if duration is None:
             duration = self.duration
@@ -148,11 +152,11 @@ class Fortio:
         labels += "_qps_" + str(qps)
         labels += "_c_" + str(conn)
         # TODO add mixer labels back
-        # labels += "_"
-        # labels += "mixer" if self.mixer else "nomixer"
-        # labels += "_"
-        # labels += "mixercache" if self.mixer_cache else "nomixercache"
-        labels += "_" + str(size)
+        if mixer_mode is not None:
+            self.mixer_mode = mixer_mode
+        labels += "_"
+        labels += self.mixer_mode
+        labels += "_" + str(self.size)
 
         if self.labels is not None:
             labels += "_" + self.labels
@@ -160,6 +164,19 @@ class Fortio:
         grpc = ""
         if self.mode == "grpc":
             grpc = "-grpc -ping"
+
+        # mixer configure
+        cmd = "helm init --client-only"
+        run_command_sync(cmd)
+        # for nomixer and mixerv2
+        if self.mixer_mode != "mixer":
+            helm_command_mixer("install/kubernetes/helm/istio", "istio", "false", "istio-system")
+        else:
+            helm_command_mixer("install/kubernetes/helm/istio", "istio", "true", "istio-system")
+        if self.mixer_mode == "mixerv2":
+            kubectl_apply(METADATA_EXCHANGE_YAML)
+            kubectl_apply(STATS_FILTER_YAML)
+            # TODO: verify
 
         fortio_cmd = (
             "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {grpc} -httpbufferkb=128 " +
@@ -172,18 +189,19 @@ class Fortio:
                 labels=labels)
 
         if self.run_ingress:
-            p = kubectl(self.client.name, self.ingress(fortio_cmd))
+            p = kubectl_exec(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
-                perf(self.mesh,
+                run_perf(
+                     self.mesh,
                      self.server.name,
                      labels + "_srv_ingress",
                      duration=40)
             p.wait()
 
         if self.run_serversidecar:
-            p = kubectl(self.client.name, self.serversidecar(fortio_cmd))
+            p = kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
             if self.perf_record:
-                perf(
+                run_perf(
                     self.mesh,
                     self.server.name,
                     labels + "_srv_serveronly",
@@ -191,16 +209,17 @@ class Fortio:
             p.wait()
 
         if self.run_clientsidecar:
-            p = kubectl(self.client.name, self.bothsidecar(fortio_cmd))
+            p = kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
             if self.perf_record:
-                perf(self.mesh,
+                run_perf(
+                     self.mesh,
                      self.server.name,
                      labels + "_srv_bothsidecars",
                      duration=40)
             p.wait()
 
         if self.run_baseline:
-            p = kubectl(self.client.name, self.nosidecar(fortio_cmd))
+            p = kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
             p.wait()
 
 
@@ -209,15 +228,15 @@ PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
 
 
-def perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
+def run_perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
     filename = labels + "_perf.data"
     filepath = PERFWD + filename
     perfpath = PERFWD + PERFSH
 
     # copy executable over
-    kubecp(mesh, PERFSH, pod + ":" + perfpath)
+    kubectl_cp(mesh, PERFSH, pod + ":" + perfpath)
 
-    perf = kubectl(
+    perf = kubectl_exec(
         pod,
         "{perf_cmd} {filename} {duration}".format(
             perf_cmd=perfpath,
@@ -227,12 +246,12 @@ def perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
         container=mesh + "-proxy")
 
     print(perf)
-    kubecp(mesh, pod + ":" + filepath + ".perf", filename + ".perf")
+    kubectl_cp(mesh, pod + ":" + filepath + ".perf", filename + ".perf")
     run_command_sync("./flame.sh " + filename + ".perf")
     return perf
 
 
-def kubecp(mesh, from_file, to_file):
+def kubectl_cp(mesh, from_file, to_file):
     namespace = os.environ.get("NAMESPACE", "twopods")
     cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {mesh}-proxy".format(
         namespace=namespace,
@@ -243,7 +262,15 @@ def kubecp(mesh, from_file, to_file):
     return run_command_sync(cmd)
 
 
-def kubectl(pod, remote_cmd, runfn=run_command, container=None):
+def kubectl_apply(filename, namespace="istio-system"):
+    cmd = "kubectl apply -n {namespace} -f {filename}".format(
+        namespace=namespace,
+        filename=filename)
+    print(cmd)
+    return run_command_sync(cmd)
+
+
+def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
     namespace = os.environ.get("NAMESPACE", "twopods")
     c = ""
     if container is not None:
@@ -255,6 +282,17 @@ def kubectl(pod, remote_cmd, runfn=run_command, container=None):
         namespace=namespace)
     print(cmd)
     return runfn(cmd)
+
+
+def helm_command_mixer(template_path, name, enabled, namespace="istio-system"):
+    cmd = "helm template {path} --name {name} --namespace {namespace} " \
+          "--set mixer.telemetry.enabled={enabled} --set mixer.policy.enabled={enabled}".format(
+            path=template_path,
+            name=name,
+            enabled=enabled,
+            namespace=namespace,)
+    print(cmd)
+    return run_command_sync(cmd)
 
 
 def rc(command):
@@ -286,11 +324,13 @@ def run(args):
         clientsidecar=args.clientsidecar,
         ingress=args.ingress,
         mode=args.mode,
-        mesh=args.mesh)
+        mesh=args.mesh,
+        mixer_mode=args.mixer_mode)
 
-    for conn in args.conn:
-        for qps in args.qps:
-            fortio.run(conn=conn, qps=qps, duration=args.duration, size=args.size)
+    for mixermode in args.mixer_mode:
+        for conn in args.conn:
+            for qps in args.qps:
+                fortio.run(conn=conn, qps=qps, duration=args.duration, size=args.size)
 
 
 def csv_to_int(s):
@@ -320,6 +360,10 @@ def get_parser():
         "--mesh",
         help="istio or linkerd",
         default="istio")
+    parser.add_argument(
+        "--mixer_mode",
+        help="run with different mixer configurations: mixer, nomixer, mixerv2",
+        default="mixer")
     parser.add_argument(
         "--client",
         help="where to run the test from",
