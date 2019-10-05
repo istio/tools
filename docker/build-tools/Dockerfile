@@ -264,6 +264,7 @@ FROM ubuntu:xenial as python_context
 
 # Pinned versions of stuff we pull in
 ENV AUTOPEP8_VERSION=1.4.4
+ENV GCLOUD_VERSION=265.0.0
 ENV YAMLLINT_VERSION=1.17.0
 
 # hadolint ignore=DL3008
@@ -285,6 +286,11 @@ RUN pip install yamllint==${YAMLLINT_VERSION}
 # Clean up stuff we don't need in the final image
 RUN rm -rf /usr/local/bin/pip*
 RUN rm -fr /usr/local/lib/python3.5/dist-packages/pip
+
+# TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
+# commands, maybe we just need the gcloud binary out of all this?
+ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
+RUN tar -xzvf /tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz -C /usr/local
 
 #############
 # Base OS
@@ -363,7 +369,7 @@ ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/home/go
 ENV GOCACHE=/home/gocache
-ENV PATH=/usr/local/go/bin:/home/go/bin:$PATH
+ENV PATH=/usr/local/go/bin:/home/go/bin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
@@ -378,6 +384,7 @@ COPY --from=nodejs_tools_context /usr/local /usr/local
 COPY --from=nodejs_tools_context /node_modules /node_modules
 COPY --from=python_context /usr/local/bin /usr/local/bin
 COPY --from=python_context /usr/local/lib /usr/local/lib
+COPY --from=python_context /usr/local/google-cloud-sdk /usr/local/google-cloud-sdk
 
 # su-exec is used in place of complex sudo setup operations
 RUN chmod u+sx /usr/bin/su-exec
