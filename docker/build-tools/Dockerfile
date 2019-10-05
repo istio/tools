@@ -227,6 +227,7 @@ FROM ubuntu:xenial as ruby_tools_context
 
 # Pinned versions of stuff we pull in
 ENV AWESOMEBOT_VERSION=1.19.1
+ENV FPM_VERSION=1.11.0
 ENV HTMLPROOFER_VERSION=3.12.0
 ENV LICENSEE_VERSION=9.11.0
 ENV MDL_VERSION=0.5.0
@@ -253,6 +254,7 @@ RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
 RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
+RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 
 #############
 # Python
@@ -292,6 +294,7 @@ FROM ubuntu:xenial as base_os_context
 
 ENV DOCKER_VERSION=5:19.03.2~3-0~ubuntu-xenial
 ENV CONTAINERD_VERSION=1.2.6-3
+
 ENV OUTDIR=/out
 
 # required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
