@@ -5,18 +5,18 @@ import ast
 import json
 import statistics
 
+
 # Create models from data
 def BestFitDistribution(data, isTime):
     # Convert time data to seconds from microseconds.
 
     if isTime == "true":
-        data = [float(val)*1e-6 for val in data]
+        data = [float(val) * 1e-6 for val in data]
 
     bins = int((len(data) * 1.0) / 10)
 
     if bins == 0:
         bins = len(data)
-
     """Model data by finding best fit distribution to data"""
     # Get histogram of original data
     y, x = np.histogram(data, bins=bins, density=True)
@@ -24,8 +24,8 @@ def BestFitDistribution(data, isTime):
 
     # Distributions to check
     DISTRIBUTIONS = [
-        st.beta, st.chi2, st.expon, st.f, st.gamma, st.gumbel_r, st.invgamma, st.laplace, st.lognorm, st.norm,
-        st.pareto, st.weibull_max
+        st.beta, st.chi2, st.expon, st.f, st.gamma, st.gumbel_r, st.invgamma,
+        st.laplace, st.lognorm, st.norm, st.pareto, st.weibull_max
     ]
 
     # st.levy_stable,
