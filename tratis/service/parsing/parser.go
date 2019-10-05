@@ -20,8 +20,8 @@ import (
 
 	jaeger "github.com/jaegertracing/jaeger/model/json"
 
-	comm "istio.io/tools/tratis/service/communication"
 	"istio.io/tools/tratis/service/pkg/consts"
+	"istio.io/tools/tratis/service/wrapper"
 )
 
 type TraceData struct {
@@ -35,7 +35,7 @@ func ParseJSON(toolName string) (appTrace TraceData,
 	err error) {
 
 	if toolName == "jaeger" {
-		return ParseJaeger(comm.ExtractTraces(consts.TracingToolAddress,
+		return ParseJaeger(wrapper.ExtractJaegerTraces(consts.TracingToolAddress,
 			consts.TracingToolPortNumber, consts.TracingToolEntryPoint,
 			consts.NumTraces))
 	}
@@ -48,7 +48,7 @@ func ParseJaeger(data []byte) (appTrace TraceData, err error) {
 	t := TraceData{}
 	err = json.Unmarshal(data, &t)
 	if err != nil {
-		return
+		return t, err
 	}
 
 	return t, nil

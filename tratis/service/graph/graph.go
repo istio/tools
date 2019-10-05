@@ -47,7 +47,7 @@ func (g *Graph) ExtractGraphData() []byte {
 	bytes, err := json.Marshal(g.Root)
 
 	if err != nil {
-		log.Fatalf(`graph structure is improper`)
+		log.Fatalf(`graph structure is improper: ` + err.Error())
 	}
 
 	return bytes

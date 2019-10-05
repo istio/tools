@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package communication
+package wrapper
 
 /*
-This package allows one to query the jaeger UI.
+This package allows one to query the distributed tracers (jaeger, zipkin) API.
 */
 
 import (
@@ -25,33 +25,31 @@ import (
 	"net/http"
 )
 
-func FindNumServices(toolAddr string, toolPortNum string) []byte {
-	pageAddress := fmt.Sprintf("http://%s:%s/jaeger/api/services",
-		toolAddr, toolPortNum)
+/*
+The ExtractTraces function uses the Jaeger API to extract
+the raw trace data.
 
-	resp, err := http.Get(pageAddress)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer resp.Body.Close()
+API Documentation: https://www.jaegertracing.io/docs/1.13/apis/
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	return body
-}
-
-func ExtractTraces(toolAddr string, toolPortNum string,
+NOTE: If Jaeger decides to change the jaeger endpoint, this
+function would break.
+*/
+func ExtractJaegerTraces(toolAddr string, toolPortNum string,
 	appEntryPoint string, numTraces int) []byte {
 	pageAddress := fmt.Sprintf("http://%s:%s/jaeger/api/traces?service=%s&limit=%d",
 		toolAddr, toolPortNum, appEntryPoint, numTraces)
+	return RequestAPI(pageAddress)
+}
 
+func RequestAPI(pageAddress string) []byte {
 	resp, err := http.Get(pageAddress)
-	if err != nil {
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		log.Fatalln(http.StatusText(resp.StatusCode))
+	} else if err != nil {
 		log.Fatalln(err)
 	}
+
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
