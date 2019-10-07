@@ -25,9 +25,9 @@ from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 METADATA_EXCHANGE_YAML = "https://raw.githubusercontent.com/istio/proxy/master/" \
-                    "extensions/stats/testdata/istio/metadata-exchange_filter.yaml"
+    "extensions/stats/testdata/istio/metadata-exchange_filter.yaml"
 STATS_FILTER_YAML = "https://raw.githubusercontent.com/" \
-               "istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml"
+    "istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml"
 
 
 def pod_info(filterstr="", namespace="twopods", multi_ok=True):
@@ -192,10 +192,10 @@ class Fortio:
             p = kubectl_exec(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
                 run_perf(
-                     self.mesh,
-                     self.server.name,
-                     labels + "_srv_ingress",
-                     duration=40)
+                    self.mesh,
+                    self.server.name,
+                    labels + "_srv_ingress",
+                    duration=40)
             p.wait()
 
         if self.run_serversidecar:
@@ -212,10 +212,10 @@ class Fortio:
             p = kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
             if self.perf_record:
                 run_perf(
-                     self.mesh,
-                     self.server.name,
-                     labels + "_srv_bothsidecars",
-                     duration=40)
+                    self.mesh,
+                    self.server.name,
+                    labels + "_srv_bothsidecars",
+                    duration=40)
             p.wait()
 
         if self.run_baseline:
@@ -287,10 +287,10 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
 def helm_command_mixer(template_path, name, enabled, namespace="istio-system"):
     cmd = "helm template {path} --name {name} --namespace {namespace} " \
           "--set mixer.telemetry.enabled={enabled} --set mixer.policy.enabled={enabled}".format(
-            path=template_path,
-            name=name,
-            enabled=enabled,
-            namespace=namespace,)
+              path=template_path,
+              name=name,
+              enabled=enabled,
+              namespace=namespace,)
     print(cmd)
     return run_command_sync(cmd)
 
