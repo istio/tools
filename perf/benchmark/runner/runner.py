@@ -24,10 +24,6 @@ import uuid
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
-METADATA_EXCHANGE_YAML = "https://raw.githubusercontent.com/istio/proxy/master/" \
-    "extensions/stats/testdata/istio/metadata-exchange_filter.yaml"
-STATS_FILTER_YAML = "https://raw.githubusercontent.com/" \
-    "istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml"
 
 
 def pod_info(filterstr="", namespace="twopods", multi_ok=True):
@@ -143,7 +139,7 @@ class Fortio:
         return fortio_cmd + "_ingress http://{svc}/echo?size={size}".format(
             svc=svc, size=self.size)
 
-    def run(self, conn, qps, size, duration, mixer_mode):
+    def run(self, conn, qps, size, duration):
         size = size or self.size
         if duration is None:
             duration = self.duration
@@ -151,12 +147,10 @@ class Fortio:
         labels = self.run_id
         labels += "_qps_" + str(qps)
         labels += "_c_" + str(conn)
-        # TODO add mixer labels back
-        if mixer_mode is not None:
-            self.mixer_mode = mixer_mode
+        labels += "_" + str(self.size)
+        # Mixer label
         labels += "_"
         labels += self.mixer_mode
-        labels += "_" + str(self.size)
 
         if self.labels is not None:
             labels += "_" + self.labels
@@ -164,19 +158,6 @@ class Fortio:
         grpc = ""
         if self.mode == "grpc":
             grpc = "-grpc -ping"
-
-        # mixer configure
-        cmd = "helm init --client-only"
-        run_command_sync(cmd)
-        # for nomixer and mixerv2
-        if self.mixer_mode != "mixer":
-            helm_command_mixer("install/kubernetes/helm/istio", "istio", "false", "istio-system")
-        else:
-            helm_command_mixer("install/kubernetes/helm/istio", "istio", "true", "istio-system")
-        if self.mixer_mode == "mixerv2":
-            kubectl_apply(METADATA_EXCHANGE_YAML)
-            kubectl_apply(STATS_FILTER_YAML)
-            # TODO: verify
 
         fortio_cmd = (
             "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {grpc} -httpbufferkb=128 " +
@@ -284,17 +265,6 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
     return runfn(cmd)
 
 
-def helm_command_mixer(template_path, name, enabled, namespace="istio-system"):
-    cmd = "helm template {path} --name {name} --namespace {namespace} " \
-          "--set mixer.telemetry.enabled={enabled} --set mixer.policy.enabled={enabled}".format(
-              path=template_path,
-              name=name,
-              enabled=enabled,
-              namespace=namespace,)
-    print(cmd)
-    return run_command_sync(cmd)
-
-
 def rc(command):
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     while True:
@@ -327,10 +297,9 @@ def run(args):
         mesh=args.mesh,
         mixer_mode=args.mixer_mode)
 
-    for mixermode in args.mixer_mode:
-        for conn in args.conn:
-            for qps in args.qps:
-                fortio.run(conn=conn, qps=qps, duration=args.duration, size=args.size)
+    for conn in args.conn:
+        for qps in args.qps:
+            fortio.run(conn=conn, qps=qps, duration=args.duration, size=args.size)
 
 
 def csv_to_int(s):
