@@ -81,6 +81,7 @@ Istio supports to control its behavior.
 	<thead>
 		<tr>
 			<th>Annotation Name</th>
+			<th>Resource Types</th>
 			<th>Description</th>
 		</tr>
 	</thead>
@@ -93,6 +94,7 @@ Istio supports to control its behavior.
 					<tr>
 				{{ end }}
 					<td><code>{{ .Name }}</code></td>
+					<td>{{ .Resources }}</td>
 					<td>{{ .Description }}</td>
 				</tr>
 			{{ end }}
@@ -162,7 +164,7 @@ var (
 			}
 
 			if htmlOutput != "" {
-				// Create the HTMLoutput file template.
+				// Create the HTML output file template.
 				t, err = template.New("htmlOutputTemplate").Funcs(template.FuncMap{
 					"wordWrap": wordWrap,
 				}).Parse(htmlOutputTemplate)
@@ -228,6 +230,9 @@ type Instance struct {
 
 	// Mark this annotation as deprecated when generating usage information.
 	Deprecated bool `json:"deprecated"`
+
+	// Indicates the types of resources this annotation can be applied to.
+	Resources []string `json:"resources"`
 }
 
 func getPackage() string {
