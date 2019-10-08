@@ -96,7 +96,7 @@ spec:
           restartPolicy: Never
           serviceAccountName: config-change-service-account
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: config-change
