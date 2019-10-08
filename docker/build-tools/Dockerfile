@@ -65,7 +65,6 @@ RUN mkdir -p ${OUTDIR}/usr/bin
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
-    build-essential \
     ca-certificates \
     curl \
     gnupg2 \
@@ -154,13 +153,6 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
 ADD https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${GCR_AUTH_VERSION}/docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz /tmp
 RUN tar -xzf /tmp/docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz -C /tmp
 RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
-
-# Install su-exec which is a tool that operates like sudo without the overhead
-ADD https://github.com/ncopa/su-exec/archive/v0.2.tar.gz /tmp
-RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
-WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
-RUN make
-RUN cp -a su-exec ${OUTDIR}/usr/bin
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
@@ -385,9 +377,6 @@ COPY --from=nodejs_tools_context /node_modules /node_modules
 COPY --from=python_context /usr/local/bin /usr/local/bin
 COPY --from=python_context /usr/local/lib /usr/local/lib
 COPY --from=python_context /usr/local/google-cloud-sdk /usr/local/google-cloud-sdk
-
-# su-exec is used in place of complex sudo setup operations
-RUN chmod u+sx /usr/bin/su-exec
 
 RUN mkdir -p /home/gocache && \
     mkdir -p /home/go && \
