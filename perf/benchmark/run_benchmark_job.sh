@@ -63,9 +63,11 @@ mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_m
   fi
 }
 
+RELEASE_TYPE="dev"
+TAG=$(curl "https://storage.googleapis.com/istio-build/dev/latest")
 echo "Setup istio release: $TAG"
 pushd "${ROOT}/istio-install"
-   ./setup_istio.sh "${TAG}"
+   ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
 popd
 # install dependencies
 cd "${WD}/runner"
