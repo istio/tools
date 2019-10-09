@@ -361,8 +361,8 @@ ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
-ENV GOBIN=/tmp/out
-ENV PATH=/usr/local/go/bin:/tmp/out:/usr/local/google-cloud-sdk/bin:$PATH
+ENV GOBIN=/gobin
+ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
@@ -381,6 +381,7 @@ COPY --from=python_context /usr/local/google-cloud-sdk /usr/local/google-cloud-s
 
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
+    mkdir -p /gobin && \
     mkdir -p /home/.kube && \
     mkdir -p /home/.config
 
@@ -390,6 +391,7 @@ RUN mkdir -p /go && \
 # the directory mounted rather then overridding with the permission of the volume file.
 RUN chmod 777 /go && \
     chmod 777 /gocache && \
+    chmod 777 /gobin && \
     chmod 777 /home/.kube && \
     chmod 777 /home/.config
 
