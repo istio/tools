@@ -359,9 +359,10 @@ ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
-ENV GOPATH=/home/go
-ENV GOCACHE=/home/gocache
-ENV PATH=/usr/local/go/bin:/home/go/bin:/usr/local/google-cloud-sdk/bin:$PATH
+ENV GOPATH=/go
+ENV GOCACHE=/gocache
+ENV GOBIN=/tmp/out
+ENV PATH=/usr/local/go/bin:/tmp/out:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
@@ -378,8 +379,8 @@ COPY --from=python_context /usr/local/bin /usr/local/bin
 COPY --from=python_context /usr/local/lib /usr/local/lib
 COPY --from=python_context /usr/local/google-cloud-sdk /usr/local/google-cloud-sdk
 
-RUN mkdir -p /home/gocache && \
-    mkdir -p /home/go && \
+RUN mkdir -p /go && \
+    mkdir -p /gocache && \
     mkdir -p /home/.kube && \
     mkdir -p /home/.config
 
@@ -387,8 +388,8 @@ RUN mkdir -p /home/gocache && \
 # They are created as root 755.  As a result they are not writeable, which fails in
 # the developer environment as a volume or bind mount inherits the permissions of
 # the directory mounted rather then overridding with the permission of the volume file.
-RUN chmod 777 /home/gocache && \
-    chmod 777 /home/go && \
+RUN chmod 777 /go && \
+    chmod 777 /gocache && \
     chmod 777 /home/.kube && \
     chmod 777 /home/.config
 
