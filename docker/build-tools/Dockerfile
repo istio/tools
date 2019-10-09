@@ -343,9 +343,9 @@ RUN rm -fr /tmp/*
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
-#############
+##############
 # Final image
-#############
+##############
 
 # Prepare final output image
 FROM scratch
