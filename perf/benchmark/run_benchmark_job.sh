@@ -55,21 +55,22 @@ mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_m
 
 function generate_graph() {
   local PLOT_METRIC=$1
-  BENCHMARK_GRAPH="$(mktemp /tmp/benchmark_graph_XXXX.html)"
-  pipenv run python3 graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output="${BENCHMARK_GRAPH}"
-  dt=$(date +'%Y%m%d-%H')
-  RELEASE="$(cut -d'/' -f3 <<<"${CB_GCS_FULL_STAGING_PATH}")"
-  GRAPH_NAME="${RELEASE}.${dt}.${PLOT_METRIC}"
-  gsutil -q cp "${BENCHMARK_GRAPH}" "gs://$CB_GCS_BUILD_PATH/${GRAPH_NAME}"
+  local OUTPUT_GRAPHS_DIR=$2
+  pipenv run python3 graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output_dir="${OUTPUT_GRAPHS_DIR}"
+  gsutil -q cp -r "${OUTPUT_GRAPHS_DIR}" "gs://$CB_GCS_BUILD_PATH/${OUTPUT_GRAPHS_DIR}"
 }
 
 function get_benchmark_data() {
   # shellcheck disable=SC2086
   pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS} ${MIXER_MODE}
   collect_metrics
+  dt=$(date +'%Y%m%d-%H')
+  RELEASE="$(cut -d'/' -f3 <<<"${CB_GCS_FULL_STAGING_PATH}")"
+  OUTPUT_GRAPHS_DIR="/tmp/benchmark_graphs.${RELEASE}.${dt}"
+  mkdir -p "${OUTPUT_GRAPHS_DIR}"
   for metric in "${METRICS[@]}"
   do
-    generate_graph "${metric}"
+    generate_graph "${metric}" "${OUTPUT_GRAPHS_DIR}"
   done
 }
 

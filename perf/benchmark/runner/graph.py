@@ -14,14 +14,16 @@
 
 import sys
 import argparse
+import os
 import itertools  # for cycling through colors
 import pandas as pd
 from bokeh.plotting import figure, output_file, show, save
 from bokeh.palettes import Dark2_5 as palette
+from bokeh.io import export_png, export_svgs
 
 
 # generate_chart displays numthreads vs. metric, writes to interactive HTML
-def generate_chart(mesh, csv, x_label, y_label_short, charts_output, show_graph):
+def generate_chart(mesh, csv, x_label, y_label_short, charts_output_dir, show_graph):
     print(
         "Generating chart, x_label=%s, y_label=%s, csv=%s ..." %
         (x_label, y_label_short, csv))
@@ -62,18 +64,22 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output, show_graph)
             mesh, y_label_short, threads, seconds)
 
     # 4. prep file-write
-    if charts_output == "":
-        fn = "".join(title.split())
-        charts_output = "/tmp/" + fn + ".html"
-    output_file(charts_output)
+    if charts_output_dir == "":
+        charts_output_dir = "/tmp"
+    fn = "".join(title.split())
+    output_file(os.path.join(charts_output_dir, fn + ".html"))
 
-    # 5. create chart -> save as interactive HTML
+    # 5. create chart
     p = build_chart(title, x_label, x_series, y_label, y_label_short, y_series)
     if show_graph:
         show(p)
     else:
+        # save as interactive HTML, png and svg.
         save(p)
-        print("HTML graph saved at %s" % charts_output)
+        export_png(p, filename=os.path.join(charts_output_dir, fn + ".png"))
+        p.output_backend = "svg"
+        export_svgs(p, filename=os.path.join(charts_output_dir, fn + ".svg"))
+        print("graphs saved at %s" % charts_output_dir)
 
 
 # get_series processes x_label metric / y-axis metric for different test
@@ -177,7 +183,7 @@ def build_chart(title, x_label, x_series, y_label, y_label_short, y_series):
 def main(argv):
     args = get_parser().parse_args(argv)
     return generate_chart(args.mesh, args.csv, args.xaxis,
-                          args.metric, args.charts_output, args.show_graph)
+                          args.metric, args.charts_output_dir, args.show_graph)
 
 
 def get_parser():
@@ -193,8 +199,8 @@ def get_parser():
         help="one of: connections, qps",
         default="connections")
     parser.add_argument(
-        "--charts_output",
-        help="output path of generated charts",
+        "--charts_output_dir",
+        help="output directory of generated charts",
         default=""
     )
     parser.add_argument(
