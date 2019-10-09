@@ -379,6 +379,8 @@ COPY --from=python_context /usr/local/bin /usr/local/bin
 COPY --from=python_context /usr/local/lib /usr/local/lib
 COPY --from=python_context /usr/local/google-cloud-sdk /usr/local/google-cloud-sdk
 
+COPY bashrc /home/.bashrc
+
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
     mkdir -p /gobin && \
