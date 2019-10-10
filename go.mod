@@ -11,7 +11,7 @@ replace (
 )
 
 require (
-	cuelang.org/go v0.0.12-0.20191008111816-7e4dc22a913d
+	cuelang.org/go v0.0.12-0.20191010195738-00eb9d2d7f47
 	fortio.org/fortio v1.1.0
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
