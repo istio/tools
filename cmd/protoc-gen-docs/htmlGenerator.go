@@ -1035,8 +1035,8 @@ func normalizeID(id string) string {
 	return strings.Replace(id, ".", "-", -1)
 }
 
-func getFieldBehavior(opts *descriptor.FieldOptions) []googleapi.FieldBehavior {
-	b, err := proto.Marshal(opts)
+func getFieldBehavior(options *descriptor.FieldOptions) []googleapi.FieldBehavior {
+	b, err := proto.Marshal(options)
 	if err != nil {
 		return nil
 	}
