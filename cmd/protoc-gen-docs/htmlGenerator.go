@@ -450,51 +450,64 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 		g.emit("</thead>")
 		g.emit("<tbody>")
 
-		var oneof int32 = -1
-		for _, field := range message.Fields {
-			if field.IsHidden() {
-				continue
-			}
-
-			fieldName := *field.Name
-			if g.camelCaseFields {
-				fieldName = camelCase(*field.Name)
-			}
-
-			fieldTypeName := g.fieldTypeName(field)
-
-			class := ""
-			if field.Options != nil && field.Options.GetDeprecated() {
-				class = deprecated
-			}
-
-			if field.Class() != "" {
-				class = class + field.Class() + " "
-			}
-
-			if field.OneofIndex != nil {
-				if *field.OneofIndex != oneof {
-					class += "oneof oneof-start"
-					oneof = *field.OneofIndex
-				} else {
-					class += "oneof"
+		// list the active entries first, then the deprecated ones
+		dep := false
+		for {
+			var oneof int32 = -1
+			for _, field := range message.Fields {
+				if field.IsHidden() {
+					continue
 				}
+
+				if field.Options != nil && field.Options.GetDeprecated() != dep {
+					continue
+				}
+
+				fieldName := *field.Name
+				if g.camelCaseFields {
+					fieldName = camelCase(*field.Name)
+				}
+
+				fieldTypeName := g.fieldTypeName(field)
+
+				class := ""
+				if field.Options != nil && field.Options.GetDeprecated() {
+					class = deprecated
+				}
+
+				if field.Class() != "" {
+					class = class + field.Class() + " "
+				}
+
+				if field.OneofIndex != nil {
+					if *field.OneofIndex != oneof {
+						class += "oneof oneof-start"
+						oneof = *field.OneofIndex
+					} else {
+						class += "oneof"
+					}
+				}
+
+				if class != "" {
+					g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\" class=\"", class, "\">")
+				} else {
+					g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\">")
+				}
+
+				g.emit("<td><code>", fieldName, "</code></td>")
+				g.emit("<td><code>", g.linkify(field.FieldType, fieldTypeName), "</code></td>")
+				g.emit("<td>")
+
+				g.generateComment(field.Location(), field.GetName())
+
+				g.emit("</td>")
+				g.emit("</tr>")
 			}
 
-			if class != "" {
-				g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\" class=\"", class, "\">")
-			} else {
-				g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\">")
+			if dep {
+				break
 			}
-
-			g.emit("<td><code>", fieldName, "</code></td>")
-			g.emit("<td><code>", g.linkify(field.FieldType, fieldTypeName), "</code></td>")
-			g.emit("<td>")
-
-			g.generateComment(field.Location(), field.GetName())
-
-			g.emit("</td>")
-			g.emit("</tr>")
+			dep = true
 		}
 		g.emit("</tbody>")
 		g.emit("</table>")
@@ -517,34 +530,47 @@ func (g *htmlGenerator) generateEnum(enum *protomodel.EnumDescriptor) {
 		g.emit("</thead>")
 		g.emit("<tbody>")
 
-		for _, v := range enum.Values {
-			if v.IsHidden() {
-				continue
+		// list the active entries first, then the deprecated ones
+		dep := false
+		for {
+			for _, v := range enum.Values {
+				if v.IsHidden() {
+					continue
+				}
+
+				if v.Options != nil && v.Options.GetDeprecated() != dep {
+					continue
+				}
+
+				name := *v.Name
+
+				class := ""
+				if v.Options != nil && v.Options.GetDeprecated() {
+					class = deprecated
+				}
+
+				if v.Class() != "" {
+					class = class + v.Class() + " "
+				}
+
+				if class != "" {
+					g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\" class=\"", class, "\">")
+				} else {
+					g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\">")
+				}
+				g.emit("<td><code>", name, "</code></td>")
+				g.emit("<td>")
+
+				g.generateComment(v.Location(), name)
+
+				g.emit("</td>")
+				g.emit("</tr>")
 			}
 
-			name := *v.Name
-
-			class := ""
-			if v.Options != nil && v.Options.GetDeprecated() {
-				class = deprecated
+			if dep {
+				break
 			}
-
-			if v.Class() != "" {
-				class = class + v.Class() + " "
-			}
-
-			if class != "" {
-				g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\" class=\"", class, "\">")
-			} else {
-				g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\">")
-			}
-			g.emit("<td><code>", name, "</code></td>")
-			g.emit("<td>")
-
-			g.generateComment(v.Location(), name)
-
-			g.emit("</td>")
-			g.emit("</tr>")
+			dep = true
 		}
 		g.emit("</tbody>")
 		g.emit("</table>")
@@ -557,30 +583,43 @@ func (g *htmlGenerator) generateService(service *protomodel.ServiceDescriptor) {
 	g.generateSectionHeading(service)
 	g.generateComment(service.Location(), service.GetName())
 
-	for _, method := range service.Methods {
-		if method.IsHidden() {
-			continue
+	// list the active entries first, then the deprecated ones
+	dep := false
+	for {
+		for _, method := range service.Methods {
+			if method.IsHidden() {
+				continue
+			}
+
+			if method.Options != nil && method.Options.GetDeprecated() != dep {
+				continue
+			}
+
+			class := ""
+			if method.Options != nil && method.Options.GetDeprecated() {
+				class = deprecated
+			}
+
+			if method.Class() != "" {
+				class = class + method.Class() + " "
+			}
+
+			if class != "" {
+				g.emit("<pre id=\"", normalizeID(g.relativeName(method)), "\" class=\"", class, "\"><code class=\"language-proto\">rpc ",
+					method.GetName(), "(", g.relativeName(method.Input), ") returns (", g.relativeName(method.Output), ")")
+			} else {
+				g.emit("<pre id=\"", normalizeID(g.relativeName(method)), "\"><code class=\"language-proto\">rpc ",
+					method.GetName(), "(", g.relativeName(method.Input), ") returns (", g.relativeName(method.Output), ")")
+			}
+			g.emit("</code></pre>")
+
+			g.generateComment(method.Location(), method.GetName())
 		}
 
-		class := ""
-		if method.Options != nil && method.Options.GetDeprecated() {
-			class = deprecated
+		if dep {
+			break
 		}
-
-		if method.Class() != "" {
-			class = class + method.Class() + " "
-		}
-
-		if class != "" {
-			g.emit("<pre id=\"", normalizeID(g.relativeName(method)), "\" class=\"", class, "\"><code class=\"language-proto\">rpc ",
-				method.GetName(), "(", g.relativeName(method.Input), ") returns (", g.relativeName(method.Output), ")")
-		} else {
-			g.emit("<pre id=\"", normalizeID(g.relativeName(method)), "\"><code class=\"language-proto\">rpc ",
-				method.GetName(), "(", g.relativeName(method.Input), ") returns (", g.relativeName(method.Output), ")")
-		}
-		g.emit("</code></pre>")
-
-		g.generateComment(method.Location(), method.GetName())
+		dep = true
 	}
 
 	g.generateSectionTrailing()
