@@ -459,6 +459,7 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 			if res, ok := frontMatterMap[schema]; ok {
 				return res[0] + " See more details at: " + res[1]
 			}
+			// get the first sentence out of the paragraphs.
 			for _, doc := range v.Doc() {
 				if doc.Text() == "" {
 					continue
