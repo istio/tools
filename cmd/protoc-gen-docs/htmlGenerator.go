@@ -1035,6 +1035,7 @@ func normalizeID(id string) string {
 	return strings.Replace(id, ".", "-", -1)
 }
 
+// nolint: interfacer
 func getFieldBehavior(options *descriptor.FieldOptions) []googleapi.FieldBehavior {
 	b, err := proto.Marshal(options)
 	if err != nil {
