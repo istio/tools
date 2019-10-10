@@ -26,11 +26,14 @@ import (
 	"unicode"
 
 	"github.com/client9/gospell"
+	gogoproto "github.com/gogo/protobuf/proto"
+	gogodescriptor "github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/russross/blackfriday/v2"
 
+	googleapi "istio.io/gogo-genproto/googleapis/google/api"
 	"istio.io/tools/pkg/protomodel"
 )
 
@@ -446,6 +449,7 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 		g.emit("<th>Field</th>")
 		g.emit("<th>Type</th>")
 		g.emit("<th>Description</th>")
+		g.emit("<th>Required</th>")
 		g.emit("</tr>")
 		g.emit("</thead>")
 		g.emit("<tbody>")
@@ -500,6 +504,27 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 
 				g.generateComment(field.Location(), field.GetName())
 
+				g.emit("</td>")
+				g.emit("<td>")
+				// oneof fields are always required.
+				if field.OneofIndex != nil {
+					g.emit("Yes")
+				} else if field.Options != nil {
+					fb := getFieldBehavior(field.Options)
+					var required bool
+					for _, e := range fb {
+						if e == googleapi.REQUIRED {
+							required = true
+						}
+					}
+					if required {
+						g.emit("Yes")
+					} else {
+						g.emit("No")
+					}
+				} else {
+					g.emit("No")
+				}
 				g.emit("</td>")
 				g.emit("</tr>")
 			}
@@ -1008,6 +1033,26 @@ func camelCase(s string) string {
 func normalizeID(id string) string {
 	id = strings.Replace(id, " ", "-", -1)
 	return strings.Replace(id, ".", "-", -1)
+}
+
+func getFieldBehavior(opts *descriptor.FieldOptions) []googleapi.FieldBehavior {
+	b, err := proto.Marshal(opts)
+	if err != nil {
+		return nil
+	}
+	o := &gogodescriptor.FieldOptions{}
+	if err = gogoproto.Unmarshal(b, o); err != nil {
+		return nil
+	}
+	e, err := gogoproto.GetExtension(o, googleapi.E_FieldBehavior)
+	if err != nil {
+		return nil
+	}
+	s, ok := e.([]googleapi.FieldBehavior)
+	if !ok {
+		return nil
+	}
+	return s
 }
 
 var htmlStyle = `
