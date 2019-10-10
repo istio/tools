@@ -21,9 +21,9 @@
 # We pin versions of stuff we install. Modify the various XXX_VERSION variables within the indivudual build contexts
 # in order to control these versions.
 
-################
+###############
 # Binary tools
-################
+###############
 
 FROM golang:1.13.1 as binary_tools_context
 
