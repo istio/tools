@@ -22,9 +22,11 @@ import (
 
 func main() {
 	var report bool
+	var dump bool
 	var csv bool
 	var config string
 	flag.BoolVar(&report, "report", false, "Generate a report of all license usage.")
+	flag.BoolVar(&dump, "dump", false, "Generate a dump of all licenses used.")
 	flag.BoolVar(&csv, "csv", false, "Generate a report of all license usage in CSV format.")
 	flag.StringVar(&config, "config", "", "Path to config file.")
 	flag.Parse()
@@ -77,7 +79,7 @@ func main() {
 
 		// categorize the modules
 		for _, module := range modules {
-			if !report {
+			if !report && !dump {
 				// if we're not producing a report, then exclude any module on the whitelist
 				if cfg.whitelistedModules[module.moduleName] {
 					continue
@@ -156,6 +158,26 @@ func main() {
 				for _, m := range unlicensedModules {
 					fmt.Printf("  %s\n", m.moduleName)
 				}
+			}
+		} else if dump {
+			for _, l := range unrestrictedLicenses {
+				fmt.Printf("MODULE: %s\n%s\n", l.module.moduleName, l.text)
+			}
+
+			for _, l := range reciprocalLicenses {
+				fmt.Printf("MODULE: %s\n%s\n", l.module.moduleName, l.text)
+			}
+
+			for _, l := range restrictedLicenses {
+				fmt.Printf("MODULE: %s\n%s\n", l.module.moduleName, l.text)
+			}
+
+			for _, l := range unrecognizedLicenses {
+				fmt.Printf("MODULE: %s\n%s\n", l.module.moduleName, l.text)
+			}
+
+			for _, m := range unlicensedModules {
+				fmt.Printf("MODULE: %s\n%s\n", m.moduleName, "<none>")
 			}
 		} else {
 			failLint := false
