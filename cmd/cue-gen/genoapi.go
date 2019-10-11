@@ -459,7 +459,23 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 			if res, ok := frontMatterMap[schema]; ok {
 				return res[0] + " See more details at: " + res[1]
 			}
-			// TODO(jasonwzm): Generate one-line description for subfields.
+			// get the first sentence out of the paragraphs.
+			for _, doc := range v.Doc() {
+				if doc.Text() == "" {
+					continue
+				}
+				if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
+					return ""
+				}
+				if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
+					words := strings.Split(paras[0], " ")
+					for i, w := range words {
+						if strings.HasSuffix(w, ".") {
+							return strings.Join(words[:i+1], " ")
+						}
+					}
+				}
+			}
 			return ""
 		}
 		for _, doc := range v.Doc() {
@@ -557,20 +573,21 @@ func extractFrontMatter(ins []*build.Instance, m map[string][]string) {
 				txt := c.Text()
 				if strings.HasPrefix(txt, "$") {
 					lines := strings.Split(txt, "\n")
-					var schema, description, location string
+					var description, location string
+					var schemas []string
 					for _, l := range lines {
 						l = strings.TrimSpace(l)
 
 						if strings.HasPrefix(l, schemaTag) {
-							schema = strings.TrimSpace(strings.TrimPrefix(l, schemaTag))
+							schemas = append(schemas, strings.TrimSpace(strings.TrimPrefix(l, schemaTag)))
 						} else if strings.HasPrefix(l, descriptionTag) {
 							description = strings.TrimSpace(strings.TrimPrefix(l, descriptionTag))
 						} else if strings.HasPrefix(l, locationTag) {
 							location = strings.TrimSpace(strings.TrimPrefix(l, locationTag))
 						}
 					}
-					if schema != "" {
-						m[schema] = []string{description, location}
+					for _, s := range schemas {
+						m[s] = []string{description, location}
 					}
 				}
 			}
