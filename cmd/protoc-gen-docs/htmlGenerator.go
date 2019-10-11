@@ -464,7 +464,7 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 				}
 
 				if (field.Options != nil && field.Options.GetDeprecated() != dep) ||
-					(field.Options == nil || dep) {
+					(field.Options == nil && dep) {
 					continue
 				}
 
@@ -565,7 +565,7 @@ func (g *htmlGenerator) generateEnum(enum *protomodel.EnumDescriptor) {
 				}
 
 				if (v.Options != nil && v.Options.GetDeprecated() != dep) ||
-					(v.Options == nil || dep) {
+					(v.Options == nil && dep) {
 					continue
 				}
 
@@ -619,7 +619,7 @@ func (g *htmlGenerator) generateService(service *protomodel.ServiceDescriptor) {
 			}
 
 			if (method.Options != nil && method.Options.GetDeprecated() != dep) ||
-				(method.Options == nil || dep) {
+				(method.Options == nil && dep) {
 				continue
 			}
 
