@@ -122,17 +122,17 @@ QPS=1000
 METRICS=(p50 p90 p99)
 get_benchmark_data
 
-# Configuration Set5: CPU and memory with mixer v2
+# Configuration Set5: CPU and memory with mixerv2 using NullVM.
 kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/metadata-exchange_filter.yaml
 kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml
-MIXER_MODE="--mixer_mode mixerv2"
+MIXER_MODE="--mixer_mode mixerv2-nullvm"
 CONN=16
 QPS=10,100,500,1000,2000,3000
 DURATION=240
 METRICS=(cpu mem)
 get_benchmark_data
 
-# Configuration Set6: Latency Quantiles with mixer v2
+# Configuration Set6: Latency Quantiles with mixer v2 using NullVM.
 CONN=1,2,4,8,16,32,64
 QPS=1000
 METRICS=(p50 p90 p99)
