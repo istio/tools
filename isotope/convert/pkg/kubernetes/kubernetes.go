@@ -180,7 +180,8 @@ func makeService(service svc.Service) (k8sService apiv1.Service) {
 	k8sService.ObjectMeta.Namespace = ServiceGraphNamespace
 	k8sService.ObjectMeta.Labels = serviceGraphAppLabels
 	timestamp(&k8sService.ObjectMeta)
-	k8sService.Spec.Ports = []apiv1.ServicePort{{Port: consts.ServicePort, Name: consts.ServicePortName}, {Port: consts.ServiceGrpcPort, Name: consts.ServiceGrpcPortName}}
+	k8sService.Spec.Ports = []apiv1.ServicePort{{Port: consts.ServicePort, Name: consts.ServicePortName},
+		{Port: consts.ServiceGrpcPort, Name: consts.ServiceGrpcPortName}}
 	k8sService.Spec.Selector = map[string]string{"name": service.Name}
 	return
 }
