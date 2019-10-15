@@ -28,6 +28,7 @@ DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
 LINKERD_INJECT="${LINKERD_INJECT:-'disabled'}"
+INTERCEPTION_MODE=${INTERCEPTION_MODE:-'REDIRECT'}
 echo "linkerd inject is ${LINKERD_INJECT}"
 
 mkdir -p "${TMPDIR}"
@@ -48,6 +49,7 @@ function run_test() {
       --set includeOutboundIPRanges=$(svc_ip_range) \
       --set injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
+      --set interceptionMode="${INTERCEPTION_MODE}" \
           . > "${TMPDIR}"/twopods.yaml
   echo "Wrote file ${TMPDIR}/twopods.yaml"
 
