@@ -31,6 +31,8 @@ export DNS_DOMAIN="fake-dns.org"
 export FORTIO_CLIENT_URL=""
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
+#TODO
+export GCS_BUCKET=""
 
 function setup_metrics() {
   # shellcheck disable=SC2155
@@ -44,6 +46,7 @@ function setup_metrics() {
 }
 
 function collect_metrics() {
+  local OUTPUT_DIR=$1
   # shellcheck disable=SC2155
   export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
   pipenv install
@@ -51,27 +54,30 @@ function collect_metrics() {
    --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
 mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
 mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
+
+  gsutil -q cp "${CSV_OUTPUT}" "gs://$GCS_BUCKET/${OUTPUT_DIR}"
 }
 
 function generate_graph() {
   local PLOT_METRIC=$1
-  local OUTPUT_GRAPHS_DIR=$2
-  pipenv run python3 graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output_dir="${OUTPUT_GRAPHS_DIR}"
-  gsutil -q cp -r "${OUTPUT_GRAPHS_DIR}" "gs://$CB_GCS_BUILD_PATH/${OUTPUT_GRAPHS_DIR}"
+  local OUTPUT_DIR=$2
+  LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
+  pipenv run python3 graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output_dir="${LOCAL_OUTPUT_DIR}"
 }
 
 function get_benchmark_data() {
   # shellcheck disable=SC2086
   pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS} ${MIXER_MODE}
-  collect_metrics
   dt=$(date +'%Y%m%d-%H')
-  RELEASE="$(cut -d'/' -f3 <<<"${CB_GCS_FULL_STAGING_PATH}")"
-  OUTPUT_GRAPHS_DIR="/tmp/benchmark_graphs.${RELEASE}.${dt}"
-  mkdir -p "${OUTPUT_GRAPHS_DIR}"
+  OUTPUT_DIR="benchmark_data.${GIT_SHA}.${dt}"
+  LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
+  mkdir -p "${LOCAL_OUTPUT_DIR}"
+  collect_metrics "${OUTPUT_DIR}"
   for metric in "${METRICS[@]}"
   do
-    generate_graph "${metric}" "${OUTPUT_GRAPHS_DIR}"
+    generate_graph "${metric}" "${OUTPUT_DIR}"
   done
+  gsutil -q cp -r "${LOCAL_OUTPUT_DIR}" "gs://$GCS_BUCKET/${OUTPUT_DIR}/graphs"
 }
 
 RELEASE_TYPE="dev"
