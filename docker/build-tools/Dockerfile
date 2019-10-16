@@ -385,7 +385,8 @@ RUN mkdir -p /go && \
     mkdir -p /gocache && \
     mkdir -p /gobin && \
     mkdir -p /home/.kube && \
-    mkdir -p /home/.config
+    mkdir -p /home/.config && \
+    mkdir -p /home/.helm
 
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
 # They are created as root 755.  As a result they are not writeable, which fails in
@@ -395,6 +396,7 @@ RUN chmod 777 /go && \
     chmod 777 /gocache && \
     chmod 777 /gobin && \
     chmod 777 /home/.kube && \
-    chmod 777 /home/.config
+    chmod 777 /home/.config && \
+    chmod 777 /home/.helm
 
 WORKDIR /
