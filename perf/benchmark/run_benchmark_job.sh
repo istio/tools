@@ -48,7 +48,7 @@ function collect_metrics() {
   # shellcheck disable=SC2155
   export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
   pipenv install
-  pipenv run python3 fortio.py $FORTIO_CLIENT_URL --csv_output="$CSV_OUTPUT" --prometheus=$PROMETHEUS_URL \
+  pipenv run python3 fortio.py ${FORTIO_CLIENT_URL} --csv_output="$CSV_OUTPUT" --prometheus=${PROMETHEUS_URL} \
    --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
 mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
 mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
@@ -64,10 +64,10 @@ function generate_graph() {
 function get_benchmark_data() {
   # shellcheck disable=SC2086
   pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS} ${MIXER_MODE}
-  collect_metrics "${OUTPUT_DIR}"
+  collect_metrics
   for metric in "${METRICS[@]}"
   do
-    generate_graph "${metric}" "${OUTPUT_DIR}"
+    generate_graph "${metric}"
   done
   gsutil -q cp -r "${LOCAL_OUTPUT_DIR}" "gs://$GCS_BUCKET/${OUTPUT_DIR}/graphs"
 }
@@ -86,7 +86,7 @@ pushd "${WD}"
 ./setup_test.sh
 popd
 dt=$(date +'%Y%m%d-%H')
-export OUTPUT_DIR="benchmark_data.${GIT_SHA}.${dt}"
+export OUTPUT_DIR="benchmark_data.${dt}.${GIT_SHA}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
 
