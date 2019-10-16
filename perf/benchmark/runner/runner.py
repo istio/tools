@@ -279,7 +279,7 @@ def rc(command):
 def run(args):
     min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
     if args.duration <= min_duration:
-        print(f"Duration must be greater than {min_duration}")
+        print("Duration must be greater than {min_duration}".format(min_duration=min_duration))
         exit(1)
 
     fortio = Fortio(

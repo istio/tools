@@ -40,6 +40,15 @@ const (
 
 package {{ .Package }}
 
+type ResourceTypes int
+
+const (
+	Unknown ResourceTypes = iota
+	{{- range .KnownTypes }}
+    {{ . }}
+    {{- end }}
+)
+
 // Instance describes a single resource annotation
 type Instance struct {
 	// The name of the annotation.
@@ -53,15 +62,19 @@ type Instance struct {
 
 	// Mark this annotation as deprecated when generating usage information.
 	Deprecated bool
+
+	// The types of resources this annotation applies to.
+	Resources []ResourceTypes
 }
 
 var (
 	{{ range .Annotations }}
-		{{.VariableName}} = Instance {
+		{{ .VariableName }} = Instance {
           Name: "{{ .Name }}",
           Description: {{ wordWrap .Description 24 }},
           Hidden: {{ .Hidden }},
           Deprecated: {{ .Deprecated }},
+		  Resources: []ResourceTypes{ {{ range .Resources }}{{ . }}{{ end }}, },
         }
 	{{ end }}
 )`
@@ -81,6 +94,7 @@ Istio supports to control its behavior.
 	<thead>
 		<tr>
 			<th>Annotation Name</th>
+			<th>Resource Types</th>
 			<th>Description</th>
 		</tr>
 	</thead>
@@ -93,6 +107,7 @@ Istio supports to control its behavior.
 					<tr>
 				{{ end }}
 					<td><code>{{ .Name }}</code></td>
+					<td>{{ .Resources }}</td>
 					<td>{{ .Description }}</td>
 				</tr>
 			{{ end }}
@@ -125,6 +140,19 @@ var (
 				log.Fatalf("error parsing input file: %v", err)
 			}
 
+			// Find all the known resource types
+			m := make(map[string]bool)
+			for _, a := range cfg.Annotations {
+				for _, r := range a.Resources {
+					m[r] = true
+				}
+			}
+			knownTypes := make([]string, 0, len(m))
+			for k := range m {
+				knownTypes = append(knownTypes, k)
+			}
+			sort.Strings(knownTypes)
+
 			// Generate variable names if not provided in the yaml.
 			for i := range cfg.Annotations {
 				if cfg.Annotations[i].Name == "" {
@@ -152,6 +180,7 @@ var (
 			var goSource bytes.Buffer
 			if err := t.Execute(&goSource, map[string]interface{}{
 				"Package":     getPackage(),
+				"KnownTypes":  knownTypes,
 				"Annotations": cfg.Annotations,
 			}); err != nil {
 				log.Fatalf("failed generating output Go source code %s: %v", output, err)
@@ -162,7 +191,7 @@ var (
 			}
 
 			if htmlOutput != "" {
-				// Create the HTMLoutput file template.
+				// Create the HTML output file template.
 				t, err = template.New("htmlOutputTemplate").Funcs(template.FuncMap{
 					"wordWrap": wordWrap,
 				}).Parse(htmlOutputTemplate)
@@ -228,10 +257,14 @@ type Instance struct {
 
 	// Mark this annotation as deprecated when generating usage information.
 	Deprecated bool `json:"deprecated"`
+
+	// Indicates the types of resources this annotation can be applied to.
+	Resources []string `json:"resources"`
 }
 
 func getPackage() string {
-	return filepath.Base(filepath.Dir(output))
+	path, _ := filepath.Abs(output)
+	return filepath.Base(filepath.Dir(path))
 }
 
 func generateVariableName(annoName string) string {

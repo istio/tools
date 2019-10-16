@@ -148,7 +148,7 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
 
     ```bash
     kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-    python ../../bin/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f /tmp/meshconfig.yaml
+    python ../../bin/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
     ```
 
 1. Run `runner.py`, in any sidecar mode, with the `--labels=nomixer` flag. If you run this command:
@@ -163,7 +163,7 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
 
     ```bash
     kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-    python ../../bin/update_mesh_config.py enable_mixer /tmp/meshconfig.yaml  | kubectl -n istio-system apply -
+    python ../../bin/update_mesh_config.py enable_mixer /tmp/meshconfig.yaml  | kubectl -n istio-system apply -f -
     ```
 
 ## Gather Result Metrics

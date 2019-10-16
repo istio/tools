@@ -161,7 +161,6 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
     listurl = url + "/fortio/data/"
     listdata = requests.get(listurl)
     fd, datafile = tempfile.mkstemp(suffix=".json")
-
     out = os.fdopen(fd, "wt")
     stats = []
     cnt = 0
@@ -223,7 +222,7 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
 
 
 def write_csv(keys, data, csv_output):
-    if csv_output == "":
+    if csv_output is None or csv_output == "":
         fd, csv_output = tempfile.mkstemp(suffix=".csv")
         out = os.fdopen(fd, "wt")
     else:

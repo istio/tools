@@ -22,9 +22,11 @@ import (
 
 func main() {
 	var report bool
+	var dump bool
 	var csv bool
 	var config string
 	flag.BoolVar(&report, "report", false, "Generate a report of all license usage.")
+	flag.BoolVar(&dump, "dump", false, "Generate a dump of all licenses used.")
 	flag.BoolVar(&csv, "csv", false, "Generate a report of all license usage in CSV format.")
 	flag.StringVar(&config, "config", "", "Path to config file.")
 	flag.Parse()
@@ -38,7 +40,11 @@ func main() {
 		}
 	}
 
-	modules, _ := getLicenses()
+	modules, err := getLicenses()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+		os.Exit(1)
+	}
 
 	// now do the real work
 
@@ -73,8 +79,8 @@ func main() {
 
 		// categorize the modules
 		for _, module := range modules {
-			// if we're not producing a report, then exclude any module on the whitelist
-			if !report && !csv {
+			if !report && !dump {
+				// if we're not producing a report, then exclude any module on the whitelist
 				if cfg.whitelistedModules[module.moduleName] {
 					continue
 				}
@@ -98,8 +104,6 @@ func main() {
 			}
 		}
 
-		failLint := false
-
 		if report {
 			fmt.Printf("Modules with unrestricted licenses:\n")
 			if len(unrestrictedLicenses) == 0 {
@@ -120,48 +124,90 @@ func main() {
 				}
 			}
 			fmt.Printf("\n")
-		}
 
-		fmt.Printf("Modules with restricted licenses:\n")
-		if len(restrictedLicenses) == 0 {
-			fmt.Printf("  <none>\n")
-		} else {
-			failLint = true
-			for _, l := range restrictedLicenses {
-				fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
-			}
-		}
-		fmt.Printf("\n")
-
-		fmt.Printf("Modules with unrecognized licenses:\n")
-		if len(unrecognizedLicenses) == 0 {
-			fmt.Printf("  <none>\n")
-		} else {
-			failLint = true
-			for _, l := range unrecognizedLicenses {
-				if l.analysis.licenseName != "" {
-					fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
-				} else if l.analysis.similarLicense != "" {
-					fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.similarLicense, l.analysis.similarityConfidence, l.path)
-				} else {
-					fmt.Printf("  %s: path '%s'\n", l.module.moduleName, l.path)
+			fmt.Printf("Modules with restricted licenses:\n")
+			if len(restrictedLicenses) == 0 {
+				fmt.Printf("  <none>\n")
+			} else {
+				for _, l := range restrictedLicenses {
+					fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
 				}
 			}
-		}
-		fmt.Printf("\n")
+			fmt.Printf("\n")
 
-		fmt.Printf("Modules with no discernible license:\n")
-		if len(unlicensedModules) == 0 {
-			fmt.Printf("  <none>\n")
-		} else {
-			failLint = true
-			for _, m := range unlicensedModules {
-				fmt.Printf("  %s\n", m.moduleName)
+			fmt.Printf("Modules with unrecognized licenses:\n")
+			if len(unrecognizedLicenses) == 0 {
+				fmt.Printf("  <none>\n")
+			} else {
+				for _, l := range unrecognizedLicenses {
+					if l.analysis.licenseName != "" {
+						fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
+					} else if l.analysis.similarLicense != "" {
+						fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.similarLicense, l.analysis.similarityConfidence, l.path)
+					} else {
+						fmt.Printf("  %s: path '%s'\n", l.module.moduleName, l.path)
+					}
+				}
 			}
-		}
+			fmt.Printf("\n")
 
-		if !report && failLint {
-			os.Exit(1)
+			fmt.Printf("Modules with no discernible license:\n")
+			if len(unlicensedModules) == 0 {
+				fmt.Printf("  <none>\n")
+			} else {
+				for _, m := range unlicensedModules {
+					fmt.Printf("  %s\n", m.moduleName)
+				}
+			}
+		} else if dump {
+			for _, l := range unrestrictedLicenses {
+				fmt.Printf("MODULE: %s\n%s\n", l.module.moduleName, l.text)
+			}
+
+			for _, l := range reciprocalLicenses {
+				fmt.Printf("MODULE: %s\n%s\n", l.module.moduleName, l.text)
+			}
+
+			for _, l := range restrictedLicenses {
+				fmt.Printf("MODULE: %s\n%s\n", l.module.moduleName, l.text)
+			}
+
+			for _, l := range unrecognizedLicenses {
+				fmt.Printf("MODULE: %s\n%s\n", l.module.moduleName, l.text)
+			}
+
+			for _, m := range unlicensedModules {
+				fmt.Printf("MODULE: %s\n%s\n", m.moduleName, "<none>")
+			}
+		} else {
+			failLint := false
+
+			if len(unrecognizedLicenses) > 0 {
+				failLint = true
+				fmt.Printf("ERROR: Some modules have unrecognized licenses:\n")
+				for _, l := range unrecognizedLicenses {
+					if l.analysis.licenseName != "" {
+						fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
+					} else if l.analysis.similarLicense != "" {
+						fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.similarLicense, l.analysis.similarityConfidence, l.path)
+					} else {
+						fmt.Printf("  %s: path '%s'\n", l.module.moduleName, l.path)
+					}
+				}
+				fmt.Printf("\n")
+			}
+
+			if len(unlicensedModules) > 0 {
+				failLint = true
+				fmt.Printf("ERROR: Some modules have no discernible license:\n")
+				for _, m := range unlicensedModules {
+					fmt.Printf("  %s\n", m.moduleName)
+				}
+			}
+
+			if failLint {
+				os.Exit(1)
+			}
 		}
 	}
 }

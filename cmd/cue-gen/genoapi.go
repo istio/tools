@@ -94,7 +94,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -102,6 +101,7 @@ import (
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/ast/astutil"
+	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/load"
@@ -128,6 +128,8 @@ var (
 	crd = flag.Bool("crd", false, "generate CRD validation yaml based on the Istio protos and cue files")
 
 	snake = flag.String("snake", "", "comma-separated fields to add a snake case")
+
+	frontMatterMap map[string][]string
 )
 
 const (
@@ -384,6 +386,10 @@ func (x *builder) genCRD() {
 	}
 
 	instances := load.Instances([]string{"./..."}, cfg)
+
+	frontMatterMap = make(map[string][]string)
+	extractFrontMatter(instances, frontMatterMap)
+
 	all := cue.Build(instances)
 	for _, inst := range all {
 		if inst.Err != nil {
@@ -405,14 +411,13 @@ func (x *builder) genCRD() {
 			fatal(err, "Error generating OpenAPI schema")
 		}
 		for _, kv := range items.Pairs() {
-			o := x.simplifyCRDSchema(kv.Value.(*openapi.OrderedMap))
 			for c, v := range x.Config.Crd.CrdConfigs {
 				if generated[c] {
 					continue
 				}
 
 				if v.SchemaName == kv.Key {
-					crd := x.getCRD(v, o)
+					crd := x.getCRD(v, kv.Value)
 					crds = append(crds, crd)
 					generated[c] = true
 				}
@@ -447,6 +452,32 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 	}
 
 	gen.DescriptionFunc = func(v cue.Value) string {
+		if *crd {
+			n := strings.Split(inst.ImportPath, "/")
+			l, _ := v.Label()
+			schema := "istio." + n[len(n)-2] + "." + n[len(n)-1] + "." + l
+			if res, ok := frontMatterMap[schema]; ok {
+				return res[0] + " See more details at: " + res[1]
+			}
+			// get the first sentence out of the paragraphs.
+			for _, doc := range v.Doc() {
+				if doc.Text() == "" {
+					continue
+				}
+				if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
+					return ""
+				}
+				if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
+					words := strings.Split(paras[0], " ")
+					for i, w := range words {
+						if strings.HasSuffix(w, ".") {
+							return strings.Join(words[:i+1], " ")
+						}
+					}
+				}
+			}
+			return ""
+		}
 		for _, doc := range v.Doc() {
 			if doc.Text() == "" {
 				continue
@@ -531,28 +562,37 @@ func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *Grouping) {
 	m.schemas.SetAll(pairs[:k])
 }
 
-func (x *builder) simplifyCRDSchema(items *openapi.OrderedMap) *openapi.OrderedMap {
-	p := &openapi.OrderedMap{}
-	for _, kv := range items.Pairs() {
-		// remove the description field in schemas.
-		if kv.Key == "description" && reflect.TypeOf(kv.Value).Kind() == reflect.String {
-			continue
-		}
-		switch v := kv.Value.(type) {
-		case *openapi.OrderedMap:
-			p.Set(kv.Key, x.simplifyCRDSchema(v))
-		case []*openapi.OrderedMap:
-			o := []*openapi.OrderedMap{}
-			for _, m := range v {
-				o = append(o, x.simplifyCRDSchema(m))
-			}
-			p.Set(kv.Key, o)
-		default:
-			p.Set(kv.Key, kv.Value)
+// extracts the front comments in istio protos.
+func extractFrontMatter(ins []*build.Instance, m map[string][]string) {
+	const schemaTag = "$schema:"
+	const descriptionTag = "$description:"
+	const locationTag = "$location:"
+	for _, i := range ins {
+		for _, f := range i.Files {
+			for _, c := range f.Comments() {
+				txt := c.Text()
+				if strings.HasPrefix(txt, "$") {
+					lines := strings.Split(txt, "\n")
+					var description, location string
+					var schemas []string
+					for _, l := range lines {
+						l = strings.TrimSpace(l)
 
+						if strings.HasPrefix(l, schemaTag) {
+							schemas = append(schemas, strings.TrimSpace(strings.TrimPrefix(l, schemaTag)))
+						} else if strings.HasPrefix(l, descriptionTag) {
+							description = strings.TrimSpace(strings.TrimPrefix(l, descriptionTag))
+						} else if strings.HasPrefix(l, locationTag) {
+							location = strings.TrimSpace(strings.TrimPrefix(l, locationTag))
+						}
+					}
+					for _, s := range schemas {
+						m[s] = []string{description, location}
+					}
+				}
+			}
 		}
 	}
-	return p
 }
 
 func fixSnakes(f *ast.File, sf []string) {

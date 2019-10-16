@@ -21,9 +21,9 @@
 # We pin versions of stuff we install. Modify the various XXX_VERSION variables within the indivudual build contexts
 # in order to control these versions.
 
-##############
+###############
 # Binary tools
-##############
+###############
 
 FROM golang:1.13.1 as binary_tools_context
 
@@ -65,7 +65,6 @@ RUN mkdir -p ${OUTDIR}/usr/bin
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
-    build-essential \
     ca-certificates \
     curl \
     gnupg2 \
@@ -155,14 +154,6 @@ ADD https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/downlo
 RUN tar -xzf /tmp/docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz -C /tmp
 RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
 
-# Install su-exec which is a tool that operates like sudo without the overhead
-ADD https://github.com/ncopa/su-exec/archive/v0.2.tar.gz /tmp
-RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
-WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
-RUN make
-RUN cp -a su-exec ${OUTDIR}/usr/bin
-RUN chmod u+sx ${OUTDIR}/usr/bin/su-exec
-
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
 RUN rm -fr /usr/local/go/test
@@ -228,6 +219,7 @@ FROM ubuntu:xenial as ruby_tools_context
 
 # Pinned versions of stuff we pull in
 ENV AWESOMEBOT_VERSION=1.19.1
+ENV FPM_VERSION=1.11.0
 ENV HTMLPROOFER_VERSION=3.12.0
 ENV LICENSEE_VERSION=9.11.0
 ENV MDL_VERSION=0.5.0
@@ -254,6 +246,7 @@ RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
 RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
+RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 
 #############
 # Python
@@ -263,6 +256,7 @@ FROM ubuntu:xenial as python_context
 
 # Pinned versions of stuff we pull in
 ENV AUTOPEP8_VERSION=1.4.4
+ENV GCLOUD_VERSION=265.0.0
 ENV YAMLLINT_VERSION=1.17.0
 
 # hadolint ignore=DL3008
@@ -285,6 +279,11 @@ RUN pip install yamllint==${YAMLLINT_VERSION}
 RUN rm -rf /usr/local/bin/pip*
 RUN rm -fr /usr/local/lib/python3.5/dist-packages/pip
 
+# TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
+# commands, maybe we just need the gcloud binary out of all this?
+ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
+RUN tar -xzvf /tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz -C /usr/local
+
 #############
 # Base OS
 #############
@@ -293,6 +292,7 @@ FROM ubuntu:xenial as base_os_context
 
 ENV DOCKER_VERSION=5:19.03.2~3-0~ubuntu-xenial
 ENV CONTAINERD_VERSION=1.2.6-3
+
 ENV OUTDIR=/out
 
 # required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
@@ -343,9 +343,9 @@ RUN rm -fr /tmp/*
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
-#############
+##############
 # Final image
-#############
+##############
 
 # Prepare final output image
 FROM scratch
@@ -359,9 +359,10 @@ ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
-ENV GOPATH=/home/go
-ENV GOCACHE=/home/gocache
-ENV PATH=/usr/local/go/bin:/home/go/bin:$PATH
+ENV GOPATH=/go
+ENV GOCACHE=/gocache
+ENV GOBIN=/gobin
+ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby suppport
 ENV RUBYOPT="-KU -E utf-8:utf-8"
@@ -376,17 +377,26 @@ COPY --from=nodejs_tools_context /usr/local /usr/local
 COPY --from=nodejs_tools_context /node_modules /node_modules
 COPY --from=python_context /usr/local/bin /usr/local/bin
 COPY --from=python_context /usr/local/lib /usr/local/lib
+COPY --from=python_context /usr/local/google-cloud-sdk /usr/local/google-cloud-sdk
 
-RUN mkdir -p /home/gocache && \
-    mkdir -p /home/go && \
-    mkdir -p /var/run/secrets/kubernetes.io/serviceaccount
+COPY bashrc /home/.bashrc
+
+RUN mkdir -p /go && \
+    mkdir -p /gocache && \
+    mkdir -p /gobin && \
+    mkdir -p /home/.kube && \
+    mkdir -p /home/.config && \
+    mkdir -p /home/.helm
 
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
 # They are created as root 755.  As a result they are not writeable, which fails in
 # the developer environment as a volume or bind mount inherits the permissions of
 # the directory mounted rather then overridding with the permission of the volume file.
-RUN chmod 777 /home/gocache && \
-    chmod 777 /home/go && \
-    chmod 777 /var/run/secrets/kubernetes.io/serviceaccount
+RUN chmod 777 /go && \
+    chmod 777 /gocache && \
+    chmod 777 /gobin && \
+    chmod 777 /home/.kube && \
+    chmod 777 /home/.config && \
+    chmod 777 /home/.helm
 
 WORKDIR /

@@ -11,14 +11,14 @@ replace (
 )
 
 require (
-	cuelang.org/go v0.0.0-20190921151558-75b9c7fa7b70
+	cuelang.org/go v0.0.12-0.20191010195738-00eb9d2d7f47
 	fortio.org/fortio v1.1.0
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
 	github.com/emicklei/proto v1.6.15
 	github.com/getkin/kin-openapi v0.1.1-0.20190507152207-d3180292eead
 	github.com/ghodss/yaml v1.0.0
-	github.com/gogo/protobuf v1.2.2-0.20190730201129-28a6bbf47e48
+	github.com/gogo/protobuf v1.3.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1
@@ -31,7 +31,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/prometheus/client_golang v0.9.3
-	github.com/retr0h/go-gilt v0.0.0-20190206215556-f73826b37af2 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/spf13/cobra v0.0.4
@@ -40,6 +39,7 @@ require (
 	golang.org/x/tools v0.0.0-20190614205625-5aca471b1d59
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.2.2
+	istio.io/gogo-genproto v0.0.0-20191009201739-17d570f95998
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
 	k8s.io/apiextensions-apiserver v0.0.0-20190918201827-3de75813f604
 	k8s.io/apimachinery v0.0.0-20190817020851-f2f3a405f61d
