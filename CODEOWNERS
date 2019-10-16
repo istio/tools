@@ -1,4 +1,1 @@
-*        @istio/wg-test-and-release-maintainers
-perf/    @istio/wg-test-and-release-maintainers @istio/wg-perf-and-scalability-maintainers
-isotope/ @istio/wg-test-and-release-maintainers @istio/wg-perf-and-scalability-maintainers
-metrics/ @istio/wg-test-and-release-maintainers @istio/wg-perf-and-scalability-maintainers
+* @istio/release-managers-1-4

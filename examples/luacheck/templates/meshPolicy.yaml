@@ -7,7 +7,7 @@ spec:
   origins:
   - jwt:
       issuer: testing@secure.istio.io
-      jwksUri: https://raw.githubusercontent.com/istio/istio/master/security/tools/jwt/samples/jwks.json 
+      jwksUri: https://raw.githubusercontent.com/istio/istio/release-1.4/security/tools/jwt/samples/jwks.json
   peers:
   - mtls: {}
 {{- end }}
