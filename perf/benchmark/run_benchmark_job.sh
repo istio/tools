@@ -31,8 +31,7 @@ export DNS_DOMAIN="fake-dns.org"
 export FORTIO_CLIENT_URL=""
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
-#TODO
-export GCS_BUCKET=""
+export GCS_BUCKET="istio-build/perf"
 
 function setup_metrics() {
   # shellcheck disable=SC2155
@@ -46,7 +45,6 @@ function setup_metrics() {
 }
 
 function collect_metrics() {
-  local OUTPUT_DIR=$1
   # shellcheck disable=SC2155
   export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
   pipenv install
@@ -55,23 +53,17 @@ function collect_metrics() {
 mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
 mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
 
-  gsutil -q cp "${CSV_OUTPUT}" "gs://$GCS_BUCKET/${OUTPUT_DIR}"
+  gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}"
 }
 
 function generate_graph() {
   local PLOT_METRIC=$1
-  local OUTPUT_DIR=$2
-  LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
   pipenv run python3 graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output_dir="${LOCAL_OUTPUT_DIR}"
 }
 
 function get_benchmark_data() {
   # shellcheck disable=SC2086
   pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS} ${MIXER_MODE}
-  dt=$(date +'%Y%m%d-%H')
-  OUTPUT_DIR="benchmark_data.${GIT_SHA}.${dt}"
-  LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
-  mkdir -p "${LOCAL_OUTPUT_DIR}"
   collect_metrics "${OUTPUT_DIR}"
   for metric in "${METRICS[@]}"
   do
@@ -93,11 +85,15 @@ pipenv install
 pushd "${WD}"
 ./setup_test.sh
 popd
+dt=$(date +'%Y%m%d-%H')
+export OUTPUT_DIR="benchmark_data.${GIT_SHA}.${dt}"
+LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
+mkdir -p "${LOCAL_OUTPUT_DIR}"
 
 # Setup fortio and prometheus
 setup_metrics
 
-echo "Start running perf benchmark test."
+echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 EXTRA_ARGS="--serversidecar --baseline"
 # Configuration Set1: CPU and memory with mixer enabled
