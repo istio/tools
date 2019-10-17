@@ -9,6 +9,6 @@ verify_ssl = true
 requests = "*"
 pytz = "*"
 bokeh = "*"
-pandas = "*"
+pandas = "==0.24.2"
 numpy = "*"
 

@@ -31,6 +31,7 @@ export DNS_DOMAIN="fake-dns.org"
 export FORTIO_CLIENT_URL=""
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
+export GCS_BUCKET="istio-build/perf"
 
 function setup_metrics() {
   # shellcheck disable=SC2155
@@ -44,23 +45,31 @@ function setup_metrics() {
 }
 
 function collect_metrics() {
-  local GENERATE_GRAPH=$1
-  local PLOT_METRIC=$2
-  CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
+  # shellcheck disable=SC2155
+  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
   pipenv install
-  pipenv run python3 fortio.py $FORTIO_CLIENT_URL --csv_output="$CSV_OUTPUT" --prometheus=$PROMETHEUS_URL \
+  pipenv run python3 fortio.py ${FORTIO_CLIENT_URL} --csv_output="$CSV_OUTPUT" --prometheus=${PROMETHEUS_URL} \
    --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
 mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
 mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
 
-  if [[ "$GENERATE_GRAPH" = true ]];then
-    BENCHMARK_GRAPH="$(mktemp /tmp/benchmark_graph_XXXX.html)"
-    pipenv run python3 graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output="${BENCHMARK_GRAPH}"
-    dt=$(date +'%Y%m%d-%H')
-    RELEASE="$(cut -d'/' -f3 <<<"${CB_GCS_FULL_STAGING_PATH}")"
-    GRAPH_NAME="${RELEASE}.${dt}.${PLOT_METRIC}"
-    gsutil -q cp "${BENCHMARK_GRAPH}" "gs://$CB_GCS_BUILD_PATH/${GRAPH_NAME}"
-  fi
+  gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/benchmark.csv"
+}
+
+function generate_graph() {
+  local PLOT_METRIC=$1
+  pipenv run python3 graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output_dir="${LOCAL_OUTPUT_DIR}"
+}
+
+function get_benchmark_data() {
+  # shellcheck disable=SC2086
+  pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS} ${MIXER_MODE}
+  collect_metrics
+  for metric in "${METRICS[@]}"
+  do
+    generate_graph "${metric}"
+  done
+  gsutil -q cp -r "${LOCAL_OUTPUT_DIR}" "gs://$GCS_BUCKET/${OUTPUT_DIR}/graphs"
 }
 
 RELEASE_TYPE="dev"
@@ -76,30 +85,63 @@ pipenv install
 pushd "${WD}"
 ./setup_test.sh
 popd
+dt=$(date +'%Y%m%d-%H')
+export OUTPUT_DIR="benchmark_data.${dt}.${GIT_SHA}"
+LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
+mkdir -p "${LOCAL_OUTPUT_DIR}"
 
+# Setup fortio and prometheus
 setup_metrics
-echo "Start running perf benchmark test."
-# For adding or modifying configurations, refer to perf/benchmark/README.md
-# Configuration1
-EXTRA_ARGS="--serversidecar --baseline"
-CONN=16
-QPS=500,1000,1500,2000
-DURATION=300
-METRIC="cpu"
-# shellcheck disable=SC2086
-pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
-collect_metrics true ${METRIC}
-METRIC="mem"
-collect_metrics true ${METRIC}
 
-# Configuration2
+echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
+# For adding or modifying configurations, refer to perf/benchmark/README.md
+EXTRA_ARGS="--serversidecar --baseline"
+# Configuration Set1: CPU and memory with mixer enabled
+MIXER_MODE="--mixer_mode mixer"
+CONN=16
+QPS=10,100,500,1000,2000,3000
+DURATION=240
+METRICS=(cpu mem)
+get_benchmark_data
+
+# Configuration Set2: Latency Quantiles with mixer enabled
 CONN=1,2,4,8,16,32,64
 QPS=1000
-METRIC="p90"
-# shellcheck disable=SC2086
-pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS}
-collect_metrics true ${METRIC}
+METRICS=(p50 p90 p99)
+get_benchmark_data
 
-#TODO: Add more configurations, e.g. no mixer vs mixer comparison.
+# Configuration Set3: CPU and memory with mixer disabled
+kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
+pipenv run python3 ./update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f /tmp/meshconfig.yaml
+MIXER_MODE="--mixer_mode nomixer"
+CONN=16
+QPS=10,100,500,1000,2000,3000
+DURATION=240
+METRICS=(cpu mem)
+get_benchmark_data
+
+# Configuration Set4: Latency Quantiles with mixer disabled
+CONN=1,2,4,8,16,32,64
+QPS=1000
+METRICS=(p50 p90 p99)
+get_benchmark_data
+
+# Configuration Set5: CPU and memory with mixerv2 using NullVM.
+kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/metadata-exchange_filter.yaml
+kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml
+MIXER_MODE="--mixer_mode mixerv2-nullvm"
+CONN=16
+QPS=10,100,500,1000,2000,3000
+DURATION=240
+METRICS=(cpu mem)
+get_benchmark_data
+
+# Configuration Set6: Latency Quantiles with mixer v2 using NullVM.
+CONN=1,2,4,8,16,32,64
+QPS=1000
+METRICS=(p50 p90 p99)
+get_benchmark_data
+
+# TODO: Configuration Set5: Flame Graphs
 
 echo "perf benchmark test is done."
