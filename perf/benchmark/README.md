@@ -104,7 +104,7 @@ optional arguments:
 Note:
 - `runner.py` will run all combinations of the parameters given. However, in order to reduce ambiguity when generating the graph, it would be
  better to change one parameter at a time and fix other parameters
-- if you want to run with `--perf` flag to generate a flame graph, please make sure you have the permission to gather perf data, please refer to step 2 of this README: <https://github.com/istio/tools/tree/master/perf/benchmark/flame#setup-perf-tool>
+- if you want to run with `--perf` flag to generate a flame graph, please make sure you have the permission to gather perf data, please refer to step 2 of this [README](https://github.com/istio/tools/tree/master/perf/benchmark/flame#setup-perf-tool)
 
 For example:
 
@@ -146,6 +146,7 @@ python runner.py 1,2,4,8,16,32,64 1000 240 --perf=true
 ```
 
 This will generate corresponding `xxx_perf.data.perf` file with its `.svg` flame graph in the `perf/benchmark/flame` repo.
+Here is the [sample output](https://github.com/istio/tools/tree/master/perf/benchmark/flame/example_flame_graph/example_output)
 
 ## [Optional] Disable Mixer
 
