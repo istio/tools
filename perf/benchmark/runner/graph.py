@@ -76,9 +76,10 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output_dir, show_gr
     else:
         # save as interactive HTML, png and svg.
         save(p)
-        export_png(p, filename=os.path.join(charts_output_dir, fn + ".png"))
-        p.output_backend = "svg"
-        export_svgs(p, filename=os.path.join(charts_output_dir, fn + ".svg"))
+        # TODO: add export back after resolving selenium and phantomjs issue.
+        # export_png(p, filename=os.path.join(charts_output_dir, fn + ".png"))
+        # p.output_backend = "svg"
+        # export_svgs(p, filename=os.path.join(charts_output_dir, fn + ".svg"))
         print("graphs saved at %s" % charts_output_dir)
 
 
