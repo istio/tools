@@ -35,8 +35,9 @@ export GCS_BUCKET="istio-build/perf"
 
 function setup_metrics() {
   # shellcheck disable=SC2155
-  export FORTIO_CLIENT_URL=http://$(kubectl get services -n twopods fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}"):8080
-  if [[ -z "$FORTIO_CLIENT_URL" ]];then
+  INGRESS_IP="$(kubectl get services -n twopods fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}")"
+  export FORTIO_CLIENT_URL=http://${INGRESS_IP}:8080
+  if [[ -z "$INGRESS_IP" ]];then
     kubectl -n twopods port-forward svc/fortioclient 8080:8080 &
     export FORTIO_CLIENT_URL=http://localhost:8080
   fi
