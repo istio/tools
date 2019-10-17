@@ -23,13 +23,22 @@ import shlex
 import uuid
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
+try:
+    from subprocess import getoutput
+except ImportError as ex:
+    # for python2
+    from subprocess import check_output
+
+    def getoutput(cmd, **kwargs):
+        return check_output(shlex.split(cmd), **kwargs)
+
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
 
 def pod_info(filterstr="", namespace="twopods", multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
         namespace=namespace, filterstr=filterstr)
-    op = subprocess.check_output(shlex.split(cmd))
+    op = getoutput(cmd)
     o = json.loads(op)
     items = o['items']
 
@@ -50,7 +59,7 @@ def run_command(command):
 
 
 def run_command_sync(command):
-    op = subprocess.check_output(command, shell=True)
+    op = getoutput(command, shell=True)
     return op.strip()
 
 
@@ -271,7 +280,8 @@ def rc(command):
 def run(args):
     min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
     if args.duration <= min_duration:
-        print("Duration must be greater than {min_duration}".format(min_duration=min_duration))
+        print("Duration must be greater than {min_duration}".format(
+            min_duration=min_duration))
         exit(1)
 
     fortio = Fortio(
@@ -290,7 +300,8 @@ def run(args):
 
     for conn in args.conn:
         for qps in args.qps:
-            fortio.run(conn=conn, qps=qps, duration=args.duration, size=args.size)
+            fortio.run(conn=conn, qps=qps,
+                       duration=args.duration, size=args.size)
 
 
 def csv_to_int(s):
@@ -346,8 +357,10 @@ def get_parser():
         default="http")
 
     define_bool(parser, "baseline", "run baseline for all", False)
-    define_bool(parser, "serversidecar", "run serversidecar-only for all", False)
-    define_bool(parser, "clientsidecar", "run clientsidecar and serversidecar for all", True)
+    define_bool(parser, "serversidecar",
+                "run serversidecar-only for all", False)
+    define_bool(parser, "clientsidecar",
+                "run clientsidecar and serversidecar for all", True)
 
     return parser
 
