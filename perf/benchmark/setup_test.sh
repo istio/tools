@@ -53,6 +53,8 @@ function run_test() {
 
   # remove stdio rules
   kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}"/twopods.yaml
+  kubectl rollout status deployment fortioclient -n twopods --timeout=1m
+  kubectl rollout status deployment fortioserver -n twopods --timeout=1m
   echo "${TMPDIR}"/twopods.yaml
 }
 
