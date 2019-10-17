@@ -58,7 +58,6 @@ Here, `pipenv shell` will create a local Python3 virtual environment, and `pipen
 cd runner
 pipenv shell
 pipenv install
-cd ..
 ```
 
 ## Run performance tests
@@ -74,7 +73,7 @@ The test has three sidecar modes:
 **How to run**:
 
 ```bash
-python runner/runner.py <conn> <qps> <duration> --OPTIONAL-FLAGS
+python runner.py <conn> <qps> <duration> --OPTIONAL-FLAGS
 ```
 
 Required fields:
@@ -101,18 +100,17 @@ optional arguments:
   --ingress INGRESS   run traffic through ingress
   --labels LABELS     extra labels
 ```
-
-Note: If you want to run with optional arguments `--perf`, you need to first `cd` to the `flame` folder.
-
-Note:  `runner.py` will run all combinations of the parameters given. However, in order to reduce ambiguity when generating the graph, it would be
+Note:  
+- `runner.py` will run all combinations of the parameters given. However, in order to reduce ambiguity when generating the graph, it would be
  better to change one parameter at a time and fix other parameters
+- if you want to run with `--perf` flag to generate a flame graph, please make sure you have the permission to gather perf data, please refer to step 2 of this README: https://github.com/istio/tools/tree/master/perf/benchmark/flame#setup-perf-tool
 
 For example:
 
-### Example 1
+### Example 1:
 
 ```bash
-python runner/runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar
+python runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar
 ```
 
 - This will run separate tests for the `both` and `serversidecar` modes
@@ -123,7 +121,7 @@ python runner/runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar
 ### Example 2
 
 ```bash
-python runner/runner.py 16,64 1000,4000 180 --serversidecar --baseline
+python runner.py 16,64 1000,4000 180 --serversidecar --baseline
 ```
 
 - 12 tests total, each for **180** seconds, with all combinations of:
@@ -137,8 +135,15 @@ Example 1 and 2 is to gather the latency results by increasing the number of con
 results, you should increasing the number of QPS, like:
 
 ```bash
-python runner/runner.py 10 100,500,1000,2000,4000 240  --serversidecar --baseline
+python runner.py 10 100,500,1000,2000,4000 240  --serversidecar --baseline
 ```
+
+### Example 4: flame graph
+
+```bash
+python runner.py 1,2,4,8,16,32,64 1000 240 --perf=true
+```
+This will generate corresponding `xxx_perf.data.perf` file with its `.svg` flame graph in the `perf/benchmark/flame` repo.
 
 ## [Optional] Disable Mixer
 
