@@ -107,7 +107,7 @@ Note:
 
 For example:
 
-### Example 1:
+### Example 1
 
 ```bash
 python runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar
