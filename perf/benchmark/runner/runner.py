@@ -22,15 +22,12 @@ import subprocess
 import shlex
 import uuid
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
+import sys
 
-try:
+if sys.version_info.major == 2:
+    from commands import getoutput
+else:
     from subprocess import getoutput
-except ImportError as ex:
-    # for python2
-    from subprocess import check_output
-
-    def getoutput(cmd, **kwargs):
-        return check_output(shlex.split(cmd), **kwargs)
 
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
@@ -55,11 +52,11 @@ def pod_info(filterstr="", namespace="twopods", multi_ok=True):
 
 def run_command(command):
     process = subprocess.Popen(shlex.split(command))
-    return process
+    process.wait()
 
 
 def run_command_sync(command):
-    op = getoutput(command, shell=True)
+    op = getoutput(command)
     return op.strip()
 
 
@@ -156,7 +153,7 @@ class Fortio:
         labels = self.run_id
         labels += "_qps_" + str(qps)
         labels += "_c_" + str(conn)
-        labels += "_" + str(self.size)
+        labels += "_" + str(size)
         # Mixer label
         labels += "_"
         labels += self.mixer_mode
@@ -179,38 +176,34 @@ class Fortio:
                 labels=labels)
 
         if self.run_ingress:
-            p = kubectl_exec(self.client.name, self.ingress(fortio_cmd))
+            kubectl_exec(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
                 run_perf(
                     self.mesh,
                     self.server.name,
                     labels + "_srv_ingress",
                     duration=40)
-            p.wait()
 
         if self.run_serversidecar:
-            p = kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
+            kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
             if self.perf_record:
                 run_perf(
                     self.mesh,
                     self.server.name,
                     labels + "_srv_serveronly",
                     duration=40)
-            p.wait()
 
         if self.run_clientsidecar:
-            p = kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
+            kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
             if self.perf_record:
                 run_perf(
                     self.mesh,
                     self.server.name,
                     labels + "_srv_bothsidecars",
                     duration=40)
-            p.wait()
 
         if self.run_baseline:
-            p = kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
-            p.wait()
+            kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
 
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
@@ -218,7 +211,7 @@ PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
 
 
-def run_perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
+def run_perf(mesh, pod, labels, duration=20):
     filename = labels + "_perf.data"
     filepath = PERFWD + filename
     perfpath = PERFWD + PERFSH
@@ -226,19 +219,16 @@ def run_perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
     # copy executable over
     kubectl_cp(mesh, PERFSH, pod + ":" + perfpath)
 
-    perf = kubectl_exec(
+    kubectl_exec(
         pod,
         "{perf_cmd} {filename} {duration}".format(
             perf_cmd=perfpath,
             filename=filename,
             duration=duration),
-        runfn=runfn,
         container=mesh + "-proxy")
 
-    print(perf)
     kubectl_cp(mesh, pod + ":" + filepath + ".perf", filename + ".perf")
-    run_command_sync("./flame.sh " + filename + ".perf")
-    return perf
+    run_command_sync("../flame/flame.sh " + filename + ".perf")
 
 
 def kubectl_cp(mesh, from_file, to_file):
@@ -249,15 +239,7 @@ def kubectl_cp(mesh, from_file, to_file):
         to_file=to_file,
         mesh=mesh)
     print(cmd)
-    return run_command_sync(cmd)
-
-
-def kubectl_apply(filename, namespace="istio-system"):
-    cmd = "kubectl apply -n {namespace} -f {filename}".format(
-        namespace=namespace,
-        filename=filename)
-    print(cmd)
-    return run_command_sync(cmd)
+    run_command_sync(cmd)
 
 
 def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
@@ -271,7 +253,7 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
         c=c,
         namespace=namespace)
     print(cmd)
-    return runfn(cmd)
+    runfn(cmd)
 
 
 def rc(command):
