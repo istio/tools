@@ -90,6 +90,7 @@ optional arguments:
   --mesh MESH         istio or linkerd, default is istio
   --client CLIENT     where to run the test from
   --server SERVER     pod ip of the server
+  --mixer_mode mixer/nomixer/mixerv2-nullvm  run with mixer enabled(default), mixer disabled and mixer v2
   --perf              also run perf and produce flame graph, default is false
   --baseline          run baseline for all
   --no-baseline       do not run baseline for all
