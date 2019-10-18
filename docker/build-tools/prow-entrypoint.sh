@@ -30,8 +30,9 @@ done
 
 # Authenticate gcloud, allow failures
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
+  # Jobs that need this will fail later and jobs that don't should fail because of this
   gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" || true
-  gcloud auth configure-docker -q
+  gcloud auth configure-docker -q || true
 fi
 
 exec "$@"
