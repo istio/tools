@@ -1,6 +1,6 @@
 # Creating cpu flame graphs for Istio / Envoy
 
-![example](example_flagmegraph.svg)
+![example](example_flame_graph/example_flagmegraph.svg)
 
 [Flame graph](http://www.brendangregg.com/perf.html#FlameGraphs) shows how much time was spent in a particular function.
 1. The width of a stack element (flame) indicates the relative time spent in the function.
