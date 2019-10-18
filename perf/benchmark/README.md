@@ -146,7 +146,7 @@ python runner.py 1,2,4,8,16,32,64 1000 240 --perf=true
 ```
 
 This will generate corresponding `xxx_perf.data.perf` file with its `.svg` flame graph in the `perf/benchmark/flame` repo.
-Here is the [sample output]
+Here is the [sample output](https://github.com/istio/tools/tree/master/perf/benchmark/flame/example_flame_graph/example_output)
 
 ## [Optional] Disable Mixer
 
