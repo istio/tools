@@ -25,7 +25,7 @@
 # Binary tools
 ###############
 
-FROM golang:1.13.2 as binary_tools_context
+FROM golang:1.13.3 as binary_tools_context
 
 # Pinned versions of stuff we pull in
 ENV COUNTERFEITER_VERSION=v6.2.2
