@@ -113,7 +113,7 @@ get_benchmark_data
 
 # Configuration Set3: CPU and memory with mixer disabled
 kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-pipenv run python3 ./update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f /tmp/meshconfig.yaml
+pipenv run python3 ${WD}/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f /tmp/meshconfig.yaml
 MIXER_MODE="--mixer_mode nomixer"
 CONN=16
 QPS=10,100,500,1000,2000,3000
