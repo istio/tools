@@ -17,17 +17,22 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 )
 
 func main() {
 	var report bool
 	var dump bool
 	var csv bool
+	var mirror bool
 	var config string
+
 	flag.BoolVar(&report, "report", false, "Generate a report of all license usage.")
 	flag.BoolVar(&dump, "dump", false, "Generate a dump of all licenses used.")
 	flag.BoolVar(&csv, "csv", false, "Generate a report of all license usage in CSV format.")
+	flag.BoolVar(&mirror, "mirror", false, "Creates a 'licenses' directory with the licenses of all dependencies.")
 	flag.StringVar(&config, "config", "", "Path to config file.")
 	flag.Parse()
 
@@ -69,6 +74,31 @@ func main() {
 					l.analysis.similarityConfidence, state)
 			}
 			fmt.Printf("\n")
+		}
+	} else if mirror {
+		var basePath = "licenses"
+		_ = os.MkdirAll(basePath, 0755)
+		for _, module := range modules {
+			p := path.Join(basePath, module.moduleName)
+			_ = os.MkdirAll(p, 0755)
+
+			if len(module.licenses) > 0 {
+				for _, license := range module.licenses {
+					fp := path.Join(p, path.Base(license.path))
+					err := ioutil.WriteFile(fp, []byte(license.text), 0644)
+					if err != nil {
+						_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write license file to %s: %v\n", fp, err)
+						os.Exit(1)
+					}
+				}
+			} else {
+				fp := path.Join(p, "NONE")
+				err := ioutil.WriteFile(fp, []byte("NO LICENSE FOUND\n"), 0644)
+				if err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write file to %s: %v\n", fp, err)
+					os.Exit(1)
+				}
+			}
 		}
 	} else {
 		var unlicensedModules []*moduleInfo
