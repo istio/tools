@@ -24,10 +24,17 @@ any modules have a restricted or unknown license:
     $ license-lint --config <config file> --report
     ```
 
-1. Dumps. Shows all licenses for all dependencies:
+1. Dump. Shows all licenses for all dependencies:
 
     ```bash
     $ license-lint --config <config file> --dump
+    ```
+
+1. Mirror. Generates a `licenses` directory enumerating all modules and their
+exact license files.
+
+    ```bash
+    $ license-lint --mirror
     ```
 
 The configuration is specified in a YAML file with four stanzas:
