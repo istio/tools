@@ -7,8 +7,8 @@ metadata:
   namespace: istio-prometheus
   labels:
 spec:
-  image: "docker.io/prom/prometheus:v2.8.0"
-  version: v2.8.0
+  image: "docker.io/prom/prometheus:v2.12.0"
+  version: v2.12.0
   retention: 72h
   scrapeInterval: 15s
   serviceAccountName: prometheus
