@@ -49,14 +49,14 @@ function install_prometheus() {
   'kubectl get crds/servicemonitors.monitoring.coreos.com')
   for CMD in "${CMDs_ARR[@]}"
   do
-    ATTEMPTS=0
-    until $CMD || [ $ATTEMPTS -eq 60 ]
+    MAXRETRIES=0
+    until $CMD || [ $MAXRETRIES -eq 60 ]
     do
       $CMD
-      ATTEMPTS=$((ATTEMPTS + 1))
+      MAXRETRIES=$((MAXRETRIES + 1))
       sleep 5
     done
-    if [[ $ATTEMPTS -eq 60 ]]; then
+    if [[ $MAXRETRIES -eq 60 ]]; then
       echo "crds were not created successfully"
       exit 1
     fi

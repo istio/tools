@@ -22,6 +22,12 @@ import subprocess
 import shlex
 import uuid
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
+import sys
+
+if sys.version_info.major == 2:
+    from commands import getoutput
+else:
+    from subprocess import getoutput
 
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
@@ -29,7 +35,7 @@ POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 def pod_info(filterstr="", namespace="twopods", multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
         namespace=namespace, filterstr=filterstr)
-    op = subprocess.check_output(shlex.split(cmd))
+    op = getoutput(cmd)
     o = json.loads(op)
     items = o['items']
 
@@ -46,11 +52,11 @@ def pod_info(filterstr="", namespace="twopods", multi_ok=True):
 
 def run_command(command):
     process = subprocess.Popen(shlex.split(command))
-    return process
+    process.wait()
 
 
 def run_command_sync(command):
-    op = subprocess.check_output(command, shell=True)
+    op = getoutput(command)
     return op.strip()
 
 
@@ -68,7 +74,7 @@ class Fortio:
             duration=None,
             size=None,
             mode="http",
-            mixer=True,
+            mixer_mode="mixer",
             mixer_cache=True,
             perf_record=False,
             server="fortioserver",
@@ -89,8 +95,8 @@ class Fortio:
         self.mode = mode
         self.ns = os.environ.get("NAMESPACE", "twopods")
         # bucket resolution in seconds
-        self.r = "0.00005"   # do we really using this resolution????
-        self.mixer = mixer
+        self.r = "0.00005"
+        self.mixer_mode = mixer_mode
         self.mixer_cache = mixer_cache
         self.perf_record = perf_record
         self.server = pod_info("-lapp=" + server, namespace=self.ns)
@@ -147,12 +153,10 @@ class Fortio:
         labels = self.run_id
         labels += "_qps_" + str(qps)
         labels += "_c_" + str(conn)
-        # TODO add mixer labels back
-        # labels += "_"
-        # labels += "mixer" if self.mixer else "nomixer"
-        # labels += "_"
-        # labels += "mixercache" if self.mixer_cache else "nomixercache"
         labels += "_" + str(size)
+        # Mixer label
+        labels += "_"
+        labels += self.mixer_mode
 
         if self.labels is not None:
             labels += "_" + self.labels
@@ -172,36 +176,34 @@ class Fortio:
                 labels=labels)
 
         if self.run_ingress:
-            p = kubectl(self.client.name, self.ingress(fortio_cmd))
+            kubectl_exec(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
-                perf(self.mesh,
-                     self.server.name,
-                     labels + "_srv_ingress",
-                     duration=40)
-            p.wait()
+                run_perf(
+                    self.mesh,
+                    self.server.name,
+                    labels + "_srv_ingress",
+                    duration=40)
 
         if self.run_serversidecar:
-            p = kubectl(self.client.name, self.serversidecar(fortio_cmd))
+            kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
             if self.perf_record:
-                perf(
+                run_perf(
                     self.mesh,
                     self.server.name,
                     labels + "_srv_serveronly",
                     duration=40)
-            p.wait()
 
         if self.run_clientsidecar:
-            p = kubectl(self.client.name, self.bothsidecar(fortio_cmd))
+            kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
             if self.perf_record:
-                perf(self.mesh,
-                     self.server.name,
-                     labels + "_srv_bothsidecars",
-                     duration=40)
-            p.wait()
+                run_perf(
+                    self.mesh,
+                    self.server.name,
+                    labels + "_srv_bothsidecars",
+                    duration=40)
 
         if self.run_baseline:
-            p = kubectl(self.client.name, self.nosidecar(fortio_cmd))
-            p.wait()
+            kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
 
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
@@ -209,30 +211,27 @@ PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
 
 
-def perf(mesh, pod, labels, duration=20, runfn=run_command_sync):
+def run_perf(mesh, pod, labels, duration=20):
     filename = labels + "_perf.data"
     filepath = PERFWD + filename
     perfpath = PERFWD + PERFSH
 
     # copy executable over
-    kubecp(mesh, PERFSH, pod + ":" + perfpath)
+    kubectl_cp(mesh, PERFSH, pod + ":" + perfpath)
 
-    perf = kubectl(
+    kubectl_exec(
         pod,
         "{perf_cmd} {filename} {duration}".format(
             perf_cmd=perfpath,
             filename=filename,
             duration=duration),
-        runfn=runfn,
         container=mesh + "-proxy")
 
-    print(perf)
-    kubecp(mesh, pod + ":" + filepath + ".perf", filename + ".perf")
-    run_command_sync("./flame.sh " + filename + ".perf")
-    return perf
+    kubectl_cp(mesh, pod + ":" + filepath + ".perf", filename + ".perf")
+    run_command_sync("../flame/flame.sh " + filename + ".perf")
 
 
-def kubecp(mesh, from_file, to_file):
+def kubectl_cp(mesh, from_file, to_file):
     namespace = os.environ.get("NAMESPACE", "twopods")
     cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {mesh}-proxy".format(
         namespace=namespace,
@@ -240,10 +239,10 @@ def kubecp(mesh, from_file, to_file):
         to_file=to_file,
         mesh=mesh)
     print(cmd)
-    return run_command_sync(cmd)
+    run_command_sync(cmd)
 
 
-def kubectl(pod, remote_cmd, runfn=run_command, container=None):
+def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
     namespace = os.environ.get("NAMESPACE", "twopods")
     c = ""
     if container is not None:
@@ -254,7 +253,7 @@ def kubectl(pod, remote_cmd, runfn=run_command, container=None):
         c=c,
         namespace=namespace)
     print(cmd)
-    return runfn(cmd)
+    runfn(cmd)
 
 
 def rc(command):
@@ -271,7 +270,8 @@ def rc(command):
 def run(args):
     min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
     if args.duration <= min_duration:
-        print("Duration must be greater than {min_duration}".format(min_duration=min_duration))
+        print("Duration must be greater than {min_duration}".format(
+            min_duration=min_duration))
         exit(1)
 
     fortio = Fortio(
@@ -286,11 +286,13 @@ def run(args):
         clientsidecar=args.clientsidecar,
         ingress=args.ingress,
         mode=args.mode,
-        mesh=args.mesh)
+        mesh=args.mesh,
+        mixer_mode=args.mixer_mode)
 
     for conn in args.conn:
         for qps in args.qps:
-            fortio.run(conn=conn, qps=qps, duration=args.duration, size=args.size)
+            fortio.run(conn=conn, qps=qps,
+                       duration=args.duration, size=args.size)
 
 
 def csv_to_int(s):
@@ -321,6 +323,10 @@ def get_parser():
         help="istio or linkerd",
         default="istio")
     parser.add_argument(
+        "--mixer_mode",
+        help="run with different mixer configurations: mixer, nomixer, mixerv2",
+        default="mixer")
+    parser.add_argument(
         "--client",
         help="where to run the test from",
         default=None)
@@ -346,8 +352,10 @@ def get_parser():
         default="http")
 
     define_bool(parser, "baseline", "run baseline for all", False)
-    define_bool(parser, "serversidecar", "run serversidecar-only for all", False)
-    define_bool(parser, "clientsidecar", "run clientsidecar and serversidecar for all", True)
+    define_bool(parser, "serversidecar",
+                "run serversidecar-only for all", False)
+    define_bool(parser, "clientsidecar",
+                "run clientsidecar and serversidecar for all", True)
 
     return parser
 
