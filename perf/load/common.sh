@@ -21,6 +21,7 @@ GATEWAY_URL=${SYSTEM_GATEWAY_URL:-$INGRESS_GATEWAY_URL}
 fi
 
 HTTPS=${HTTPS:-"false"}
+H2UPGRADE=${H2UPGRADE:-"false"}
 
 function run_test() {
   local ns=${1:?"namespaces"}
@@ -34,6 +35,7 @@ function run_test() {
           --set domain="${DNS_DOMAIN}" \
           --set ingress="${GATEWAY_URL}" \
           --set https="${HTTPS}" \
+          --set h2upgrade="${H2UPGRADE}" \
           . > "${YAML}"
   echo "Wrote ${YAML}"
 

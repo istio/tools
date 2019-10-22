@@ -1,0 +1,34 @@
+{{- define "h2upgrade" }}
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: {{ .serviceNamePrefix }}{{ .serviceName }}-h2upgrade
+spec:
+  configPatches:
+  - applyTo: CLUSTER
+    match:
+      context: {{ .ctx }}
+      cluster:
+        service: {{ .serviceNamePrefix }}{{ .serviceName }}.{{ .Namespace }}.svc.cluster.local
+    patch:
+      operation: MERGE
+      value: # cluster specification
+        http2_protocol_options: { max_concurrent_streams: 47707 }
+---
+{{- end }}
+
+{{- if .Values.h2upgrade }}
+
+{{- range $i, $svcName := $.Values.services }}
+
+{{- $svc := dict "serviceName" $svcName "serviceNamePrefix" $.Values.serviceNamePrefix "Namespace" $.Values.Namespace }}
+
+{{- $_ := set $svc "ctx" "GATEWAY" }}
+{{- template "h2upgrade" $svc }}
+
+{{- $_ := set $svc "ctx" "SIDECAR_OUTBOUND" }}
+{{- template "h2upgrade" $svc }}
+
+{{- end }} 
+
+{{- end }} # h2upgrade
