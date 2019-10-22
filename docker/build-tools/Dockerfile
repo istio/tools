@@ -156,7 +156,7 @@ RUN tar -xzf /tmp/docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz -
 RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
 
 # Install su-exec which is a tool that operates like sudo without the overhead
-ADD https://github.com/ncopa/su-exec/archive/v0.2.tar.gz /tmp
+ADD https://github.com/ncopa/su-exec/archive/v${SU_EXEC_VERSION}.tar.gz /tmp
 RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
 WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
