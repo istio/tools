@@ -73,6 +73,19 @@ function get_benchmark_data() {
   gsutil -q cp -r "${LOCAL_OUTPUT_DIR}" "gs://$GCS_BUCKET/${OUTPUT_DIR}/graphs"
 }
 
+function exit_handling() {
+  # copy raw data from fortio client pod
+  FORTIO_CLIENT_POD=$(kubectl get pods -n twopods | grep fortioclient | awk '{print $1}')
+  export FORTIO_CLIENT_POD
+  kubectl --namespace twopods cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
+  gsutil -q cp -r /tmp/rawdata "gs://${GCS_BUCKET}/${OUTPUT_DIR}/rawdata"
+  # output information for debugging
+  kubectl logs -n twopods "${FORTIO_CLIENT_POD}" -c captured
+  kubectl top pods "${FORTIO_CLIENT_POD}" --containers -n twopods
+  kubectl describe pods "${FORTIO_CLIENT_POD}" -n twopods -o yaml
+}
+
+
 RELEASE_TYPE="dev"
 TAG=$(curl "https://storage.googleapis.com/istio-build/dev/latest")
 echo "Setup istio release: $TAG"
@@ -93,6 +106,10 @@ mkdir -p "${LOCAL_OUTPUT_DIR}"
 
 # Setup fortio and prometheus
 setup_metrics
+
+# add trap to copy raw data when exiting, also output logging information for debugging
+trap exit_handling ERR
+trap exit_handling EXIT
 
 echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
 # For adding or modifying configurations, refer to perf/benchmark/README.md

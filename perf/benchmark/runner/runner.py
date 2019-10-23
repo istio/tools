@@ -217,7 +217,7 @@ def run_perf(mesh, pod, labels, duration=20):
     perfpath = PERFWD + PERFSH
 
     # copy executable over
-    kubectl_cp(mesh, PERFSH, pod + ":" + perfpath)
+    kubectl_cp(PERFSH, pod + ":" + perfpath, mesh + "-proxy")
 
     kubectl_exec(
         pod,
@@ -227,17 +227,17 @@ def run_perf(mesh, pod, labels, duration=20):
             duration=duration),
         container=mesh + "-proxy")
 
-    kubectl_cp(mesh, pod + ":" + filepath + ".perf", filename + ".perf")
+    kubectl_cp(pod + ":" + filepath + ".perf", filename + ".perf", mesh + "-proxy")
     run_command_sync("../flame/flame.sh " + filename + ".perf")
 
 
-def kubectl_cp(mesh, from_file, to_file):
+def kubectl_cp(from_file, to_file, container):
     namespace = os.environ.get("NAMESPACE", "twopods")
-    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {mesh}-proxy".format(
+    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {container}".format(
         namespace=namespace,
         from_file=from_file,
         to_file=to_file,
-        mesh=mesh)
+        container=container)
     print(cmd)
     run_command_sync(cmd)
 
