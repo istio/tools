@@ -159,7 +159,13 @@ METRICS_SUMMARY_DURATION = 180
 
 def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
     listurl = url + "/fortio/data/"
-    listdata = requests.get(listurl)
+    listdata = requests.Response()
+    try:
+        listdata = requests.get(listurl)
+    except requests.exceptions.RequestException as e:
+        # TODO handling connection refused issue after logging available
+        print(e)
+        sys.exit(1)
     fd, datafile = tempfile.mkstemp(suffix=".json")
     out = os.fdopen(fd, "wt")
     stats = []
