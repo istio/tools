@@ -100,7 +100,7 @@ pushd "${WD}"
 ./setup_test.sh
 popd
 dt=$(date +'%Y%m%d-%H')
-export OUTPUT_DIR="benchmark_data.${dt}.${GIT_SHA}"
+export OUTPUT_DIR="benchmark_data-${GIT_BRANCH}.${dt}.${GIT_SHA}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
 
