@@ -87,7 +87,13 @@ function exit_handling() {
 
 
 RELEASE_TYPE="dev"
-TAG=$(curl "https://storage.googleapis.com/istio-build/dev/latest")
+BRANCH="latest"
+if [ "${GIT_BRANCH}" != "master" ];then
+  BRANCH_NUM=$(echo "$GIT_BRANCH" | cut -f2 -d-)
+  BRANCH="${BRANCH_NUM}-dev"
+fi
+# different branch tag resides in dev release directory like /latest, /1.4-dev, /1.5-dev etc.
+TAG=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
 echo "Setup istio release: $TAG"
 pushd "${ROOT}/istio-install"
    ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
