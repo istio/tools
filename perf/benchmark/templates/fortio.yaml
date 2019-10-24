@@ -134,8 +134,8 @@ spec:
         - containerPort: 8079
           protocol: TCP
         resources:
-{{- if $.Values.appresources }}
-{{ toYaml $.Values.appresources | indent 10 }}
+{{- if $.Values.appresources1 }}
+{{ toYaml $.Values.appresources1 | indent 10 }}
 {{- end }}
       - name: shell
         securityContext:
@@ -164,8 +164,8 @@ spec:
         - -redirect-port
         - "8078"
         resources:
-{{- if $.Values.appresources }}
-{{ toYaml $.Values.appresources | indent 10 }}
+{{- if $.Values.appresources1 }}
+{{ toYaml $.Values.appresources1 | indent 10 }}
 {{- end }}
 ---
 apiVersion: authentication.istio.io/v1alpha1
