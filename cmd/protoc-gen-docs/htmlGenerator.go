@@ -500,7 +500,7 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 				}
 
 				g.emit("<td><code>", fieldName, "</code></td>")
-				g.emit("<td><code>", g.linkify(field.FieldType, fieldTypeName), "</code></td>")
+				g.emit("<td><code>", g.linkify(field.FieldType, fieldTypeName, true), "</code></td>")
 				g.emit("<td>")
 
 				g.generateComment(field.Location(), field.GetName())
@@ -762,7 +762,7 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 				typeName := match[end+2 : len(match)-1]
 
 				if o, ok := g.model.AllDescByName["."+typeName]; ok {
-					return g.linkify(o, linkName)
+					return g.linkify(o, linkName, false)
 				}
 
 				if l, ok := wellKnownTypes[typeName]; ok {
@@ -850,7 +850,7 @@ var wellKnownTypes = map[string]string{
 	"google.protobuf.Struct":      "https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#struct",
 }
 
-func (g *htmlGenerator) linkify(o protomodel.CoreDesc, name string) string {
+func (g *htmlGenerator) linkify(o protomodel.CoreDesc, name string, onlyLastComponent bool) string {
 	if o == nil {
 		return name
 	}
@@ -859,9 +859,17 @@ func (g *htmlGenerator) linkify(o protomodel.CoreDesc, name string) string {
 		return name
 	}
 
+	displayName := name
+	if onlyLastComponent {
+		index := strings.LastIndex(name, ".")
+		if index > 0 && index < len(name)-1 {
+			displayName = name[index+1:]
+		}
+	}
+
 	known := wellKnownTypes[g.absoluteName(o)]
 	if known != "" {
-		return "<a href=\"" + known + "\">" + name + "</a>"
+		return "<a href=\"" + known + "\">" + displayName + "</a>"
 	}
 
 	if !o.IsHidden() {
@@ -874,11 +882,11 @@ func (g *htmlGenerator) linkify(o protomodel.CoreDesc, name string) string {
 		}
 
 		if loc != "" && (g.currentFrontMatterProvider == nil || loc != g.currentFrontMatterProvider.Matter.HomeLocation) {
-			return "<a href=\"" + loc + "#" + normalizeID(protomodel.DottedName(o)) + "\">" + name + "</a>"
+			return "<a href=\"" + loc + "#" + normalizeID(protomodel.DottedName(o)) + "\">" + displayName + "</a>"
 		}
 	}
 
-	return "<a href=\"#" + normalizeID(g.relativeName(o)) + "\">" + name + "</a>"
+	return "<a href=\"#" + normalizeID(g.relativeName(o)) + "\">" + displayName + "</a>"
 }
 
 func (g *htmlGenerator) warn(loc protomodel.LocationDescriptor, lineOffset int, format string, args ...interface{}) {
@@ -943,7 +951,7 @@ func (g *htmlGenerator) fieldTypeName(field *protomodel.FieldDescriptor) string 
 		msg := field.FieldType.(*protomodel.MessageDescriptor)
 		if msg.GetOptions().GetMapEntry() {
 			keyType := g.fieldTypeName(msg.Fields[0])
-			valType := g.linkify(msg.Fields[1].FieldType, g.fieldTypeName(msg.Fields[1]))
+			valType := g.linkify(msg.Fields[1].FieldType, g.fieldTypeName(msg.Fields[1]), true)
 			return "map&lt;" + keyType + ",&nbsp;" + valType + "&gt;"
 		}
 		name = g.relativeName(field.FieldType)

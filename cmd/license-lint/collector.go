@@ -142,7 +142,15 @@ func getDependentModules() ([]module, error) {
 		return nil, fmt.Errorf("unable to decode module list: %v", err)
 	}
 
-	return modules, nil
+	// evict the main module since we only want dependencies
+	var result []module
+	for _, m := range modules {
+		if !m.Main {
+			result = append(result, m)
+		}
+	}
+
+	return result, nil
 }
 
 // the set of license files we recognize
@@ -160,14 +168,19 @@ var supportedLicenseFilenames = map[string]struct{}{
 }
 
 // find all license files in the given directory tree
-func findLicenseFiles(path string) ([]string, error) {
+func findLicenseFiles(basepath string) ([]string, error) {
 	var result []string
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(basepath, func(path string, info os.FileInfo, err error) error {
 		if info == nil {
 			return fmt.Errorf("unable to get information on %s: %v", path, err)
 		}
 
-		if !info.IsDir() {
+		if info.IsDir() {
+			if path == filepath.Join(basepath, "licenses") {
+				// don't recurse into this since it holds upstream licenses
+				return filepath.SkipDir
+			}
+		} else {
 			name := strings.ToUpper(info.Name())
 			if _, ok := supportedLicenseFilenames[name]; ok {
 				result = append(result, path)
