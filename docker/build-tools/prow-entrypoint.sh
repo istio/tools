@@ -35,4 +35,9 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   gcloud auth configure-docker -q || true
 fi
 
-exec "$@"
+"$@"
+EXIT_VALUE=$?
+
+docker system prune -f || true
+
+exit "${EXIT_VALUE}"
