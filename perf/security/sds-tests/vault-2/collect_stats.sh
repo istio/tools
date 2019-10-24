@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 NAMESPACE=${NAMESPACE:?"specify the namespace for running the test"}
 CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
 
@@ -8,9 +22,9 @@ num_curl=0
 num_succeed=0
 
 
-while [ 1 ]
+while true
 do
-  sleep_pods=$(kubectl get pods -n ${NAMESPACE} -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster ${CLUSTER})
+  sleep_pods=$(kubectl get pods -n "${NAMESPACE}" -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' -l app=sleep --cluster "${CLUSTER}")
   pods=()
 
   while read -r line; do
@@ -23,8 +37,8 @@ do
 
   for pod in "${pods[@]}"
   do
-    resp_code=$(kubectl exec -it -n ${NAMESPACE} "${pod}" -c sleep --cluster ${CLUSTER} -- curl -s -o /dev/null -w "%{http_code}" httpbin:8000/headers)
-    if [ ${resp_code} = 200 ]; then
+    resp_code=$(kubectl exec -it -n "${NAMESPACE}" "${pod}" -c sleep --cluster "${CLUSTER}" -- curl -s -o /dev/null -w "%{http_code}" httpbin:8000/headers)
+    if [ "${resp_code}" = 200 ]; then
       num_succeed=$((num_succeed+1))
     else
       echo "curl from the pod ${pod} failed"
@@ -35,9 +49,9 @@ do
   done
 
   echo "Delete and recreate the pods"
-  kubectl delete -n ${NAMESPACE} -f temp-workload-injected.yaml --cluster ${CLUSTER}
+  kubectl delete -n "${NAMESPACE}" -f temp-workload-injected.yaml --cluster "${CLUSTER}"
   sleep 5
-  kubectl apply -n ${NAMESPACE} -f temp-workload-injected.yaml --cluster ${CLUSTER}
+  kubectl apply -n "${NAMESPACE}" -f temp-workload-injected.yaml --cluster "${CLUSTER}"
   echo "Wait 90 seconds for the deployment to be ready ..."
   sleep 90
 
