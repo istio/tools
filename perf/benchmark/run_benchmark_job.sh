@@ -75,16 +75,13 @@ function get_benchmark_data() {
 
 function exit_handling() {
   # copy raw data from fortio client pod
-  FORTIO_CLIENT_POD=$(kubectl get pods -n twopods | grep fortioclient | awk '{print $1}')
-  export FORTIO_CLIENT_POD
   kubectl --namespace twopods cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
   gsutil -q cp -r /tmp/rawdata "gs://${GCS_BUCKET}/${OUTPUT_DIR}/rawdata"
   # output information for debugging
   kubectl logs -n twopods "${FORTIO_CLIENT_POD}" -c captured
   kubectl top pods "${FORTIO_CLIENT_POD}" --containers -n twopods
-  kubectl describe pods "${FORTIO_CLIENT_POD}" -n twopods -o yaml
+  kubectl describe pods "${FORTIO_CLIENT_POD}" -n twopods
 }
-
 
 RELEASE_TYPE="dev"
 BRANCH="latest"
@@ -112,6 +109,10 @@ mkdir -p "${LOCAL_OUTPUT_DIR}"
 
 # Setup fortio and prometheus
 setup_metrics
+FORTIO_CLIENT_POD=$(kubectl get pods -n twopods | grep fortioclient | awk '{print $1}')
+export FORTIO_CLIENT_POD
+FORTIO_SERVER_POD=$(kubectl get pods -n twopods | grep fortioserver | awk '{print $1}')
+export FORTIO_SERVER_POD
 
 # add trap to copy raw data when exiting, also output logging information for debugging
 trap exit_handling ERR
@@ -133,6 +134,9 @@ CONN=1,2,4,8,16,32,64
 QPS=1000
 METRICS=(p50 p90 p99)
 get_benchmark_data
+# restart proxy after each group(two sets)
+kubectl exec -it -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+kubectl exec -it -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
 
 # Configuration Set3: CPU and memory with mixer disabled
 kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
@@ -149,6 +153,9 @@ CONN=1,2,4,8,16,32,64
 QPS=1000
 METRICS=(p50 p90 p99)
 get_benchmark_data
+# restart proxy after each group
+kubectl exec -it -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+kubectl exec -it -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
 
 # Configuration Set5: CPU and memory with mixerv2 using NullVM.
 kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/metadata-exchange_filter.yaml
@@ -165,6 +172,9 @@ CONN=1,2,4,8,16,32,64
 QPS=1000
 METRICS=(p50 p90 p99)
 get_benchmark_data
+# restart proxy after each group
+kubectl exec -it -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+kubectl exec -it -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
 
 # TODO: Configuration Set5: Flame Graphs
 
