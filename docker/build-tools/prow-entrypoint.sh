@@ -38,6 +38,7 @@ fi
 "$@"
 EXIT_VALUE=$?
 
-docker system prune -f || true
+# Cleanup all docker artifacts
+docker ps -aq | xargs -r docker rm -f || true
 
 exit "${EXIT_VALUE}"
