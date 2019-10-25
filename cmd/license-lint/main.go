@@ -77,25 +77,30 @@ func main() {
 		}
 	} else if mirror {
 		var basePath = "licenses"
-		_ = os.MkdirAll(basePath, 0755)
+
 		for _, module := range modules {
 			p := path.Join(basePath, module.moduleName)
 			_ = os.MkdirAll(p, 0755)
 
 			if len(module.licenses) > 0 {
 				for _, license := range module.licenses {
-					fp := path.Join(p, path.Base(license.path))
-					err := ioutil.WriteFile(fp, []byte(license.text), 0644)
+
+					targetPath := path.Join(p, license.path[len(module.path)+1:])
+					targetDir := path.Dir(targetPath)
+
+					_ = os.MkdirAll(targetDir, 0755)
+
+					err := ioutil.WriteFile(targetPath, []byte(license.text), 0644)
 					if err != nil {
-						_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write license file to %s: %v\n", fp, err)
+						_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write license file to %s: %v\n", targetPath, err)
 						os.Exit(1)
 					}
 				}
 			} else {
-				fp := path.Join(p, "NONE")
-				err := ioutil.WriteFile(fp, []byte("NO LICENSE FOUND\n"), 0644)
+				targetPath := path.Join(p, "NONE")
+				err := ioutil.WriteFile(targetPath, []byte("NO LICENSE FOUND\n"), 0644)
 				if err != nil {
-					_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write file to %s: %v\n", fp, err)
+					_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write file to %s: %v\n", targetPath, err)
 					os.Exit(1)
 				}
 			}
