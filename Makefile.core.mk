@@ -27,6 +27,10 @@ lint: lint-all
 
 fmt: format-go format-python
 
+gen: mirror-licenses tidy-go
+
+gen-check: gen check-clean-repo
+
 containers:
 	@gcloud auth configure-docker -q	# enable docker to authenticate with gcr.io, needed for prow
 	@cd docker/build-tools && ./build-and-push.sh
