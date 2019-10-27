@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Istio Performance Dashboard</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="all,follow">
+    <!-- Bootstrap CSS-->
+    <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
+    <!-- Font Awesome CSS-->
+    <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
+    <!-- Fontastic Custom icon font-->
+    <link rel="stylesheet" href="css/fontastic.css">
+    <!-- Google fonts - Roboto -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <!-- jQuery Circle-->
+    <link rel="stylesheet" href="css/grasp_mobile_progress_circle-1.0.0.min.css">
+    <!-- Custom Scrollbar-->
+    <link rel="stylesheet" href="vendor/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.css">
+    <!-- theme stylesheet-->
+    <link rel="stylesheet" href="css/style.blue.css" id="theme-stylesheet">
+    <link rel="shortcut icon" href="img/logo.png" />
+  </head>
+  <body>
+    <!-- Side Navbar -->
+    <nav class="side-navbar">
+      <div class="side-navbar-wrapper">
+        <!-- Sidebar Header -->
+        <div class="sidenav-header d-flex align-items-center justify-content-center">
+          <div class="sidenav-header-inner text-center">
+            <img src="img/logo.png" alt="istio logo" class="img-fluid rounded-circle">
+            <h2 class="h5">Istio Performance</h2><span>Dashboard</span>
+          </div>
+        </div>
+        <!-- Sidebar Navigation Menus-->
+        <div class="main-menu">
+          <h5 class="sidenav-heading">Main</h5>
+          <ul id="side-main-menu" class="side-menu list-unstyled">
+            <li class="active"><a href="index.html"><i class="fa fa-home"></i>Overview</a></li>
+            <li><a href="html/release-build.html"> <i class="fa fa-list-ol"></i>Release Builds</a></li>
+            <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
+              <i class="fa fa-area-chart"></i>Benchmarks</a>
+              <ul id="dropDown" class="collapse list-unstyled">
+                <li><a href="html/cpu-memory.html"></i>CPU & Memory Usage</a></li>
+                <li><a href="html/latency.html"></i>Latency Quantiles </a></li>
+                <li><a href="html/flamegraph.html"></i>Flame Graph</a></li>
+                <li><a href="html/microbenchmarks.html"></i>Micro Benchmarks</a></li>
+              </ul>
+            </li>
+            <li><a href="html/configuration.html"><i class="fa fa-cogs"></i>Configurations</a></li>
+            <li><a href="html/alert.html"><i class="fa fa-exclamation-triangle"></i>Regression Alerts</a></li>
+            <li><a href="html/artifacts.html"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="page">
+      <!-- navbar-->
+      <header class="header">
+        <nav class="navbar">
+          <div class="container-fluid">
+            <div class="navbar-holder d-flex align-items-center justify-content-between">
+              <div class="navbar-header"><a id="toggle-btn" href="#" class="menu-btn"><i class="icon-bars"></i></a><a href="index.html" class="navbar-brand">
+                  <div class="brand-text d-none d-md-inline-block"><strong class="text-primary">Dashboard</strong></div></a></div>
+            </div>
+          </div>
+        </nav>
+      </header>
+      <!-- Breadcrumb-->
+      <div class="breadcrumb-holder">
+        <div class="container-fluid">
+          <ul class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">Overview</a></li>
+          </ul>
+        </div>
+      </div>
+      <!-- Header Section-->
+      <section class="dashboard-header section-padding">
+        <div class="container-fluid">
+          <div class="row d-flex align-items-md-stretch">
+            <!-- Istio Overview List-->
+            <div class="col-lg-6 col-md-3">
+              <div class="card">
+                <div class="card-header">
+                  <h2>Istio Project Overview</h2>
+                </div>
+                <div class="card-body">
+                  <p>Note: This page may take up to 30 minutes to show new runs. Deleted or modified Benchmarks (ex: changing benchmark name) will propagate within 24 hours.</p>
+                  <ul>
+                    <li>Last run: 18 minutes ago</li>
+                    <li>Runs: 7057</li>
+                    <li>Analysis failures: 84</li>
+                    <ul>
+                      <li>Untriaged: 30</li>
+                      <li>Regressions: 12</li>
+                      <li>Ignored: 14</li>
+                      <li>False positives: 10</li>
+                      <li>Type unknown: 18</li>
+                    </ul>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <!-- Performance Tests Build Stats-->
+            <div class="col-lg-6 col-md-3">
+              <div class="card project-progress">
+                <div class="card-header">
+                  <h2>Performance Benchmark Builds Statistics</h2>
+                </div>
+                <div class="card-body">
+                  <p>Statistics about last 7 days.</p>
+                  <div class="pie-chart">
+                    <canvas id="pieChart" width="300" height="300"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-header section-padding">
+        <div class="container-fluid">
+          <div class="row d-flex align-items-md-stretch">
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h2>Active Benchmarks</h2>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table table-striped " >
+                        <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Benchmark Name</th>
+                          <th>Untriaged Failures</th>
+                          <th>Total Failures</th>
+                          <th>Run Count</th>
+                          <th>Last Run</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                          <th scope="row">1</th>
+                          <td><a href="https://github.com/istio/tools/tree/master/perf/benchmark" target="_blank">Istio Latency Benchmark</a></td>
+                          <td>7970</td>
+                          <td>3100</td>
+                          <td>820</td>
+                          <td>2 hours ago</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">2</th>
+                          <td><a href="https://github.com/istio/tools/tree/master/perf/benchmark" target="_blank">Istio CPU and Memory Usage Benchmark</a></td>
+                          <td>2</td>
+                          <td>13</td>
+                          <td>74</td>
+                          <td>36 minutes ago</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">3</th>
+                          <td><a href="https://github.com/istio/tools/tree/master/isotope" target="_blank">Istio Topology Performance Benchmark</a></td>
+                          <td>7</td>
+                          <td>7</td>
+                          <td>833</td>
+                          <td>4 days ago</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">4</th>
+                          <td><a href="https://github.com/istio/tools/tree/master/perf/load" target="_blank">Load Testing</a></td>
+                          <td>0</td>
+                          <td>0</td>
+                          <td>205</td>
+                          <td>18 minutes ago</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">5</th>
+                          <td><a href="https://github.com/istio/tools/tree/master/perf/benchmark/flame/" target="_blank">Flame Graph Benchmark</a></td>
+                          <td>0</td>
+                          <td>0</td>
+                          <td>7</td>
+                          <td>2 days ago</td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- footer -->
+      <footer class="main-footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-sm-12 text-right">
+              <p>Istio Performance WG &copy; 2019</p>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <!-- JavaScript files-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/popper.js/umd/popper.min.js"> </script>
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="js/grasp_mobile_progress_circle-1.0.0.min.js"></script>
+    <script src="vendor/jquery.cookie/jquery.cookie.js"> </script>
+    <script src="vendor/chart.js/Chart.min.js"></script>
+    <script src="vendor/jquery-validation/jquery.validate.min.js"></script>
+    <script src="vendor/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script src="js/overview.js"></script>
+    <!-- Main File-->
+    <script src="js/front.js"></script>
+  </body>
+</html>
