@@ -61,6 +61,7 @@ spec:
   # The job takes on average 5 mins to complete, scaling 20 deployments with a 10-20s sleep in between
   # We schedule the job for every 10min, giving us 5min on/off
   schedule: "*/10 * * * *"
+  startingDeadlineSeconds: 120s
   jobTemplate:
     spec:
       template:
