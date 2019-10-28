@@ -25,9 +25,9 @@ MARKDOWN_LINT_WHITELIST=mysite.com/mypage.html,github.com/istio/istio/releases/d
 
 lint: lint-all
 
-fmt: format-go format-python
+fmt: format-go tidy-go format-python
 
-gen: mirror-licenses tidy-go
+gen: tidy-go mirror-licenses
 
 gen-check: gen check-clean-repo
 
