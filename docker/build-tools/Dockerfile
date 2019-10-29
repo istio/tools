@@ -54,6 +54,7 @@ ENV PROTOTOOL_VERSION=7df3b957ffe3d09dc57fe4e1eb96694614db8c7a
 ENV SHELLCHECK_VERSION=v0.7.0
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.95
+ENV YQ_VERSION=2.4.0
 
 WORKDIR /tmp
 ENV GOPATH=/tmp/go
@@ -145,6 +146,11 @@ RUN mv /tmp/hugo ${OUTDIR}/usr/bin
 ADD https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz /tmp
 RUN tar -xf /tmp/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp
 RUN mv /tmp/linux-amd64/helm ${OUTDIR}/usr/bin
+
+# yq doesn't support go modules, so install the binary instead
+ADD https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 /tmp
+RUN mv /tmp/yq_linux_amd64 ${OUTDIR}/usr/bin/yq
+RUN chmod 555 ${OUTDIR}/usr/bin/yq
 
 # Kubectl
 ADD https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl ${OUTDIR}/usr/bin/kubectl
