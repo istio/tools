@@ -27,6 +27,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var statusOutput = `
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions: null`
+
 // Interim solution to build the Istio CRDs before we move to KubeBuilder.
 func (x *builder) getCRD(crdCfg CrdConfig, schema interface{}) apiextv1beta1.CustomResourceDefinition {
 	// boilerplate OrderMap for CRD spec
@@ -72,8 +80,7 @@ func (x *builder) getCRD(crdCfg CrdConfig, schema interface{}) apiextv1beta1.Cus
 	}
 
 	// marshal to an empty field in the output
-	crd.Status.Conditions = []apiextv1beta1.CustomResourceDefinitionCondition{}
-	crd.Status.StoredVersions = []string{}
+	crd.Status = apiextv1beta1.CustomResourceDefinitionStatus{}
 
 	return crd
 }
