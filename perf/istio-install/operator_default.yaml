@@ -75,7 +75,6 @@ spec:
               apiVersion: apps/v1
               kind: Deployment
               name: istio-mixer.telemetry
-          replicaCount: 1
           resources:
             limits:
               cpu: 5800m
@@ -89,12 +88,6 @@ spec:
       pilot:
         enabled: true
         k8s:
-          env:
-            - name: PILOT_PUSH_THROTTLE
-              value: "50"
-            - name: GODEBUG
-              value: gctrace=2
-          replicaCount: 2
           resources:
             limits:
               cpu: 5800m
@@ -127,8 +120,6 @@ spec:
         type: LoadBalancer
     global:
       controlPlaneSecurityEnabled: false
-      imagePullPolicy: Always
-      k8sIngressSelector: ingressgateway
       meshExpansion:
         enabled: true
         useILB: true
@@ -139,7 +130,6 @@ spec:
       podDNSSearchNamespaces:
         - global
         - '{{ valueOrDefault .DeploymentMeta.Namespace "default" }}.global'
-      refreshInterval: 30s
       sds:
         enabled: true
         udsPath: unix:/var/run/sds/uds_path
@@ -160,13 +150,10 @@ spec:
               type: prometheus
               url: http://istio-prometheus.istio-prometheus:9090
       enabled: true
-    ingress:
-      enabled: false
     istiocoredns:
       enabled: true
     kiali:
       enabled: false
-      tag: latest
     mixer:
       telemetry:
         sessionAffinityEnabled: false
@@ -188,10 +175,8 @@ spec:
         limits:
           memory: 256Mi
         requests:
-          cpu: 500m
+          cpu: 250m
           memory: 256Mi
-    servicegraph:
-      enabled: false
     tracing:
       enabled: true
       jaeger:
