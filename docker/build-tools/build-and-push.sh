@@ -16,9 +16,13 @@
 
 # support other container tools, e.g. podman
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
-HUB=gcr.io/istio-testing
-VERSION=$(date +%Y-%m-%dT%H-%M-%S)
 
-${CONTAINER_CLI} build -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:latest" .
+HUB=${HUB:-gcr.io/istio-testing}
+DATE=$(date +%Y-%m-%dT%H-%M-%S)
+BRANCH=$(git branch --show-current || echo "master")
+VERSION="${BRANCH}-${DATE}"
+
+${CONTAINER_CLI} build -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
+
 ${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
-${CONTAINER_CLI} push "${HUB}/build-tools:latest"
+${CONTAINER_CLI} push "${HUB}/build-tools:${BRANCH}-latest"
