@@ -78,9 +78,9 @@ function exit_handling() {
   kubectl --namespace twopods cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
   gsutil -q cp -r /tmp/rawdata "gs://${GCS_BUCKET}/${OUTPUT_DIR}/rawdata"
   # output information for debugging
-  kubectl logs -n twopods "${FORTIO_CLIENT_POD}" -c captured
-  kubectl top pods "${FORTIO_CLIENT_POD}" --containers -n twopods
-  kubectl describe pods "${FORTIO_CLIENT_POD}" -n twopods
+  kubectl logs -n twopods "${FORTIO_CLIENT_POD}" -c captured || true
+  kubectl top pods --containers -n twopods || true
+  kubectl describe pods "${FORTIO_CLIENT_POD}" -n twopods || true
 }
 
 RELEASE_TYPE="dev"
@@ -140,7 +140,7 @@ kubectl exec -it -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http:/
 
 # Configuration Set3: CPU and memory with mixer disabled
 kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f /tmp/meshconfig.yaml
+pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
 MIXER_MODE="--mixer_mode nomixer"
 CONN=16
 QPS=10,100,500,1000,2000,3000
@@ -158,8 +158,8 @@ kubectl exec -it -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http:/
 kubectl exec -it -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
 
 # Configuration Set5: CPU and memory with mixerv2 using NullVM.
-kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/metadata-exchange_filter.yaml
-kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml
+kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml
+kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
 MIXER_MODE="--mixer_mode mixerv2-nullvm"
 CONN=16
 QPS=10,100,500,1000,2000,3000
