@@ -4,7 +4,7 @@
 
 # Tools
 
-This repository contains tools useful in building Istio.
+This repository contains tools that are useful in building Istio.
 
 ## Performance Testing
 
