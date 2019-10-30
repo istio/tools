@@ -26,23 +26,13 @@ mkdir -p "${WD}/tmp"
 
 release="${1:?"release"}"
 
-if [[ "${release}" == *-latest ]];then
-  # shellcheck disable=SC2086
-  release=$(curl -f -L https://storage.googleapis.com/istio-prerelease/daily-build/${release}.txt)
-  # shellcheck disable=SC2181
-  if [[ $? -ne 0 ]];then
-    echo "${release} branch does not exist"
-    exit 1
-  fi
-fi
-
 shift
 
 function download() {
   local DIRNAME="$1"
   local release="$2"
 
-  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  local url="https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-linux.tar.gz"
   # shellcheck disable=SC2236
   if [[ -n "${RELEASE_URL}" ]];then
     url="${RELEASE_URL}"
@@ -151,8 +141,8 @@ function install_istio() {
           "$WD/setup_prometheus.sh" ${DIRNAME}
       fi
       if [[ -n "${MIXERLESS}" ]]; then
-        kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/metadata-exchange_filter.yaml
-        kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml
+        kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml
+        kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
       fi
   fi
 
