@@ -17,6 +17,12 @@
 # set -x
 # Creates a standard GKE cluster for testing.
 
+# shellcheck disable=SC2086
+WD=$(dirname $0)
+# shellcheck disable=SC2086
+WD=$(cd $WD; pwd)
+
+
 # get default GKE cluster version for zone
 function default_gke_version() {
   local zone=${1:?"zone is required"}
@@ -41,8 +47,13 @@ function default_gke_version() {
 PROJECT_ID=${PROJECT_ID:?"project id is required"}
 CLUSTER_NAME=${1:?"cluster name is required"}
 
+
 # Optional params
 ZONE=${ZONE:-us-central1-a}
+# specify REGION to create a regional cluster
+
+# Specify GCP_SA to create and use a specific service account.
+# GCP_SA
 
 # Sizing
 DISK_SIZE=${DISK_SIZE:-64}
@@ -54,6 +65,11 @@ MAXPODS_PER_NODE=100
 
 # Labels and version
 ISTIO_VERSION=${ISTIO_VERSION:?"Istio version label is required"}
+
+if [[ -n "${GCP_SA}" ]];then
+  "${WD}/create_sa.sh" "${GCP_SA}"
+fi
+
 DEFAULT_GKE_VERSION=$(default_gke_version "${ZONE}")
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]];then
@@ -77,9 +93,22 @@ SCOPES="${SCOPES_FULL}"
 ISTIO_VERSION=$(echo "${ISTIO_VERSION}" | sed 's/\./_/g')
 
 function gc() {
+  # shellcheck disable=SC2236
+  if [[ -n "${REGION}" ]];then
+    ZZ="--region ${REGION}"
+  else
+    ZZ="--zone ${ZONE}"
+  fi
+
+  SA=""
+  # shellcheck disable=SC2236
+  if [[ -n "${GCP_SA}" ]];then
+    SA="--identity-namespace=${PROJECT_ID}.svc.id.goog --service-account=${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com --workload-metadata-from-node=EXPOSED"
+  fi
+
   # shellcheck disable=SC2048
   # shellcheck disable=SC2086
-  echo $*
+  echo gcloud $* ${ZZ} ${SA}
 
   # shellcheck disable=SC2236
   if [[ -n "${DRY_RUN}" ]];then
@@ -88,7 +117,7 @@ function gc() {
 
   # shellcheck disable=SC2086
   # shellcheck disable=SC2048
-  gcloud $*
+  gcloud $* ${ZZ} ${SA}
 }
 
 NETWORK_SUBNET="--create-subnetwork name=${CLUSTER_NAME}-subnet"
@@ -107,7 +136,6 @@ fi
 gc beta container \
   --project "${PROJECT_ID}" \
   clusters create "${CLUSTER_NAME}" \
-  --zone "${ZONE}" \
   --no-enable-basic-auth --cluster-version "${GKE_VERSION}" \
   --machine-type "${MACHINE_TYPE}" --image-type "COS" --disk-type "pd-standard" --disk-size "${DISK_SIZE}" \
   --scopes "${SCOPES}" \
@@ -117,4 +145,4 @@ gc beta container \
   ${NETWORK_SUBNET} \
   --default-max-pods-per-node "${MAXPODS_PER_NODE}" \
   --addons "${ADDONS}" \
-  --enable-network-policy --enable-autoupgrade --enable-autorepair --labels test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
+  --enable-network-policy --enable-autoupgrade --enable-autorepair --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
