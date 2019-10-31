@@ -43,6 +43,6 @@ GCP_SA=${1:?"Name of the gcp service account to bind"}
 
 gc iam service-accounts create "${GCP_SA}"
 
-for role in compute.networkViewer logging.logWriter monitoring.metricWriter storage.objectViewer cloudtrace.user; do
+for role in compute.networkViewer logging.logWriter monitoring.metricWriter storage.objectViewer cloudtrace.agent; do
 	gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/${role}" --member "serviceAccount:${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 done
