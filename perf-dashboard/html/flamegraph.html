@@ -111,7 +111,7 @@
         <div class="container-fluid">
           <ul class="breadcrumb">
             <li class="breadcrumb-item"><a href="../index.html">Overview</a></li>
-            <li class="breadcrumb-item">Benchmarks</a></li>
+            <li class="breadcrumb-item">Benchmarks</li>
             <li class="breadcrumb-item active">Flame Graph</li>
           </ul>
         </div>
@@ -119,78 +119,16 @@
       <section class="charts">
         <div class="container-fluid">
           <!-- Page Header-->
-          <header> 
+          <header>
             <h1 class="h3 display">Flame Graph</h1>
           </header>
           <div class="row">
             <div class="col-lg-12">
-              <div class="card line-chart-example">
-                <div class="card-header d-flex align-items-center">
-                  <h4>Istio CPU Flame Graph</h4>
-                </div>
-                <div class="card-body">
-                  <div class="container">
-                    <div id="chart">
-                    </div>
-                    <hr>
-                    <div id="details">
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <img src="../data/flame.svg" alt="abc">
             </div>
           </div>
         </div>
       </section>
-
-
-      <!-- D3.js -->
-      <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
-
-      <!-- d3-tip -->
-      <script type="text/javascript" src=https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js></script>
-
-      <!-- d3-flamegraph -->
-      <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/spiermar/d3-flame-graph@2.0.3/dist/d3-flamegraph.min.js"></script>
-
-      <script type="text/javascript">
-        var flameGraph = d3.flamegraph()
-                .width(960)
-                .cellHeight(18)
-                .transitionDuration(750)
-                .minFrameSize(5)
-                .transitionEase(d3.easeCubic)
-                .title("")
-                .onClick(onClick)
-                .differential(true)
-                .selfValue(true);
-        var details = document.getElementById("details");
-        flameGraph.setDetailsElement(details);
-        d3.json("data/differential.json", function(error, data) {
-          if (error) return console.warn(error);
-          d3.select("#chart")
-                  .datum(data)
-                  .call(flameGraph);
-        });
-        document.getElementById("form").addEventListener("submit", function(event){
-          event.preventDefault();
-          search();
-        });
-        function search() {
-          var term = document.getElementById("term").value;
-          flameGraph.search(term);
-        }
-        function clear() {
-          document.getElementById('term').value = '';
-          flameGraph.clear();
-        }
-        function resetZoom() {
-          flameGraph.resetZoom();
-        }
-        function onClick(d) {
-          console.info("Clicked on " + d.data.name);
-        }
-      </script>
 
       <!-- footer -->
       <footer class="main-footer">
