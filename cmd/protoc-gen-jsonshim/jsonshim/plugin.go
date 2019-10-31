@@ -15,6 +15,7 @@
 package jsonshim
 
 import (
+	"fmt"
 	"path"
 	"strings"
 
@@ -71,7 +72,11 @@ func (p *Plugin) Generate(file *generator.FileDescriptor) {
 			continue
 		}
 
+		fmt.Println("======")
+
 		typeName := generator.CamelCaseSlice(message.TypeName())
+
+		fmt.Println(typeName)
 
 		// Generate MarshalJSON() method for this type
 		p.P(`// MarshalJSON is a custom marshaler supporting oneof fields for `, typeName)

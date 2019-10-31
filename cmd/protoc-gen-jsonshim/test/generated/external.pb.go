@@ -3,29 +3,68 @@
 
 package generated
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
-import io "io"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
+
 type ExternalOneof struct {
 	FieldC uint32 `protobuf:"varint,1,opt,name=fieldC,proto3" json:"fieldC,omitempty"`
 	// Types that are valid to be assigned to FieldD:
 	//	*ExternalOneof_Name
 	//	*ExternalOneof_Number
-	FieldD isExternalOneof_FieldD `protobuf_oneof:"fieldD"`
+	FieldD               isExternalOneof_FieldD `protobuf_oneof:"fieldD"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
 }
 
-func (m *ExternalOneof) Reset()                    { *m = ExternalOneof{} }
-func (m *ExternalOneof) String() string            { return proto.CompactTextString(m) }
-func (*ExternalOneof) ProtoMessage()               {}
-func (*ExternalOneof) Descriptor() ([]byte, []int) { return fileDescriptorExternal, []int{0} }
+func (m *ExternalOneof) Reset()         { *m = ExternalOneof{} }
+func (m *ExternalOneof) String() string { return proto.CompactTextString(m) }
+func (*ExternalOneof) ProtoMessage()    {}
+func (*ExternalOneof) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2b7268f56e161ef5, []int{0}
+}
+func (m *ExternalOneof) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ExternalOneof) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ExternalOneof.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ExternalOneof) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExternalOneof.Merge(m, src)
+}
+func (m *ExternalOneof) XXX_Size() int {
+	return m.Size()
+}
+func (m *ExternalOneof) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExternalOneof.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ExternalOneof proto.InternalMessageInfo
 
 type isExternalOneof_FieldD interface {
 	isExternalOneof_FieldD()
@@ -71,78 +110,39 @@ func (m *ExternalOneof) GetNumber() uint32 {
 	return 0
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ExternalOneof) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ExternalOneof_OneofMarshaler, _ExternalOneof_OneofUnmarshaler, _ExternalOneof_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ExternalOneof) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ExternalOneof_Name)(nil),
 		(*ExternalOneof_Number)(nil),
 	}
 }
 
-func _ExternalOneof_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ExternalOneof)
-	// fieldD
-	switch x := m.FieldD.(type) {
-	case *ExternalOneof_Name:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Name)
-	case *ExternalOneof_Number:
-		_ = b.EncodeVarint(3<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(uint64(x.Number))
-	case nil:
-	default:
-		return fmt.Errorf("ExternalOneof.FieldD has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ExternalOneof_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ExternalOneof)
-	switch tag {
-	case 2: // fieldD.name
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.FieldD = &ExternalOneof_Name{x}
-		return true, err
-	case 3: // fieldD.number
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.FieldD = &ExternalOneof_Number{uint32(x)}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ExternalOneof_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ExternalOneof)
-	// fieldD
-	switch x := m.FieldD.(type) {
-	case *ExternalOneof_Name:
-		n += proto.SizeVarint(2<<3 | proto.WireBytes)
-		n += proto.SizeVarint(uint64(len(x.Name)))
-		n += len(x.Name)
-	case *ExternalOneof_Number:
-		n += proto.SizeVarint(3<<3 | proto.WireVarint)
-		n += proto.SizeVarint(uint64(x.Number))
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
-}
-
 func init() {
 	proto.RegisterType((*ExternalOneof)(nil), "istio.tools.test.ExternalOneof")
 }
+
+func init() { proto.RegisterFile("external.proto", fileDescriptor_2b7268f56e161ef5) }
+
+var fileDescriptor_2b7268f56e161ef5 = []byte{
+	// 162 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4b, 0xad, 0x28, 0x49,
+	0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0xc8, 0x2c, 0x2e, 0xc9,
+	0xcc, 0xd7, 0x2b, 0xc9, 0xcf, 0xcf, 0x29, 0xd6, 0x2b, 0x49, 0x2d, 0x2e, 0x51, 0x4a, 0xe4, 0xe2,
+	0x75, 0x85, 0xaa, 0xf1, 0xcf, 0x4b, 0xcd, 0x4f, 0x13, 0x12, 0xe3, 0x62, 0x4b, 0xcb, 0x4c, 0xcd,
+	0x49, 0x71, 0x96, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0d, 0x82, 0xf2, 0x84, 0x44, 0xb8, 0x58, 0xf2,
+	0x12, 0x73, 0x53, 0x25, 0x98, 0x14, 0x18, 0x35, 0x38, 0x3d, 0x18, 0x82, 0xc0, 0x3c, 0x21, 0x09,
+	0x2e, 0xb6, 0xbc, 0xd2, 0xdc, 0xa4, 0xd4, 0x22, 0x09, 0x66, 0x90, 0x6a, 0x0f, 0x86, 0x20, 0x28,
+	0xdf, 0x89, 0x03, 0x6a, 0x8e, 0x8b, 0x93, 0xf8, 0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31,
+	0x3e, 0x78, 0x24, 0xc7, 0x18, 0xc5, 0x99, 0x9e, 0x9a, 0x97, 0x5a, 0x94, 0x58, 0x92, 0x9a, 0x92,
+	0xc4, 0x06, 0x76, 0x94, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0xa6, 0x1b, 0x27, 0x84, 0xa6, 0x00,
+	0x00, 0x00,
+}
+
 func (m *ExternalOneof) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -150,50 +150,75 @@ func (m *ExternalOneof) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *ExternalOneof) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ExternalOneof) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.FieldC != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintExternal(dAtA, i, uint64(m.FieldC))
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.FieldD != nil {
-		nn1, err := m.FieldD.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size := m.FieldD.Size()
+			i -= size
+			if _, err := m.FieldD.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
 		}
-		i += nn1
 	}
-	return i, nil
+	if m.FieldC != 0 {
+		i = encodeVarintExternal(dAtA, i, uint64(m.FieldC))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *ExternalOneof_Name) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	dAtA[i] = 0x12
-	i++
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *ExternalOneof_Name) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.Name)
+	copy(dAtA[i:], m.Name)
 	i = encodeVarintExternal(dAtA, i, uint64(len(m.Name)))
-	i += copy(dAtA[i:], m.Name)
-	return i, nil
+	i--
+	dAtA[i] = 0x12
+	return len(dAtA) - i, nil
 }
 func (m *ExternalOneof_Number) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	dAtA[i] = 0x18
-	i++
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *ExternalOneof_Number) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	i = encodeVarintExternal(dAtA, i, uint64(m.Number))
-	return i, nil
+	i--
+	dAtA[i] = 0x18
+	return len(dAtA) - i, nil
 }
 func encodeVarintExternal(dAtA []byte, offset int, v uint64) int {
+	offset -= sovExternal(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *ExternalOneof) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	if m.FieldC != 0 {
@@ -202,10 +227,16 @@ func (m *ExternalOneof) Size() (n int) {
 	if m.FieldD != nil {
 		n += m.FieldD.Size()
 	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
 	return n
 }
 
 func (m *ExternalOneof_Name) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	l = len(m.Name)
@@ -213,6 +244,9 @@ func (m *ExternalOneof_Name) Size() (n int) {
 	return n
 }
 func (m *ExternalOneof_Number) Size() (n int) {
+	if m == nil {
+		return 0
+	}
 	var l int
 	_ = l
 	n += 1 + sovExternal(uint64(m.Number))
@@ -220,14 +254,7 @@ func (m *ExternalOneof_Number) Size() (n int) {
 }
 
 func sovExternal(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozExternal(x uint64) (n int) {
 	return sovExternal(uint64((x << 1) ^ uint64((int64(x) >> 63))))
@@ -247,7 +274,7 @@ func (m *ExternalOneof) Unmarshal(dAtA []byte) error {
 			}
 			b := dAtA[iNdEx]
 			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
+			wire |= uint64(b&0x7F) << shift
 			if b < 0x80 {
 				break
 			}
@@ -275,7 +302,7 @@ func (m *ExternalOneof) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.FieldC |= (uint32(b) & 0x7F) << shift
+				m.FieldC |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -294,7 +321,7 @@ func (m *ExternalOneof) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= (uint64(b) & 0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -304,6 +331,9 @@ func (m *ExternalOneof) Unmarshal(dAtA []byte) error {
 				return ErrInvalidLengthExternal
 			}
 			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthExternal
+			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -323,7 +353,7 @@ func (m *ExternalOneof) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= (uint32(b) & 0x7F) << shift
+				v |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -338,9 +368,13 @@ func (m *ExternalOneof) Unmarshal(dAtA []byte) error {
 			if skippy < 0 {
 				return ErrInvalidLengthExternal
 			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthExternal
+			}
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
 			iNdEx += skippy
 		}
 	}
@@ -404,8 +438,11 @@ func skipExternal(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			iNdEx += length
 			if length < 0 {
+				return 0, ErrInvalidLengthExternal
+			}
+			iNdEx += length
+			if iNdEx < 0 {
 				return 0, ErrInvalidLengthExternal
 			}
 			return iNdEx, nil
@@ -436,6 +473,9 @@ func skipExternal(dAtA []byte) (n int, err error) {
 					return 0, err
 				}
 				iNdEx = start + next
+				if iNdEx < 0 {
+					return 0, ErrInvalidLengthExternal
+				}
 			}
 			return iNdEx, nil
 		case 4:
@@ -454,20 +494,3 @@ var (
 	ErrInvalidLengthExternal = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowExternal   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("external.proto", fileDescriptorExternal) }
-
-var fileDescriptorExternal = []byte{
-	// 162 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4b, 0xad, 0x28, 0x49,
-	0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0xc8, 0x2c, 0x2e, 0xc9,
-	0xcc, 0xd7, 0x2b, 0xc9, 0xcf, 0xcf, 0x29, 0xd6, 0x2b, 0x49, 0x2d, 0x2e, 0x51, 0x4a, 0xe4, 0xe2,
-	0x75, 0x85, 0xaa, 0xf1, 0xcf, 0x4b, 0xcd, 0x4f, 0x13, 0x12, 0xe3, 0x62, 0x4b, 0xcb, 0x4c, 0xcd,
-	0x49, 0x71, 0x96, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0d, 0x82, 0xf2, 0x84, 0x44, 0xb8, 0x58, 0xf2,
-	0x12, 0x73, 0x53, 0x25, 0x98, 0x14, 0x18, 0x35, 0x38, 0x3d, 0x18, 0x82, 0xc0, 0x3c, 0x21, 0x09,
-	0x2e, 0xb6, 0xbc, 0xd2, 0xdc, 0xa4, 0xd4, 0x22, 0x09, 0x66, 0x90, 0x6a, 0x0f, 0x86, 0x20, 0x28,
-	0xdf, 0x89, 0x03, 0x6a, 0x8e, 0x8b, 0x93, 0xf8, 0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31,
-	0x3e, 0x78, 0x24, 0xc7, 0x18, 0xc5, 0x99, 0x9e, 0x9a, 0x97, 0x5a, 0x94, 0x58, 0x92, 0x9a, 0x92,
-	0xc4, 0x06, 0x76, 0x94, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0xa6, 0x1b, 0x27, 0x84, 0xa6, 0x00,
-	0x00, 0x00,
-}
