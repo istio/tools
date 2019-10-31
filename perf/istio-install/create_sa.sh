@@ -21,7 +21,7 @@ set -e
 # shellcheck disable=SC2086
 WD=$(dirname $0)
 # shellcheck disable=SC2086
-WD=$(cd $WD; pwd)
+WD=$(cd $WD || exit; pwd)
 
 function gc() {
   # shellcheck disable=SC2048

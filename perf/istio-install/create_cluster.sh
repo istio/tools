@@ -20,8 +20,7 @@
 # shellcheck disable=SC2086
 WD=$(dirname $0)
 # shellcheck disable=SC2086
-WD=$(cd $WD; pwd)
-
+WD=$(cd $WD || exit; pwd)
 
 # get default GKE cluster version for zone
 function default_gke_version() {
