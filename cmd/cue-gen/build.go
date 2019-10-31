@@ -149,16 +149,16 @@ func loadConfig(filename string) (c *Config, err error) {
 func fileFromDir(dir, filename string) string {
 	if filename != "" {
 		filename = filename[:len(filename)-len(".proto")]
-		return filename + ".json"
+		return filename + ".gen.json"
 	}
 	comps := strings.Split(dir, "/")
 	if len(comps) == 0 {
-		return "istio.json"
+		return "istio.gen.json"
 	}
 
 	comps = append([]string{"istio"}, comps...)
 
-	return strings.Join(append(comps, "json"), ".")
+	return strings.Join(append(comps, "gen.json"), ".")
 }
 
 func (c *Config) completeBuildPlan() error {
