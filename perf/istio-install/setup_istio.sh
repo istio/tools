@@ -112,8 +112,13 @@ function install_istio() {
 
   local FILENAME="${DIRNAME}/${release}.yml"
 
+  # cluster_name=gke_mixologist-142215_us-central1-a_cls1401 --> remove
+  local cluster_name=$(kubectl config get-contexts $(kubectl config current-context) --no-headers | awk '{print $3}')
+  local meshID=$(echo ${cluster_name} | awk -F "_" '{printf "%s/%s/%s", $2, $3, $4}')
   # if release_url is not overridden then daily builds require
   # tag and hub overrides
+
+  opts+=" --set global.meshID=${meshID}"
 
   if [[ -z "${RELEASE_URL}" ]];then
     opts+=" --set global.tag=${release}"

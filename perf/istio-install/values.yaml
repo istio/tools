@@ -6,10 +6,17 @@ global:
     enabled: true
     useILB: true
 
+  # setup mesh id to identify cluster
+  # "${PROJECT_ID}/${ZONE}/${CLUSTER}"
+  meshID: PROJECT_ID/central1-a/CLUSTER
+
+
   proxy:
     enableCoreDump: true
     concurrency: 2
     accessLogFile: ""
+    # set proxy.image to the fully qualified image name.
+    #image: gcr.io/mixologist-142215/proxyv2:1.4.0x2
     resources:
       requests:
         cpu: 250m
