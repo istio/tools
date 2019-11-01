@@ -57,6 +57,16 @@ mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_m
   gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/benchmark.csv"
 }
 
+function collect_flame_graph() {
+    cd "${WD}/flame/flameoutput/"
+    # shellcheck disable=SC2044
+    # shellcheck disable=SC2006
+    for i in `find . -name "*.svg"`
+    do
+      gsutil -q cp "${i}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/flamegraphs"
+    done
+}
+
 function generate_graph() {
   local PLOT_METRIC=$1
   pipenv run python3 graph.py "${CSV_OUTPUT}" "${PLOT_METRIC}" --charts_output_dir="${LOCAL_OUTPUT_DIR}"
@@ -66,6 +76,11 @@ function get_benchmark_data() {
   # shellcheck disable=SC2086
   pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS} ${FLAME_GRAGH_ARG} ${MIXER_MODE}
   collect_metrics
+
+  if ${FLAME_GRAGH_ARG} = "--perf=true"; then
+    collect_flame_graph
+  fi
+
   for metric in "${METRICS[@]}"
   do
     generate_graph "${metric}"
