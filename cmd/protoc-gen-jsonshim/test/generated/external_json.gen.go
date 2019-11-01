@@ -3,25 +3,27 @@
 
 package generated
 
-import bytes "bytes"
-import github_com_gogo_protobuf_jsonpb "github.com/gogo/protobuf/jsonpb"
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	bytes "bytes"
+	fmt "fmt"
+	github_com_gogo_protobuf_jsonpb "github.com/gogo/protobuf/jsonpb"
+	proto "github.com/gogo/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
-// MarshalJSON is a custom marshaler supporting oneof fields for ExternalOneof
-func (this *ExternalOneof) MarshalJSON() ([]byte, error) {
+// MarshalJSON is a custom marshaler for ExternalSimple
+func (this *ExternalSimple) MarshalJSON() ([]byte, error) {
 	str, err := ExternalMarshaler.MarshalToString(this)
 	return []byte(str), err
 }
 
-// UnmarshalJSON is a custom unmarshaler supporting oneof fields for ExternalOneof
-func (this *ExternalOneof) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON is a custom unmarshaler for ExternalSimple
+func (this *ExternalSimple) UnmarshalJSON(b []byte) error {
 	return ExternalUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 

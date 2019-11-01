@@ -3,36 +3,60 @@
 
 package generated
 
-import bytes "bytes"
-import github_com_gogo_protobuf_jsonpb "github.com/gogo/protobuf/jsonpb"
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	bytes "bytes"
+	fmt "fmt"
+	github_com_gogo_protobuf_jsonpb "github.com/gogo/protobuf/jsonpb"
+	proto "github.com/gogo/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
-// MarshalJSON is a custom marshaler supporting oneof fields for SimpleOneof
-func (this *SimpleOneof) MarshalJSON() ([]byte, error) {
+// MarshalJSON is a custom marshaler for Simple
+func (this *Simple) MarshalJSON() ([]byte, error) {
 	str, err := TypesMarshaler.MarshalToString(this)
 	return []byte(str), err
 }
 
-// UnmarshalJSON is a custom unmarshaler supporting oneof fields for SimpleOneof
-func (this *SimpleOneof) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON is a custom unmarshaler for Simple
+func (this *Simple) UnmarshalJSON(b []byte) error {
 	return TypesUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
-// MarshalJSON is a custom marshaler supporting oneof fields for NestedOneof_Nested
-func (this *NestedOneof_Nested) MarshalJSON() ([]byte, error) {
+// MarshalJSON is a custom marshaler for SimpleWithMap
+func (this *SimpleWithMap) MarshalJSON() ([]byte, error) {
 	str, err := TypesMarshaler.MarshalToString(this)
 	return []byte(str), err
 }
 
-// UnmarshalJSON is a custom unmarshaler supporting oneof fields for NestedOneof_Nested
-func (this *NestedOneof_Nested) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON is a custom unmarshaler for SimpleWithMap
+func (this *SimpleWithMap) UnmarshalJSON(b []byte) error {
+	return TypesUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+}
+
+// MarshalJSON is a custom marshaler for ReferencedMap
+func (this *ReferencedMap) MarshalJSON() ([]byte, error) {
+	str, err := TypesMarshaler.MarshalToString(this)
+	return []byte(str), err
+}
+
+// UnmarshalJSON is a custom unmarshaler for ReferencedMap
+func (this *ReferencedMap) UnmarshalJSON(b []byte) error {
+	return TypesUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+}
+
+// MarshalJSON is a custom marshaler for ImportedReference
+func (this *ImportedReference) MarshalJSON() ([]byte, error) {
+	str, err := TypesMarshaler.MarshalToString(this)
+	return []byte(str), err
+}
+
+// UnmarshalJSON is a custom unmarshaler for ImportedReference
+func (this *ImportedReference) UnmarshalJSON(b []byte) error {
 	return TypesUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
