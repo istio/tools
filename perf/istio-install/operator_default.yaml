@@ -178,6 +178,6 @@ spec:
           cpu: 250m
           memory: 256Mi
     tracing:
-      enabled: true
+      enabled: false
       jaeger:
         enabled: true
