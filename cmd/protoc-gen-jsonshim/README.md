@@ -30,12 +30,12 @@ for an example of the genrated code.
 package v1alpha3 // import "istio.io/api/networking/v1alpha3"
 
 import (
-	bytes "bytes"
-	fmt "fmt"
-	github_com_gogo_protobuf_jsonpb "github.com/gogo/protobuf/jsonpb"
-	proto "github.com/gogo/protobuf/proto"
-	_ "google.golang.org/genproto/googleapis/api/annotations"
-	math "math"
+    bytes "bytes"
+    fmt "fmt"
+    github_com_gogo_protobuf_jsonpb "github.com/gogo/protobuf/jsonpb"
+    proto "github.com/gogo/protobuf/proto"
+    _ "google.golang.org/genproto/googleapis/api/annotations"
+    math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -45,61 +45,61 @@ var _ = math.Inf
 
 // MarshalJSON is a custom marshaler for Gateway
 func (this *Gateway) MarshalJSON() ([]byte, error) {
-	str, err := GatewayMarshaler.MarshalToString(this)
-	return []byte(str), err
+    str, err := GatewayMarshaler.MarshalToString(this)
+    return []byte(str), err
 }
 
 // UnmarshalJSON is a custom unmarshaler for Gateway
 func (this *Gateway) UnmarshalJSON(b []byte) error {
-	return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+    return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
 // MarshalJSON is a custom marshaler for Gateway_SelectorEntry
 func (this *Gateway_SelectorEntry) MarshalJSON() ([]byte, error) {
-	str, err := GatewayMarshaler.MarshalToString(this)
-	return []byte(str), err
+    str, err := GatewayMarshaler.MarshalToString(this)
+    return []byte(str), err
 }
 
 // UnmarshalJSON is a custom unmarshaler for Gateway_SelectorEntry
 func (this *Gateway_SelectorEntry) UnmarshalJSON(b []byte) error {
-	return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+    return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
 // MarshalJSON is a custom marshaler for Server
 func (this *Server) MarshalJSON() ([]byte, error) {
-	str, err := GatewayMarshaler.MarshalToString(this)
-	return []byte(str), err
+    str, err := GatewayMarshaler.MarshalToString(this)
+    return []byte(str), err
 }
 
 // UnmarshalJSON is a custom unmarshaler for Server
 func (this *Server) UnmarshalJSON(b []byte) error {
-	return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+    return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
 // MarshalJSON is a custom marshaler for Server_TLSOptions
 func (this *Server_TLSOptions) MarshalJSON() ([]byte, error) {
-	str, err := GatewayMarshaler.MarshalToString(this)
-	return []byte(str), err
+    str, err := GatewayMarshaler.MarshalToString(this)
+    return []byte(str), err
 }
 
 // UnmarshalJSON is a custom unmarshaler for Server_TLSOptions
 func (this *Server_TLSOptions) UnmarshalJSON(b []byte) error {
-	return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+    return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
 // MarshalJSON is a custom marshaler for Port
 func (this *Port) MarshalJSON() ([]byte, error) {
-	str, err := GatewayMarshaler.MarshalToString(this)
-	return []byte(str), err
+    str, err := GatewayMarshaler.MarshalToString(this)
+    return []byte(str), err
 }
 
 // UnmarshalJSON is a custom unmarshaler for Port
 func (this *Port) UnmarshalJSON(b []byte) error {
-	return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+    return GatewayUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
 var (
-	GatewayMarshaler   = &github_com_gogo_protobuf_jsonpb.Marshaler{}
-	GatewayUnmarshaler = &github_com_gogo_protobuf_jsonpb.Unmarshaler{}
+    GatewayMarshaler   = &github_com_gogo_protobuf_jsonpb.Marshaler{}
+    GatewayUnmarshaler = &github_com_gogo_protobuf_jsonpb.Unmarshaler{}
 )
 ```
