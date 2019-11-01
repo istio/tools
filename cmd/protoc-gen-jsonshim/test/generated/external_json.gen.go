@@ -16,14 +16,25 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
-// MarshalJSON is a custom marshaler supporting oneof fields for ExternalOneof
-func (this *ExternalOneof) MarshalJSON() ([]byte, error) {
+// MarshalJSON is a custom marshaler for ExternalSimple
+func (this *ExternalSimple) MarshalJSON() ([]byte, error) {
 	str, err := ExternalMarshaler.MarshalToString(this)
 	return []byte(str), err
 }
 
-// UnmarshalJSON is a custom unmarshaler supporting oneof fields for ExternalOneof
-func (this *ExternalOneof) UnmarshalJSON(b []byte) error {
+// UnmarshalJSON is a custom unmarshaler for ExternalSimple
+func (this *ExternalSimple) UnmarshalJSON(b []byte) error {
+	return ExternalUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+}
+
+// MarshalJSON is a custom marshaler for ExternalSimple_ExternalNested
+func (this *ExternalSimple_ExternalNested) MarshalJSON() ([]byte, error) {
+	str, err := ExternalMarshaler.MarshalToString(this)
+	return []byte(str), err
+}
+
+// UnmarshalJSON is a custom unmarshaler for ExternalSimple_ExternalNested
+func (this *ExternalSimple_ExternalNested) UnmarshalJSON(b []byte) error {
 	return ExternalUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
