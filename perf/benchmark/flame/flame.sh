@@ -39,7 +39,8 @@ FILENAME=$(basename "${FILE}")
 BASE=$(echo "${FILENAME}" | cut -d '.' -f 1)
 SVGNAME="${BASE}.svg"
 
-"${FLAMEDIR}/stackcollapse-perf.pl" "${FILE}" | c++filt -n | "${FLAMEDIR}/flamegraph.pl" --cp > "${SVGNAME}"
+mkdir -p "${WD}/flameoutput"
+"${FLAMEDIR}/stackcollapse-perf.pl" "${FILE}" | c++filt -n | "${FLAMEDIR}/flamegraph.pl" --cp > "./flameoutput/${SVGNAME}"
 
 echo "Wrote ${SVGNAME}"
 if [[ -n "${BUCKET}" ]];then
