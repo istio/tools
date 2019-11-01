@@ -38,17 +38,6 @@ func (this *SimpleWithMap) UnmarshalJSON(b []byte) error {
 	return TypesUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
-// MarshalJSON is a custom marshaler for SimpleWithMap_Nested
-func (this *SimpleWithMap_Nested) MarshalJSON() ([]byte, error) {
-	str, err := TypesMarshaler.MarshalToString(this)
-	return []byte(str), err
-}
-
-// UnmarshalJSON is a custom unmarshaler for SimpleWithMap_Nested
-func (this *SimpleWithMap_Nested) UnmarshalJSON(b []byte) error {
-	return TypesUnmarshaler.Unmarshal(bytes.NewReader(b), this)
-}
-
 // MarshalJSON is a custom marshaler for ReferencedMap
 func (this *ReferencedMap) MarshalJSON() ([]byte, error) {
 	str, err := TypesMarshaler.MarshalToString(this)

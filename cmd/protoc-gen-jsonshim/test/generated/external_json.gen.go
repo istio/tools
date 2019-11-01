@@ -27,17 +27,6 @@ func (this *ExternalSimple) UnmarshalJSON(b []byte) error {
 	return ExternalUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
-// MarshalJSON is a custom marshaler for ExternalSimple_ExternalNested
-func (this *ExternalSimple_ExternalNested) MarshalJSON() ([]byte, error) {
-	str, err := ExternalMarshaler.MarshalToString(this)
-	return []byte(str), err
-}
-
-// UnmarshalJSON is a custom unmarshaler for ExternalSimple_ExternalNested
-func (this *ExternalSimple_ExternalNested) UnmarshalJSON(b []byte) error {
-	return ExternalUnmarshaler.Unmarshal(bytes.NewReader(b), this)
-}
-
 var (
 	ExternalMarshaler   = &github_com_gogo_protobuf_jsonpb.Marshaler{}
 	ExternalUnmarshaler = &github_com_gogo_protobuf_jsonpb.Unmarshaler{}

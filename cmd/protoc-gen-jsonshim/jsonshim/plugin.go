@@ -71,8 +71,13 @@ func (p *Plugin) Generate(file *generator.FileDescriptor) {
 			continue
 		}
 
-		// skip maps in protos
+		// skip maps in protos.
 		if message.Options != nil && message.Options.GetMapEntry() {
+			continue
+		}
+
+		// skip non top-level message with no oneof fields.
+		if len(message.TypeName()) > 1 && len(message.GetOneofDecl()) == 0 {
 			continue
 		}
 
