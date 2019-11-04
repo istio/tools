@@ -22,7 +22,7 @@ DATE=$(date +%Y-%m-%dT%H-%M-%S)
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 VERSION="${BRANCH}-${DATE}"
 
-${CONTAINER_CLI} build -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
+${CONTAINER_CLI} build --build-arg "ISTIO_TOOLS_BRANCH=${BRANCH}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
 
 ${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
 ${CONTAINER_CLI} push "${HUB}/build-tools:${BRANCH}-latest"
