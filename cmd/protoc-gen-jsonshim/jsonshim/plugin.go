@@ -30,7 +30,7 @@ func init() {
 const FileNameSuffix = "_json.gen.go"
 
 // Plugin is a protoc-gen-gogo plugin that creates MarshalJSON() and
-// UnmarshalJSON() functions for protobuf types that use oneof fields.
+// UnmarshalJSON() functions for protobuf types.
 type Plugin struct {
 	*generator.Generator
 	generator.PluginImports
@@ -67,14 +67,19 @@ func (p *Plugin) Generate(file *generator.FileDescriptor) {
 	unmarshalerName := generator.FileName(file) + "Unmarshaler"
 	for _, message := range file.Messages() {
 		// check to make sure something was generated for this type
-		if !gogoproto.HasTypeDecl(file.FileDescriptorProto, message.DescriptorProto) || len(message.GetOneofDecl()) == 0 {
+		if !gogoproto.HasTypeDecl(file.FileDescriptorProto, message.DescriptorProto) {
+			continue
+		}
+
+		// skip maps in protos.
+		if message.Options != nil && message.Options.GetMapEntry() {
 			continue
 		}
 
 		typeName := generator.CamelCaseSlice(message.TypeName())
 
 		// Generate MarshalJSON() method for this type
-		p.P(`// MarshalJSON is a custom marshaler supporting oneof fields for `, typeName)
+		p.P(`// MarshalJSON is a custom marshaler for `, typeName)
 		p.P(`func (this *`, typeName, `) MarshalJSON() ([]byte, error) {`)
 		p.In()
 		p.P(`str, err := `, marshalerName, `.MarshalToString(this)`)
@@ -83,7 +88,7 @@ func (p *Plugin) Generate(file *generator.FileDescriptor) {
 		p.P(`}`)
 
 		// Generate UnmarshalJSON() method for this type
-		p.P(`// UnmarshalJSON is a custom unmarshaler supporting oneof fields for `, typeName)
+		p.P(`// UnmarshalJSON is a custom unmarshaler for `, typeName)
 		p.P(`func (this *`, typeName, `) UnmarshalJSON(b []byte) error {`)
 		p.In()
 		p.P(`return `, unmarshalerName, `.Unmarshal(`, bytesPkg.Use(), `.NewReader(b), this)`)

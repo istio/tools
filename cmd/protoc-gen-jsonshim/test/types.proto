@@ -20,40 +20,35 @@ option go_package = "generated";
 
 import "external.proto";
 
-// ensure no MarshalJSON/UnmarshalJSON fuctions are created
-message NoOneof {
+// Simple case
+message Simple {
     uint32 fieldA = 1;
     string fieldB = 2;
-}
-
-// verify simple case: message with oneof
-message SimpleOneof {
-    oneof fieldA {
-        string name = 1;
-        uint32 number = 2;
+    oneof fieldC {
+        string name = 3;
+        uint32 number = 4;
     }
 }
 
-// verify nested case: message with nested message with oneof
-message NestedOneof {
+// Simple case with map and map field should not have MarshalJSON/UnmarshalJSON
+message SimpleWithMap {
     uint32 fieldA = 1;
+    string fieldB = 2;
+    map<string, string> fieldC = 3;
     message Nested {
-        oneof OneOf {
-            string name = 1;
-            uint32 number = 2;
-        }
+        map<string, string> nestedFieldD = 1;
     }
-    Nested fieldB = 2;
+    Nested fieldD = 4;
 }
 
-// verify no MarshalJSON/UnmarshalJSON functions are created for referenced oneof
-message ReferencedOneof {
+// verify no MarshalJSON/UnmarshalJSON functions are created for referenced map
+message ReferencedMap {
     string fieldA = 1;
-    NestedOneof.Nested fieldB = 2;
+    SimpleWithMap.Nested fieldB = 2;
 }
 
-// verify no MarshalJSON/UnmarshalJSON functions are created for imported oneof
+// verify no MarshalJSON/UnmarshalJSON functions are created for imported map
 message ImportedReference {
     uint32 fieldA = 1;
-    ExternalOneof fieldB = 2;
+    ExternalSimple fieldB = 2;
 }
