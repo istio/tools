@@ -1,0 +1,19 @@
+# Configuration Set1: CPU and memory with mixer enabled
+mixer_mode: "mixer"
+conn:
+    - 16
+qps:
+    - 10
+    - 100
+    - 500
+    - 1000
+    - 2000
+    - 3000
+duration: 240
+size: 1024
+metrics:
+    - cpu
+    - mem
+perf_record: false
+run_serversidecar: true
+run_baseline: true

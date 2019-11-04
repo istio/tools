@@ -73,11 +73,16 @@ The test has three sidecar modes:
 
 **How to run**:
 
+1. run with CLI argument directly
 ```bash
-python runner.py <conn> <qps> <duration> --OPTIONAL-FLAGS
+python runner.py --conn <conn> --qps <qps> --duration <duration> --OPTIONAL-FLAGS
 ```
 
-Required fields:
+2. run with config yaml
+```bash
+python runner.py --config_file ./configs/mixer_latency.yaml
+```
+Required fields to specified via CLI or config file:
 
 - `conn` = number of concurrent connections
 - `qps` = queries per second for each connection
@@ -110,9 +115,16 @@ Note:
 For example:
 
 ### Example 1
+```bash
+python runner.py --config_file ./configs/mixer_latency.yaml
+```
+- This will run with configuration specified in the mixer_latency.yaml
+- Run with mixerv1 on and measure the latency
+
+### Example 2
 
 ```bash
-python runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar
+python runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidecar
 ```
 
 - This will run separate tests for the `both` and `serversidecar` modes
@@ -120,10 +132,10 @@ python runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar
 - Each connection will send **1000** QPS
 - Each test will run for **240** seconds
 
-### Example 2
+### Example 3
 
 ```bash
-python runner.py 16,64 1000,4000 180 --serversidecar --baseline
+python runner.py --conn 16,64 --qps 1000,4000 --duration 180 --serversidecar --baseline
 ```
 
 - 12 tests total, each for **180** seconds, with all combinations of:
@@ -131,19 +143,19 @@ python runner.py 16,64 1000,4000 180 --serversidecar --baseline
 - **1000** and **4000** QPS
 - `both`, `serversidecar`, and `baseline` proxy modes
 
-### Example 3
+### Example 4
 
 Example 1 and 2 is to gather the latency results by increasing the number of connections. If you want to gather CPU and memory related
 results, you should increasing the number of QPS, like:
 
 ```bash
-python runner.py 10 100,500,1000,2000,4000 240  --serversidecar --baseline
+python runner.py --conn 10  --qps 100,500,1000,2000,4000 --duration 240  --serversidecar --baseline
 ```
 
-### Example 4: flame graph
+### Example 5: flame graph
 
 ```bash
-python runner.py 1,2,4,8,16,32,64 1000 240 --perf=true
+python runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --perf=true
 ```
 
 This will generate corresponding `xxx_perf.data.perf` file with its `.svg` flame graph in the `perf/benchmark/flame` repo.

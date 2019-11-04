@@ -21,6 +21,7 @@ import argparse
 import subprocess
 import shlex
 import uuid
+import yaml
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 import sys
 
@@ -267,32 +268,63 @@ def rc(command):
     return process.poll()
 
 
+def fortio_from_config_file(args):
+    with open(args.config_file) as f:
+        job_config = yaml.safe_load(f)
+        # TODO: add validation of config file
+        # TODO: parse yaml into object directly
+        fortio = Fortio()
+        fortio.mixer_mode = job_config['mixer_mode']
+        fortio.conn = job_config['conn']
+        fortio.qps = job_config['qps']
+        fortio.duration = job_config['duration']
+        fortio.metrics = job_config['metrics']
+        fortio.size = job_config['size']
+        fortio.perf_record = job_config['perf_record']
+        fortio.run_serversidecar = job_config['run_serversidecar']
+        fortio.run_baseline = job_config['run_baseline']
+        # fill out default value
+        if "size" not in job_config:
+            fortio.size = 1024
+        if "mesh" not in job_config:
+            fortio.mesh = 'istio'
+        if "mode" not in job_config:
+            fortio.mode = 'http'
+        return fortio
+
+
 def run(args):
     min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
-    if args.duration <= min_duration:
+
+    # run with config files
+    if args.config_file is not None:
+        fortio = fortio_from_config_file(args)
+
+    else:
+        fortio = Fortio(
+            conn=args.conn,
+            qps=args.qps,
+            duration=args.duration,
+            size=args.size,
+            perf_record=args.perf,
+            labels=args.labels,
+            baseline=args.baseline,
+            serversidecar=args.serversidecar,
+            clientsidecar=args.clientsidecar,
+            ingress=args.ingress,
+            mode=args.mode,
+            mesh=args.mesh,
+            mixer_mode=args.mixer_mode)
+
+    if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
             min_duration=min_duration))
         exit(1)
 
-    fortio = Fortio(
-        conn=args.conn,
-        qps=args.qps,
-        duration=args.duration,
-        size=args.size,
-        perf_record=args.perf,
-        labels=args.labels,
-        baseline=args.baseline,
-        serversidecar=args.serversidecar,
-        clientsidecar=args.clientsidecar,
-        ingress=args.ingress,
-        mode=args.mode,
-        mesh=args.mesh,
-        mixer_mode=args.mixer_mode)
-
-    for conn in args.conn:
-        for qps in args.qps:
+    for conn in fortio.conn:
+        for qps in fortio.qps:
             fortio.run(conn=conn, qps=qps,
-                       duration=args.duration, size=args.size)
+                       duration=fortio.duration, size=fortio.size)
 
 
 def csv_to_int(s):
@@ -302,15 +334,15 @@ def csv_to_int(s):
 def get_parser():
     parser = argparse.ArgumentParser("Run performance test")
     parser.add_argument(
-        "conn",
+        "--conn",
         help="number of connections, comma separated list",
         type=csv_to_int,)
     parser.add_argument(
-        "qps",
+        "--qps",
         help="qps, comma separated list",
         type=csv_to_int,)
     parser.add_argument(
-        "duration",
+        "--duration",
         help="duration in seconds of the extract",
         type=int)
     parser.add_argument(
@@ -350,6 +382,10 @@ def get_parser():
         "--mode",
         help="http or grpc",
         default="http")
+    parser.add_argument(
+        "--config_file",
+        help="config yaml file",
+        default=None)
 
     define_bool(parser, "baseline", "run baseline for all", False)
     define_bool(parser, "serversidecar",
