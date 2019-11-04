@@ -29,18 +29,23 @@ su-exec 0:0 chown -R "${uid}":"${gid}" /config-copy
 # Permit only the UID:GID to read the copy of the host's config secrets
 chmod -R 700 /config-copy
 
-# Use jq parser to get the value of the auth key which contains the encrypted docker login credentials from
-# the plaintext-passwords.json. ("${HOME}"/.docker/plaintext-passwords.json copied from the host to
-# /config-copy/.docker/plaintext-passwords.json)
-auth_value=$(jq -r '.auths."https://index.docker.io/v1/".auth' /config-copy/.docker/plaintext-passwords.json)
+# If a .docker/plaintext-passwords.json file exists, we are on docker_for_mac. Do the work of
+# importing the plaintext-passwords.json into the .docker/config.json
+if [[ -f /config-copy/.docker/plaintext-paswords.json ]]; then
+	# Use jq parser to get the value of the auth key which contains the encrypted docker login credentials from
+	# the plaintext-passwords.json. ("${HOME}"/.docker/plaintext-passwords.json copied from the host to
+	# /config-copy/.docker/plaintext-passwords.json)
+	auth_value=$(jq -r '.auths."https://index.docker.io/v1/".auth' /config-copy/.docker/plaintext-passwords.json)
 
-# decode and then encode the auth value
-encode_value=$(echo "${auth_value}" | base64 --decode | base64)
+	# decode and then encode the auth value
+	encode_value=$(echo "${auth_value}" | base64 --decode | base64)
 
-# Use jq to set the auth value for the auth key in the config.json file (jq does not support in-place editing).
-# This credential will be used to push the repositories docker images.
-jq --arg auth "${encode_value}" '.auths."https://index.docker.io/v1/".auth=$auth' /config-copy/.docker/config.json > /config-copy/.docker/config-tmp.json
-mv /config-copy/.docker/config-tmp.json /config-copy/.docker/config.json
+	# Use jq to set the auth value for the auth key in the config.json file
+	# Unfortuntaely jq does not support in-place editing.
+	# This credential will be used to push the repositories' docker images.
+	jq --arg auth "${encode_value}" '.auths."https://index.docker.io/v1/".auth=$auth' /config-copy/.docker/config.json > /config-copy/.docker/config-tmp.json
+	mv /config-copy/.docker/config-tmp.json /config-copy/.docker/config.json
+fi
 
 # Set ownership of /home to UID:GID
 su-exec 0:0 chown "${uid}":"${gid}" /home
