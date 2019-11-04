@@ -27,6 +27,10 @@
 
 FROM golang:1.13.3 as binary_tools_context
 
+# Istio tools branch that we use for this image
+ARG ISTIO_TOOLS_BRANCH
+ENV ISTIO_TOOLS_BRANCH=${ISTIO_TOOLS_BRANCH}
+
 # Pinned versions of stuff we pull in
 ENV COUNTERFEITER_VERSION=v6.2.2
 ENV FORTIO_VERSION=v1.3.1
@@ -98,16 +102,16 @@ RUN GO111MODULE=on go get -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVME
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/fortio/fortio@${FORTIO_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 
-# Install latest version of Istio-owned tools
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/envvarlinter
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/testlinter
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/license-lint
+# Install latest version of Istio-owned tools in this release
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_BRANCH}
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_BRANCH}
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_BRANCH}
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_BRANCH}
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_BRANCH}
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_BRANCH}
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_BRANCH}
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_BRANCH}
+RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_BRANCH}
 RUN go get -ldflags="-s -w" -u istio.io/test-infra/toolbox/githubctl
 RUN go get -ldflags="-s -w" -u istio.io/test-infra/boskos/cmd/mason_client
 
