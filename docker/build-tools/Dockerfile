@@ -104,7 +104,7 @@ RUN GO111MODULE=on go get -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVME
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/fortio/fortio@${FORTIO_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 
-# Install latest version of Istio-owned tools
+# Install latest version of Istio-owned tools in this release
 RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_BRANCH}
 RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_BRANCH}
 RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_BRANCH}
