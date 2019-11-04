@@ -179,7 +179,7 @@ RUN rm -fr /usr/local/go/bin/gofmt
 # Nodejs
 #############
 
-FROM ubuntu:xenial as nodejs_tools_context
+FROM ubuntu:bionic as nodejs_tools_context
 
 # Pinned versions of stuff we pull in
 ENV BABEL_CLI_VERSION=v7.6.2
@@ -229,7 +229,7 @@ RUN rm -rf /usr/local/share
 # Ruby
 #############
 
-FROM ubuntu:xenial as ruby_tools_context
+FROM ubuntu:bionic as ruby_tools_context
 
 # Pinned versions of stuff we pull in
 ENV AWESOMEBOT_VERSION=1.19.1
@@ -266,7 +266,7 @@ RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 # Python
 #############
 
-FROM ubuntu:xenial as python_context
+FROM ubuntu:bionic as python_context
 
 # Pinned versions of stuff we pull in
 ENV AUTOPEP8_VERSION=1.4.4
@@ -302,9 +302,9 @@ RUN tar -xzvf /tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz -C /us
 # Base OS
 #############
 
-FROM ubuntu:xenial as base_os_context
+FROM ubuntu:bionic as base_os_context
 
-ENV DOCKER_VERSION=5:19.03.2~3-0~ubuntu-xenial
+ENV DOCKER_VERSION=5:19.03.2~3-0~ubuntu-bionic
 ENV CONTAINERD_VERSION=1.2.6-3
 
 ENV OUTDIR=/out
@@ -337,7 +337,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
 RUN apt-key add /tmp/docker-key
-RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+# RUN apt search docker-ce docker-ce-cli containerd.io
 RUN apt-get update
 RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
 
