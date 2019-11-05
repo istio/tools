@@ -268,11 +268,25 @@ def rc(command):
     return process.poll()
 
 
+def validate(job_config):
+    required_fields = {"conn": list, "qps": list, "duration": int}
+    for k in required_fields:
+        if k not in job_config:
+            print("missing required parameter {}".format(k))
+            return False
+        exp_type = required_fields[k]
+        if type(job_config[k]) != exp_type:
+            print("expecting type of parameter {} to be {}, got {}".format(k, exp_type, type(job_config[k])))
+            return False
+    return True
+
+
 def fortio_from_config_file(args):
     with open(args.config_file) as f:
         job_config = yaml.safe_load(f)
-        # TODO: add validation of config file
-        # TODO: parse yaml into object directly
+        if not validate(job_config):
+            exit(1)
+        # TODO: hard to parse yaml into object directly because of existing constructor from CLI
         fortio = Fortio()
         fortio.mixer_mode = job_config['mixer_mode']
         fortio.conn = job_config['conn']

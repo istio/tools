@@ -74,7 +74,7 @@ function generate_graph() {
 
 function get_benchmark_data() {
   CONFIG_FILE="${1}"
-  pipenv run python3 runner.py --config_file ${CONFIG_FILE}
+  pipenv run python3 runner.py --config_file "${CONFIG_FILE}"
   collect_metrics
 
   echo "collect flame graph ..."
@@ -158,16 +158,16 @@ trap exit_handling ERR
 trap exit_handling EXIT
 
 echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
-# For adding or modifying configurations, refer to perf/benchmark/README.md
-EXTRA_ARGS="--serversidecar --baseline"
 
 # enable flame graph
 enable_perf_record
 
+# For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs"
 
 for f in "${CONFIG_DIR}"/*; do
-    fn=$(basename ${f})
+    fn=$(basename "${f}")
+    # pre run
     if [[ "${fn}" =~ "nomixer" ]];then
         prerun_nomixer
     elif [[ "${fn}" =~ "telemetryv2" ]];then
