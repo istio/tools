@@ -276,6 +276,8 @@ FROM ubuntu:bionic as python_context
 ENV AUTOPEP8_VERSION=1.4.4
 ENV GCLOUD_VERSION=265.0.0
 ENV YAMLLINT_VERSION=1.17.0
+ENV REQUESTS_VERSION=2.22.0
+ENV RUAMELYAML_VERSION=0.16.5
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -291,6 +293,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Pyhton stuff
 RUN pip3 install autopep8==${AUTOPEP8_VERSION}
 RUN pip3 install yamllint==${YAMLLINT_VERSION}
+RUN pip3 install requests==${REQUESTS_VERSION}
+RUN pip3 install ruamel.yaml==${RUAMELYAML_VERSION}
 
 # Clean up stuff we don't need in the final image
 RUN apt-get remove -y python3-pip python3-distutils python3-setuptools
