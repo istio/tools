@@ -25,7 +25,7 @@
 # Binary tools
 ################
 
-FROM golang:1.13.3 as binary_tools_context
+FROM golang:1.13.4 as binary_tools_context
 
 # Istio tools branch that we use for this image
 ARG ISTIO_TOOLS_BRANCH
