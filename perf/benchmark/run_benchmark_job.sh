@@ -102,7 +102,8 @@ function enable_perf_record() {
   nodes=$(kubectl get nodes -o=jsonpath='{.items[*].metadata.name}')
   for node in $nodes
   do
-    gcloud compute ssh "$node" --command "sudo sysctl kernel.perf_event_paranoid=-1;sudo sysctl kernel.kptr_restrict=0;exit" --zone us-central1-f
+    gcloud compute ssh "$node" --command "sudo sysctl kernel.perf_event_paranoid=-1;sudo sysctl kernel.kptr_restrict=0;exit" \
+    --zone us-central1-f bootstrap@"$node"
   done
 }
 
