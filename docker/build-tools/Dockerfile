@@ -435,9 +435,15 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:xenial as clang_context
+FROM ubuntu:bionic as clang_context
 
-RUN apt-get update && apt-get install -y xz-utils
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    xz-utils \
+    wget \
+    ca-certificates \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 ENV LLVM_VERSION=9.0.0
 ENV LLVM_TARGET=x86_64-linux-gnu-ubuntu-16.04
@@ -447,8 +453,8 @@ ENV LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-${LLVM_TARGET}
 ENV LLVM_URL=${LLVM_BASE_URL}/${LLVM_ARCHIVE}.tar.xz
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
-ADD ${LLVM_URL} /tmp
-RUN tar -xJf /tmp/${LLVM_ARCHIVE}.tar.xz -C /tmp
+RUN wget ${LLVM_URL}
+RUN tar -xJf ${LLVM_ARCHIVE}.tar.xz -C /tmp
 RUN mkdir -p ${LLVM_DIRECTORY}
 RUN mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
 
@@ -456,16 +462,23 @@ RUN mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
 # Bazel
 ###########
 
-FROM ubuntu:xenial as bazel_context
+FROM ubuntu:bionic as bazel_context
 
 ENV BAZELISK_VERSION="v1.0"
 ENV BAZELISK_BASE_URL="https://github.com/bazelbuild/bazelisk/releases/download"
 ENV BAZELISK_BIN="bazelisk-linux-amd64"
 ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
 
-ADD ${BAZELISK_URL} /tmp
-RUN chmod +x /tmp/${BAZELISK_BIN}
-RUN mv /tmp/${BAZELISK_BIN} /usr/local/bin/bazel
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    ca-certificates \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN wget ${BAZELISK_URL}
+RUN chmod +x ${BAZELISK_BIN}
+RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 
 ########################
 # Final image for proxy
@@ -478,6 +491,7 @@ ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
 
 # binary dependencies to build envoy at v1.12.0
 # https://github.com/envoyproxy/envoy/blob/v1.12.0/bazel/README.md
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     autoconf \
     automake \
@@ -486,13 +500,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ninja-build \
     python \
     unzip \
-    virtualenv
+    virtualenv \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=bazel_context /usr/local/bin /usr/local/bin
 COPY --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
 COPY --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
 COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
 
