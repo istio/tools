@@ -26,16 +26,32 @@ WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
 
 release="${1:?"release"}"
+stream=""
+
 shift
 
-if [[ "$1" == "pre-release" ]];then
+if [[ "${release}" == *-dev ]];then
+  # shellcheck disable=SC2086
+  release=$(curl -f -L https://storage.googleapis.com/istio-build/dev/${release})
+  # shellcheck disable=SC2181
+  if [[ $? -ne 0 ]];then
+    echo "${release} does not exist"
+    exit 1
+  fi
+  stream="dev"
+else
+  stream="$1"
+fi
+
+
+if [[ "${stream}" == "pre-release" ]];then
   export HELMREPO_URL=https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/charts
   case "${OSTYPE}" in
     darwin*) export RELEASE_URL=https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-osx.tar.gz ;;
     linux*) export RELEASE_URL=https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-linux.tar.gz ;;
     *) echo "unsupported: ${OSTYPE}" ;;
   esac
-elif [[ "$1" == "dev" ]];then
+elif [[ "${stream}" == "dev" ]];then
   export HELMREPO_URL=https://gcsweb.istio.io/gcs/istio-build/dev/${release}/charts
   case "${OSTYPE}" in
     darwin*) export RELEASE_URL=https://gcsweb.istio.io/gcs/istio-build/dev/${release}/istio-${release}-osx.tar.gz ;;
