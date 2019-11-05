@@ -100,12 +100,9 @@ function exit_handling() {
 
 function enable_perf_record() {
   nodes=$(kubectl get nodes -o=jsonpath='{.items[*].metadata.name}')
-  # add debugging log
-  gcloud compute project-info describe
+
   for node in $nodes
   do
-    # add debugging log
-    gcloud compute instances describe "$node" --zone us-central1-f
     gcloud compute ssh --command "sudo sysctl kernel.perf_event_paranoid=-1;sudo sysctl kernel.kptr_restrict=0;exit" \
     --zone us-central1-f bootstrap@"$node"
   done
