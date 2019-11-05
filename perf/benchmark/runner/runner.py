@@ -247,7 +247,7 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
     c = ""
     if container is not None:
         c = "-c " + container
-    cmd = "kubectl --namespace {namespace} exec -i -t {pod} {c} -- {remote_cmd}".format(
+    cmd = "kubectl --namespace {namespace} exec -i -t {pod} {c} -- {remote_cmd} ./bin/sh".format(
         pod=pod,
         remote_cmd=remote_cmd,
         c=c,

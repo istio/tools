@@ -77,7 +77,8 @@ function get_benchmark_data() {
   pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS} ${FLAME_GRAGH_ARG} ${MIXER_MODE}
   collect_metrics
 
-  if ${FLAME_GRAGH_ARG} = "--perf=true"; then
+  if [[ "${FLAME_GRAGH_ARG}" == "--perf=true" ]]; then
+    echo "collect flame graph debugging........"
     collect_flame_graph
   fi
 
@@ -165,8 +166,8 @@ QPS=1000
 METRICS=(p50 p90 p99)
 get_benchmark_data
 # restart proxy after each group(two sets)
-kubectl exec -it -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
-kubectl exec -it -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+kubectl exec -it -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST ./bin/sh
+kubectl exec -it -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST ./bin/sh
 
 # Configuration Set3: CPU and memory with mixer disabled
 kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
