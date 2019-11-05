@@ -34,7 +34,7 @@ check_secret () {
 		echo "  Secret $2.$1 is DOES NOT match current root."
 		NOT_UPDATED="$NOT_UPDATED $2.$1"
 	else
-		echo "  Secret $2.$1 is matches current root."
+		echo "  Secret $2.$1 matches current root."
 	fi
 }
 
@@ -78,10 +78,13 @@ verify() {
     verify_namespace $n
   done
 
-  if [ -z $NOT_UPDATED ]; then
-    echo "------All Istio mutual TLS keys and certificates match with current root!"
+  if [ -z "$NOT_UPDATED" ]; then
+    echo "=====All Istio mutual TLS keys and certificates match the current root!====="
+    echo
   else
-    echo "------The following secrets do not match current root: " $NOT_UPDATED
+    echo "=====The following secrets do not match current root: ====="
+    echo $NOT_UPDATED
+    echo
   fi
 }
 
@@ -119,7 +122,7 @@ Current time is
   $(date)
 
 
-===YOU HAVE ${remainDays} DAYS BEFORE THE ROOT CERT EXPIRES!=====
+=====YOU HAVE ${remainDays} DAYS BEFORE THE ROOT CERT EXPIRES!=====
 
 EOF
 }
@@ -151,19 +154,67 @@ transition() {
   echo "Please save them safely and privately."
 }
 
+check_version_namespace() {
+  OUT=`kubectl get po -n $1 -o yaml | grep "istio\/proxyv2\:1\."`
+
+  for LINE in $OUT;
+  do
+    if [[ $LINE == *"istio/proxyv2"* ]]; then
+      LINE=${LINE#"gke.gcr.io/istio/proxyv2:"};
+      LINE=${LINE#"docker.io/istio/proxyv2:"};
+      LINE=${LINE#"istio/proxyv2:"};
+      VER=${LINE%%"-gke.0"};
+      echo "Istio proxy version: $VER";
+    fi
+  done
+}
+
+check_version() {
+  # shellcheck disable=SC2006
+  NS=`kubectl get ns | grep -v "STATUS" | grep -v "kube-system" | grep -v "kube-public" | awk '{print $1}'`
+
+  for n in $NS
+  do
+    echo "Checking namespace: $n"
+    # shellcheck disable=SC2086
+    check_version_namespace $n
+  done
+}
+
 case $1 in
-  check)
+  check-root)
     check
     ;;
 
-  transition)
+  check-version)
+    check_version
+    ;;
+
+  root-transition)
     transition
     ;;
 
-  verify)
+  verify-certs)
     verify
     ;;
 
   *)
-    echo $"Usage: $0: check | transition | verify "
+    echo $"Usage: check-root | check-version | root-transition | verify-certs
+
+check-root
+  Check the expiration date of the current root certificate.
+
+check-version
+  Check the version of all Istio sidecars in the system.
+
+root-transition
+  Conduct a root cert transition. This will replace the current root
+  certificate with a new 10-year lifetime root certificate. Use caution when
+  running this command since it modifies your cluster.
+
+verify-certs
+  Verify that the current root certificate is propagated to every workload's
+  secret.
+"
+
 esac
