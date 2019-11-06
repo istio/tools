@@ -74,14 +74,17 @@ The test has three sidecar modes:
 **How to run**:
 
 1. run with CLI argument directly
-```bash
-python runner.py --conn <conn> --qps <qps> --duration <duration> --OPTIONAL-FLAGS
-```
 
-2. run with config yaml
-```bash
+``
+python runner.py --conn <conn> --qps <qps> --duration <duration> --OPTIONAL-FLAGS
+``
+
+1. run with config yaml
+
+``
 python runner.py --config_file ./configs/mixer_latency.yaml
-```
+``
+
 Required fields to specified via CLI or config file:
 
 - `conn` = number of concurrent connections
@@ -115,9 +118,11 @@ Note:
 For example:
 
 ### Example 1
+
 ```bash
 python runner.py --config_file ./configs/mixer_latency.yaml
 ```
+
 - This will run with configuration specified in the mixer_latency.yaml
 - Run with mixerv1 on and measure the latency
 
