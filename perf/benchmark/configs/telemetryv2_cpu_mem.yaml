@@ -1,0 +1,18 @@
+# Configuration Set5: CPU and memory with telemetryv2 using NullVM.
+mixer_mode: "v2_nullvm"
+conn:
+    - 16
+qps:
+    - 10
+    - 100
+    - 500
+    - 1000
+    - 2000
+    - 3000
+duration: 240
+metrics:
+    - cpu
+    - mem
+perf_record: false
+run_serversidecar: true
+run_baseline: true
