@@ -6,16 +6,16 @@ This setup requires a very large cluster - at least 32 vCPUs reserved for Istio 
 
 ## Setup Istio with different releases
 
-To setup istio, run `./setup_istio_releash.sh TAG RELEASE_TYPE`
+To setup istio, run `./setup_istio_releash.sh TAG Stream[Optional]`
 
-1. To setup Istio with a specific release, run `DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.3.3 release`.
+1. To setup Istio with a specific release, run `DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.3.3`.
 
-1. To setup Istio with latest build of a dev release, get the dev release tag first from https://gcsweb.istio.io/gcs/istio-build/dev/, then run `DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.4-alpha.0039742337ddf3b766ac974e9a7aad003896cfcf dev`.
+1. To setup Istio with latest build of a dev stream, run `DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.4-dev`.
 
-1. To setup Istio with prerelease candidate, run ```DNS_DOMAIN=v11mcp.qualistio.org ./setup_istio_release.sh 1.4.0-alpha.0 pre-release
+1. To setup Istio with prerelease candidate, run ```DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.4.0-alpha.0 pre-release
                                               ```
 
-1. To just output the deployment file, run `DRY_RUN=1 DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.3.3 release`.
+1. To just output the deployment file, run `DRY_RUN=1 DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.3.3`.
 
 
 You may also override the Helm repo or release URL and run ./setup_istio.sh directly, for example:
@@ -33,5 +33,5 @@ Look at values.yaml for details on the parameters.
 To overwrite helm flags, create a file to hold helm flags you want to overwrite and save as extra-values.yaml or other file names.
 
 ```bash
-DNS_DOMAIN=your-example-domain EXTRA_VALUES=extra-values.yaml ./setup_istio_release.sh 1.3.3 release
+DNS_DOMAIN=your-example-domain EXTRA_VALUES=extra-values.yaml ./setup_istio_release.sh 1.3.3
 ```
