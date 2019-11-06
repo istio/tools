@@ -7,28 +7,35 @@ Sources:
 - <https://linkerd.io/2/getting-started/>
 - <https://linkerd.io/2/reference/proxy-metrics/>
 
-See the [example-comparison](example-comparison/) directory for how to run the same tests with both Istio and Linkerd.
+## 1 - Create cluster and Install Istio 
+Please follow this [Setup README](https://github.com/istio/tools/tree/master/perf/benchmark#setup), finish step 1 and 2.
 
-## 1 - create cluster
 
-```bash
-./linkerd/istio-install/create-cluster
-```
-
-## 2 - install Linkerd
+## 2 - Install Linkerd
 
 ```bash
-./linkerd/setup-linkerd.sh <VERSION>
+cd ../benchmark/linkerd
+./setup_linkerd.sh <linkerd-release-version>
+```
+You can run the following command to see what components are installed
+```bash
+kubectl -n linkerd get deploy
 ```
 
-## 3. deploy the fortio test environment
+## 3. Deploy the fortio test environment
 
 ```bash
 export NAMESPACE="twopods"
-DNS_DOMAIN=local LINKERD_INJECT=enabled ./setup_test.sh
+export DNS_DOMAIN=local 
+export LINKERD_INJECT=enabled 
+cd ..
+./setup_test.sh
 ```
 
-## 4. Run benchmark
+## 4.Prepare Python Environment
+Please follow steps here: [Prepare Python Env](https://github.com/istio/tools/tree/master/perf/benchmark#prepare-python-environment)
+
+## 5. Run benchmark
 
 Example:
 
@@ -43,9 +50,8 @@ python runner/runner.py 16,64 1000 240 --baseline --mesh=linkerd
 ```bash
 export FORTIO_CLIENT_URL=<fortio client svc EXTERNAL_IP:port>
 
-python ./runner/fortio.py $FORTIO_CLIENT_URL
+python runner/runner/fortio.py $FORTIO_CLIENT_URL
 ```
-
 ## 6. Visualize results
 
 ```bash
@@ -69,3 +75,6 @@ python ./runner/graph.py linkerd.csv p50 --mesh=linkerd
 ```
 
 ![example-linkerd-p50](linkerd-p50.png)
+
+See the [example-comparison](https://github.com/istio/tools/tree/master/perf/benchmark/linkerd/example-comparison) directory for a sample comparison between Istio and Linkerd 
+from the perspective of Latency.
