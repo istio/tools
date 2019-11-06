@@ -73,20 +73,19 @@ function generate_graph() {
 }
 
 function get_benchmark_data() {
-  # shellcheck disable=SC2086
-  pipenv run python3 runner.py ${CONN} ${QPS} ${DURATION} ${EXTRA_ARGS} ${FLAME_GRAGH_ARG} ${MIXER_MODE}
+  CONFIG_FILE="${1}"
+  pipenv run python3 runner.py --config_file "${CONFIG_FILE}"
   collect_metrics
 
-  if [[ "${FLAME_GRAGH_ARG}" == "--perf=true" ]]; then
-    echo "collect flame graph ..."
-    collect_flame_graph
-  fi
+  echo "collect flame graph ..."
+  collect_flame_graph
 
-  for metric in "${METRICS[@]}"
-  do
-    generate_graph "${metric}"
-  done
-  gsutil -q cp -r "${LOCAL_OUTPUT_DIR}" "gs://$GCS_BUCKET/${OUTPUT_DIR}/graphs"
+#  TODO: replace with new graph generation code
+#  for metric in "${METRICS[@]}"
+#  do
+#    generate_graph "${metric}"
+#  done
+#  gsutil -q cp -r "${LOCAL_OUTPUT_DIR}" "gs://$GCS_BUCKET/${OUTPUT_DIR}/graphs"
 }
 
 function exit_handling() {
@@ -108,21 +107,35 @@ function enable_perf_record() {
   done
 }
 
+function prerun_v2_nullvm() {
+  kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml
+  kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
+}
+
+function prerun_nomixer() {
+  kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
+  pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
+}
+
+# setup release info
 RELEASE_TYPE="dev"
 BRANCH="latest"
 if [ "${GIT_BRANCH}" != "master" ];then
   BRANCH_NUM=$(echo "$GIT_BRANCH" | cut -f2 -d-)
   BRANCH="${BRANCH_NUM}-dev"
 fi
+
 # different branch tag resides in dev release directory like /latest, /1.4-dev, /1.5-dev etc.
 TAG=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
 echo "Setup istio release: $TAG"
 pushd "${ROOT}/istio-install"
    ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
 popd
+
 # install dependencies
 cd "${WD}/runner"
 pipenv install
+
 # setup test
 pushd "${WD}"
 ./setup_test.sh
@@ -144,67 +157,28 @@ trap exit_handling ERR
 trap exit_handling EXIT
 
 echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
-# For adding or modifying configurations, refer to perf/benchmark/README.md
-EXTRA_ARGS="--serversidecar --baseline"
 
+# enable flame graph
 enable_perf_record
 
-# Configuration Set1: CPU and memory with mixer enabled
-FLAME_GRAGH_ARG="--perf=false"
-MIXER_MODE="--mixer_mode mixer"
-CONN=16
-QPS=10,100,500,1000,2000,3000
-DURATION=240
-METRICS=(cpu mem)
-get_benchmark_data
+# For adding or modifying configurations, refer to perf/benchmark/README.md
+CONFIG_DIR="${WD}/configs"
 
-# Configuration Set2: Latency Quantiles with mixer enabled
-FLAME_GRAGH_ARG="--perf=true"
-CONN=1,2,4,8,16,32,64
-QPS=1000
-METRICS=(p50 p90 p99)
-get_benchmark_data
-# restart proxy after each group(two sets)
-kubectl exec -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
-kubectl exec -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+for f in "${CONFIG_DIR}"/*; do
+    fn=$(basename "${f}")
+    # pre run
+    if [[ "${fn}" =~ "nomixer" ]];then
+        prerun_nomixer
+    elif [[ "${fn}" =~ "telemetryv2" ]];then
+        prerun_v2_nullvm
+    fi
 
-# Configuration Set3: CPU and memory with mixer disabled
-kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
-FLAME_GRAGH_ARG="--perf=false"
-MIXER_MODE="--mixer_mode nomixer"
-CONN=16
-QPS=10,100,500,1000,2000,3000
-DURATION=240
-METRICS=(cpu mem)
-get_benchmark_data
+    get_benchmark_data "${f}"
 
-# Configuration Set4: Latency Quantiles with mixer disabled
-CONN=1,2,4,8,16,32,64
-QPS=1000
-METRICS=(p50 p90 p99)
-get_benchmark_data
-# restart proxy after each group
-kubectl exec -it -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
-kubectl exec -it -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
-
-# Configuration Set5: CPU and memory with telemetryv2 using NullVM.
-kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml
-kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
-MIXER_MODE="--mixer_mode telemetryv2-nullvm"
-CONN=16
-QPS=10,100,500,1000,2000,3000
-DURATION=240
-METRICS=(cpu mem)
-get_benchmark_data
-
-# Configuration Set6: Latency Quantiles with telemetry v2 using NullVM.
-CONN=1,2,4,8,16,32,64
-QPS=1000
-METRICS=(p50 p90 p99)
-get_benchmark_data
-# restart proxy after each group
-kubectl exec -it -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
-kubectl exec -it -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+    # post run
+    # restart proxy after each group
+    kubectl exec -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+    kubectl exec -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+done
 
 echo "perf benchmark test is done."

@@ -1,0 +1,20 @@
+# Configuration Set2: Latency Quantiles with mixer enabled
+mixer_mode: "mixer"
+conn:
+    - 1
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+    - 64
+qps:
+    - 1000
+duration: 240
+metrics:
+    - p50
+    - p90
+    - p99
+perf_record: true
+run_serversidecar: true
+run_baseline: true
