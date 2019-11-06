@@ -47,17 +47,18 @@ function run_test() {
   helm -n "${NAMESPACE}" template \
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set includeOutboundIPRanges=$(svc_ip_range) \
-      --set injectL="${LINKERD_INJECT}" \
+      --set client.injectL="${LINKERD_INJECT}" \
+      --set sever.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
-          . > "${TMPDIR}"/twopods.yaml
-  echo "Wrote file ${TMPDIR}/twopods.yaml"
+          . > "${TMPDIR}"twopods.yaml
+  echo "Wrote file ${TMPDIR}twopods.yaml"
 
   # remove stdio rules
-  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}"/twopods.yaml
+  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}"twopods.yaml
   kubectl rollout status deployment fortioclient -n twopods --timeout=1m
   kubectl rollout status deployment fortioserver -n twopods --timeout=1m
-  echo "${TMPDIR}"/twopods.yaml
+  echo "${TMPDIR}"twopods.yaml
 }
 
 for ((i=1; i<=$#; i++)); do

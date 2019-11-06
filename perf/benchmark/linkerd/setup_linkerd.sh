@@ -20,12 +20,15 @@ set -ex
 log() { echo "$1" >&2; }
 fail() { log "$1"; exit 1; }
 
-release="${1:-stable-2.3.2}"
+release="${1:-stable-2.6.0}"
 
 log "Installing Linkerd version $release"
 
+# To install Linkerd CLI
 curl -sL https://run.linkerd.io/install | sh
+# Add Linkerd to your path
 export PATH=$PATH:$HOME/.linkerd2/bin
+# Verify the CLI is installed and running correctly
 linkerd version
 
 # shellcheck disable=SC2046
@@ -33,9 +36,11 @@ linkerd version
 kubectl create clusterrolebinding cluster-admin-binding-$USER \
     --clusterrole=cluster-admin --user=$(gcloud config get-value account)
 
+# To check that your cluster is configured correctly and ready to install the control plane
 linkerd check --pre
 
 # shellcheck disable=SC2086
-linkerd install --linkerd-version=$release --proxy-auto-inject | kubectl apply -f -
+linkerd install | kubectl apply -f -
 
+# Validate the intallation
 linkerd check
