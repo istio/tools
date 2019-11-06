@@ -18,31 +18,27 @@
 # This script requires openssl, kubectl and bc.
 
 trustdomain() {
-  # shellcheck disable=SC2086
-  openssl x509 -in ${1} -noout -issuer | cut -f3 -d'='
+  openssl x509 -in "$1" -noout -issuer | cut -f3 -d'='
 }
 
 check_secret () {
-	# shellcheck disable=SC2006
-	# shellcheck disable=SC2086
-	local MD5=$(kubectl get secret ${1} -o yaml -n ${2} | sed -n \
+  local MD5
+  MD5=$(kubectl get secret $1 -o yaml -n $2 | sed -n \
     's/^.*root-cert.pem: //p' | md5sum | awk '{print $1}')
 	if [ "${ROOT_CERT_MD5}" != "${MD5}" ]; then
-		echo "  Secret ${2}.${1} is DOES NOT match current root."
-		NOT_UPDATED="${NOT_UPDATED} ${2}.${1}"
+		echo "  Secret $2.$1 is DOES NOT match current root."
+		NOT_UPDATED="${NOT_UPDATED} $2.$1"
 	else
-		echo "  Secret ${2}.${1} matches current root."
+		echo "  Secret $2.$1 matches current root."
 	fi
 }
 
 verify_namespace () {
-	# shellcheck disable=SC2006
-	# shellcheck disable=SC2086
-	local SECRETS=$(kubectl get secret -n ${1} | grep "istio\.io\/key-and-cert" | awk '{print $1}')
+  local SECRETS
+  SECRETS=$(kubectl get secret -n "$1" | grep "istio\.io\/key-and-cert" | awk '{print $1}')
 	for s in ${SECRETS}
 	do
-		# shellcheck disable=SC2086
-		check_secret ${s} ${1}
+		check_secret "$s" "$1"
 	done
 }
 
@@ -51,29 +47,26 @@ verify_certs() {
 
   echo "This script checks the current root CA certificate is propagated to all the Istio-managed workload secrets in the cluster."
 
-  # shellcheck disable=SC2006
-  local ROOT_SECRET=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
+  local ROOT_SECRET
+  ROOT_SECRET=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
   | sed -n 's/^.*ca-cert.pem: //p')
-  # shellcheck disable=SC2086
-  if [ -z ${ROOT_SECRET} ]; then
+  if [ -z "${ROOT_SECRET}" ]; then
     echo "Root secret is empty. Are you using the self-signed CA?"
     exit
   fi
 
-  # shellcheck disable=SC2006
-  local ROOT_CERT_MD5=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
+  local ROOT_CERT_MD5
+  ROOT_CERT_MD5=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
   | sed -n 's/^.*ca-cert.pem: //p' | md5sum | awk '{print $1}')
 
-  # shellcheck disable=SC2086
-  echo Root cert MD5 is ${ROOT_CERT_MD5}
+  echo Root cert MD5 is "${ROOT_CERT_MD5}"
 
-  # shellcheck disable=SC2006
-  local NS=$(kubectl get ns | grep -v "STATUS" | grep -v "kube-system" | grep -v "kube-public" | awk '{print $1}')
+  local NS
+  NS=$(kubectl get ns | grep -v "STATUS" | grep -v "kube-system" | grep -v "kube-public" | awk '{print $1}')
 
   for n in ${NS}
   do
     echo "Checking namespace: ${n}"
-    # shellcheck disable=SC2086
     verify_namespace "${n}"
   done
 
@@ -90,11 +83,10 @@ verify_certs() {
 }
 
 check_root() {
-  # shellcheck disable=SC2006
-  local ROOT_SECRET=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
+  local ROOT_SECRET
+  ROOT_SECRET=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
   | sed -n 's/^.*ca-cert.pem: //p')
-  # shellcheck disable=SC2086
-  if [ -z ${ROOT_SECRET} ]; then
+  if [ -z "${ROOT_SECRET}" ]; then
     echo "Root secret is empty. Are you using the self-signed CA?"
     return
   fi
@@ -107,25 +99,28 @@ check_root() {
     return
   fi
 
-  local rootDate=$(openssl x509 -in ca.cert -noout -enddate | cut -f2 -d'=')
+  local ROOT_DATE
+  local ROOT_SEC
+  ROOT_DATE=$(openssl x509 -in ca.cert -noout -enddate | cut -f2 -d'=')
   if [[ "$(uname)" == "Darwin" ]]; then
-    local rootSec=$(date -jf "%b  %e %k:%M:%S %Y %Z" "${rootDate}" '+%s')
+    ROOT_SEC=$(date -jf "%b  %e %k:%M:%S %Y %Z" "${ROOT_DATE}" '+%s')
   else
-    local rootSec=$(date -d "${rootDate}" '+%s')
+    ROOT_SEC=$(date -d "${ROOT_DATE}" '+%s')
   fi
 
-  # shellcheck disable=SC2006
-  local nowSec=$(date '+%s')
-  local remainDays=$(echo "(${rootSec} - ${nowSec}) / (3600 * 24)" | bc)
+  local NOW_SEC
+  local DAYS_LEFT
+  NOW_SEC=$(date '+%s')
+  DAYS_LEFT=$(echo "(${ROOT_SEC} - ${NOW_SEC}) / (3600 * 24)" | bc)
 
   cat << EOF
 Your Root Cert will expire after
-   ${rootDate}
+   ${ROOT_DATE}
 Current time is
   $(date)
 
 
-=====YOU HAVE ${remainDays} DAYS BEFORE THE ROOT CERT EXPIRES!=====
+=====YOU HAVE ${DAYSLEFT} DAYS BEFORE THE ROOT CERT EXPIRES!=====
 
 EOF
 }
@@ -135,7 +130,8 @@ root_transition() {
   kubectl get secret istio-ca-secret -n istio-system -o yaml | sed -n 's/^.*ca-cert.pem: //p' | base64 --decode > old-ca-cert.pem
   kubectl get secret istio-ca-secret -n istio-system -o yaml | sed -n 's/^.*ca-key.pem: //p' | base64 --decode > ca-key.pem
 
-  local TRUST_DOMAIN="$(echo -e "$(trustdomain old-ca-cert.pem)" | sed -e 's/^[[:space:]]*//')"
+  local TRUST_DOMAIN
+  TRUST_DOMAIN="$(echo -e "$(trustdomain old-ca-cert.pem)" | sed -e 's/^[[:space:]]*//')"
   echo "Create new ca cert, with trust domain as ${TRUST_DOMAIN}"
   openssl req -x509 -new -nodes -key ca-key.pem -sha256 -days 3650 -out new-ca-cert.pem -subj "/O=${TRUST_DOMAIN}"
 
@@ -158,7 +154,8 @@ root_transition() {
 }
 
 check_version_namespace() {
-  local OUT=$(kubectl get po -n ${1} -o yaml | grep "istio\/proxyv2\:1\.")
+  local OUT
+  OUT=$(kubectl get po -n $1 -o yaml | grep "istio\/proxyv2\:1\.")
 
   for LINE in ${OUT};
   do
@@ -174,19 +171,18 @@ check_version_namespace() {
 }
 
 check_version() {
-  # shellcheck disable=SC2006
-  local NS=$(kubectl get ns | grep -v "STATUS" | grep -v "kube-system" | grep -v \
+  local NS
+  NS=$(kubectl get ns | grep -v "STATUS" | grep -v "kube-system" | grep -v \
     "kube-public" | awk '{print $1}')
 
   for n in ${NS}
   do
     echo "Checking namespace: ${n}"
-    # shellcheck disable=SC2086
     check_version_namespace "${n}"
   done
 }
 
-case ${1} in
+case $1 in
   check-root)
     check_root
     ;;
