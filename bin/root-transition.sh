@@ -165,6 +165,7 @@ check_version_namespace() {
     if [[ ${LINE} == *"istio/proxyv2"* ]]; then
       LINE=${LINE#"gke.gcr.io/istio/proxyv2:"};
       LINE=${LINE#"docker.io/istio/proxyv2:"};
+      LINE=${LINE#"gcr.io/gke-release/istio/proxyv2:"};
       LINE=${LINE#"istio/proxyv2:"};
       VER=${LINE%%"-gke.0"};
       echo "Istio proxy version: $VER";
