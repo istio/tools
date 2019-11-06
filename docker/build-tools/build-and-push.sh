@@ -19,7 +19,7 @@ CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
 HUB=${HUB:-gcr.io/istio-testing}
 DATE=$(date +%Y-%m-%dT%H-%M-%S)
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+BRANCH=master
 VERSION="${BRANCH}-${DATE}"
 
 ${CONTAINER_CLI} build --target build_tools --build-arg "ISTIO_TOOLS_BRANCH=${BRANCH}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
