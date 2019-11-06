@@ -58,13 +58,8 @@ mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_m
 }
 
 function collect_flame_graph() {
-    cd "${WD}/flame/flameoutput/"
-    # shellcheck disable=SC2044
-    # shellcheck disable=SC2006
-    for i in `find . -name "*.svg"`
-    do
-      gsutil -q cp "${i}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/flamegraphs"
-    done
+    FLAME_OUTPUT_DIR="${WD}/flame/flameoutput/"
+    gsutil -q cp -r "${FLAME_OUTPUT_DIR}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/flamegraphs"
 }
 
 function generate_graph() {
