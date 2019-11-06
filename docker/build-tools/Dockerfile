@@ -285,20 +285,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libc-dev \
     pkg-config \
-    python3 \
-    python3-setuptools \
-    python3-distutils \
-    python3-pip
+    python3
+
+# Install pip
+RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+RUN python3 get-pip.py --no-wheel
 
 # Install Pyhton stuff
-RUN pip3 install autopep8==${AUTOPEP8_VERSION}
-RUN pip3 install yamllint==${YAMLLINT_VERSION}
-RUN pip3 install requests==${REQUESTS_VERSION}
-RUN pip3 install ruamel.yaml==${RUAMELYAML_VERSION}
+RUN pip install autopep8==${AUTOPEP8_VERSION}
+RUN pip install yamllint==${YAMLLINT_VERSION}
+RUN pip install requests==${REQUESTS_VERSION}
+RUN pip install ruamel.yaml==${RUAMELYAML_VERSION}
 
 # Clean up stuff we don't need in the final image
-RUN apt-get remove -y python3-pip python3-distutils python3-setuptools
-RUN rm -rf /usr/local/lib/python3.5/dist-packages/pip
+RUN rm -rf /usr/local/bin/pip*
+RUN rm -fr /usr/local/lib/python3.5/dist-packages/pip
 
 # TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
 # commands, maybe we just need the gcloud binary out of all this?
