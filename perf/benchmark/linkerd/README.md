@@ -7,9 +7,9 @@ Sources:
 - <https://linkerd.io/2/getting-started/>
 - <https://linkerd.io/2/reference/proxy-metrics/>
 
-## 1 - Create cluster and Install Istio 
-Please follow this [Setup README](https://github.com/istio/tools/tree/master/perf/benchmark#setup), finish step 1 and 2.
+## 1 - Create cluster and Install Istio
 
+Please follow this [Setup README](https://github.com/istio/tools/tree/master/perf/benchmark#setup), finish step 1 and 2.
 
 ## 2 - Install Linkerd
 
@@ -17,7 +17,9 @@ Please follow this [Setup README](https://github.com/istio/tools/tree/master/per
 cd ../benchmark/linkerd
 ./setup_linkerd.sh <linkerd-release-version>
 ```
+
 You can run the following command to see what components are installed
+
 ```bash
 kubectl -n linkerd get deploy
 ```
@@ -26,13 +28,14 @@ kubectl -n linkerd get deploy
 
 ```bash
 export NAMESPACE="twopods"
-export DNS_DOMAIN=local 
-export LINKERD_INJECT=enabled 
+export DNS_DOMAIN=local
+export LINKERD_INJECT=enabled
 cd ..
 ./setup_test.sh
 ```
 
 ## 4.Prepare Python Environment
+
 Please follow steps here: [Prepare Python Env](https://github.com/istio/tools/tree/master/perf/benchmark#prepare-python-environment)
 
 ## 5. Run benchmark
@@ -43,7 +46,7 @@ Example:
 python runner/runner.py 16,64 1000 240 --baseline --mesh=linkerd
 ```
 
-## 5. Extract Fortio latency metrics to CSV
+## 6. Extract Fortio latency metrics to CSV
 
 **Note** - Linkerd proxy CPU/memory usage not yet implemented, only latency performance.
 
@@ -52,7 +55,8 @@ export FORTIO_CLIENT_URL=<fortio client svc EXTERNAL_IP:port>
 
 python runner/runner/fortio.py $FORTIO_CLIENT_URL
 ```
-## 6. Visualize results
+
+## 7. Visualize results
 
 ```bash
 python ./runner/graph.py <PATH_TO_CSV> <METRIC> --mesh=linkerd
@@ -76,5 +80,6 @@ python ./runner/graph.py linkerd.csv p50 --mesh=linkerd
 
 ![example-linkerd-p50](linkerd-p50.png)
 
-See the [example-comparison](https://github.com/istio/tools/tree/master/perf/benchmark/linkerd/example-comparison) directory for a sample comparison between Istio and Linkerd 
-from the perspective of Latency.
+See the [example-comparison](https://github.com/istio/tools/tree/master/perf/benchmark/linkerd/example-comparison)
+directory for a sample comparison between Istio and Linkerd from the perspective of Latency.
+
