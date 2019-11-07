@@ -286,12 +286,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc-dev \
     pkg-config \
     python3 \
-    python3-setuptools \
-    python3-distutils
+    python3-setuptools
 
 # Install pip
 RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
 RUN python3 get-pip.py --no-wheel
+
+# Workaround for error: No module named 'pkg_resources'
+RUN pip install --force-reinstall -U setuptools
+RUN pip install --force-reinstall -U pip
 
 # Install Pyhton stuff
 RUN pip install autopep8==${AUTOPEP8_VERSION}
