@@ -90,7 +90,7 @@ func AllResourceAnnotations() []*Instance {
 func AllResourceTypes() []string {
 	return []string {
 		{{- range .KnownTypes }}
-        "{{ . }}",
+		"{{ . }}",
 		{{- end }}
 	}
 }`
