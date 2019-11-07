@@ -273,6 +273,8 @@ RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 FROM ubuntu:bionic as python_context
 
 # Pinned versions of stuff we pull in
+ENV SETUPTOOLS_VERSION=41.6.0
+ENV PIP_VERSION=19.3.1
 ENV AUTOPEP8_VERSION=1.4.4
 ENV GCLOUD_VERSION=265.0.0
 ENV YAMLLINT_VERSION=1.17.0
@@ -293,8 +295,8 @@ RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
 RUN python3 get-pip.py --no-wheel
 
 # Workaround for error: No module named 'pkg_resources'
-RUN pip install --force-reinstall -U setuptools
-RUN pip install --force-reinstall -U pip
+RUN pip install --force-reinstall -U setuptools==${SETUPTOOLS_VERSION}
+RUN pip install --force-reinstall -U pip==${PIP_VERSION}
 
 # Install Pyhton stuff
 RUN pip install autopep8==${AUTOPEP8_VERSION}
