@@ -77,7 +77,23 @@ var (
 		  Resources: []ResourceTypes{ {{ range .Resources }}{{ . }}{{ end }}, },
         }
 	{{ end }}
-)`
+)
+
+func AllResourceAnnotations() []*Instance {
+	return []*Instance {
+		{{- range .Annotations }}
+		&{{ .VariableName }},
+		{{- end }}
+	}
+}
+
+func AllResourceTypes() []string {
+	return []string {
+		{{- range .KnownTypes }}
+        "{{ . }}",
+		{{- end }}
+	}
+}`
 
 	htmlOutputTemplate = `---
 title: Resource Annotations

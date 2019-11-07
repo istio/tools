@@ -17,6 +17,7 @@ vendor
 *.so
 *.dylib
 cmd/cue-gen/cue-gen
+cmd/annotations_prep/annotations_prep
 
 # Test binary, build with `go test -c`
 *.test
