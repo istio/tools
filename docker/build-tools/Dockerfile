@@ -285,7 +285,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libc-dev \
     pkg-config \
-    python3
+    python3 \
+    python3-setuptools \
+    python3-distutils
 
 # Install pip
 RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
