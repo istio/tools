@@ -71,10 +71,6 @@ function get_benchmark_data() {
   CONFIG_FILE="${1}"
   pipenv run python3 runner.py --config_file "${CONFIG_FILE}"
   collect_metrics
-
-  echo "collect flame graph ..."
-  collect_flame_graph
-
 #  TODO: replace with new graph generation code
 #  for metric in "${METRICS[@]}"
 #  do
@@ -176,5 +172,8 @@ for f in "${CONFIG_DIR}"/*; do
     kubectl exec -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
     kubectl exec -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
 done
+
+echo "collect flame graph ..."
+collect_flame_graph
 
 echo "perf benchmark test is done."
