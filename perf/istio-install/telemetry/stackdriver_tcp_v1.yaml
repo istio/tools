@@ -12,7 +12,7 @@ spec:
   params:
     pushInterval: 10s
     metricInfo:
-      server-request-count.instance.service-graph00:
+      server-request-count.instance.istio-system:
         # Due to a bug in gogoproto deserialization, Enums in maps must be
         # specified by their integer value, not variant name. See
         # https://github.com/googleapis/googleapis/blob/master/google/api/metric.proto
@@ -20,7 +20,7 @@ spec:
         kind: 3 # CUMULATIVE
         value: 2 # INT64
         metric_type: "istio.io/service/server/request_count"
-      server-request-bytes.instance.service-graph00:
+      server-request-bytes.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 5 # DISTRIBUTION
         buckets:
@@ -29,7 +29,7 @@ spec:
             scale: 1
             growthFactor: 2
         metric_type: "istio.io/service/server/request_bytes"
-      server-response-bytes.instance.service-graph00:
+      server-response-bytes.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 5 # DISTRIBUTION
         buckets:
@@ -38,7 +38,7 @@ spec:
             scale: 1
             growthFactor: 2
         metric_type: "istio.io/service/server/response_bytes"
-      server-response-latencies.instance.service-graph00:
+      server-response-latencies.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 5 # DISTRIBUTION
         buckets:
@@ -47,19 +47,19 @@ spec:
             scale: 1
             growthFactor: 2
         metric_type: "istio.io/service/server/response_latencies"
-      server-received-bytes-count.instance.service-graph00:
+      server-received-bytes-count.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 2 # INT64
         metric_type: "istio.io/service/server/received_bytes_count"
-      server-sent-bytes-count.instance.service-graph00:
+      server-sent-bytes-count.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 2 # INT64
         metric_type: "istio.io/service/server/sent_bytes_count"
-      client-request-count.instance.service-graph00:
+      client-request-count.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 2 # INT64
         metric_type: "istio.io/service/client/request_count"
-      client-request-bytes.instance.service-graph00:
+      client-request-bytes.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 5 # DISTRIBUTION
         buckets:
@@ -68,7 +68,7 @@ spec:
             scale: 1
             growthFactor: 2
         metric_type: "istio.io/service/client/request_bytes"
-      client-response-bytes.instance.service-graph00:
+      client-response-bytes.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 5 # DISTRIBUTION
         buckets:
@@ -77,7 +77,7 @@ spec:
             scale: 1
             growthFactor: 2
         metric_type: "istio.io/service/client/response_bytes"
-      client-roundtrip-latencies.instance.service-graph00:
+      client-roundtrip-latencies.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 5 # DISTRIBUTION
         buckets:
@@ -86,16 +86,16 @@ spec:
             scale: 1
             growthFactor: 2
         metric_type: "istio.io/service/client/roundtrip_latencies"
-      client-received-bytes-count.instance.service-graph00:
+      client-received-bytes-count.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 2 # INT64
         metric_type: "istio.io/service/client/received_bytes_count"
-      client-sent-bytes-count.instance.service-graph00:
+      client-sent-bytes-count.instance.istio-system:
         kind: 3 # CUMULATIVE
         value: 2 # INT64
         metric_type: "istio.io/service/client/sent_bytes_count"
     logInfo:
-      server-accesslog-stackdriver.instance.service-graph00:
+      server-accesslog-stackdriver.instance.istio-system:
         labelNames:
         - mesh_uid
         - source_uid
@@ -134,7 +134,7 @@ spec:
         - received_bytes
         - sent_bytes
         - referer
-      server-tcp-accesslog-stackdriver.instance.service-graph00:
+      server-tcp-accesslog-stackdriver.instance.istio-system:
         labelNames:
         - mesh_uid
         - connection_id
