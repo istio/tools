@@ -273,8 +273,6 @@ RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 FROM ubuntu:bionic as python_context
 
 # Pinned versions of stuff we pull in
-ENV SETUPTOOLS_VERSION=41.6.0
-ENV PIP_VERSION=19.3.1
 ENV AUTOPEP8_VERSION=1.4.4
 ENV GCLOUD_VERSION=265.0.0
 ENV YAMLLINT_VERSION=1.17.0
@@ -288,25 +286,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc-dev \
     pkg-config \
     python3 \
-    python3-setuptools
+    python3-setuptools \
+    python3-distutils \
+    python3-pip
 
-# Install pip
-RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
-RUN python3 get-pip.py --no-wheel
-
-# Workaround for error: No module named 'pkg_resources'
-RUN pip install --force-reinstall -U setuptools==${SETUPTOOLS_VERSION}
-RUN pip install --force-reinstall -U pip==${PIP_VERSION}
-
-# Install Pyhton stuff
-RUN pip install autopep8==${AUTOPEP8_VERSION}
-RUN pip install yamllint==${YAMLLINT_VERSION}
-RUN pip install requests==${REQUESTS_VERSION}
-RUN pip install ruamel.yaml==${RUAMELYAML_VERSION}
-
-# Clean up stuff we don't need in the final image
-RUN rm -rf /usr/local/bin/pip*
-RUN rm -fr /usr/local/lib/python3.5/dist-packages/pip
+# Install Python stuff
+# hadolint ignore=DL3013
+RUN pip3 install --no-binary :all: autopep8==${AUTOPEP8_VERSION}
+RUN pip3 install yamllint==${YAMLLINT_VERSION}
+RUN pip3 install requests==${REQUESTS_VERSION}
+RUN pip3 install ruamel.yaml==${RUAMELYAML_VERSION}
 
 # TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
 # commands, maybe we just need the gcloud binary out of all this?
@@ -345,6 +334,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     pkg-config \
     python3 \
+    python3-setuptools \
     daemon \
     wget \
     jq
