@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/gogo/protobuf/proto"
+
 	"istio.io/tools/cmd/protoc-gen-deepcopy/test/generated"
 )
 
