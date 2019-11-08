@@ -48,7 +48,7 @@ function setup_admin_binding() {
 function install_istio() {
     local CR_FILENAME=${1}
     pushd "${ISTIO_OPERATOR_DIR}"
-    go run ./cmd/mesh.go manifest apply -f "${CR_FILENAME}" --wait --set defaultNamespace=${defaultNamespace}
+    go run ./cmd/mesh.go manifest apply -f "${CR_FILENAME}" --force=true --set defaultNamespace=${defaultNamespace}
     popd
     echo "installation is done"
 }
