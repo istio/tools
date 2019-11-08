@@ -288,22 +288,18 @@ def fortio_from_config_file(args):
             exit(1)
         # TODO: hard to parse yaml into object directly because of existing constructor from CLI
         fortio = Fortio()
-        fortio.mixer_mode = job_config['mixer_mode']
-        fortio.conn = job_config['conn']
-        fortio.qps = job_config['qps']
-        fortio.duration = job_config['duration']
-        fortio.metrics = job_config['metrics']
-        fortio.size = job_config['size']
-        fortio.perf_record = job_config['perf_record']
-        fortio.run_serversidecar = job_config['run_serversidecar']
-        fortio.run_baseline = job_config['run_baseline']
-        # fill out default value
-        if "size" not in job_config:
-            fortio.size = 1024
-        if "mesh" not in job_config:
-            fortio.mesh = 'istio'
-        if "mode" not in job_config:
-            fortio.mode = 'http'
+        fortio.conn = job_config.get('conn', 16)
+        fortio.qps = job_config.get('qps', 1000)
+        fortio.duration = job_config.get('duration', 240)
+        fortio.mixer_mode = job_config.get('mixer_mode', 'mixer')
+        fortio.metrics = job_config.get('metrics', 'p90')
+        fortio.size = job_config.get('size', 1024)
+        fortio.perf_record = job_config.get('perf_record', False)
+        fortio.run_serversidecar = job_config.get('run_serversidecar', True)
+        fortio.run_baseline = job_config.get('run_baseline', True)
+        fortio.mesh = job_config.get('mesh', 'istio')
+        fortio.mode = job_config.get('mode', 'http')
+
         return fortio
 
 
