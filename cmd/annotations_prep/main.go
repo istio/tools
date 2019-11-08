@@ -49,6 +49,16 @@ const (
     {{- end }}
 )
 
+func (r ResourceTypes) String() string {
+	switch r {
+	{{- range $i, $t := .KnownTypes }}
+	case {{ add $i 1 }}:
+		return "{{$t}}"
+	{{- end }}
+	}
+	return "Unknown"
+}
+
 // Instance describes a single resource annotation
 type Instance struct {
 	// The name of the annotation.
@@ -186,7 +196,7 @@ var (
 
 			// Create the output file template.
 			t, err := template.New("annoTemplate").Funcs(template.FuncMap{
-				"wordWrap": wordWrap,
+				"wordWrap": wordWrap, "add": add,
 			}).Parse(outputTemplate)
 			if err != nil {
 				log.Fatalf("failed parsing annotation template: %v", err)
@@ -355,4 +365,8 @@ func wordWrap(in string, indent int) string {
 	out += "\"" + line + "\""
 
 	return out
+}
+
+func add(x, y int) int {
+	return x + y
 }

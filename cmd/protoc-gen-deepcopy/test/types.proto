@@ -38,3 +38,9 @@ message SeparatedTagType {
     uint32 fieldA = 1;
     string fieldB = 2;
 }
+
+// ensure repeated field in an API is not copied twice.
+// +kubetype-gen
+message RepeatedFieldType {
+    repeated string ns = 1;
+}
