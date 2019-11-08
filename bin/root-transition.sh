@@ -22,10 +22,10 @@ trustdomain() {
 }
 
 check_secret () {
-  local MD5
-  MD5=$(kubectl get secret $1 -o yaml -n $2 | sed -n \
+  local md5
+  md5=$(kubectl get secret "$1" -o yaml -n "$2" | sed -n \
     's/^.*root-cert.pem: //p' | md5sum | awk '{print $1}')
-	if [ "${ROOT_CERT_MD5}" != "${MD5}" ]; then
+	if [ "${ROOT_CERT_MD5}" != "${md5}" ]; then
 		echo "  Secret $2.$1 is DOES NOT match current root."
 		NOT_UPDATED="${NOT_UPDATED} $2.$1"
 	else
@@ -34,9 +34,9 @@ check_secret () {
 }
 
 verify_namespace () {
-  local SECRETS
-  SECRETS=$(kubectl get secret -n "$1" | grep "istio\.io\/key-and-cert" | awk '{print $1}')
-	for s in ${SECRETS}
+  local secrets
+  secrets=$(kubectl get secret -n "$1" | grep "istio\.io\/key-and-cert" | awk '{print $1}')
+	for s in ${secrets}
 	do
 		check_secret "$s" "$1"
 	done
@@ -47,24 +47,23 @@ verify_certs() {
 
   echo "This script checks the current root CA certificate is propagated to all the Istio-managed workload secrets in the cluster."
 
-  local ROOT_SECRET
-  ROOT_SECRET=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
+  local root_secret
+  root_secret=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
   | sed -n 's/^.*ca-cert.pem: //p')
-  if [ -z "${ROOT_SECRET}" ]; then
+  if [ -z "${root_secret}" ]; then
     echo "Root secret is empty. Are you using the self-signed CA?"
     exit
   fi
 
-  local ROOT_CERT_MD5
   ROOT_CERT_MD5=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
   | sed -n 's/^.*ca-cert.pem: //p' | md5sum | awk '{print $1}')
 
-  echo Root cert MD5 is "${ROOT_CERT_MD5}"
+  echo "Root cert MD5 is ${ROOT_CERT_MD5}"
 
-  local NS
-  NS=$(kubectl get ns | grep -v "STATUS" | grep -v "kube-system" | grep -v "kube-public" | awk '{print $1}')
+  local ns
+  ns=$(kubectl get ns | grep -v "STATUS" | grep -v "kube-system" | grep -v "kube-public" | awk '{print $1}')
 
-  for n in ${NS}
+  for n in ${ns}
   do
     echo "Checking namespace: ${n}"
     verify_namespace "${n}"
@@ -83,10 +82,10 @@ verify_certs() {
 }
 
 check_root() {
-  local ROOT_SECRET
-  ROOT_SECRET=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
+  local root_secret
+  root_secret=$(kubectl get secret istio-ca-secret -o yaml -n istio-system \
   | sed -n 's/^.*ca-cert.pem: //p')
-  if [ -z "${ROOT_SECRET}" ]; then
+  if [ -z "${root_secret}" ]; then
     echo "Root secret is empty. Are you using the self-signed CA?"
     return
   fi
@@ -99,28 +98,28 @@ check_root() {
     return
   fi
 
-  local ROOT_DATE
-  local ROOT_SEC
-  ROOT_DATE=$(openssl x509 -in ca.cert -noout -enddate | cut -f2 -d'=')
+  local root_date
+  local root_sec
+  root_date=$(openssl x509 -in ca.cert -noout -enddate | cut -f2 -d'=')
   if [[ "$(uname)" == "Darwin" ]]; then
-    ROOT_SEC=$(date -jf "%b  %e %k:%M:%S %Y %Z" "${ROOT_DATE}" '+%s')
+    root_sec=$(date -jf "%b  %e %k:%M:%S %Y %Z" "${root_date}" '+%s')
   else
-    ROOT_SEC=$(date -d "${ROOT_DATE}" '+%s')
+    root_sec=$(date -d "${root_date}" '+%s')
   fi
 
-  local NOW_SEC
-  local DAYS_LEFT
-  NOW_SEC=$(date '+%s')
-  DAYS_LEFT=$(echo "(${ROOT_SEC} - ${NOW_SEC}) / (3600 * 24)" | bc)
+  local now_sec
+  local days_left
+  now_sec=$(date '+%s')
+  days_left=$(echo "(${root_sec} - ${now_sec}) / (3600 * 24)" | bc)
 
   cat << EOF
 Your Root Cert will expire after
-   ${ROOT_DATE}
+   ${root_date}
 Current time is
   $(date)
 
 
-=====YOU HAVE ${DAYSLEFT} DAYS BEFORE THE ROOT CERT EXPIRES!=====
+=====YOU HAVE ${days_left} DAYS BEFORE THE ROOT CERT EXPIRES!=====
 
 EOF
 }
@@ -130,10 +129,10 @@ root_transition() {
   kubectl get secret istio-ca-secret -n istio-system -o yaml | sed -n 's/^.*ca-cert.pem: //p' | base64 --decode > old-ca-cert.pem
   kubectl get secret istio-ca-secret -n istio-system -o yaml | sed -n 's/^.*ca-key.pem: //p' | base64 --decode > ca-key.pem
 
-  local TRUST_DOMAIN
-  TRUST_DOMAIN="$(echo -e "$(trustdomain old-ca-cert.pem)" | sed -e 's/^[[:space:]]*//')"
-  echo "Create new ca cert, with trust domain as ${TRUST_DOMAIN}"
-  openssl req -x509 -new -nodes -key ca-key.pem -sha256 -days 3650 -out new-ca-cert.pem -subj "/O=${TRUST_DOMAIN}"
+  local trust_domain
+  trust_domain="$(echo -e "$(trustdomain old-ca-cert.pem)" | sed -e 's/^[[:space:]]*//')"
+  echo "Create new ca cert, with trust domain as ${trust_domain}"
+  openssl req -x509 -new -nodes -key ca-key.pem -sha256 -days 3650 -out new-ca-cert.pem -subj "/O=${trust_domain}"
 
   echo "$(date) delete old CA secret"
   kubectl -n istio-system delete secret istio-ca-secret
@@ -154,28 +153,31 @@ root_transition() {
 }
 
 check_version_namespace() {
-  local OUT
-  OUT=$(kubectl get po -n $1 -o yaml | grep "istio\/proxyv2\:1\.")
+  local out
+  local line
+  local ver
+  out=$(kubectl get po -n "$1" -o yaml | grep "proxyv2\:1\.")
 
-  for LINE in ${OUT};
+  for line in ${out};
   do
-    if [[ ${LINE} == *"istio/proxyv2"* ]]; then
-      LINE=${LINE#"gke.gcr.io/istio/proxyv2:"};
-      LINE=${LINE#"docker.io/istio/proxyv2:"};
-      LINE=${LINE#"gcr.io/gke-release/istio/proxyv2:"};
-      LINE=${LINE#"istio/proxyv2:"};
-      VER=${LINE%%"-gke.0"};
-      echo "Istio proxy version: $VER";
+    if [[ ${line} == *"proxyv2"* ]]; then
+      line=${line#"gke.gcr.io/istio/proxyv2:"};
+      line=${line#"docker.io/istio/proxyv2:"};
+      line=${line#"gcr.io/gke-release/istio/proxyv2:"};
+      line=${line#"istio/proxyv2:"};
+      line=${line#"gcr.io/istio-testing/proxyv2:"};
+      ver=${line%%"-gke.0"};
+      echo "Istio proxy version: $ver";
     fi
   done
 }
 
 check_version() {
-  local NS
-  NS=$(kubectl get ns | grep -v "STATUS" | grep -v "kube-system" | grep -v \
+  local ns
+  ns=$(kubectl get ns | grep -v "STATUS" | grep -v "kube-system" | grep -v \
     "kube-public" | awk '{print $1}')
 
-  for n in ${NS}
+  for n in ${ns}
   do
     echo "Checking namespace: ${n}"
     check_version_namespace "${n}"
@@ -200,7 +202,7 @@ case $1 in
     ;;
 
   *)
-    echo $"Usage: check-root | check-version | root-transition | verify-certs
+    echo "Usage: check-root | check-version | root-transition | verify-certs
 
 check-root
   Check the expiration date of the current root certificate.
