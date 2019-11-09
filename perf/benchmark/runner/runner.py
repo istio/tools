@@ -21,6 +21,7 @@ import argparse
 import subprocess
 import shlex
 import uuid
+import yaml
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 import sys
 
@@ -247,7 +248,7 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
     c = ""
     if container is not None:
         c = "-c " + container
-    cmd = "kubectl --namespace {namespace} exec -i -t {pod} {c} -- {remote_cmd}".format(
+    cmd = "kubectl --namespace {namespace} exec {pod} {c} -- {remote_cmd}".format(
         pod=pod,
         remote_cmd=remote_cmd,
         c=c,
@@ -267,32 +268,73 @@ def rc(command):
     return process.poll()
 
 
+def validate(job_config):
+    required_fields = {"conn": list, "qps": list, "duration": int}
+    for k in required_fields:
+        if k not in job_config:
+            print("missing required parameter {}".format(k))
+            return False
+        exp_type = required_fields[k]
+        if type(job_config[k]) != exp_type:
+            print("expecting type of parameter {} to be {}, got {}".format(k, exp_type, type(job_config[k])))
+            return False
+    return True
+
+
+def fortio_from_config_file(args):
+    with open(args.config_file) as f:
+        job_config = yaml.safe_load(f)
+        if not validate(job_config):
+            exit(1)
+        # TODO: hard to parse yaml into object directly because of existing constructor from CLI
+        fortio = Fortio()
+        fortio.conn = job_config.get('conn', 16)
+        fortio.qps = job_config.get('qps', 1000)
+        fortio.duration = job_config.get('duration', 240)
+        fortio.mixer_mode = job_config.get('mixer_mode', 'mixer')
+        fortio.metrics = job_config.get('metrics', 'p90')
+        fortio.size = job_config.get('size', 1024)
+        fortio.perf_record = job_config.get('perf_record', False)
+        fortio.run_serversidecar = job_config.get('run_serversidecar', True)
+        fortio.run_baseline = job_config.get('run_baseline', True)
+        fortio.mesh = job_config.get('mesh', 'istio')
+        fortio.mode = job_config.get('mode', 'http')
+
+        return fortio
+
+
 def run(args):
     min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
-    if args.duration <= min_duration:
+
+    # run with config files
+    if args.config_file is not None:
+        fortio = fortio_from_config_file(args)
+
+    else:
+        fortio = Fortio(
+            conn=args.conn,
+            qps=args.qps,
+            duration=args.duration,
+            size=args.size,
+            perf_record=args.perf,
+            labels=args.labels,
+            baseline=args.baseline,
+            serversidecar=args.serversidecar,
+            clientsidecar=args.clientsidecar,
+            ingress=args.ingress,
+            mode=args.mode,
+            mesh=args.mesh,
+            mixer_mode=args.mixer_mode)
+
+    if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
             min_duration=min_duration))
         exit(1)
 
-    fortio = Fortio(
-        conn=args.conn,
-        qps=args.qps,
-        duration=args.duration,
-        size=args.size,
-        perf_record=args.perf,
-        labels=args.labels,
-        baseline=args.baseline,
-        serversidecar=args.serversidecar,
-        clientsidecar=args.clientsidecar,
-        ingress=args.ingress,
-        mode=args.mode,
-        mesh=args.mesh,
-        mixer_mode=args.mixer_mode)
-
-    for conn in args.conn:
-        for qps in args.qps:
+    for conn in fortio.conn:
+        for qps in fortio.qps:
             fortio.run(conn=conn, qps=qps,
-                       duration=args.duration, size=args.size)
+                       duration=fortio.duration, size=fortio.size)
 
 
 def csv_to_int(s):
@@ -302,15 +344,15 @@ def csv_to_int(s):
 def get_parser():
     parser = argparse.ArgumentParser("Run performance test")
     parser.add_argument(
-        "conn",
+        "--conn",
         help="number of connections, comma separated list",
         type=csv_to_int,)
     parser.add_argument(
-        "qps",
+        "--qps",
         help="qps, comma separated list",
         type=csv_to_int,)
     parser.add_argument(
-        "duration",
+        "--duration",
         help="duration in seconds of the extract",
         type=int)
     parser.add_argument(
@@ -350,6 +392,10 @@ def get_parser():
         "--mode",
         help="http or grpc",
         default="http")
+    parser.add_argument(
+        "--config_file",
+        help="config yaml file",
+        default=None)
 
     define_bool(parser, "baseline", "run baseline for all", False)
     define_bool(parser, "serversidecar",
