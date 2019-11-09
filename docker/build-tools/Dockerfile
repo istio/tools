@@ -314,7 +314,7 @@ ENV CONTAINERD_VERSION=1.2.6-3
 ENV OUTDIR=/out
 
 # required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
-# required for general build: make, wget, curl
+# required for general build: make, wget, curl, ssh
 # required for ruby: libcurl4-openssl-dev
 # required for python: python3, pkg-config
 # hadolint ignore=DL3008
@@ -327,6 +327,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     gcc \
     git \
+    ssh \
     iptables \
     libltdl7 \
     libc-dev \
