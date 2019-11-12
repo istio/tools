@@ -60,6 +60,10 @@ func (g *typesGenerator) GenerateType(c *generator.Context, t *types.Type, w io.
 		"ListMeta":   c.Universe.Type(types.Name{Name: "ListMeta", Package: "k8s.io/apimachinery/pkg/apis/meta/v1"}),
 	}
 	for _, kubeType := range kubeTypes {
+		// make sure local types get imports generated for them to prevent reusing their local name for real imports,
+		// e.g. generating into package v1alpha1, while also importing from another package ending with v1alpha1.
+		// adding the import here will ensure the imports will be something like, precedingpathv1alpha1.
+		g.imports.AddType(kubeType.Type())
 		m["KubeType"] = kubeType
 		sw.Do(kubeTypeTemplate, m)
 	}
