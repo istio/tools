@@ -42,7 +42,7 @@ function download() {
   local DIRNAME="$1"
   local release="$2"
 
-  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  local url="https://gcsweb.istio.io/gcs/istio-build/dev/${release}/istio-${release}-linux.tar.gz"
   # shellcheck disable=SC2236
   if [[ -n "${RELEASE_URL}" ]];then
     url="${RELEASE_URL}"
@@ -121,10 +121,10 @@ function install_istio() {
 
   # if release_url is not overridden then daily builds require
   # tag and hub overrides
-  if [[ -z "${RELEASE_URL}" ]];then
-    opts+=" --set global.tag=${release}"
-    opts+=" --set global.hub=gcr.io/istio-release"
-  fi
+  # if [[ -z "${RELEASE_URL}" ]];then
+  #   opts+=" --set global.tag=${release}"
+  #   opts+=" --set global.hub=gcr.io/istio-release"
+  # fi
 
   if [[ -n "${MIXERLESS}" ]]; then
     opts+=" --set mixer.telemetry.enabled=false"

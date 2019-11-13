@@ -3,8 +3,8 @@
 global:
   mtls:
     # false will evaluate the mesh policy to be STRICT!
-    #enable: false
-    automatic: true
+    enable: false
+    auto: true
   resources:
     requests:
       cpu: 500m

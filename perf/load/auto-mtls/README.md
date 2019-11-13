@@ -26,7 +26,7 @@ TODO(incfly):
 1. Install Istio:
 
 ```bash
-export ISTIO_RELEASE="release-1.2-latest"  # or any Istio release
+export ISTIO_RELEASE="1.4-alpha.bc8b1ebdffacd65d77365597ff73811346f3f11c"  # or any Istio release
 export DNS_DOMAIN=local
 export EXTRA_VALUES=values-auto-mtls.yaml
 # Install istio
@@ -39,3 +39,11 @@ export EXTRA_VALUES=values-auto-mtls.yaml
 # Setup the test.
 ./setup.sh
 ```
+
+
+Issue:
+
+- Installer does not work with the grafana
+- Do not see `istioctl manifest`.
+- Don't want library dependency in istio/tools libary.
+- rewrite the installer and install from istioctl myself...

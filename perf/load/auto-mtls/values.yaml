@@ -1,6 +1,4 @@
-Namespace: auto-mtls
-serverSidecar: 1
-serverNoSidecar: 1
+Namespace: automtls
 clientCount: 1
 
 # Copied from root/perf/load/values.yaml
@@ -9,7 +7,7 @@ serviceGraphImage: tahler/isotope-service:1
 serviceNamePrefix: svc-
 requestSize: 128B
 responseSize: 1KiB
-replicas: 2
+replicas: 4
 resources:
   requests:
     cpu: 50m
@@ -27,10 +25,6 @@ configSleep: 120
 
 # time between replicas changes
 replicasSleep: 10
-
-# tcp does not support permissive mode
-# so readinessProbe
-#tcpReadinessProbe:
 
 # ingress should be set correctly
 ingress: 127.0.0.1
