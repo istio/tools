@@ -31,13 +31,7 @@ TEST_NAMESPACE = 'automtls'
 ISTIO_DEPLOY = 'svc-0-automtls-sidecar'
 LEGACY_DEPLOY = 'svc-0-automtls-nosidecar'
 
-parser = argparse.ArgumentParser(description='Auto mTLS test runner')
-# parser.add_argument('--sidecar-name', default='svc-0-automtls-sidecar', type=str)
-# parser.add_argument('--nosidecar-name', default='svc-0-automtls-nosidecar', type=str)
-# parser.add_argument('-n', '--namespace', default='auto-mtls', type=str)
-args = parser.parse_args()
 
-# HTTPRequestHandler class
 class testHTTPServer_RequestHandler(http.server.BaseHTTPRequestHandler):
 
   def do_GET(self):

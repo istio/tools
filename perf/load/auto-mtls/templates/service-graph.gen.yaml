@@ -8,33 +8,33 @@ data:
       responseSize: {{ .Values.responseSize }}
       script:
       - - call:
-            service: {{ .Values.serviceNamePrefix }}-full
+            service: {{ .Values.serviceNamePrefix }}0-full
             size: {{ .Values.requestSize }}
         - call:
-            service: {{ .Values.serviceNamePrefix }}-partial
+            service: {{ .Values.serviceNamePrefix }}0-partial
             size: {{ .Values.requestSize }}
       type: http
-    - name: {{ .Values.serviceNamePrefix }}-full
+    - name: {{ .Values.serviceNamePrefix }}0-full
       numReplicas: {{ .Values.replicas }}
       responseSize: {{ .Values.responseSize }}
       script:
       - - call:
-            service: {{ .Values.serviceNamePrefix }}-full-serve
+            service: {{ .Values.serviceNamePrefix }}0-full-serve
             size: {{ .Values.requestSize }}
       type: http
-    - name: {{ .Values.serviceNamePrefix }}-partial
+    - name: {{ .Values.serviceNamePrefix }}0-partial
       numReplicas: {{ .Values.replicas }}
       responseSize: {{ .Values.responseSize }}
       script:
       - - call:
-            service: {{ .Values.serviceNamePrefix }}-partial-serve
+            service: {{ .Values.serviceNamePrefix }}0-partial-serve
             size: {{ .Values.requestSize }}
       type: http
-    - name: {{ .Values.serviceNamePrefix }}-full-serve
+    - name: {{ .Values.serviceNamePrefix }}0-full-serve
       numReplicas: {{ .Values.replicas }}
       responseSize: {{ .Values.responseSize }}
       type: http
-    - name: {{ .Values.serviceNamePrefix }}-partial-serve
+    - name: {{ .Values.serviceNamePrefix }}0-partial-serve
       numReplicas: {{ .Values.replicas }}
       responseSize: {{ .Values.responseSize }}
       type: http
@@ -62,12 +62,12 @@ kind: Deployment
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}-full
+  name: {{ .Values.serviceNamePrefix }}0v1
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.serviceNamePrefix }}-full
+      app: {{ .Values.serviceNamePrefix }}0
   template:
     metadata:
       annotations:
@@ -75,7 +75,7 @@ spec:
         prometheus.io/scrape: "true"
 {{- end }}
       labels:
-        app: {{ .Values.serviceNamePrefix }}-full
+        app: {{ .Values.serviceNamePrefix }}0
         role: service
         version: v1
     spec:
@@ -84,7 +84,7 @@ spec:
         - --max-idle-connections-per-host=32
         env:
         - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}-full
+          value: {{ .Values.serviceNamePrefix }}0
         image: {{ .Values.serviceGraphImage }}
         name: mock-service
         ports:
@@ -112,34 +112,33 @@ kind: Service
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}-full
+  name: {{ .Values.serviceNamePrefix }}0
 spec:
   ports:
   - name: http-web
     port: 8080
   selector:
-    app: {{ .Values.serviceNamePrefix }}-full
-status:
+    app: {{ .Values.serviceNamePrefix }}0
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
     app: service-graph
-  name: {{ $.Values.serviceNamePrefix }}-partial
+  name: {{ .Values.serviceNamePrefix }}0-full
 spec:
-  replicas: {{ $.Values.replicas }}
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: {{ $.Values.serviceNamePrefix }}-partial
+      app: {{ .Values.serviceNamePrefix }}0-full
   template:
     metadata:
       annotations:
-{{- if $.Values.prometheus_scrape }}
+{{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
       labels:
-        app: {{ $.Values.serviceNamePrefix }}-partial
+        app: {{ .Values.serviceNamePrefix }}0-full
         role: service
         version: v1
     spec:
@@ -148,7 +147,71 @@ spec:
         - --max-idle-connections-per-host=32
         env:
         - name: SERVICE_NAME
-          value: {{ $.Values.serviceNamePrefix }}-partial
+          value: {{ .Values.serviceNamePrefix }}0-full
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+{{- if .Values.livenessProbe }}
+        livenessProbe: {{ toJson .Values.livenessProbe }}
+{{- end}}
+{{- if .Values.readinessProbe }}
+        readinessProbe: {{ toJson .Values.readinessProbe }}
+{{- end}}
+        resources: {{ toJson .Values.resources }}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-full
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-full
+status:
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
+  name: {{ $.Values.serviceNamePrefix }}0-partial
+spec:
+  replicas: {{ $.Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $.Values.serviceNamePrefix }}0-partial
+  template:
+    metadata:
+      annotations:
+{{- if $.Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+{{- end }}
+      labels:
+        app: {{ $.Values.serviceNamePrefix }}0-partial
+        role: service
+        version: v1
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: {{ $.Values.serviceNamePrefix }}0-partial
         image: {{ $.Values.serviceGraphImage }}
         name: mock-service
         ports:
@@ -176,13 +239,13 @@ kind: Service
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}-partial
+  name: {{ .Values.serviceNamePrefix }}0-partial
 spec:
   ports:
   - name: http-web
     port: 8080
   selector:
-    app: {{ .Values.serviceNamePrefix }}-partial
+    app: {{ .Values.serviceNamePrefix }}0-partial
 status:
 ---
 apiVersion: apps/v1
@@ -190,12 +253,12 @@ kind: Deployment
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}-full-serve
+  name: {{ .Values.serviceNamePrefix }}0-full-serve
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.serviceNamePrefix }}-full-serve
+      app: {{ .Values.serviceNamePrefix }}0-full-serve
   template:
     metadata:
       annotations:
@@ -203,7 +266,7 @@ spec:
         prometheus.io/scrape: "true"
 {{- end }}
       labels:
-        app: {{ .Values.serviceNamePrefix }}-full-serve
+        app: {{ .Values.serviceNamePrefix }}0-full-serve
         role: service
         version: v1
     spec:
@@ -212,7 +275,7 @@ spec:
         - --max-idle-connections-per-host=32
         env:
         - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}-full-serve
+          value: {{ .Values.serviceNamePrefix }}0-full-serve
         image: {{ .Values.serviceGraphImage }}
         name: mock-service
         ports:
@@ -240,13 +303,13 @@ kind: Service
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}-full-serve
+  name: {{ .Values.serviceNamePrefix }}0-full-serve
 spec:
   ports:
   - name: http-web
     port: 8080
   selector:
-    app: {{ .Values.serviceNamePrefix }}-full-serve
+    app: {{ .Values.serviceNamePrefix }}0-full-serve
 status:
 ---
 {{- range $name := list "istio" "legacy" }}
@@ -255,12 +318,12 @@ kind: Deployment
 metadata:
   labels:
     app: service-graph
-  name: {{ $.Values.serviceNamePrefix }}-partial-serve-{{$name}}
+  name: {{ $.Values.serviceNamePrefix }}0-partial-serve-{{$name}}
 spec:
   replicas: {{ $.Values.replicas }}
   selector:
     matchLabels:
-      app: {{ $.Values.serviceNamePrefix }}-partial-serve
+      app: {{ $.Values.serviceNamePrefix }}0-partial-serve
   template:
     metadata:
       annotations:
@@ -271,7 +334,7 @@ spec:
         prometheus.io/scrape: "true"
 {{- end }}
       labels:
-        app: {{ $.Values.serviceNamePrefix }}-partial-serve
+        app: {{ $.Values.serviceNamePrefix }}0-partial-serve
         role: service
         version: v1
     spec:
@@ -280,7 +343,7 @@ spec:
         - --max-idle-connections-per-host=32
         env:
         - name: SERVICE_NAME
-          value: {{ $.Values.serviceNamePrefix }}-partial-serve
+          value: {{ $.Values.serviceNamePrefix }}0-partial-serve
         image: {{ $.Values.serviceGraphImage }}
         name: mock-service
         ports:
@@ -309,11 +372,11 @@ kind: Service
 metadata:
   labels:
     app: service-graph
-  name: {{ .Values.serviceNamePrefix }}-partial-serve
+  name: {{ .Values.serviceNamePrefix }}0-partial-serve
 spec:
   ports:
   - name: http-web
     port: 8080
   selector:
-    app: {{ .Values.serviceNamePrefix }}-partial-serve
+    app: {{ .Values.serviceNamePrefix }}0-partial-serve
 status:
