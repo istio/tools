@@ -81,7 +81,7 @@ spec:
         # Needed to flush the output for python in detached container mode.
         - name: PYTHONUNBUFFERED
           value: "0"
-        image: gcr.io/jianfeih-test/hyperkube:v1.12.1
+        image: gcr.io/jianfeih-test/automtls-test:1112a
         imagePullPolicy: IfNotPresent
         name: config-change
         volumeMounts:
