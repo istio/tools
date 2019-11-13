@@ -77,10 +77,6 @@ spec:
       containers:
       - args:
         - /script/scale.py
-        - --sidecar-name
-        - {{ .Values.serviceNamePrefix }}0-automtls-sidecar
-        - --nosidecar-name
-        - {{ .Values.serviceNamePrefix }}0-automtls-nosidecar
         env:
         # Needed to flush the output for python in detached container mode.
         - name: PYTHONUNBUFFERED
