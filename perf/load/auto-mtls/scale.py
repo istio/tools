@@ -109,7 +109,7 @@ def continuous_rollout():
         print('Start rollout iteration {}'.format(iteration))
         message = simulate_sidecar_rollout(random.random())
         iteration += 1
-        time.sleep(20)
+        time.sleep(660)
 
 
 parser = argparse.ArgumentParser(description='Auto mTLS test runner')

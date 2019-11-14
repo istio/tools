@@ -81,9 +81,9 @@ spec:
         # Needed to flush the output for python in detached container mode.
         - name: PYTHONUNBUFFERED
           value: "0"
-        image: gcr.io/jianfeih-test/automtls-test:1112a
-        imagePullPolicy: IfNotPresent
-        name: config-change
+        image: gcr.io/jianfeih-test/automtls-test:1113a
+        imagePullPolicy: Always
+        name: sidecar-rollout
         volumeMounts:
         - name: script
           mountPath: /script
