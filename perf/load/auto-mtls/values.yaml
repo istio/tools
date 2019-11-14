@@ -7,7 +7,7 @@ serviceGraphImage: tahler/isotope-service:1
 serviceNamePrefix: svc-
 requestSize: 128B
 responseSize: 1KiB
-replicas: 4
+replicas: 2
 resources:
   requests:
     cpu: 50m
@@ -17,6 +17,12 @@ readinessProbe:
     port: 8080
   initialDelaySeconds: 5
   periodSeconds: 5
+
+automtls:
+  # true or false help us determine the effect of auto mTLS itself
+  enable: true
+  # The number of the replicas set for the backend service.
+  backendReplicas: 60
 
 prometheus_scrape: false
 
