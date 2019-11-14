@@ -96,11 +96,32 @@ def simulate_sidecar_rollout(istio_percent : float):
             )
     scale_deployment(TEST_NAMESPACE, ISTIO_DEPLOY, istio_count)
     scale_deployment(TEST_NAMESPACE, LEGACY_DEPLOY, legacy_count)
+    print(output)
     return output
 
 
+def continuous_rollout():
+    '''
+    Simulate long running rollout, used for large performance cluster.
+    '''
+    iteration = 1
+    while True:
+        print('Start rollout iteration {}'.format(iteration))
+        message = simulate_sidecar_rollout(random.random())
+        iteration += 1
+        time.sleep(20)
+
+
+parser = argparse.ArgumentParser(description='Auto mTLS test runner')
+parser.add_argument('-m', '--mode', default='ci', type=str, help='mode, http | ci')
+args = parser.parse_args()
+
+
 if __name__ == '__main__':
-    print('starting the rollout server simulation...')
-    server_address = ('127.0.0.1', 8000)
-    httpd = http.server.HTTPServer(server_address, testHTTPServer_RequestHandler)
-    httpd.serve_forever()
+    if args.mode == 'http':
+        print('starting the rollout server simulation...')
+        server_address = ('127.0.0.1', 8000)
+        httpd = http.server.HTTPServer(server_address, testHTTPServer_RequestHandler)
+        httpd.serve_forever()
+    else:
+        continuous_rollout()
