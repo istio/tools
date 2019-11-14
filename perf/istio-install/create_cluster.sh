@@ -227,8 +227,11 @@ if [[ -z "${DRY_RUN}" ]];then
 fi
 
 export KUBECONFIG=${CLUSTER}/kube.yaml
-
 gcloud container clusters get-credentials ${CLUSTER_NAME} --zone ${ZONE}
+
+kubectl create clusterrolebinding cluster-admin-binding \
+  --clusterrole=cluster-admin \
+  --user="$(gcloud config get-value core/account)"
 
 # Update the cluster with the GCP-specific configmaps
 kubectl -n kube-system apply -f configmap-neg.yaml
