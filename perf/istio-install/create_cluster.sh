@@ -44,30 +44,34 @@ function default_gke_version() {
 
 # Required params
 PROJECT_ID=${PROJECT_ID:?"project id is required"}
-CLUSTER_NAME=${1:?"cluster name is required"}
-
+if [[ -z ${CLUSTER} ]]; then
+  CLUSTER_NAME=${1:?"cluster name is required"}
+else
+  CLUSTER_NAME=${CLUSTER}
+fi
 
 # Optional params
 ZONE=${ZONE:-us-central1-a}
 # specify REGION to create a regional cluster
 
 # Specify GCP_SA to create and use a specific service account.
-# GCP_SA
+# Default is to use same name as the cluster - each cluster can have different
+# IAM permissions. This also enables workloadIdentity, which is recommended for GCP
+GCP_SA=${GCP_SA:-$CLUSTER_NAME}
+GCP_CTL_SA=${GCP_CTL_SA:-${CLUSTER_NAME}-control}
 
 # Sizing
 DISK_SIZE=${DISK_SIZE:-64}
 MACHINE_TYPE=${MACHINE_TYPE:-n1-standard-32}
 MIN_NODES=${MIN_NODES:-"4"}
 MAX_NODES=${MAX_NODES:-"70"}
-
+IMAGE=${IMAGE:-"COS"}
 MAXPODS_PER_NODE=100
 
 # Labels and version
-ISTIO_VERSION=${ISTIO_VERSION:?"Istio version label is required"}
+ISTIO_VERSION=${ISTIO_VERSION:-master}
 
-if [[ -n "${GCP_SA}" ]];then
-  "${WD}/create_sa.sh" "${GCP_SA}"
-fi
+"${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
 
 DEFAULT_GKE_VERSION=$(default_gke_version "${ZONE}")
 # shellcheck disable=SC2181
@@ -82,10 +86,12 @@ GKE_VERSION=${GKE_VERSION-${DEFAULT_GKE_VERSION}}
 # shellcheck disable=SC2034
 SCOPES_DEFAULT="https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append"
 
-# Full scope is needed for the context graph API
+# Full scope is needed for the context graph API and NEG integration
 SCOPES_FULL="https://www.googleapis.com/auth/cloud-platform"
 
 SCOPES="${SCOPES_FULL}"
+
+mkdir ${CLUSTER}
 
 # A label cannot have "." in it, replace "." with "_"
 # shellcheck disable=SC2001
@@ -125,7 +131,7 @@ if [[ -n "${USE_SUBNET}" ]];then
   NETWORK_SUBNET="--network ${USE_SUBNET}"
 fi
 
-ADDONS="HorizontalPodAutoscaling,HttpLoadBalancing,KubernetesDashboard"
+ADDONS="HorizontalPodAutoscaling,KubernetesDashboard"
 # shellcheck disable=SC2236
 if [[ -n "${ISTIO_ADDON}" ]];then
   ADDONS+=",Istio"
@@ -136,12 +142,98 @@ gc beta container \
   --project "${PROJECT_ID}" \
   clusters create "${CLUSTER_NAME}" \
   --no-enable-basic-auth --cluster-version "${GKE_VERSION}" \
-  --machine-type "${MACHINE_TYPE}" --image-type "COS" --disk-type "pd-standard" --disk-size "${DISK_SIZE}" \
+  --issue-client-certificate \
+  --machine-type "${MACHINE_TYPE}" --image-type ${IMAGE} --disk-type "pd-standard" --disk-size "${DISK_SIZE}" \
   --scopes "${SCOPES}" \
   --num-nodes "${MIN_NODES}" --enable-autoscaling --min-nodes "${MIN_NODES}" --max-nodes "${MAX_NODES}" --max-pods-per-node "${MAXPODS_PER_NODE}" \
   --enable-stackdriver-kubernetes \
   --enable-ip-alias \
+  --metadata disable-legacy-endpoints=true \
   ${NETWORK_SUBNET} \
   --default-max-pods-per-node "${MAXPODS_PER_NODE}" \
   --addons "${ADDONS}" \
-  --enable-network-policy --enable-autoupgrade --enable-autorepair --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
+  --enable-network-policy \
+  --workload-metadata-from-node=EXPOSED \
+  --enable-autoupgrade --enable-autorepair \
+  --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
+
+NETWORK_NAME=$(basename $(gcloud container clusters describe $CLUSTER --project $PROJECT_ID --zone=$ZONE \
+    --format='value(networkConfig.network)'))
+SUBNETWORK_NAME=$(basename $(gcloud container clusters describe $CLUSTER --project $PROJECT_ID \
+    --zone=$ZONE --format='value(networkConfig.subnetwork)'))
+
+# Getting network tags is painful. Get the instance groups, map to an instance,
+# and get the node tag from it (they should be the same across all nodes -- we don't
+# know how to handle it, otherwise).
+INSTANCE_GROUP=$(gcloud container clusters describe $CLUSTER --project $PROJECT_ID --zone=$ZONE --format='flattened(nodePools[].instanceGroupUrls[].scope().segment())' |  cut -d ':' -f2 | tr -d [:space:])
+INSTANCE=$(gcloud compute instance-groups list-instances $INSTANCE_GROUP --project $PROJECT_ID \
+    --zone=$ZONE --format="value(instance)" --limit 1)
+NETWORK_TAGS=$(gcloud compute instances describe $INSTANCE --zone=$ZONE --project $PROJECT_ID --format="value(tags.items)")
+
+
+cat <<EOF > ${CLUSTER}/configmap-neg.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gce-config
+  namespace: kube-system
+  labels:
+    release: asm
+data:
+  gce.conf: |
+    [global]
+    token-url = nil
+    # Your cluster's project
+    project-id = ${PROJECT_ID}
+    # Your cluster's network
+    network-name =  ${NETWORK_NAME}
+    # Your cluster's subnetwork
+    subnetwork-name = ${SUBNETWORK_NAME}
+    # Prefix for your cluster's IG
+    node-instance-prefix = gke-${CLUSTER}
+    # Network tags for your cluster's IG
+    node-tags = ${NETWORK_TAGS}
+    # Zone the cluster lives in
+    local-zone = ${ZONE}
+EOF
+
+
+cat <<EOF > ${CLUSTER}/configmap-galley.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: istiod-galley
+  namespace: istio-system
+  labels:
+    release: asm
+data:
+  galley.json: |
+      {
+      "EnableServiceDiscovery": true,
+      "SinkAddress": "meshconfig.googleapis.com:443",
+      "SinkAuthMode": "GOOGLE",
+      "ExcludedResourceKinds": ["Pod", "Node", "Endpoints"],
+      "SinkMeta": ["project_id=${PROJECT_ID}"]
+      }
+
+  PROJECT_ID: ${PROJECT_ID}
+  GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/google/key.json
+  ISTIOD_ADDR: istiod-asm.istio-system.svc:15012
+
+EOF
+
+if [[ -z "${DRY_RUN}" ]];then
+  gcloud compute firewall-rules create csm-allow-health-checks --allow=tcp --source-ranges=130.211.0.0/22,35.191.0.0/16
+fi
+
+export KUBECONFIG=${CLUSTER}/kube.yaml
+
+gcloud container clusters get-credentials ${CLUSTER_NAME} --zone ${ZONE}
+
+# Update the cluster with the GCP-specific configmaps
+kubectl -n kube-system apply -f configmap-neg.yaml
+kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json=${CLUSTER}/google-cloud-key.json
+
+kubectl create ns istio-system
+kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json=${CLUSTER}/google-cloud-key.json
+kubectl -n istio-system apply -f configmap-galley.yaml
