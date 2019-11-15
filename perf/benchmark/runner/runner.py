@@ -156,8 +156,9 @@ class Fortio:
         labels += "_c_" + str(conn)
         labels += "_" + str(size)
         # Mixer label
-        labels += "_"
-        labels += self.mixer_mode
+        if self.mesh == "istio":
+            labels += "_"
+            labels += self.mixer_mode
 
         if self.labels is not None:
             labels += "_" + self.labels
