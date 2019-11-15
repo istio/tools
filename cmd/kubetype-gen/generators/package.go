@@ -15,6 +15,8 @@
 package generators
 
 import (
+	"fmt"
+
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/types"
 
@@ -27,11 +29,12 @@ func NewPackageGenerator(source metadata.PackageMetadata, boilerplate []byte) ge
 		PackageName: source.TargetPackage().Name,
 		PackagePath: source.TargetPackage().Path,
 		HeaderText:  boilerplate,
-		PackageDocumentation: []byte(`
+		PackageDocumentation: []byte(fmt.Sprintf(`
 // Package has auto-generated kube type wrappers for raw types.
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package
-`),
+// +groupName=%s
+`, source.GroupVersion().Group)),
 		FilterFunc: func(c *generator.Context, t *types.Type) bool {
 			for _, it := range source.RawTypes() {
 				if t == it {
