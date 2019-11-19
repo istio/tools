@@ -121,6 +121,7 @@ fi
 TAG=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
 echo "Setup istio release: $TAG"
 pushd "${ROOT}/istio-install"
+   export INSTALL_WITH_ISTIOCTL="true"
    ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
 popd
 

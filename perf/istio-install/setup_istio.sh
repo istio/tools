@@ -75,29 +75,8 @@ function setup_admin_binding() {
     --user=$(gcloud config get-value core/account) || true
 }
 
-function install_istio() {
-  local DIRNAME="${1:?"output dir"}"
-  local release="${2:?"release"}"
-
-  # shellcheck disable=SC2155
-  # shellcheck disable=SC2086
-  local outfile="$(download ${DIRNAME} ${release})"
-  if [[ "$outfile" == "" ]];then
-    echo "failed to download istio release"
-    exit 1
-  fi
-  # shellcheck disable=SC2086
-  outfile=$(trim $outfile)
-
-  if [[ ! -d "${DIRNAME}/${release}" ]];then
-      DN=$(mktemp -d)
-      tar -xzf "${outfile}" -C "${DN}" --strip-components 1
-      mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
-      # shellcheck disable=SC2086
-      rm -rf ${DN}
-  fi
-
-  kubectl create ns istio-system || true
+function install_istio_with_helm() {
+    kubectl create ns istio-system || true
 
   if [[ -z "${DRY_RUN}" ]];then
       # apply CRD files for istio kinds
@@ -157,6 +136,49 @@ function install_istio() {
   fi
 
   echo "Wrote file ${FILENAME}"
+}
+
+# install istio with default IstioControlPlane CR yaml using istioctl.
+function install_istio_with_istioctl() {
+  local args="-f ${CR_FILENAME} --set ${SET_OVERLAY}"
+  if [[ ${EXTRA_ARGS} != "" ]];then
+    args+=${EXTRA_ARGS}
+  fi
+  istioctl manifest apply -f "${CR_FILENAME}" --force=true --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+}
+
+function install_istio() {
+  local DIRNAME="${1:?"output dir"}"
+  local release="${2:?"release"}"
+
+  # shellcheck disable=SC2155
+  # shellcheck disable=SC2086
+  local outfile="$(download ${DIRNAME} ${release})"
+  if [[ "$outfile" == "" ]];then
+    echo "failed to download istio release"
+    exit 1
+  fi
+  # shellcheck disable=SC2086
+  outfile=$(trim $outfile)
+
+  if [[ ! -d "${DIRNAME}/${release}" ]];then
+      DN=$(mktemp -d)
+      tar -xzf "${outfile}" -C "${DN}" --strip-components 1
+      mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
+      # shellcheck disable=SC2086
+      rm -rf ${DN}
+  fi
+
+  if [[ -z "${INSTALL_WITH_ISTIOCTL}" ]]; then
+    echo "start installing istio using helm"
+    install_istio_helm
+  else
+    echo "start installing istio using istioctl"
+    SET_OVERLAY="defaultNamespace=istio-system"
+    CR_FILENAME="${WD}/operator_default.yaml"
+    EXTRA_ARGS="--force=true"
+    install_istio_with_istioctl
+  fi
 }
 
 function install_gateways() {
