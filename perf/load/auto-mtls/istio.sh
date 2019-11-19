@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+ENABLE_AUTO_MTLS=${ENABLE_AUTO_MTLS:-true}
 mkdir -p tmp
 pushd tmp
 URL=https://github.com/istio/istio/releases/download/1.4.0-beta.4/istio-1.4.0-beta.4-linux.tar.gz
@@ -22,7 +23,7 @@ tar xf istio-1.4.0-beta.4-linux.tar.gz
 
 pushd istio-1.4.0-beta.4
 bin/istioctl manifest apply --set profile=demo \
-  --set values.global.mtls.auto=true \
+  --set values.global.mtls.auto=${ENABLE_AUTO_MTLS} \
   --set values.global.mtls.enabled=false
 popd
 
