@@ -44,7 +44,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 1. Deploy the workloads to measure performance against. The test environment is two [Fortio](http://fortio.org/) pods (one client, one server), set to communicate over HTTP1, using mutual TLS authentication. By default, the client pod will make HTTP requests with a 1KB payload.
 
     ```bash
-    export NAMESPACE=twopods
+    export NAMESPACE=twopods-istio
     export DNS_DOMAIN=local
     export INTERCEPTION_MODE=REDIRECT
     export ISTIO_INJECT=true
