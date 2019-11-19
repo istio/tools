@@ -144,7 +144,7 @@ function install_istio_with_istioctl() {
   if [[ ${EXTRA_ARGS} != "" ]];then
     args+=${EXTRA_ARGS}
   fi
-  istioctl manifest apply -f "${CR_FILENAME}" --force=true --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  ./istioctl manifest apply -f "${CR_FILENAME}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
 }
 
 function install_istio() {
@@ -165,8 +165,8 @@ function install_istio() {
       DN=$(mktemp -d)
       tar -xzf "${outfile}" -C "${DN}" --strip-components 1
       mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
-      # shellcheck disable=SC2086
-      rm -rf ${DN}
+      mv "${DN}/bin/istioctl" "${DIRNAME}/${release}"
+      rm -rf "${DN}"
   fi
 
   if [[ -z "${INSTALL_WITH_ISTIOCTL}" ]]; then
@@ -174,10 +174,12 @@ function install_istio() {
     install_istio_helm
   else
     echo "start installing istio using istioctl"
+    pushd "${DIRNAME}/${release}"
     SET_OVERLAY="defaultNamespace=istio-system"
     CR_FILENAME="${WD}/operator_default.yaml"
     EXTRA_ARGS="--force=true"
     install_istio_with_istioctl
+    popd
   fi
 }
 
