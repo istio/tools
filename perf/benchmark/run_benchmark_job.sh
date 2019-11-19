@@ -130,6 +130,7 @@ pipenv install
 
 # setup test
 pushd "${WD}"
+export ISTIO_INJECT="true"
 ./setup_test.sh
 popd
 dt=$(date +'%Y%m%d-%H')
