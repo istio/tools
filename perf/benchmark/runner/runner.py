@@ -240,7 +240,7 @@ def kubectl_cp(from_file, to_file, container):
         from_file=from_file,
         to_file=to_file,
         container=container)
-    print(cmd)
+    print(cmd, flust=True)
     run_command_sync(cmd)
 
 
@@ -254,7 +254,7 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
         remote_cmd=remote_cmd,
         c=c,
         namespace=namespace)
-    print(cmd)
+    print(cmd, flush=True)
     runfn(cmd)
 
 
@@ -296,7 +296,7 @@ def fortio_from_config_file(args):
         fortio.metrics = job_config.get('metrics', 'p90')
         fortio.size = job_config.get('size', 1024)
         fortio.perf_record = job_config.get('perf_record', False)
-        fortio.run_serversidecar = job_config.get('run_serversidecar', True)
+        fortio.run_serversidecar = job_config.get('run_serversidecar', False)
         fortio.run_baseline = job_config.get('run_baseline', True)
         fortio.mesh = job_config.get('mesh', 'istio')
         fortio.mode = job_config.get('mode', 'http')
