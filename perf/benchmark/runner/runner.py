@@ -240,7 +240,7 @@ def kubectl_cp(from_file, to_file, container):
         from_file=from_file,
         to_file=to_file,
         container=container)
-    print(cmd, flust=True)
+    print(cmd, flush=True)
     run_command_sync(cmd)
 
 
@@ -310,7 +310,6 @@ def run(args):
     # run with config files
     if args.config_file is not None:
         fortio = fortio_from_config_file(args)
-
     else:
         fortio = Fortio(
             conn=args.conn,

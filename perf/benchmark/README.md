@@ -47,6 +47,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
     export NAMESPACE=twopods
     export DNS_DOMAIN=local
     export INTERCEPTION_MODE=REDIRECT
+    export ISTIO_INJECT=true
     cd ../benchmark
     ./setup_test.sh
     ```

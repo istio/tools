@@ -27,7 +27,8 @@ NAMESPACE=${NAMESPACE:-'twopods'}
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
-LINKERD_INJECT="${LINKERD_INJECT:-'disabled'}"
+ISTIO_INJECT="${ISTIO_INJECT:-false}"
+LINKERD_INJECT="${LINKERD_INJECT:-disabled}"
 INTERCEPTION_MODE=${INTERCEPTION_MODE:-'REDIRECT'}
 echo "linkerd inject is ${LINKERD_INJECT}"
 
@@ -47,8 +48,10 @@ function run_test() {
   helm -n "${NAMESPACE}" template \
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set includeOutboundIPRanges=$(svc_ip_range) \
+      --set client.inject="${ISTIO_INJECT}" \
+      --set server.inject="${ISTIO_INJECT}"  \
       --set client.injectL="${LINKERD_INJECT}" \
-      --set sever.injectL="${LINKERD_INJECT}" \
+      --set server.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
           . > "${TMPDIR}"twopods.yaml
