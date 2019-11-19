@@ -47,6 +47,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
     export NAMESPACE=twopods
     export DNS_DOMAIN=local
     export INTERCEPTION_MODE=REDIRECT
+    export ISTIO_INJECT=true
     cd ../benchmark
     ./setup_test.sh
     ```
@@ -191,6 +192,14 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
     kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
     python ./update_mesh_config.py enable_mixer /tmp/meshconfig.yaml  | kubectl -n istio-system apply -f -
     ```
+
+## [Optional] Enable Telemetryv2
+
+1. Disable mixer v1 telemetry following previous section
+
+1. Enable metadata exchange filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml>
+
+1. Enable stats filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml>
 
 ## Gather Result Metrics
 

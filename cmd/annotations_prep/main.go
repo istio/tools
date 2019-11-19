@@ -49,6 +49,16 @@ const (
     {{- end }}
 )
 
+func (r ResourceTypes) String() string {
+	switch r {
+	{{- range $i, $t := .KnownTypes }}
+	case {{ add $i 1 }}:
+		return "{{$t}}"
+	{{- end }}
+	}
+	return "Unknown"
+}
+
 // Instance describes a single resource annotation
 type Instance struct {
 	// The name of the annotation.
@@ -99,7 +109,7 @@ func AllResourceTypes() []string {
 title: Resource Annotations
 description: Resource annotations used by Istio.
 location: https://istio.io/docs/reference/config/annotations.html
-weight: 29
+weight: 60
 ---
 <p>
 This page presents the various <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">resource annotations</a> that
@@ -186,7 +196,7 @@ var (
 
 			// Create the output file template.
 			t, err := template.New("annoTemplate").Funcs(template.FuncMap{
-				"wordWrap": wordWrap,
+				"wordWrap": wordWrap, "add": add,
 			}).Parse(outputTemplate)
 			if err != nil {
 				log.Fatalf("failed parsing annotation template: %v", err)
@@ -355,4 +365,8 @@ func wordWrap(in string, indent int) string {
 	out += "\"" + line + "\""
 
 	return out
+}
+
+func add(x, y int) int {
+	return x + y
 }

@@ -17,6 +17,8 @@ package test
 import (
 	"testing"
 
+	"github.com/gogo/protobuf/proto"
+
 	"istio.io/tools/cmd/protoc-gen-deepcopy/test/generated"
 )
 
@@ -59,4 +61,15 @@ func checkSeparatedTagTypeDeepCopy(value interface{}) bool {
 	}
 	_, ok := value.(SeparatedTagTypeDeepCopy)
 	return ok
+}
+
+func TestTypeWithRepeatedField(t *testing.T) {
+	in := &generated.RepeatedFieldType{
+		Ns: []string{"ns-1", "ns-2"},
+	}
+	out := &generated.RepeatedFieldType{}
+	in.DeepCopyInto(out)
+	if !proto.Equal(in, out) {
+		t.Fatalf("Deepcopy of proto is not equal. got: %v, want: %v", *out, *in)
+	}
 }

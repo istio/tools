@@ -3,9 +3,11 @@
 
 package generated
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/gogo/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -14,10 +16,18 @@ var _ = math.Inf
 
 // DeepCopyInto supports using TagType within kubernetes types, where deepcopy-gen is used.
 func (in *TagType) DeepCopyInto(out *TagType) {
-	proto.Merge(out, in)
+	p := proto.Clone(in).(*TagType)
+	*out = *p
 }
 
 // DeepCopyInto supports using SeparatedTagType within kubernetes types, where deepcopy-gen is used.
 func (in *SeparatedTagType) DeepCopyInto(out *SeparatedTagType) {
-	proto.Merge(out, in)
+	p := proto.Clone(in).(*SeparatedTagType)
+	*out = *p
+}
+
+// DeepCopyInto supports using RepeatedFieldType within kubernetes types, where deepcopy-gen is used.
+func (in *RepeatedFieldType) DeepCopyInto(out *RepeatedFieldType) {
+	p := proto.Clone(in).(*RepeatedFieldType)
+	*out = *p
 }
