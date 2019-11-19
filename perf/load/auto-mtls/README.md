@@ -10,10 +10,10 @@ This feature can be affected by
 Thus we setup the test to simulate traffic meanwhile updating deployments with or without Envoy
 sidecar simutaneously.
 
-A service graph instance with 5 workloads, service 0, 1, 2 calls service 3 and automtls.
+The service graph consists of two groups of services
 
-- Service `automtls` has workloads with and without sidecar in mixed mode.
-- All other services workloads instances have sidecar injected.
+- `svc-0-front` is the client, all with sidecars
+- `svc-0-back-partial-istio`, means backend, with istio sidecar injected, `*-legacy` means no sidecar.
 
 ## Steps to Run Test
 
@@ -27,6 +27,8 @@ export ENABLE_AUTO_MTLS=true
 1. Setup the Tests
 
 ```bash
+# sleep just waiting to ensure ingress gateway IP is finalized, needed for fortio client.
+sleep 30
 # Setup the test.
 ./setup.sh
 ```
@@ -43,3 +45,18 @@ kubectl rm ns istio-system automtls
 export ENABLE_AUTO_MTLS=false
 ./istio.sh
 ```
+
+1. Gather Metrics
+
+```bash
+pid=$(kpidn istio-system -lapp=grafana)
+kpfn istio-system $pid 3000
+```
+
+Select workload dashboard, focused on `svc-0-front`, extend time range correspondingly.
+
+- `Outgoing duration`
+- `Outgoing success rate`
+
+Open `Share` button, click through `https://snapshot.raintank.io/`, ensures setting a longer timeout
+to grab all the metrics.
