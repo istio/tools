@@ -159,6 +159,9 @@ class Fortio:
         if self.mesh == "istio":
             labels += "_"
             labels += self.mixer_mode
+        elif self.mesh == "linkerd":
+            labels += "_"
+            labels += "linkerd"
 
         if self.labels is not None:
             labels += "_" + self.labels
