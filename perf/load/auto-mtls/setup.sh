@@ -36,6 +36,8 @@ function setup_test() {
   if [[ -z "${DRY_RUN}" ]]; then
       kubectl --namespace "${NAMESPACE}" apply -f "${OUTFILE}"
       pushd ../loadclient || exit
+      # Generate larger load for load client.
+      export LOADCLIENT_EXTRA_HELM_FLAGS="--set qps=200"
       ./setup_test.sh "${NAMESPACE}" "svc-"
       popd || exit
   fi

@@ -10,7 +10,7 @@ responseSize: 1KiB
 replicas: 2
 resources:
   requests:
-    cpu: 50m
+    cpu: 500m
 readinessProbe:
   httpGet:
     path: /metrics
@@ -22,7 +22,7 @@ automtls:
   # true or false help us determine the effect of auto mTLS itself
   enable: true
   # The number of the replicas set for the backend service.
-  backendReplicas: 60
+  backendReplicas: 100
 
 prometheus_scrape: false
 

@@ -83,6 +83,9 @@ def simulate_sidecar_rollout(istio_percent : float):
     '''
     output = 'Namespace {}, sidecar deployment: {}, nosidecar deployment: {}'.format(
         TEST_NAMESPACE, ISTIO_DEPLOY, LEGACY_DEPLOY)
+    # Wait to be stablized before attempting to scale.
+    wait_deployment(TEST_NAMESPACE, ISTIO_DEPLOY)
+    wait_deployment(TEST_NAMESPACE, LEGACY_DEPLOY)
     istio_count = get_deployment_replicas(TEST_NAMESPACE, ISTIO_DEPLOY)
     legacy_count = get_deployment_replicas(TEST_NAMESPACE, LEGACY_DEPLOY)
     total = istio_count + legacy_count
