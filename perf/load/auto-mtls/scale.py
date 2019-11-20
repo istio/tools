@@ -28,8 +28,8 @@ from urllib.parse import urlparse, parse_qs
 
 
 TEST_NAMESPACE = 'automtls'
-ISTIO_DEPLOY = 'svc-0-partial-serve-istio'
-LEGACY_DEPLOY = 'svc-0-partial-serve-legacy'
+ISTIO_DEPLOY = 'svc-0-back-istio'
+LEGACY_DEPLOY = 'svc-0-back-legacy'
 
 
 class testHTTPServer_RequestHandler(http.server.BaseHTTPRequestHandler):

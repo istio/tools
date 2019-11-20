@@ -13,7 +13,7 @@ sidecar simutaneously.
 The service graph consists of two groups of services
 
 - `svc-0-front` is the client, all with sidecars
-- `svc-0-back-partial-istio`, means backend, with istio sidecar injected, `*-legacy` means no sidecar.
+- `svc-0-back-istio`, means backend, with istio sidecar injected, `*-legacy` means no sidecar.
 
 ## Steps to Run Test
 
