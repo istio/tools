@@ -9,7 +9,7 @@ Sources:
 
 ## 1 - Create cluster and Install Istio
 
-Please follow this [Setup README](https://github.com/istio/tools/tree/master/perf/benchmark#setup), finish step 1 and 2.
+Please follow this [Setup README](https://github.com/istio/tools/tree/master/perf/benchmark#setup), finish step 1.
 
 ## 2 - Install Linkerd
 
@@ -27,7 +27,7 @@ kubectl -n linkerd get deploy
 ## 3. Deploy the fortio test environment
 
 ```bash
-export NAMESPACE="twopods"
+export NAMESPACE=twopods-linkerd
 export DNS_DOMAIN=local
 export LINKERD_INJECT=enabled
 cd ..
