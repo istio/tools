@@ -59,10 +59,11 @@ function setup_admin_binding() {
 function install_istio() {
     local CR_FILENAME="${WD}/${OPERATOR_PROFILE}"
     pushd "${ISTIO_OPERATOR_DIR}"
-    go run ./cmd/mesh.go manifest apply -f "${CR_FILENAME}" --force=true --set defaultNamespace=${defaultNamespace}
+    go run ./cmd/mesh.go manifest apply --force=true --set defaultNamespace=${defaultNamespace} --set profile="${CR_FILENAME}"
     popd
     echo "installation is done"
 }
 
 setup_admin_binding
+
 install_istio
