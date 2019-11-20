@@ -171,7 +171,7 @@ function install_istio() {
 
   if [[ -z "${INSTALL_WITH_ISTIOCTL}" ]]; then
     echo "start installing istio using helm"
-    install_istio_helm
+    install_istio_with_helm
   else
     echo "start installing istio using istioctl"
     pushd "${DIRNAME}/${release}"
