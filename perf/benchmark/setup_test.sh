@@ -73,4 +73,12 @@ for ((i=1; i<=$#; i++)); do
 done
 
 kubectl create ns "${NAMESPACE}" || true
+
+kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite || true
+
+if [[ "$LINKERD_INJECT" == "enabled" ]]
+then
+  kubectl annotate namespace "${NAMESPACE}" linkerd.io/inject=enabled || true
+fi
+
 run_test
