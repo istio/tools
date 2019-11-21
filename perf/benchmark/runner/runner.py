@@ -33,7 +33,7 @@ else:
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
 
-def pod_info(filterstr="", namespace="twopods", multi_ok=True):
+def pod_info(filterstr="", namespace=os.environ.get("NAMESPACE", "twopods"), multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
         namespace=namespace, filterstr=filterstr)
     op = getoutput(cmd)
@@ -159,6 +159,9 @@ class Fortio:
         if self.mesh == "istio":
             labels += "_"
             labels += self.mixer_mode
+        elif self.mesh == "linkerd":
+            labels += "_"
+            labels += "linkerd"
 
         if self.labels is not None:
             labels += "_" + self.labels
@@ -221,9 +224,14 @@ def run_perf(mesh, pod, labels, duration=20):
     # copy executable over
     kubectl_cp(PERFSH, pod + ":" + perfpath, mesh + "-proxy")
 
+    # debug information
+    kubectl_exec(pod,
+                 "ls {path}".format(path=PERFWD),
+                 container=mesh + "-proxy")
+
     kubectl_exec(
         pod,
-        "{perf_cmd} {filename} {duration}".format(
+        "bash {perf_cmd} {filename} {duration}".format(
             perf_cmd=perfpath,
             filename=filename,
             duration=duration),
