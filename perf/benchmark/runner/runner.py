@@ -221,9 +221,14 @@ def run_perf(mesh, pod, labels, duration=20):
     # copy executable over
     kubectl_cp(PERFSH, pod + ":" + perfpath, mesh + "-proxy")
 
+    # debug information
+    kubectl_exec(pod,
+                 "ls {path}".format(path=PERFWD),
+                 container=mesh + "-proxy")
+
     kubectl_exec(
         pod,
-        "{perf_cmd} {filename} {duration}".format(
+        "bash {perf_cmd} {filename} {duration}".format(
             perf_cmd=perfpath,
             filename=filename,
             duration=duration),
