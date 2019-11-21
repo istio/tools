@@ -34,7 +34,7 @@ export GO111MODULE=on
 # The profile containing IstioControlPlane spec. Overriding this environment
 # variable allow to specify different installation options.
 OPERATOR_SHA=${OPERATOR_SHA-$(cat "${WD}"/istio_operator.sha)}
-OPERATOR_PROFILE=${OPERATOR_PROFILE:-operator_default.yaml}
+OPERATOR_PROFILE=${OPERATOR_PROFILE:-default.yaml}
 
 ISTIO_OPERATOR_DIR="${DIRNAME}/operator"
 if [[ ! -d "${ISTIO_OPERATOR_DIR}" ]]; then
@@ -57,9 +57,9 @@ function setup_admin_binding() {
 }
 
 function install_istio() {
-    local CR_FILENAME="${WD}/${OPERATOR_PROFILE}"
+    local CR_FILENAME="${WD}/istioctl_profiles/${OPERATOR_PROFILE}"
     pushd "${ISTIO_OPERATOR_DIR}"
-    go run ./cmd/mesh.go manifest apply --force=true --set defaultNamespace=${defaultNamespace} --set profile="${CR_FILENAME}"
+    go run ./cmd/mesh.go manifest apply -f "${CR_FILENAME}" --force=true --set defaultNamespace=${defaultNamespace}
     popd
     echo "installation is done"
 }
