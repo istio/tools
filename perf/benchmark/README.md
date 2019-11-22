@@ -39,7 +39,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 
    ```bash
    export ISTIO_RELEASE=1.4-alpha.0ef2cd46e2da64b9252c36ca4bf90aa474b73610
-   export DNS_DOMAIN=local 
+   export DNS_DOMAIN=local
    ./setup_istio_release.sh $ISTIO_RELEASE dev
    ```
 
