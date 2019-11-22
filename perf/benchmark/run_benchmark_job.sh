@@ -118,8 +118,8 @@ function prerun_nomixer() {
 
 # setup cluster
 helm init --client-only
-# shellcheck source=setup_cluster.sh
-source "${WD}/setup_cluster.sh"
+# shellcheck disable=SC1090
+source "${ROOT}/../bin/setup_cluster.sh"
 setup_e2e_cluster
 
 # setup release info
