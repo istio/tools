@@ -24,7 +24,7 @@ WD=$(dirname $0)
 WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
 
-HUB="${HUB:-"gcr.io/istio-release"}"
+HUB=${HUB:-"gcr.io/istio-release"}
 TAG="${1:?"specific build tag or release branch master-latest,release-1.1-latest, release-1.2-latest etc"}"
 GOPATH="${GOPATH:?go path is required}"
 INSTALLER="${GOPATH}/src/istio.io/installer"

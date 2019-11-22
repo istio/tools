@@ -21,7 +21,7 @@ WD=$(dirname $0)
 # shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 
-NAMESPACE="${NAMESPACE:-"istio-stability-gateway-bouncer"}"
+NAMESPACE=${NAMESPACE:-"istio-stability-gateway-bouncer"}
 # shellcheck disable=SC2086
 ${WD}/../setup_test.sh "gateway-bouncer" "--set namespace=${NAMESPACE}"
 
