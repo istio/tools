@@ -21,7 +21,7 @@ WD=$(dirname "$0")
 WD=$(cd "${WD}" || exit; pwd)
 
 function setup_test() {
-  local NAMESPACE="${NAMESPACE:-"auto-mtls"}"
+  local NAMESPACE=${NAMESPACE:-"auto-mtls"}
   local HELM_FLAGS=${HELM_FLAGS:-"serverSidecar=50"}
 
   mkdir -p "${WD}/tmp"
