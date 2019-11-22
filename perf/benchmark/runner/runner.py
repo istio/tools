@@ -215,10 +215,12 @@ PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
 FLAMESH = "flame.sh"
 PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
+
 WD = os.getcwd()
-LOCAL_FLAMEPATH = os.path.join(WD, "../flame", FLAMESH)
-LOCAL_PERFPATH = os.path.join(WD, "../flame", PERFSH)
-LOCAL_FLAMEOUTPUT = os.path.join(WD, "../flame", "flameoutput/")
+LOCAL_FLAMEDIR = os.path.join(WD, "../flame/")
+LOCAL_FLAMEPATH = LOCAL_FLAMEDIR + FLAMESH
+LOCAL_PERFPATH = LOCAL_FLAMEDIR + PERFSH
+LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
 
 
 def run_perf(mesh, pod, labels, duration=20):
