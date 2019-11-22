@@ -32,6 +32,13 @@ export FORTIO_CLIENT_URL=""
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 export GCS_BUCKET="istio-build/perf"
+# Check https://github.com/istio/test-infra/blob/master/boskos/configs.yaml
+# for existing resources types
+export RESOURCE_TYPE="${RESOURCE_TYPE:-gke-perf-preset}"
+export OWNER="${OWNER:-perf-tests}"
+export PILOT_CLUSTER="${PILOT_CLUSTER:-}"
+export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
+export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 
 function setup_metrics() {
   # shellcheck disable=SC2155
@@ -108,6 +115,12 @@ function prerun_nomixer() {
   kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
   pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
 }
+
+# setup cluster
+helm init --client-only
+# shellcheck disable=SC1090
+source "${ROOT}/../bin/setup_cluster.sh"
+setup_e2e_cluster
 
 # setup release info
 RELEASE_TYPE="dev"
