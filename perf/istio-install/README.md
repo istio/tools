@@ -4,6 +4,16 @@ For performance testing, it is recommended to setup Istio with performance orien
 
 This setup requires a very large cluster - at least 32 vCPUs reserved for Istio is recommended.
 
+## Setup with operator
+
+Since Istio 1.4, operator provided by `istioctl` becomes the default installation mechanism.
+`setup_istio_operator.sh` provides the automation. You can add your own operator profile, and then
+setup Istio installation via running the script. For example,
+
+```shell
+export OPERATOR_PROFILE="automtls.yaml" && ./setup_istio_operator.sh
+```
+
 ## Setup With Performance Parameters
 
 Look at values.yaml for details on the parameters.
