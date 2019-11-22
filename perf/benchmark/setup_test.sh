@@ -54,14 +54,14 @@ function run_test() {
       --set server.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
-          . > "${TMPDIR}/twopods.yaml"
-  echo "Wrote file ${TMPDIR}/twopods.yaml"
+          . > "${TMPDIR}/${NAMESPACE}.yaml"
+  echo "Wrote file ${TMPDIR}/${NAMESPACE}.yaml"
 
   # remove stdio rules
-  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/twopods.yaml"
+  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/${NAMESPACE}.yaml"
   kubectl rollout status deployment fortioclient -n "${NAMESPACE}" --timeout=1m
   kubectl rollout status deployment fortioserver -n "${NAMESPACE}" --timeout=1m
-  echo "${TMPDIR}/twopods.yaml"
+  echo "${TMPDIR}/${NAMESPACE}.yaml"
 }
 
 for ((i=1; i<=$#; i++)); do
