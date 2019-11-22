@@ -23,13 +23,13 @@ WD=$(cd "${WD}"; pwd)
 # shellcheck disable=SC2164
 cd "${WD}"
 
-NAMESPACE=${NAMESPACE:-'twopods'}
+NAMESPACE="${NAMESPACE:-twopods}"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
 ISTIO_INJECT="${ISTIO_INJECT:-false}"
 LINKERD_INJECT="${LINKERD_INJECT:-disabled}"
-INTERCEPTION_MODE=${INTERCEPTION_MODE:-'REDIRECT'}
+INTERCEPTION_MODE="${INTERCEPTION_MODE:-REDIRECT}"
 echo "linkerd inject is ${LINKERD_INJECT}"
 
 mkdir -p "${TMPDIR}"
