@@ -214,6 +214,8 @@ class Fortio:
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
 PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
+WD = os.getcwd()
+LOCAL_PERFPATH = os.path.join(WD, "../flame", PERFSH)
 
 
 def run_perf(mesh, pod, labels, duration=20):
@@ -222,7 +224,7 @@ def run_perf(mesh, pod, labels, duration=20):
     perfpath = PERFWD + PERFSH
 
     # copy executable over
-    kubectl_cp(PERFSH, pod + ":" + perfpath, mesh + "-proxy")
+    kubectl_cp(LOCAL_PERFPATH, pod + ":" + perfpath, mesh + "-proxy")
 
     # debug information
     kubectl_exec(pod,
