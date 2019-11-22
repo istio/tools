@@ -23,13 +23,13 @@ WD=$(cd "${WD}"; pwd)
 # shellcheck disable=SC2164
 cd "${WD}"
 
-NAMESPACE=${NAMESPACE:-'twopods'}
+NAMESPACE="${NAMESPACE:-twopods}"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
 ISTIO_INJECT="${ISTIO_INJECT:-false}"
 LINKERD_INJECT="${LINKERD_INJECT:-disabled}"
-INTERCEPTION_MODE=${INTERCEPTION_MODE:-'REDIRECT'}
+INTERCEPTION_MODE="${INTERCEPTION_MODE:-REDIRECT}"
 echo "linkerd inject is ${LINKERD_INJECT}"
 
 mkdir -p "${TMPDIR}"
@@ -54,14 +54,14 @@ function run_test() {
       --set server.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
-          . > "${TMPDIR}/twopods.yaml"
-  echo "Wrote file ${TMPDIR}/twopods.yaml"
+          . > "${TMPDIR}/${NAMESPACE}.yaml"
+  echo "Wrote file ${TMPDIR}/${NAMESPACE}.yaml"
 
   # remove stdio rules
-  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/twopods.yaml"
+  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/${NAMESPACE}.yaml"
   kubectl rollout status deployment fortioclient -n "${NAMESPACE}" --timeout=1m
   kubectl rollout status deployment fortioserver -n "${NAMESPACE}" --timeout=1m
-  echo "${TMPDIR}/twopods.yaml"
+  echo "${TMPDIR}/${NAMESPACE}.yaml"
 }
 
 for ((i=1; i<=$#; i++)); do
