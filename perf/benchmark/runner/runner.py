@@ -212,10 +212,15 @@ class Fortio:
 
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
+FLAMESH = "flame.sh"
 PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
+
 WD = os.getcwd()
-LOCAL_PERFPATH = os.path.join(WD, "../flame", PERFSH)
+LOCAL_FLAMEDIR = os.path.join(WD, "../flame/")
+LOCAL_FLAMEPATH = LOCAL_FLAMEDIR + FLAMESH
+LOCAL_PERFPATH = LOCAL_FLAMEDIR + PERFSH
+LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
 
 
 def run_perf(mesh, pod, labels, duration=20):
@@ -226,21 +231,16 @@ def run_perf(mesh, pod, labels, duration=20):
     # copy executable over
     kubectl_cp(LOCAL_PERFPATH, pod + ":" + perfpath, mesh + "-proxy")
 
-    # debug information
-    kubectl_exec(pod,
-                 "ls {path}".format(path=PERFWD),
-                 container=mesh + "-proxy")
-
     kubectl_exec(
         pod,
-        "bash {perf_cmd} {filename} {duration}".format(
+        "{perf_cmd} {filename} {duration}".format(
             perf_cmd=perfpath,
             filename=filename,
             duration=duration),
         container=mesh + "-proxy")
 
-    kubectl_cp(pod + ":" + filepath + ".perf", filename + ".perf", mesh + "-proxy")
-    run_command_sync("../flame/flame.sh " + filename + ".perf")
+    kubectl_cp(pod + ":" + filepath + ".perf", LOCAL_FLAMEOUTPUT + filename + ".perf", mesh + "-proxy")
+    run_command_sync(LOCAL_FLAMEPATH + " " + filename + ".perf")
 
 
 def kubectl_cp(from_file, to_file, container):

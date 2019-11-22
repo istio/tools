@@ -30,12 +30,22 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 1. Install Istio:
 
     ```bash
-    export ISTIO_RELEASE="release-1.2-latest"  # or any Istio release
+    export ISTIO_RELEASE=release-1.2-latest  # or any Istio release
     export DNS_DOMAIN=local
     ./setup_istio.sh $ISTIO_RELEASE
     ```
 
-    Wait for all Istio pods to be `Running` and `Ready`:
+   From Istio 1.4 later on, you should setup istio using the following commands:
+
+   ```bash
+   export ISTIO_RELEASE=1.4-alpha.0ef2cd46e2da64b9252c36ca4bf90aa474b73610
+   export DNS_DOMAIN=local
+   ./setup_istio_release.sh $ISTIO_RELEASE dev
+   ```
+
+   Note: The latest ISTIO_RELEASE can be queried from [istio-release](https://storage.googleapis.com/istio-build/dev/latest)
+
+   Wait for all Istio pods to be `Running` and `Ready`:
 
     ```bash
     kubectl get pods -n istio-system
@@ -45,7 +55,6 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 
     ```bash
     export NAMESPACE=twopods-istio
-    export DNS_DOMAIN=local
     export INTERCEPTION_MODE=REDIRECT
     export ISTIO_INJECT=true
     cd ../benchmark
