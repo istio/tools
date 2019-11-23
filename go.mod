@@ -11,7 +11,7 @@ replace (
 )
 
 require (
-	cuelang.org/go v0.0.15-0.20191122203142-c6e5d17edb03
+	cuelang.org/go v0.0.14-0.20191029080705-29f70f2b2474
 	fortio.org/fortio v1.1.0
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
@@ -25,7 +25,7 @@ require (
 	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
-	github.com/imdario/mergo v0.3.8 // indirect
+	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/kr/pretty v0.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
@@ -47,7 +47,7 @@ require (
 	gopkg.in/yaml.v2 v2.2.4
 	istio.io/gogo-genproto v0.0.0-20191009201739-17d570f95998
 	k8s.io/api v0.0.0-20190918195907-bd6ac527cfd2
-	k8s.io/apiextensions-apiserver v0.0.0-20191004105649-b14e3c49469a
+	k8s.io/apiextensions-apiserver v0.0.0-20190918201827-3de75813f604
 	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
 	k8s.io/client-go v0.0.0-20191016111102-bec269661e48
 	k8s.io/gengo v0.0.0-20190822140433-26a664648505
