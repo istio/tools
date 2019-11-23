@@ -34,17 +34,17 @@ LEGACY_DEPLOY = 'svc-0-back-legacy'
 
 class testHTTPServer_RequestHandler(http.server.BaseHTTPRequestHandler):
 
-  def do_GET(self):
-    self.send_response(200)
-    self.send_header('Content-type','text/html')
-    self.end_headers()
-    query = parse_qs(urlparse(self.path).query)
-    istio_percent = random.random()
-    if 'istio' in query:
-        istio_percent = float(query['istio'][0])
-    message = simulate_sidecar_rollout(istio_percent)
-    self.wfile.write(bytes(message, "utf8"))
-    return
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        query = parse_qs(urlparse(self.path).query)
+        istio_percent = random.random()
+        if 'istio' in query:
+            istio_percent = float(query['istio'][0])
+        message = simulate_sidecar_rollout(istio_percent)
+        self.wfile.write(bytes(message, "utf8"))
+        return
 
 
 def get_deployment_replicas(namespace, deployment: str):
@@ -76,7 +76,7 @@ def scale_deployment(namespace, deployment: str, replica: int):
     p.wait()
 
 
-def simulate_sidecar_rollout(istio_percent : float):
+def simulate_sidecar_rollout(istio_percent: float):
     '''
     Updates deployments with or without Envoy sidecar.
     wait indicates whether the command wait till all pods become ready.
@@ -94,9 +94,9 @@ def simulate_sidecar_rollout(istio_percent : float):
     istio_count = int(istio_percent * total)
     legacy_count = total - istio_count
     output += ('======================================\n'
-            'Scale Istio count {sc}, legacy count {nsc}\n\n').format(
-                sc=istio_count, nsc=legacy_count
-            )
+               'Scale Istio count {sc}, legacy count {nsc}\n\n').format(
+        sc=istio_count, nsc=legacy_count
+    )
     scale_deployment(TEST_NAMESPACE, ISTIO_DEPLOY, istio_count)
     scale_deployment(TEST_NAMESPACE, LEGACY_DEPLOY, legacy_count)
     print(output)
