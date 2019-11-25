@@ -209,13 +209,15 @@ data:
       "SinkAddress": "meshconfig.googleapis.com:443",
       "SinkAuthMode": "GOOGLE",
       "ExcludedResourceKinds": ["Pod", "Node", "Endpoints"],
+      "sds-path": "/etc/istio/proxy/SDS",
       "SinkMeta": ["project_id=${PROJECT_ID}"]
       }
 
   PROJECT_ID: ${PROJECT_ID}
   GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/google/key.json
   ISTIOD_ADDR: istiod-asm.istio-system.svc:15012
-
+  WEBHOOK: istiod-asm
+  AUDIENCE: ${PROJECT_ID}.svc.id.goog
 EOF
 
 export KUBECONFIG=${CLUSTER}/kube.yaml
