@@ -157,15 +157,15 @@ gc beta container \
   --enable-autoupgrade --enable-autorepair \
   --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
 
-NETWORK_NAME=$(basename $(gcloud container clusters describe $CLUSTER --project $PROJECT_ID --zone=$ZONE \
-    --format='value(networkConfig.network)'))
-SUBNETWORK_NAME=$(basename $(gcloud container clusters describe $CLUSTER --project $PROJECT_ID \
-    --zone=$ZONE --format='value(networkConfig.subnetwork)'))
+NETWORK_NAME=$(basename "$(gcloud container clusters describe $CLUSTER --project $PROJECT_ID --zone=$ZONE \
+    --format='value(networkConfig.network)')")
+SUBNETWORK_NAME=$(basename "$(gcloud container clusters describe $CLUSTER --project $PROJECT_ID \
+    --zone=$ZONE --format='value(networkConfig.subnetwork)')")
 
 # Getting network tags is painful. Get the instance groups, map to an instance,
 # and get the node tag from it (they should be the same across all nodes -- we don't
 # know how to handle it, otherwise).
-INSTANCE_GROUP=$(gcloud container clusters describe $CLUSTER --project $PROJECT_ID --zone=$ZONE --format='flattened(nodePools[].instanceGroupUrls[].scope().segment())' |  cut -d ':' -f2 | tr -d [:space:])
+INSTANCE_GROUP=$(gcloud container clusters describe $CLUSTER --project $PROJECT_ID --zone=$ZONE --format='flattened(nodePools[].instanceGroupUrls[].scope().segment())' |  cut -d ':' -f2 | tr -d "[:space:]")
 INSTANCE=$(gcloud compute instance-groups list-instances $INSTANCE_GROUP --project $PROJECT_ID \
     --zone=$ZONE --format="value(instance)" --limit 1)
 NETWORK_TAGS=$(gcloud compute instances describe $INSTANCE --zone=$ZONE --project $PROJECT_ID --format="value(tags.items)")
@@ -177,8 +177,6 @@ kind: ConfigMap
 metadata:
   name: gce-config
   namespace: kube-system
-  labels:
-    release: asm
 data:
   gce.conf: |
     [global]
@@ -202,10 +200,8 @@ cat <<EOF > ${CLUSTER}/configmap-galley.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: istiod-galley
+  name: istiod-asm
   namespace: istio-system
-  labels:
-    release: asm
 data:
   galley.json: |
       {
@@ -221,10 +217,6 @@ data:
   ISTIOD_ADDR: istiod-asm.istio-system.svc:15012
 
 EOF
-
-if [[ -z "${DRY_RUN}" ]];then
-  gcloud compute firewall-rules create csm-allow-health-checks --allow=tcp --source-ranges=130.211.0.0/22,35.191.0.0/16
-fi
 
 export KUBECONFIG=${CLUSTER}/kube.yaml
 gcloud container clusters get-credentials ${CLUSTER_NAME} --zone ${ZONE}
