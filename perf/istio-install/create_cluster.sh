@@ -226,9 +226,9 @@ kubectl create clusterrolebinding cluster-admin-binding \
   --user="$(gcloud config get-value core/account)"
 
 # Update the cluster with the GCP-specific configmaps
-kubectl -n kube-system apply -f configmap-neg.yaml
+kubectl -n kube-system apply -f ${CLUSTER}/configmap-neg.yaml
 kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json=${CLUSTER}/google-cloud-key.json
 
 kubectl create ns istio-system
 kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json=${CLUSTER}/google-cloud-key.json
-kubectl -n istio-system apply -f configmap-galley.yaml
+kubectl -n istio-system apply -f ${CLUSTER}/configmap-galley.yaml
