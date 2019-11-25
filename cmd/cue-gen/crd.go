@@ -18,13 +18,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 
 	"cuelang.org/go/encoding/openapi"
 
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var statusOutput = `
@@ -35,54 +35,45 @@ status:
   conditions: null
   storedVersions: null`
 
-// Interim solution to build the Istio CRDs before we move to KubeBuilder.
-func (x *builder) getCRD(crdCfg CrdConfig, schema interface{}) apiextv1beta1.CustomResourceDefinition {
-	// boilerplate OrderMap for CRD spec
-	m := &openapi.OrderedMap{}
-	m.Set("spec", schema)
-	kvs := []openapi.KeyValue{
-		{
-			Key:   "type",
-			Value: "object",
-		},
-		{
-			Key:   "properties",
-			Value: m,
-		},
-	}
-	schemaMap := &openapi.OrderedMap{}
-	schemaMap.SetAll(kvs)
+// Build CRDs based on the configuration and schema.
+func completeCRD(c *apiextv1beta1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap) {
 
-	// convert the schema from an OrderedMap to JSONSchemaProps
-	b, err := schemaMap.MarshalJSON()
-	if err != nil {
-		log.Fatalf("Cannot marshal OpenAPI schema for %v", crdCfg.Metadata.Name)
-	}
-	j := &apiextv1beta1.JSONSchemaProps{}
-	if err = json.Unmarshal(b, j); err != nil {
-		log.Fatalf("Cannot unmarshal raw OpenAPI schema to JSONSchemaProps for %v", crdCfg.Metadata.Name)
-	}
+	for i, version := range c.Spec.Versions {
 
-	fmt.Printf("Checking if the schema is structural for %v \n", crdCfg.Metadata.Name)
-	if err = validateStructural(j); err != nil {
-		log.Fatal(err)
+		b, err := versionSchemas[version.Name].MarshalJSON()
+		if err != nil {
+			log.Fatalf("Cannot marshal OpenAPI schema for %v: %v", c.Name, err)
+		}
+
+		j := &apiextv1beta1.JSONSchemaProps{}
+		if err = json.Unmarshal(b, j); err != nil {
+			log.Fatalf("Cannot unmarshal raw OpenAPI schema to JSONSchemaProps for %v: %v", c.Name, err)
+		}
+
+		version.Schema = &apiextv1beta1.CustomResourceValidation{OpenAPIV3Schema: &apiextv1beta1.JSONSchemaProps{
+			Type: "object",
+			Properties: map[string]apiextv1beta1.JSONSchemaProps{
+				"spec": *j,
+			},
+		}}
+
+		fmt.Printf("Checking if the schema is structural for %v \n", c.Name)
+		if err = validateStructural(version.Schema.OpenAPIV3Schema); err != nil {
+			log.Fatal(err)
+		}
+
+		c.Spec.Versions[i] = version
 	}
 
-	crdCfg.Spec.Validation = &apiextv1beta1.CustomResourceValidation{OpenAPIV3Schema: j}
-
-	crd := apiextv1beta1.CustomResourceDefinition{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: apiextv1beta1.SchemeGroupVersion.String(),
-			Kind:       "CustomResourceDefinition",
-		},
-		ObjectMeta: crdCfg.Metadata,
-		Spec:       crdCfg.Spec,
+	if schemasEqual(versionSchemas) {
+		collapseCRDVersions(c)
 	}
+
+	c.APIVersion = apiextv1beta1.SchemeGroupVersion.String()
+	c.Kind = "CustomResourceDefinition"
 
 	// marshal to an empty field in the output
-	crd.Status = apiextv1beta1.CustomResourceDefinitionStatus{}
-
-	return crd
+	c.Status = apiextv1beta1.CustomResourceDefinitionStatus{}
 }
 
 func validateStructural(s *apiextv1beta1.JSONSchemaProps) error {
@@ -101,4 +92,30 @@ func validateStructural(s *apiextv1beta1.JSONSchemaProps) error {
 	}
 
 	return nil
+}
+
+func schemasEqual(versionSchemas map[string]*openapi.OrderedMap) bool {
+	if len(versionSchemas) < 2 {
+		return true
+	}
+	var schema *openapi.OrderedMap
+	for _, s := range versionSchemas {
+		if schema == nil {
+			schema = s
+			continue
+		}
+		if !reflect.DeepEqual(*schema, *s) {
+			return false
+		}
+	}
+	return true
+}
+
+func collapseCRDVersions(c *apiextv1beta1.CustomResourceDefinition) {
+	c.Spec.Validation = c.Spec.Versions[0].Schema
+	c.Spec.AdditionalPrinterColumns = c.Spec.Versions[0].AdditionalPrinterColumns
+	for i := range c.Spec.Versions {
+		c.Spec.Versions[i].Schema = nil
+		c.Spec.Versions[i].AdditionalPrinterColumns = []apiextv1beta1.CustomResourceColumnDefinition{}
+	}
 }
