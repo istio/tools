@@ -1,7 +1,7 @@
 # cue-gen
 
 `cue-gen` is a tool that generates OpenAPI schema and Kubernetes `CustomResourceDefinition`(CRD) configurations. It relies on [`cuelang`](https://cuelang.org/) packages to translate
-[Protobuf](https://developers.google.com/protocol-buffers) definitions to [OpenAPI](https://swagger.io/docs/specification/about/) schemas, specifically
+Protobuf definitions to OpenAPI schemas, specifically
 [structural schemas](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/#specifying-a-structural-schema) in CRDs.
 
 ## Usage
