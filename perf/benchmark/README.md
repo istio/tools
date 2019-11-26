@@ -111,13 +111,13 @@ optional arguments:
   --mixer_mode mixer/nomixer/telemetryv2-nullvm  run with mixer enabled(default), mixer disabled and mixer v2
   --perf              also run perf and produce flame graph, default is false
   --baseline          run baseline for all
-  --no-baseline       do not run baseline for all
+  --no_baseline       do not run baseline for all
   --serversidecar     run serversidecar-only for all
-  --no-serversidecar  do not run serversidecar-only for all
+  --no_serversidecar  do not run serversidecar-only for all
   --clientsidecar     run clientsidecar and serversidecar for all, this is corresponding to the "both" mode, which will be executed by default
-  --no-clientsidecar  do not run clientsidecar and serversidecar for all
+  --no_clientsidecar  do not run clientsidecar and serversidecar for all
   --ingress INGRESS   run traffic through ingress
-  --labels LABELS     extra labels
+  --extra_labels      add extra labels
 ```
 
 Note:
@@ -187,10 +187,10 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
     python ./update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
     ```
 
-1. Run `runner.py`, in any sidecar mode, with the `--labels=nomixer` flag. If you run this command:
+1. Run `runner.py`, in any sidecar mode, with the `--mixer_mode=nomixer` flag. If you run this command:
 
     ```bash
-    python runner/runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar --baseline --labels=nomixer
+    python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidecar --baseline --mixer_mode=nomixer
     ```
 
     it will generate the output showing in the `Example Output` section. Which includes both with Mixer and without Mixer test results.

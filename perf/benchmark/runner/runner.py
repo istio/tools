@@ -82,7 +82,7 @@ class Fortio:
             client="fortioclient",
             additional_args=None,
             filter_fn=None,
-            labels=None,
+            extra_labels=None,
             baseline=False,
             serversidecar=False,
             clientsidecar=True,
@@ -104,7 +104,7 @@ class Fortio:
         self.client = pod_info("-lapp=" + client, namespace=self.ns)
         self.additional_args = additional_args
         self.filter_fn = filter_fn
-        self.labels = labels
+        self.extra_labels = extra_labels
         self.run_baseline = baseline
         self.run_serversidecar = serversidecar
         self.run_clientsidecar = clientsidecar
@@ -163,8 +163,8 @@ class Fortio:
             labels += "_"
             labels += "linkerd"
 
-        if self.labels is not None:
-            labels += "_" + self.labels
+        if self.extra_labels is not None:
+            labels += "_" + self.extra_labels
 
         grpc = ""
         if self.mode == "grpc":
@@ -327,7 +327,7 @@ def run(args):
             duration=args.duration,
             size=args.size,
             perf_record=args.perf,
-            labels=args.labels,
+            extra_labels=args.extra_labels,
             baseline=args.baseline,
             serversidecar=args.serversidecar,
             clientsidecar=args.clientsidecar,
@@ -395,7 +395,7 @@ def get_parser():
         help="run traffic through ingress",
         default=None)
     parser.add_argument(
-        "--labels",
+        "--extra_labels",
         help="extra labels",
         default=None)
     parser.add_argument(
@@ -420,7 +420,7 @@ def define_bool(parser, opt, help_arg, default_val):
     parser.add_argument(
         "--" + opt, help=help_arg, dest=opt, action='store_true')
     parser.add_argument(
-        "--no-" + opt, help="do not " + help_arg, dest=opt, action='store_false')
+        "--no_" + opt, help="do not " + help_arg, dest=opt, action='store_false')
     val = {opt: default_val}
     parser.set_defaults(**val)
 
