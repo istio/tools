@@ -1,18 +1,19 @@
 # GCP Cluster Setup
 
 Required environment:
-```
+```shell script
+
 PROJECT_ID - GCP project id, for example istio-testing
 CLUSTER_NAME - name of the cluster to setup, for example istio14test1
 CLUSTER_ZONE - zone where the cluster will be setup, for example us-central1-a
-DNS_DOMAIN - domain to use for TLS cert testing. 
+DNS_DOMAIN - domain to use for TLS cert testing.
 
 Optional:
 export MACHINE_TYPE=n1-standard-4 - will use a small machine, for testing stability in small clusters.
 export IMAGE=UBUNTU - will use ubuntu instead of the recommended COS
 export MIN_NODES=1 - will start with 1 instead of default 4
-export ISTIO_VERSION - installed version of istio, will be set as a label on nodes 
- 
+export ISTIO_VERSION - installed version of istio, will be set as a label on nodes
+
 ```
 
 For load testing, the setup requires a very large cluster - at least 32 vCPUs reserved for Istio is recommended.
@@ -26,7 +27,17 @@ The script will create files to be used later in the setup, as config maps:
 - ${CLUSTER_NAME}/configmap* - configmaps with GCP-specific configurations
 
 
-## Setup Istio With Performance Parameters
+## Setup with operator
+
+Since Istio 1.4, operator provided by `istioctl` becomes the default installation mechanism.
+`setup_istio_operator.sh` provides the automation. You can add your own operator profile, and then
+setup Istio installation via running the script. For example,
+
+```shell
+export OPERATOR_PROFILE="automtls.yaml" && ./setup_istio_operator.sh
+```
+
+## Setup With Performance Parameters
 
 Look at values.yaml for details on the parameters.
 

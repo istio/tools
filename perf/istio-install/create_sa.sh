@@ -53,9 +53,7 @@ for role in compute.networkViewer logging.logWriter monitoring.metricWriter stor
 	gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/${role}" --member "serviceAccount:${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 done
 
-for role in meshconfig.writer ; do
-	gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/${role}" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
-done
+gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/meshconfig.writer" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 
 if [[ "${CLUSTER_NAME}" != "" ]]; then 
   gcloud  iam service-accounts keys create "${CLUSTER_NAME}"/google-cloud-key.json --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com

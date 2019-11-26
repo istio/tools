@@ -67,6 +67,9 @@ Here, `pipenv shell` will create a local Python3 virtual environment, and `pipen
 
 ```bash
 cd runner
+pipenv --three
+# or
+pipenv --python 3.6
 pipenv shell
 pipenv install
 ```
@@ -92,7 +95,7 @@ python runner.py --conn <conn> --qps <qps> --duration <duration> --OPTIONAL-FLAG
 1. run with config yaml
 
 ``
-python runner.py --config_file ./configs/mixer_latency.yaml
+python runner.py --config_file ../configs/mixer_latency.yaml
 ``
 
 Required fields to specified via CLI or config file:
@@ -130,7 +133,7 @@ For example:
 ### Example 1
 
 ```bash
-python runner.py --config_file ./configs/mixer_latency.yaml
+python runner.py --config_file ../configs/mixer_latency.yaml
 ```
 
 - This will run with configuration specified in the mixer_latency.yaml
