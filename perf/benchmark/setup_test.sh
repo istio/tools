@@ -23,11 +23,13 @@ WD=$(cd "${WD}"; pwd)
 # shellcheck disable=SC2164
 cd "${WD}"
 
-NAMESPACE=${NAMESPACE:-'twopods'}
+NAMESPACE="${NAMESPACE:-twopods}"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
-LINKERD_INJECT="${LINKERD_INJECT:-'disabled'}"
+ISTIO_INJECT="${ISTIO_INJECT:-false}"
+LINKERD_INJECT="${LINKERD_INJECT:-disabled}"
+INTERCEPTION_MODE="${INTERCEPTION_MODE:-REDIRECT}"
 echo "linkerd inject is ${LINKERD_INJECT}"
 
 mkdir -p "${TMPDIR}"
@@ -46,18 +48,20 @@ function run_test() {
   helm -n "${NAMESPACE}" template \
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set includeOutboundIPRanges=$(svc_ip_range) \
+      --set client.inject="${ISTIO_INJECT}" \
+      --set server.inject="${ISTIO_INJECT}"  \
       --set client.injectL="${LINKERD_INJECT}" \
-      --set sever.injectL="${LINKERD_INJECT}" \
+      --set server.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
-          . > "${TMPDIR}"twopods.yaml
-  echo "Wrote file ${TMPDIR}twopods.yaml"
+          . > "${TMPDIR}/${NAMESPACE}.yaml"
+  echo "Wrote file ${TMPDIR}/${NAMESPACE}.yaml"
 
   # remove stdio rules
-  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}"twopods.yaml
-  kubectl rollout status deployment fortioclient -n twopods --timeout=1m
-  kubectl rollout status deployment fortioserver -n twopods --timeout=1m
-  echo "${TMPDIR}"twopods.yaml
+  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/${NAMESPACE}.yaml"
+  kubectl rollout status deployment fortioclient -n "${NAMESPACE}" --timeout=1m
+  kubectl rollout status deployment fortioserver -n "${NAMESPACE}" --timeout=1m
+  echo "${TMPDIR}/${NAMESPACE}.yaml"
 }
 
 for ((i=1; i<=$#; i++)); do
@@ -70,7 +74,10 @@ done
 
 kubectl create ns "${NAMESPACE}" || true
 
-kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite || true
+if [[ "$ISTIO_INJECT" == "true" ]]
+then
+  kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite || true
+fi
 
 if [[ "$LINKERD_INJECT" == "enabled" ]]
 then

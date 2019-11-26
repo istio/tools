@@ -1,7 +1,6 @@
 # Configuration Set4: Latency Quantiles with mixer disabled
 mixer_mode: "nomixer"
 conn:
-    - 1
     - 2
     - 4
     - 8
