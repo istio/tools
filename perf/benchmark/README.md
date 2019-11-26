@@ -92,7 +92,7 @@ python runner.py --conn <conn> --qps <qps> --duration <duration> --OPTIONAL-FLAG
 1. run with config yaml
 
 ``
-python runner.py --config_file ./configs/mixer_latency.yaml
+python runner.py --config_file ../configs/mixer_latency.yaml
 ``
 
 Required fields to specified via CLI or config file:
@@ -130,7 +130,7 @@ For example:
 ### Example 1
 
 ```bash
-python runner.py --config_file ./configs/mixer_latency.yaml
+python runner.py --config_file ../configs/mixer_latency.yaml
 ```
 
 - This will run with configuration specified in the mixer_latency.yaml
