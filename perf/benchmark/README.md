@@ -67,6 +67,9 @@ Here, `pipenv shell` will create a local Python3 virtual environment, and `pipen
 
 ```bash
 cd runner
+pipenv --three
+# or
+pipenv --python 3.6
 pipenv shell
 pipenv install
 ```
