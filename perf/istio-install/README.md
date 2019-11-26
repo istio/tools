@@ -1,18 +1,19 @@
 # GCP Cluster Setup
 
 Required environment:
-```
+```shell script
+
 PROJECT_ID - GCP project id, for example istio-testing
 CLUSTER_NAME - name of the cluster to setup, for example istio14test1
 CLUSTER_ZONE - zone where the cluster will be setup, for example us-central1-a
-DNS_DOMAIN - domain to use for TLS cert testing. 
+DNS_DOMAIN - domain to use for TLS cert testing.
 
 Optional:
 export MACHINE_TYPE=n1-standard-4 - will use a small machine, for testing stability in small clusters.
 export IMAGE=UBUNTU - will use ubuntu instead of the recommended COS
 export MIN_NODES=1 - will start with 1 instead of default 4
-export ISTIO_VERSION - installed version of istio, will be set as a label on nodes 
- 
+export ISTIO_VERSION - installed version of istio, will be set as a label on nodes
+
 ```
 
 For load testing, the setup requires a very large cluster - at least 32 vCPUs reserved for Istio is recommended.
