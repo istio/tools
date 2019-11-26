@@ -26,7 +26,17 @@ The script will create files to be used later in the setup, as config maps:
 - ${CLUSTER_NAME}/configmap* - configmaps with GCP-specific configurations
 
 
-## Setup Istio With Performance Parameters
+## Setup with operator
+
+Since Istio 1.4, operator provided by `istioctl` becomes the default installation mechanism.
+`setup_istio_operator.sh` provides the automation. You can add your own operator profile, and then
+setup Istio installation via running the script. For example,
+
+```shell
+export OPERATOR_PROFILE="automtls.yaml" && ./setup_istio_operator.sh
+```
+
+## Setup With Performance Parameters
 
 Look at values.yaml for details on the parameters.
 

@@ -1,0 +1,11 @@
+apiVersion: install.istio.io/v1alpha2
+kind: IstioControlPlane
+spec:
+  values:
+    global:
+      mtls:
+        enabled: false
+        auto: true
+    # Requiring grafana to show the perf dashboard.
+    grafana:
+      enabled: true

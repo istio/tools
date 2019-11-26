@@ -16,6 +16,10 @@
 
 set -ex
 
+# The profile containing IstioControlPlane spec. Overriding this environment
+# variable allow to specify different installation options.
+OPERATOR_PROFILE=${OPERATOR_PROFILE:-operator_default.yaml}
+
 WD=$(dirname "$0")
 WD=$(cd "$WD"; pwd)
 DIRNAME="${WD}/tmp"
@@ -36,7 +40,6 @@ git checkout "${SHA}"
 popd
 
 defaultNamespace=istio-system
-defaultCR="${WD}/operator_default.yaml"
 
 
 function setup_admin_binding() {
@@ -46,7 +49,7 @@ function setup_admin_binding() {
 }
 
 function install_istio() {
-    local CR_FILENAME=${1}
+    local CR_FILENAME="${WD}/${OPERATOR_PROFILE}"
     pushd "${ISTIO_OPERATOR_DIR}"
     go run ./cmd/mesh.go manifest apply -f "${CR_FILENAME}" --force=true --set defaultNamespace=${defaultNamespace}
     popd
@@ -54,4 +57,4 @@ function install_istio() {
 }
 
 setup_admin_binding
-install_istio "${defaultCR}"
+install_istio

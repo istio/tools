@@ -35,7 +35,7 @@ ENV ISTIO_TOOLS_BRANCH=${ISTIO_TOOLS_BRANCH}
 ENV COUNTERFEITER_VERSION=v6.2.2
 ENV FORTIO_VERSION=v1.3.1
 ENV GCR_AUTH_VERSION=1.5.0
-ENV GO_BINDATA_VERSION=6025e8de665b31fa74ab1a66f2cddd8c0abf887e
+ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=af01ea7f8024089b458d804d5cdf190f962a9a0c
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOGO_PROTOBUF_VERSION=v1.3.0
@@ -44,7 +44,7 @@ ENV GOLANG_PROTOBUF_VERSION=v1.3.1
 ENV GOLANGCI_LINT_VERSION=v1.21.0
 ENV HADOLINT_VERSION=v1.17.2
 ENV HELM_VERSION=v2.16.1
-ENV HUGO_VERSION=0.58.2
+ENV HUGO_VERSION=0.59.1
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.16.2
 ENV KIND_VERSION=v0.6.0
@@ -94,7 +94,7 @@ RUN GO111MODULE=on go get -ldflags="-s -w" github.com/nilslice/protolock/cmd/pro
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/jteeuwen/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
@@ -186,19 +186,19 @@ RUN rm -fr /usr/local/go/bin/gofmt
 FROM ubuntu:bionic as nodejs_tools_context
 
 # Pinned versions of stuff we pull in
-ENV BABEL_CLI_VERSION=v7.6.2
-ENV BABEL_CORE_VERSION=v7.6.2
-ENV BABEL_POLYFILL_VERSION=v7.4.4
-ENV BABEL_PRESET_ENV=v7.6.2
+ENV BABEL_CLI_VERSION=v7.7.4
+ENV BABEL_CORE_VERSION=v7.7.4
+ENV BABEL_POLYFILL_VERSION=v7.7.0
+ENV BABEL_PRESET_ENV=v7.7.4
 ENV BABEL_PRESET_MINIFY_VERSION=v0.5.1
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
 ENV NODEJS_VERSION=12.8.0
 ENV SASS_LINT_VERSION=v1.13.1
-ENV SASS_VERSION=v1.22.10
+ENV SASS_VERSION=v1.23.7
 ENV SVGO_VERSION=v1.3.0
 ENV SVGSTORE_CLI_VERSION=v1.3.1
 ENV TSLINT_VERSION=v5.20.0
-ENV TYPESCRIPT_VERSION=v3.6.3
+ENV TYPESCRIPT_VERSION=v3.7.2
 
 ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz /tmp
 RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-linux-x64.tar.gz --strip-components=1 -C /usr/local

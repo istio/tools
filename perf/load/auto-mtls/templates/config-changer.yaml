@@ -77,17 +77,13 @@ spec:
       containers:
       - args:
         - /script/scale.py
-        - --sidecar-name
-        - {{ .Values.serviceNamePrefix }}0-automtls-sidecar
-        - --nosidecar-name
-        - {{ .Values.serviceNamePrefix }}0-automtls-nosidecar
         env:
         # Needed to flush the output for python in detached container mode.
         - name: PYTHONUNBUFFERED
           value: "0"
-        image: gcr.io/jianfeih-test/hyperkube:v1.12.1
-        imagePullPolicy: IfNotPresent
-        name: config-change
+        image: gcr.io/istio-testing/automtls-perf:1113a
+        imagePullPolicy: Always
+        name: sidecar-rollout
         volumeMounts:
         - name: script
           mountPath: /script

@@ -23,10 +23,28 @@ import typing
 import subprocess
 import argparse
 
-# Prbobabily of all workloads are migrated to sidecar by scaling.
-ALL_SIDECAR_PROB = 0.2
-# Change to larger values for real test.
-ROLLOUT_INTERVAL_SEC = 5
+import http.server
+from urllib.parse import urlparse, parse_qs
+
+
+TEST_NAMESPACE = 'automtls'
+ISTIO_DEPLOY = 'svc-0-back-istio'
+LEGACY_DEPLOY = 'svc-0-back-legacy'
+
+
+class testHTTPServer_RequestHandler(http.server.BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        query = parse_qs(urlparse(self.path).query)
+        istio_percent = random.random()
+        if 'istio' in query:
+            istio_percent = float(query['istio'][0])
+        message = simulate_sidecar_rollout(istio_percent)
+        self.wfile.write(bytes(message, "utf8"))
+        return
 
 
 def get_deployment_replicas(namespace, deployment: str):
@@ -58,45 +76,55 @@ def scale_deployment(namespace, deployment: str, replica: int):
     p.wait()
 
 
-def simulate_sidecar_rollout(namespace, sidecar_dep, nosidecar_dep: str):
+def simulate_sidecar_rollout(istio_percent: float):
     '''
     Updates deployments with or without Envoy sidecar.
     wait indicates whether the command wait till all pods become ready.
     '''
-    print('Namespace {}, sidecar deployment: {}, nosidecar deployment: {}'.format(
-        namespace, sidecar_dep, nosidecar_dep))
-    sidecar_count = get_deployment_replicas(namespace, sidecar_dep)
-    nosidecar_count = get_deployment_replicas(namespace, nosidecar_dep)
-    total = sidecar_count + nosidecar_count
-    print('sidecar replica {}, nosidecar replica {}'.format(sidecar_count, nosidecar_count))
+    output = 'Namespace {}, sidecar deployment: {}, nosidecar deployment: {}'.format(
+        TEST_NAMESPACE, ISTIO_DEPLOY, LEGACY_DEPLOY)
+    # Wait to be stablized before attempting to scale.
+    wait_deployment(TEST_NAMESPACE, ISTIO_DEPLOY)
+    wait_deployment(TEST_NAMESPACE, LEGACY_DEPLOY)
+    istio_count = get_deployment_replicas(TEST_NAMESPACE, ISTIO_DEPLOY)
+    legacy_count = get_deployment_replicas(TEST_NAMESPACE, LEGACY_DEPLOY)
+    total = istio_count + legacy_count
+    output = 'sidecar replica {}, legacy replica {}\n\n'.format(
+        istio_count, legacy_count)
+    istio_count = int(istio_percent * total)
+    legacy_count = total - istio_count
+    output += ('======================================\n'
+               'Scale Istio count {sc}, legacy count {nsc}\n\n').format(
+        sc=istio_count, nsc=legacy_count
+    )
+    scale_deployment(TEST_NAMESPACE, ISTIO_DEPLOY, istio_count)
+    scale_deployment(TEST_NAMESPACE, LEGACY_DEPLOY, legacy_count)
+    print(output)
+    return output
+
+
+def continuous_rollout():
+    '''
+    Simulate long running rollout, used for large performance cluster.
+    '''
     iteration = 1
     while True:
-        prob = random.random()
-        if prob < ALL_SIDECAR_PROB:
-            sidecar_count = total
-            nosidecar_count = 0
-        else:
-            sidecar_count = int(random.random() * total)
-            nosidecar_count = total - sidecar_count
-        print('======================================\n'
-              'Scale iteration {itr}, sidecar count {sc}, nosidecar count {nsc}\n\n'.format(
-                  itr=iteration, sc=sidecar_count, nsc=nosidecar_count
-              ))
-        scale_deployment(namespace, sidecar_dep, sidecar_count)
-        scale_deployment(namespace, nosidecar_dep, nosidecar_count)
-        wait_deployment(namespace, sidecar_dep)
-        wait_deployment(namespace, nosidecar_dep)
+        print('Start rollout iteration {}'.format(iteration))
+        message = simulate_sidecar_rollout(random.random())
         iteration += 1
-        print('\n\n')
-        time.sleep(ROLLOUT_INTERVAL_SEC)  # random amount of time.
+        time.sleep(660)
 
 
 parser = argparse.ArgumentParser(description='Auto mTLS test runner')
-parser.add_argument('--sidecar-name', default='svc-0-automtls-sidecar', type=str)
-parser.add_argument('--nosidecar-name', default='svc-0-automtls-nosidecar', type=str)
-parser.add_argument('-n', '--namespace', default='auto-mtls', type=str)
+parser.add_argument('-m', '--mode', default='ci', type=str, help='mode, http | ci')
 args = parser.parse_args()
 
 
 if __name__ == '__main__':
-    simulate_sidecar_rollout(args.namespace, args.sidecar_name, args.nosidecar_name)
+    if args.mode == 'http':
+        print('starting the rollout server simulation...')
+        server_address = ('127.0.0.1', 8000)
+        httpd = http.server.HTTPServer(server_address, testHTTPServer_RequestHandler)
+        httpd.serve_forever()
+    else:
+        continuous_rollout()
