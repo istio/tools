@@ -35,7 +35,7 @@ ENV ISTIO_TOOLS_BRANCH=${ISTIO_TOOLS_BRANCH}
 ENV COUNTERFEITER_VERSION=v6.2.2
 ENV FORTIO_VERSION=v1.3.1
 ENV GCR_AUTH_VERSION=1.5.0
-ENV GO_BINDATA_VERSION=6025e8de665b31fa74ab1a66f2cddd8c0abf887e
+ENV GO_BINDATA_VERSION=v3.1.0
 ENV GO_JUNIT_REPORT_VERSION=af01ea7f8024089b458d804d5cdf190f962a9a0c
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOGO_PROTOBUF_VERSION=v1.3.0
@@ -94,7 +94,7 @@ RUN GO111MODULE=on go get -ldflags="-s -w" github.com/nilslice/protolock/cmd/pro
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/jteeuwen/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN GO111MODULE=on go get -ldflags="-s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
