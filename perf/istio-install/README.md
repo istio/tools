@@ -1,7 +1,8 @@
 # GCP Cluster Setup
 
 Required environment:
-```shell script
+
+```shell
 
 PROJECT_ID - GCP project id, for example istio-testing
 CLUSTER_NAME - name of the cluster to setup, for example istio14test1
