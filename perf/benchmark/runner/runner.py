@@ -286,7 +286,7 @@ def validate(job_config):
             print("missing required parameter {}".format(k))
             return False
         exp_type = required_fields[k]
-        if type(job_config[k]) != exp_type:
+        if not isinstance(job_config[k], exp_type):
             print("expecting type of parameter {} to be {}, got {}".format(k, exp_type, type(job_config[k])))
             return False
     return True

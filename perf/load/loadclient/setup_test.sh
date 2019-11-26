@@ -26,6 +26,9 @@ NAMEPREFIX=${2:?"prefix name for service. typically svc-"}
 
 HTTPS=${HTTPS:-"false"}
 
+# Additional customization option for load client, e.g. "--set qps=200"
+# LOADCLIENT_EXTRA_HELM_FLAGS=${LOADCLIENT_EXTRA_HELM_FLAGS:-""}
+
 if [[ -z "${GATEWAY_URL}" ]];then
 SYSTEM_GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
 INGRESS_GATEWAY_URL=$(kubectl -n istio-ingress get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
@@ -43,6 +46,7 @@ function run_test() {
     --set ingress="${GATEWAY_URL}" \
     --set domain="${DNS_DOMAIN}" \
     --set https="${HTTPS}" \
+    ${LOADCLIENT_EXTRA_HELM_FLAGS} \
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
