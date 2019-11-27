@@ -27,7 +27,6 @@ The script will create files to be used later in the setup, as config maps:
 - ${CLUSTER_NAME}/kube.yaml - credentials for accessing k8s
 - ${CLUSTER_NAME}/configmap* - configmaps with GCP-specific configurations
 
-
 ## Setup with operator
 
 Since Istio 1.4, operator provided by `istioctl` becomes the default installation mechanism.
