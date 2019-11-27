@@ -47,6 +47,7 @@ spec:
   type: LoadBalancer
 {{- end }}
 ---
+{{- if $.V.inject }}
 {{- if $.Values.rbac.enabled }}
 {{- range $i, $e := until ($.Values.rbac.numPolicies|int) }}
 {{- $data := dict "name" $.name "Values" $.Values "userName" (randAlpha 16) }}
@@ -63,6 +64,7 @@ metadata:
 spec:
   mode: 'ON'
 ---
+{{- end }}
 {{- end }}
 apiVersion: apps/v1
 kind: Deployment
@@ -168,6 +170,7 @@ spec:
 {{ toYaml $.Values.appresources1 | indent 10 }}
 {{- end }}
 ---
+{{- if $.V.inject }}
 apiVersion: authentication.istio.io/v1alpha1
 kind: Policy
 metadata:
@@ -206,6 +209,7 @@ spec:
           number: 8080
 ---
 {{- end }}
+{{- end }}
 
 {{- $fortioserver := dict "name" "fortioserver" "Values" .Values "V" .Values.server}}
 {{- template "fortio" $fortioserver }}
@@ -213,6 +217,7 @@ spec:
 {{- template "fortio" $fortioclient }}
 
 ---
+{{- if $.Values.server.inject }}
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
@@ -239,6 +244,7 @@ spec:
       privateKey: /etc/istio/ingressgateway-certs/tls.key
       serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
 ---
+{{- end }}
 {{- if $.Values.cert }}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
