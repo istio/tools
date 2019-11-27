@@ -1,0 +1,31 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ .Values.serviceNamePrefix }}0-gateway
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - {{ .Values.serviceNamePrefix }}0.local
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: gateway-vs
+spec:
+  hosts:
+  - {{ .Values.serviceNamePrefix }}0.local
+  gateways:
+  - {{ .Values.serviceNamePrefix }}0-gateway
+  http:
+  - route:
+    - destination:
+        port:
+          number: 8080
+        host: {{ .Values.serviceNamePrefix }}0
+---

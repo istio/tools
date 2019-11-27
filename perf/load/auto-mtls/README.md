@@ -39,8 +39,9 @@ kubectl rm ns istio-system automtls
 1. Run base line for control
 
 ```bash
-export ENABLE_AUTO_MTLS=false
-./istio.sh
+pushd ../../istio-install
+export OPERATOR_PROFILE="automtls.yaml" &&  ./setup_istio_operator.sh
+popd
 ```
 
 1. Gather Metrics

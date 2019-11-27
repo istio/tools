@@ -1,0 +1,246 @@
+apiVersion: v1
+data:
+  service-graph: |
+    services:
+    - isEntrypoint: true
+      name: {{ .Values.serviceNamePrefix }}0
+      numReplicas: {{ .Values.replicas }}
+      responseSize: {{ .Values.responseSize }}
+      script:
+      - - call:
+            service: {{ .Values.serviceNamePrefix }}0-fe
+            size: {{ .Values.requestSize }}
+      type: http
+    - name: {{ .Values.serviceNamePrefix }}0-fe
+      numReplicas: {{ .Values.replicas }}
+      responseSize: {{ .Values.responseSize }}
+      script:
+      - - call:
+            service: {{ .Values.serviceNamePrefix }}0-be
+            size: {{ .Values.requestSize }}
+      type: http
+    - name: {{ .Values.serviceNamePrefix }}0-be
+      numReplicas: {{ .Values.replicas }}
+      responseSize: {{ .Values.responseSize }}
+      type: http
+    - name: {{ .Values.serviceNamePrefix }}0-fe
+      numReplicas: {{ .Values.replicas }}
+      responseSize: {{ .Values.responseSize }}
+      script:
+      - - call:
+            service: {{ .Values.serviceNamePrefix }}0-be
+            size: {{ .Values.requestSize }}
+      type: http
+    - name: {{ .Values.serviceNamePrefix }}0-be
+      numReplicas: {{ .Values.replicas }}
+      responseSize: {{ .Values.responseSize }}
+      type: http
+kind: ConfigMap
+metadata:
+  labels:
+    app: service-graph
+  name: service-graph-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0v1
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceNamePrefix }}0
+  template:
+    metadata:
+      annotations:
+{{- if .Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+{{- end }}
+      labels:
+        app: {{ .Values.serviceNamePrefix }}0
+        role: service
+        version: v1
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: {{ .Values.serviceNamePrefix }}0
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+{{- if .Values.livenessProbe }}
+        livenessProbe: {{ toJson .Values.livenessProbe }}
+{{- end}}
+{{- if .Values.readinessProbe }}
+        readinessProbe: {{ toJson .Values.readinessProbe }}
+{{- end}}
+        resources: {{ toJson .Values.resources }}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
+  name: {{ $.Values.serviceNamePrefix }}0-fe
+spec:
+  replicas: {{ $.Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $.Values.serviceNamePrefix }}0-fe
+  template:
+    metadata:
+      annotations:
+{{- if $.Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+{{- end }}
+      labels:
+        app: {{ $.Values.serviceNamePrefix }}0-fe
+        role: service
+        version: v1
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: {{ $.Values.serviceNamePrefix }}0-fe
+        image: {{ $.Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+{{- if $.Values.livenessProbe }}
+        livenessProbe: {{ toJson $.Values.livenessProbe }}
+{{- end}}
+{{- if $.Values.readinessProbe }}
+        readinessProbe: {{ toJson $.Values.readinessProbe }}
+{{- end}}
+        resources: {{ toJson $.Values.resources }}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-fe
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-fe
+status:
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
+  name: {{ $.Values.serviceNamePrefix }}0-be
+spec:
+  # Half of each state of the deployment.
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ $.Values.serviceNamePrefix }}0-be
+  template:
+    metadata:
+      annotations:
+{{- if $.Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+{{- end }}
+      labels:
+        app: {{ $.Values.serviceNamePrefix }}0-be
+        role: service
+        version: v1
+    spec:
+      containers:
+      - args:
+        - --max-idle-connections-per-host=32
+        env:
+        - name: SERVICE_NAME
+          value: {{ $.Values.serviceNamePrefix }}0-be
+        image: {{ $.Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+        - containerPort: 8080
+{{- if $.Values.livenessProbe }}
+        livenessProbe: {{ toJson $.Values.livenessProbe }}
+{{- end}}
+{{- if $.Values.readinessProbe }}
+        readinessProbe: {{ toJson $.Values.readinessProbe }}
+{{- end}}
+        resources: {{ toJson $.Values.resources }}
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      volumes:
+      - configMap:
+          items:
+          - key: service-graph
+            path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-be
+spec:
+  ports:
+  - name: http-web
+    port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-be

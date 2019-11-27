@@ -1,0 +1,27 @@
+Namespace: mtls
+clientCount: 1
+
+livenessProbe: false
+serviceGraphImage: tahler/isotope-service:1
+serviceNamePrefix: svc-
+requestSize: 128B
+responseSize: 1KiB
+replicas: 2
+resources:
+  requests:
+    cpu: 500m
+readinessProbe:
+  httpGet:
+    path: /metrics
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+prometheus_scrape: false
+
+# ingress should be set correctly
+ingress: 127.0.0.1
+https: false
+domain: "incfly.local"
+
+enableMtls: true

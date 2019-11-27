@@ -3,6 +3,8 @@ kind: IstioControlPlane
 spec:
   values:
     global:
+      sidecarInjectorWebhook:
+        rewriteAppHTTPProbe: true
       mtls:
         enabled: false
         auto: true

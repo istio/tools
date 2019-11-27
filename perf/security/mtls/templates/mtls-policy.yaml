@@ -1,0 +1,12 @@
+---
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
+  name: "mtls"
+  namespace: {{ .Values.Namespace }}
+spec:
+{{- if .Values.enableMtls }}
+  peers:
+  - mtls: {}
+{{- end }}
+---
