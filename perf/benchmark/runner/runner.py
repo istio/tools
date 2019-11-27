@@ -33,7 +33,7 @@ else:
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
 
-def pod_info(filterstr="", namespace=os.environ.get("NAMESPACE", "twopods"), multi_ok=True):
+def pod_info(filterstr="", namespace="twopods", multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
         namespace=namespace, filterstr=filterstr)
     op = getoutput(cmd)
@@ -82,7 +82,7 @@ class Fortio:
             client="fortioclient",
             additional_args=None,
             filter_fn=None,
-            extra_labels=None,
+            labels=None,
             baseline=False,
             serversidecar=False,
             clientsidecar=True,
@@ -104,7 +104,7 @@ class Fortio:
         self.client = pod_info("-lapp=" + client, namespace=self.ns)
         self.additional_args = additional_args
         self.filter_fn = filter_fn
-        self.extra_labels = extra_labels
+        self.labels = labels
         self.run_baseline = baseline
         self.run_serversidecar = serversidecar
         self.run_clientsidecar = clientsidecar
@@ -156,15 +156,11 @@ class Fortio:
         labels += "_c_" + str(conn)
         labels += "_" + str(size)
         # Mixer label
-        if self.mesh == "istio":
-            labels += "_"
-            labels += self.mixer_mode
-        elif self.mesh == "linkerd":
-            labels += "_"
-            labels += "linkerd"
+        labels += "_"
+        labels += self.mixer_mode
 
-        if self.extra_labels is not None:
-            labels += "_" + self.extra_labels
+        if self.labels is not None:
+            labels += "_" + self.labels
 
         grpc = ""
         if self.mode == "grpc":
@@ -212,15 +208,8 @@ class Fortio:
 
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
-FLAMESH = "flame.sh"
 PERFSH = "get_perfdata.sh"
 PERFWD = "/etc/istio/proxy/"
-
-WD = os.getcwd()
-LOCAL_FLAMEDIR = os.path.join(WD, "../flame/")
-LOCAL_FLAMEPATH = LOCAL_FLAMEDIR + FLAMESH
-LOCAL_PERFPATH = LOCAL_FLAMEDIR + PERFSH
-LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
 
 
 def run_perf(mesh, pod, labels, duration=20):
@@ -229,7 +218,7 @@ def run_perf(mesh, pod, labels, duration=20):
     perfpath = PERFWD + PERFSH
 
     # copy executable over
-    kubectl_cp(LOCAL_PERFPATH, pod + ":" + perfpath, mesh + "-proxy")
+    kubectl_cp(PERFSH, pod + ":" + perfpath, mesh + "-proxy")
 
     kubectl_exec(
         pod,
@@ -239,8 +228,8 @@ def run_perf(mesh, pod, labels, duration=20):
             duration=duration),
         container=mesh + "-proxy")
 
-    kubectl_cp(pod + ":" + filepath + ".perf", LOCAL_FLAMEOUTPUT + filename + ".perf", mesh + "-proxy")
-    run_command_sync(LOCAL_FLAMEPATH + " " + filename + ".perf")
+    kubectl_cp(pod + ":" + filepath + ".perf", filename + ".perf", mesh + "-proxy")
+    run_command_sync("../flame/flame.sh " + filename + ".perf")
 
 
 def kubectl_cp(from_file, to_file, container):
@@ -250,7 +239,7 @@ def kubectl_cp(from_file, to_file, container):
         from_file=from_file,
         to_file=to_file,
         container=container)
-    print(cmd, flush=True)
+    print(cmd)
     run_command_sync(cmd)
 
 
@@ -264,7 +253,7 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
         remote_cmd=remote_cmd,
         c=c,
         namespace=namespace)
-    print(cmd, flush=True)
+    print(cmd)
     runfn(cmd)
 
 
@@ -286,7 +275,7 @@ def validate(job_config):
             print("missing required parameter {}".format(k))
             return False
         exp_type = required_fields[k]
-        if not isinstance(job_config[k], exp_type):
+        if type(job_config[k]) != exp_type:
             print("expecting type of parameter {} to be {}, got {}".format(k, exp_type, type(job_config[k])))
             return False
     return True
@@ -306,7 +295,7 @@ def fortio_from_config_file(args):
         fortio.metrics = job_config.get('metrics', 'p90')
         fortio.size = job_config.get('size', 1024)
         fortio.perf_record = job_config.get('perf_record', False)
-        fortio.run_serversidecar = job_config.get('run_serversidecar', False)
+        fortio.run_serversidecar = job_config.get('run_serversidecar', True)
         fortio.run_baseline = job_config.get('run_baseline', True)
         fortio.mesh = job_config.get('mesh', 'istio')
         fortio.mode = job_config.get('mode', 'http')
@@ -320,6 +309,7 @@ def run(args):
     # run with config files
     if args.config_file is not None:
         fortio = fortio_from_config_file(args)
+
     else:
         fortio = Fortio(
             conn=args.conn,
@@ -327,7 +317,7 @@ def run(args):
             duration=args.duration,
             size=args.size,
             perf_record=args.perf,
-            extra_labels=args.extra_labels,
+            labels=args.labels,
             baseline=args.baseline,
             serversidecar=args.serversidecar,
             clientsidecar=args.clientsidecar,
@@ -395,7 +385,7 @@ def get_parser():
         help="run traffic through ingress",
         default=None)
     parser.add_argument(
-        "--extra_labels",
+        "--labels",
         help="extra labels",
         default=None)
     parser.add_argument(
@@ -420,7 +410,7 @@ def define_bool(parser, opt, help_arg, default_val):
     parser.add_argument(
         "--" + opt, help=help_arg, dest=opt, action='store_true')
     parser.add_argument(
-        "--no_" + opt, help="do not " + help_arg, dest=opt, action='store_false')
+        "--no-" + opt, help="do not " + help_arg, dest=opt, action='store_false')
     val = {opt: default_val}
     parser.set_defaults(**val)
 

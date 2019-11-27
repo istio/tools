@@ -30,22 +30,12 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 1. Install Istio:
 
     ```bash
-    export ISTIO_RELEASE=release-1.2-latest  # or any Istio release
+    export ISTIO_RELEASE="release-1.2-latest"  # or any Istio release
     export DNS_DOMAIN=local
     ./setup_istio.sh $ISTIO_RELEASE
     ```
 
-   From Istio 1.4 later on, you should setup istio using the following commands:
-
-   ```bash
-   export ISTIO_RELEASE=1.4-alpha.0ef2cd46e2da64b9252c36ca4bf90aa474b73610
-   export DNS_DOMAIN=local
-   ./setup_istio_release.sh $ISTIO_RELEASE dev
-   ```
-
-   Note: The latest ISTIO_RELEASE can be queried from [istio-release](https://storage.googleapis.com/istio-build/dev/latest)
-
-   Wait for all Istio pods to be `Running` and `Ready`:
+    Wait for all Istio pods to be `Running` and `Ready`:
 
     ```bash
     kubectl get pods -n istio-system
@@ -54,9 +44,8 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 1. Deploy the workloads to measure performance against. The test environment is two [Fortio](http://fortio.org/) pods (one client, one server), set to communicate over HTTP1, using mutual TLS authentication. By default, the client pod will make HTTP requests with a 1KB payload.
 
     ```bash
-    export NAMESPACE=twopods-istio
-    export INTERCEPTION_MODE=REDIRECT
-    export ISTIO_INJECT=true
+    export NAMESPACE=twopods
+    export DNS_DOMAIN=local
     cd ../benchmark
     ./setup_test.sh
     ```
@@ -67,9 +56,6 @@ Here, `pipenv shell` will create a local Python3 virtual environment, and `pipen
 
 ```bash
 cd runner
-pipenv --three
-# or
-pipenv --python 3.6
 pipenv shell
 pipenv install
 ```
@@ -95,7 +81,7 @@ python runner.py --conn <conn> --qps <qps> --duration <duration> --OPTIONAL-FLAG
 1. run with config yaml
 
 ``
-python runner.py --config_file ../configs/mixer_latency.yaml
+python runner.py --config_file ./configs/mixer_latency.yaml
 ``
 
 Required fields to specified via CLI or config file:
@@ -114,13 +100,13 @@ optional arguments:
   --mixer_mode mixer/nomixer/telemetryv2-nullvm  run with mixer enabled(default), mixer disabled and mixer v2
   --perf              also run perf and produce flame graph, default is false
   --baseline          run baseline for all
-  --no_baseline       do not run baseline for all
+  --no-baseline       do not run baseline for all
   --serversidecar     run serversidecar-only for all
-  --no_serversidecar  do not run serversidecar-only for all
+  --no-serversidecar  do not run serversidecar-only for all
   --clientsidecar     run clientsidecar and serversidecar for all, this is corresponding to the "both" mode, which will be executed by default
-  --no_clientsidecar  do not run clientsidecar and serversidecar for all
+  --no-clientsidecar  do not run clientsidecar and serversidecar for all
   --ingress INGRESS   run traffic through ingress
-  --extra_labels      add extra labels
+  --labels LABELS     extra labels
 ```
 
 Note:
@@ -133,7 +119,7 @@ For example:
 ### Example 1
 
 ```bash
-python runner.py --config_file ../configs/mixer_latency.yaml
+python runner.py --config_file ./configs/mixer_latency.yaml
 ```
 
 - This will run with configuration specified in the mixer_latency.yaml
@@ -177,7 +163,7 @@ python runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --perf=true
 ```
 
 This will generate corresponding `xxx_perf.data.perf` file with its `.svg` flame graph in the `perf/benchmark/flame` repo.
-Here is the [sample output](https://github.com/istio/tools/tree/master/perf/benchmark/flame/example_flame_graph/example_output)
+Here is the [sample output]
 
 ## [Optional] Disable Mixer
 
@@ -190,10 +176,10 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
     python ./update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
     ```
 
-1. Run `runner.py`, in any sidecar mode, with the `--mixer_mode=nomixer` flag. If you run this command:
+1. Run `runner.py`, in any sidecar mode, with the `--labels=nomixer` flag. If you run this command:
 
     ```bash
-    python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidecar --baseline --mixer_mode=nomixer
+    python runner/runner.py 1,2,4,8,16,32,64 1000 240 --serversidecar --baseline --labels=nomixer
     ```
 
     it will generate the output showing in the `Example Output` section. Which includes both with Mixer and without Mixer test results.
@@ -204,14 +190,6 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
     kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
     python ./update_mesh_config.py enable_mixer /tmp/meshconfig.yaml  | kubectl -n istio-system apply -f -
     ```
-
-## [Optional] Enable Telemetryv2
-
-1. Disable mixer v1 telemetry following previous section
-
-1. Enable metadata exchange filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml>
-
-1. Enable stats filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml>
 
 ## Gather Result Metrics
 

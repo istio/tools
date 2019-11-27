@@ -32,21 +32,13 @@ export FORTIO_CLIENT_URL=""
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 export GCS_BUCKET="istio-build/perf"
-# Check https://github.com/istio/test-infra/blob/master/boskos/configs.yaml
-# for existing resources types
-export RESOURCE_TYPE="${RESOURCE_TYPE:-gke-perf-preset}"
-export OWNER="${OWNER:-perf-tests}"
-export PILOT_CLUSTER="${PILOT_CLUSTER:-}"
-export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
-export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
-export NAMESPACE="${NAMESPACE:-twopods}"
 
 function setup_metrics() {
   # shellcheck disable=SC2155
-  INGRESS_IP="$(kubectl get services -n "${NAMESPACE}" fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}")"
+  INGRESS_IP="$(kubectl get services -n twopods fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}")"
   export FORTIO_CLIENT_URL=http://${INGRESS_IP}:8080
   if [[ -z "$INGRESS_IP" ]];then
-    kubectl -n "${NAMESPACE}" port-forward svc/fortioclient 8080:8080 &
+    kubectl -n twopods port-forward svc/fortioclient 8080:8080 &
     export FORTIO_CLIENT_URL=http://localhost:8080
   fi
   export PROMETHEUS_URL=http://localhost:9090
@@ -89,17 +81,16 @@ function get_benchmark_data() {
 
 function exit_handling() {
   # copy raw data from fortio client pod
-  kubectl --namespace "${NAMESPACE}" cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
+  kubectl --namespace twopods cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
   gsutil -q cp -r /tmp/rawdata "gs://${GCS_BUCKET}/${OUTPUT_DIR}/rawdata"
   # output information for debugging
-  kubectl logs -n "${NAMESPACE}" "${FORTIO_CLIENT_POD}" -c captured || true
-  kubectl top pods --containers -n "${NAMESPACE}" || true
-  kubectl describe pods "${FORTIO_CLIENT_POD}" -n "${NAMESPACE}" || true
+  kubectl logs -n twopods "${FORTIO_CLIENT_POD}" -c captured || true
+  kubectl top pods --containers -n twopods || true
+  kubectl describe pods "${FORTIO_CLIENT_POD}" -n twopods || true
 }
 
 function enable_perf_record() {
   nodes=$(kubectl get nodes -o=jsonpath='{.items[*].metadata.name}')
-
   for node in $nodes
   do
     gcloud compute ssh --command "sudo sysctl kernel.perf_event_paranoid=-1;sudo sysctl kernel.kptr_restrict=0;exit" \
@@ -116,12 +107,6 @@ function prerun_nomixer() {
   kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
   pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
 }
-
-# setup cluster
-helm init --client-only
-# shellcheck disable=SC1090
-source "${ROOT}/../bin/setup_cluster.sh"
-setup_e2e_cluster
 
 # setup release info
 RELEASE_TYPE="dev"
@@ -144,7 +129,6 @@ pipenv install
 
 # setup test
 pushd "${WD}"
-export ISTIO_INJECT="true"
 ./setup_test.sh
 popd
 dt=$(date +'%Y%m%d-%H')
@@ -154,9 +138,9 @@ mkdir -p "${LOCAL_OUTPUT_DIR}"
 
 # Setup fortio and prometheus
 setup_metrics
-FORTIO_CLIENT_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioclient | awk '{print $1}')
+FORTIO_CLIENT_POD=$(kubectl get pods -n twopods | grep fortioclient | awk '{print $1}')
 export FORTIO_CLIENT_POD
-FORTIO_SERVER_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioserver | awk '{print $1}')
+FORTIO_SERVER_POD=$(kubectl get pods -n twopods | grep fortioserver | awk '{print $1}')
 export FORTIO_SERVER_POD
 
 # add trap to copy raw data when exiting, also output logging information for debugging
@@ -184,8 +168,8 @@ for f in "${CONFIG_DIR}"/*; do
 
     # post run
     # restart proxy after each group
-    kubectl exec -n "${NAMESPACE}" "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
-    kubectl exec -n "${NAMESPACE}" "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+    kubectl exec -n twopods "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+    kubectl exec -n twopods "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
 done
 
 echo "collect flame graph ..."
