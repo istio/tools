@@ -217,7 +217,7 @@ spec:
 {{- template "fortio" $fortioclient }}
 
 ---
-{{- if $.Values.server.inject }}
+{{- if or $.Values.server.inject $.Values.client.inject }}
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
