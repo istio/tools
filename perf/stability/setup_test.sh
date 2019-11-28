@@ -17,9 +17,7 @@
 set -ex
 
 # shellcheck disable=SC2086
-WD=$(dirname $0)
-# shellcheck disable=SC2086
-WD=$(cd $WD; pwd)
+WD=$(cd $(dirname $0); pwd)
 
 function setup_test() {
   local DIRNAME="${1:?"test directory"}"
@@ -27,7 +25,7 @@ function setup_test() {
   local HELM_ARGS="${2:-}"
 
   mkdir -p "${WD}/tmp"
-  local OUTFILE="${WD}/tmp/${DIRNAME}.yaml"
+  local OUTFILE="./perf/stability/tmp/${DIRNAME}.yaml"
 
   # shellcheck disable=SC2086
   helm --namespace "${NAMESPACE}" template "${WD}/${DIRNAME}" ${HELM_ARGS} > "${OUTFILE}"
