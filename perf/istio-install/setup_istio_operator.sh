@@ -14,11 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -ex
+# Usage
+# ./setup_istio_operator.sh, install Istio with operator.
+#
+# export OPERATOR_SHA="abcdef" && ./setup_istio_operator.sh.
+# setup Istio with a given operator repo's SHA
+#
+# export OPERATOR_PROFILE="automtls.yaml" && ./setup_istio_operator.sh.
+# using a specific Istio operator profile to install Istio.
 
-# The profile containing IstioControlPlane spec. Overriding this environment
-# variable allow to specify different installation options.
-OPERATOR_PROFILE=${OPERATOR_PROFILE:-operator_default.yaml}
+set -ex
 
 WD=$(dirname "$0")
 WD=$(cd "$WD"; pwd)
@@ -26,17 +31,21 @@ DIRNAME="${WD}/tmp"
 mkdir -p "${DIRNAME}"
 export GO111MODULE=on
 
+# The profile containing IstioControlPlane spec. Overriding this environment
+# variable allow to specify different installation options.
+OPERATOR_SHA=${OPERATOR_SHA-$(cat ${WD}/istio_operator.sha)}
+OPERATOR_PROFILE=${OPERATOR_PROFILE:-operator_default.yaml}
+
 ISTIO_OPERATOR_DIR="${DIRNAME}/operator"
 if [[ ! -d "${ISTIO_OPERATOR_DIR}" ]]; then
   git clone https://github.com/istio/operator.git "$ISTIO_OPERATOR_DIR"
 fi
 
-SHA=$(cat "${WD}"/istio_operator.sha)
-
 pushd .
 cd "${ISTIO_OPERATOR_DIR}"
 git fetch
-git checkout "${SHA}"
+echo "Checking out operator SHA ${OPERATOR_SHA} ..."
+git checkout "${OPERATOR_SHA}"
 popd
 
 defaultNamespace=istio-system
