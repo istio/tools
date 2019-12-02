@@ -17,6 +17,8 @@
 # set -x
 # Creates a standard GKE cluster for testing.
 
+set -euo pipefail
+
 # shellcheck disable=SC2086
 WD=$(dirname $0)
 # shellcheck disable=SC2086
@@ -44,11 +46,14 @@ function default_gke_version() {
 
 # Required params
 PROJECT_ID=${PROJECT_ID:?"project id is required"}
+
+set +u # Allow referencing unbound variable $CLUSTER
 if [[ -z ${CLUSTER} ]]; then
   CLUSTER_NAME=${1:?"cluster name is required"}
 else
   CLUSTER_NAME=${CLUSTER}
 fi
+set -u
 
 # Optional params
 ZONE=${ZONE:-us-central1-a}
@@ -71,6 +76,10 @@ MAXPODS_PER_NODE=100
 # Labels and version
 ISTIO_VERSION=${ISTIO_VERSION:-master}
 
+# Export CLUSTER_NAME so it will be set for the create_sa.sh script, which will
+# create a google-cloud-key.json file in `./${CLUSTER_NAME}/`.
+export CLUSTER_NAME
+mkdir -p "${CLUSTER_NAME}"
 "${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
 
 DEFAULT_GKE_VERSION=$(default_gke_version "${ZONE}")
@@ -91,7 +100,7 @@ SCOPES_FULL="https://www.googleapis.com/auth/cloud-platform"
 
 SCOPES="${SCOPES_FULL}"
 
-mkdir ${CLUSTER}
+
 
 # A label cannot have "." in it, replace "." with "_"
 # shellcheck disable=SC2001
@@ -116,9 +125,11 @@ function gc() {
   echo gcloud $* ${ZZ} ${SA}
 
   # shellcheck disable=SC2236
+  set +u
   if [[ -n "${DRY_RUN}" ]];then
     return
   fi
+  set -u
 
   # shellcheck disable=SC2086
   # shellcheck disable=SC2048
@@ -127,15 +138,19 @@ function gc() {
 
 NETWORK_SUBNET="--create-subnetwork name=${CLUSTER_NAME}-subnet"
 # shellcheck disable=SC2236
+set +u
 if [[ -n "${USE_SUBNET}" ]];then
   NETWORK_SUBNET="--network ${USE_SUBNET}"
 fi
+set -u
 
 ADDONS="HorizontalPodAutoscaling,KubernetesDashboard"
 # shellcheck disable=SC2236
+set +u
 if [[ -n "${ISTIO_ADDON}" ]];then
   ADDONS+=",Istio"
 fi
+set -u
 # shellcheck disable=SC2086
 # shellcheck disable=SC2046
 gc beta container \
@@ -157,21 +172,22 @@ gc beta container \
   --enable-autoupgrade --enable-autorepair \
   --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
 
-NETWORK_NAME=$(basename "$(gcloud container clusters describe $CLUSTER --project $PROJECT_ID --zone=$ZONE \
+NETWORK_NAME=$(basename "$(gcloud container clusters describe ${CLUSTER_NAME} --project $PROJECT_ID --zone=$ZONE \
     --format='value(networkConfig.network)')")
-SUBNETWORK_NAME=$(basename "$(gcloud container clusters describe $CLUSTER --project $PROJECT_ID \
+SUBNETWORK_NAME=$(basename "$(gcloud container clusters describe ${CLUSTER_NAME} --project $PROJECT_ID \
     --zone=$ZONE --format='value(networkConfig.subnetwork)')")
 
 # Getting network tags is painful. Get the instance groups, map to an instance,
 # and get the node tag from it (they should be the same across all nodes -- we don't
 # know how to handle it, otherwise).
-INSTANCE_GROUP=$(gcloud container clusters describe $CLUSTER --project $PROJECT_ID --zone=$ZONE --format='flattened(nodePools[].instanceGroupUrls[].scope().segment())' |  cut -d ':' -f2 | tr -d "[:space:]")
+INSTANCE_GROUP=$(gcloud container clusters describe ${CLUSTER_NAME} --project $PROJECT_ID --zone=$ZONE --format='flattened(nodePools[].instanceGroupUrls[].scope().segment())' |  cut -d ':' -f2 | head -n1)
+INSTANCE_GROUP_ZONE=$(gcloud compute instance-groups list --filter="name=(${INSTANCE_GROUP})" --format="value(zone)" | sed 's|^.*/||g')
 INSTANCE=$(gcloud compute instance-groups list-instances $INSTANCE_GROUP --project $PROJECT_ID \
-    --zone=$ZONE --format="value(instance)" --limit 1)
-NETWORK_TAGS=$(gcloud compute instances describe $INSTANCE --zone=$ZONE --project $PROJECT_ID --format="value(tags.items)")
+    --zone=${INSTANCE_GROUP_ZONE} --format="value(instance)" --limit 1)
+NETWORK_TAGS=$(gcloud compute instances describe $INSTANCE --zone=$INSTANCE_GROUP_ZONE --project $PROJECT_ID --format="value(tags.items)")
 
 
-cat <<EOF > ${CLUSTER}/configmap-neg.yaml
+cat <<EOF > ${CLUSTER_NAME}/configmap-neg.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -188,7 +204,7 @@ data:
     # Your cluster's subnetwork
     subnetwork-name = ${SUBNETWORK_NAME}
     # Prefix for your cluster's IG
-    node-instance-prefix = gke-${CLUSTER}
+    node-instance-prefix = gke-${CLUSTER_NAME}
     # Network tags for your cluster's IG
     node-tags = ${NETWORK_TAGS}
     # Zone the cluster lives in
@@ -196,7 +212,7 @@ data:
 EOF
 
 
-cat <<EOF > ${CLUSTER}/configmap-galley.yaml
+cat <<EOF > ${CLUSTER_NAME}/configmap-galley.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -219,10 +235,10 @@ data:
   WEBHOOK: istiod-asm
   AUDIENCE: ${PROJECT_ID}.svc.id.goog
   TRUST_DOMAIN: ${PROJECT_ID}.svc.id.goog
-  GKE_CLUSTER_URL: https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${CLUSTER}
+  GKE_CLUSTER_URL: https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${CLUSTER_NAME}
 EOF
 
-export KUBECONFIG=${CLUSTER}/kube.yaml
+export KUBECONFIG=${CLUSTER_NAME}/kube.yaml
 gcloud container clusters get-credentials ${CLUSTER_NAME} --zone ${ZONE}
 
 kubectl create clusterrolebinding cluster-admin-binding \
@@ -230,9 +246,9 @@ kubectl create clusterrolebinding cluster-admin-binding \
   --user="$(gcloud config get-value core/account)"
 
 # Update the cluster with the GCP-specific configmaps
-kubectl -n kube-system apply -f ${CLUSTER}/configmap-neg.yaml
-kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json=${CLUSTER}/google-cloud-key.json
+kubectl -n kube-system apply -f ${CLUSTER_NAME}/configmap-neg.yaml
+kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json=${CLUSTER_NAME}/google-cloud-key.json
 
 kubectl create ns istio-system
-kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json=${CLUSTER}/google-cloud-key.json
-kubectl -n istio-system apply -f ${CLUSTER}/configmap-galley.yaml
+kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json=${CLUSTER_NAME}/google-cloud-key.json
+kubectl -n istio-system apply -f ${CLUSTER_NAME}/configmap-galley.yaml

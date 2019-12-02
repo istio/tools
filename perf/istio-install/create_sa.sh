@@ -18,7 +18,7 @@
 # Creates service accounts to associate with a cluster with proper permissions.
 #
 # A control plane service account will also be created for interacting with GKE.
-set -e
+set -euo pipefail
 
 # shellcheck disable=SC2086
 WD=$(dirname $0)
@@ -31,9 +31,11 @@ function gc() {
   echo gcloud $*
 
   # shellcheck disable=SC2236
+  set +u
   if [[ -n "${DRY_RUN}" ]];then
     return
   fi
+  set -u
 
   # shellcheck disable=SC2086
   # shellcheck disable=SC2048
@@ -53,4 +55,6 @@ done
 
 gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/meshconfig.writer" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 
-gcloud  iam service-accounts keys create "${CLUSTER}"/google-cloud-key.json --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
+if [[ "${CLUSTER_NAME}" != "" ]]; then 
+  gcloud  iam service-accounts keys create "${CLUSTER_NAME}"/google-cloud-key.json --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
+fi
