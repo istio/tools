@@ -35,6 +35,9 @@ const (
 	enableCRDGenTag = "+cue-gen"
 )
 
+// A mapping from CRD name to proto type name
+var crdToType map[string]string
+
 // A Config defines the OpenAPI to generate and their properties.
 type Config struct {
 	// Module is the Go or CUE modules for which to generated OpenAPI
@@ -237,6 +240,10 @@ func (c *Config) getCrdConfig(filename string) {
 				}
 				d := c.Crd.CrdConfigs[t]
 				convertCrdConfig(v, t, d)
+				if crdToType == nil {
+					crdToType = map[string]string{}
+				}
+				crdToType[t] = x.Name
 			}
 		}
 	}
