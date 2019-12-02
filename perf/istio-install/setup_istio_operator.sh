@@ -33,7 +33,7 @@ export GO111MODULE=on
 
 # The profile containing IstioControlPlane spec. Overriding this environment
 # variable allow to specify different installation options.
-OPERATOR_SHA=${OPERATOR_SHA-$(cat ${WD}/istio_operator.sha)}
+OPERATOR_SHA=${OPERATOR_SHA-$(cat "${WD}"/istio_operator.sha)}
 OPERATOR_PROFILE=${OPERATOR_PROFILE:-operator_default.yaml}
 
 ISTIO_OPERATOR_DIR="${DIRNAME}/operator"
