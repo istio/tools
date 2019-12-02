@@ -1,7 +1,8 @@
 # GCP Cluster Setup
 
 Required environment:
-```shell script
+
+```shell
 
 PROJECT_ID - GCP project id, for example istio-testing
 CLUSTER_NAME - name of the cluster to setup, for example istio14test1
@@ -25,7 +26,6 @@ The script will create files to be used later in the setup, as config maps:
 - ${CLUSTER_NAME}/google-cloud-key.json - will be used for authenticating control plane for GCP operations.
 - ${CLUSTER_NAME}/kube.yaml - credentials for accessing k8s
 - ${CLUSTER_NAME}/configmap* - configmaps with GCP-specific configurations
-
 
 ## Setup with operator
 
