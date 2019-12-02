@@ -27,13 +27,18 @@ import (
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
 )
 
-var statusOutput = `
+const (
+	statusOutput = `
 status:
   acceptedNames:
     kind: ""
     plural: ""
   conditions: null
   storedVersions: null`
+
+	creationTimestampOutput = `
+  creationTimestamp: null`
+)
 
 // Build CRDs based on the configuration and schema.
 func completeCRD(c *apiextv1beta1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap) {

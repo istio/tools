@@ -412,7 +412,7 @@ func (x *builder) genCRD() {
 	for c, v := range x.Config.Crd.CrdConfigs {
 
 		group := c[:strings.LastIndex(c, ".")]
-		tp := c[strings.LastIndex(c, ".")+1:]
+		tp := crdToType[c]
 
 		versionSchemas := map[string]*openapi.OrderedMap{}
 
@@ -693,8 +693,9 @@ func (x *builder) writeCRDFiles() {
 		if err != nil {
 			log.Fatalf("Error marsahling CRD to yaml: %v", err)
 		}
-		// remove the status field from the output.
+		// remove the status and creationTimestamp fields from the output. Ideally we could use OrderedMap to remove those.
 		y = bytes.ReplaceAll(y, []byte(statusOutput), []byte(""))
+		y = bytes.ReplaceAll(y, []byte(creationTimestampOutput), []byte(""))
 		// keep the quotes in the output which is required by helm.
 		y = bytes.ReplaceAll(y, []byte("helm.sh/resource-policy: keep"), []byte(`"helm.sh/resource-policy": keep`))
 		n, err := out.Write(append(y, []byte("\n---\n")...))
