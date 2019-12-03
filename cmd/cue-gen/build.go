@@ -94,7 +94,16 @@ type CrdGen struct {
 	Filename string // empty indicates the default prefix.
 
 	// Mapping of CRD name and its output configuration.
-	CrdConfigs map[string]*apiext.CustomResourceDefinition
+	CrdConfigs map[string]*CrdConfig
+}
+
+// CrdConfig contains the CRD for each proto type to be generated.
+type CrdConfig struct {
+	// Optional. Mapping of version to schema name if schema name
+	// not following the <package>.<version>.<name> format.
+	VersionToSchema map[string]string
+
+	CustomResourceDefinition *apiext.CustomResourceDefinition
 }
 
 func loadConfig(filename string) (c *Config, err error) {
@@ -133,7 +142,7 @@ func loadConfig(filename string) (c *Config, err error) {
 
 	if c.Crd == nil {
 		c.Crd = &CrdGen{
-			CrdConfigs: map[string]*apiext.CustomResourceDefinition{},
+			CrdConfigs: map[string]*CrdConfig{},
 		}
 	}
 
@@ -236,7 +245,10 @@ func (c *Config) getCrdConfig(filename string) {
 			out := extractCrdTags(x.Comment.Lines, prefix)
 			for t, v := range out {
 				if _, ok := c.Crd.CrdConfigs[t]; !ok {
-					c.Crd.CrdConfigs[t] = &apiext.CustomResourceDefinition{}
+					c.Crd.CrdConfigs[t] = &CrdConfig{
+						VersionToSchema:          map[string]string{},
+						CustomResourceDefinition: &apiext.CustomResourceDefinition{},
+					}
 				}
 				d := c.Crd.CrdConfigs[t]
 				convertCrdConfig(v, t, d)
@@ -359,8 +371,9 @@ func extractCrdTags(lines []string, prefix string) map[string]map[string]string 
 	return out
 }
 
-func convertCrdConfig(c map[string]string, t string, src *apiext.CustomResourceDefinition) {
+func convertCrdConfig(c map[string]string, t string, cfg *CrdConfig) {
 	t = t[strings.LastIndex(t, ".")+1:]
+	src := cfg.CustomResourceDefinition
 	src.Spec.Names = apiext.CustomResourceDefinitionNames{
 		Kind:     t,
 		ListKind: t + "List",
@@ -370,6 +383,7 @@ func convertCrdConfig(c map[string]string, t string, src *apiext.CustomResourceD
 	version := apiext.CustomResourceDefinitionVersion{
 		Served: true,
 	}
+	var sc string
 	for k, v := range c {
 		switch k {
 		case "groupName":
@@ -431,7 +445,14 @@ func convertCrdConfig(c map[string]string, t string, src *apiext.CustomResourceD
 			}
 		case "version":
 			version.Name = v
+		case "schema":
+			sc = v
 		}
+	}
+	if sc != "" {
+		m := cfg.VersionToSchema
+		m[version.Name] = sc
+		cfg.VersionToSchema = m
 	}
 	src.Spec.Versions = append(src.Spec.Versions, version)
 	src.Name = fmt.Sprintf("%v.%v", src.Spec.Names.Plural, src.Spec.Group)
