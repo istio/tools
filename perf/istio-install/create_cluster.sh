@@ -109,20 +109,20 @@ ISTIO_VERSION=$(echo "${ISTIO_VERSION}" | sed 's/\./_/g')
 function gc() {
   # shellcheck disable=SC2236
   if [[ -n "${REGION}" ]];then
-    ZZ=(--region "${REGION}")
+    ZZ="--region=${REGION}"
   else
-    ZZ=(--zone "${ZONE}")
+    ZZ="--zone=${ZONE}"
   fi
 
   SA=""
   # shellcheck disable=SC2236
   if [[ -n "${GCP_SA}" ]];then
-    SA="--identity-namespace=${PROJECT_ID}.svc.id.goog --service-account=${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com --workload-metadata-from-node=EXPOSED"
+    SA=("--identity-namespace=${PROJECT_ID}.svc.id.goog" "--service-account=${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "--workload-metadata-from-node=EXPOSED")
   fi
 
   # shellcheck disable=SC2048
   # shellcheck disable=SC2086
-  echo gcloud $* "${ZZ[@]}" "${SA[@]}"
+  echo gcloud $* "${ZZ}" "${SA[@]}"
 
   # shellcheck disable=SC2236
   set +u
@@ -133,7 +133,7 @@ function gc() {
 
   # shellcheck disable=SC2086
   # shellcheck disable=SC2048
-  gcloud $* "${ZZ[@]}" "${SA[@]}"
+  gcloud $* "${ZZ}" "${SA[@]}"
 }
 
 NETWORK_SUBNET="--create-subnetwork name=${CLUSTER_NAME}-subnet"
@@ -180,8 +180,9 @@ SUBNETWORK_NAME=$(basename "$(gcloud container clusters describe "${CLUSTER_NAME
 # Getting network tags is painful. Get the instance groups, map to an instance,
 # and get the node tag from it (they should be the same across all nodes -- we don't
 # know how to handle it, otherwise).
-INSTANCE_GROUP=$(gcloud container clusters describe "${CLUSTER_NAME}" --project "${PROJECT_ID}" --zone="${ZONE}" --format='flattened(nodePools[].instanceGroupUrls[].scope().segment())' |  cut -d ':' -f2 | head -n1)
+INSTANCE_GROUP=$(gcloud container clusters describe "${CLUSTER_NAME}" --project "${PROJECT_ID}" --zone="${ZONE}" --format='flattened(nodePools[].instanceGroupUrls[].scope().segment())' |  cut -d ':' -f2 | head -n1 | sed -e 's/^[[:space:]]*//' -e 's/::space:]]*$//')
 INSTANCE_GROUP_ZONE=$(gcloud compute instance-groups list --filter="name=(${INSTANCE_GROUP})" --format="value(zone)" | sed 's|^.*/||g')
+sleep 1
 INSTANCE=$(gcloud compute instance-groups list-instances "${INSTANCE_GROUP}" --project "${PROJECT_ID}" \
     --zone="${INSTANCE_GROUP_ZONE}" --format="value(instance)" --limit 1)
 NETWORK_TAGS=$(gcloud compute instances describe "${INSTANCE}" --zone="${INSTANCE_GROUP_ZONE}" --project "${PROJECT_ID}" --format="value(tags.items)")
