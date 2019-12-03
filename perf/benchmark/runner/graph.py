@@ -93,7 +93,7 @@ def get_series(df, x_label, metric):
              ("nomix.*_both", "nomixer_both"),
              ("base", "base"),
              # Make sure this set of data is last, because both type always have data to make sure rows are not empty.
-             ("^both", "both")]
+             (".*mixer_both", "mixer_both")]
 
     # get y axis
     series = {}
