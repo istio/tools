@@ -54,6 +54,8 @@ for role in compute.networkViewer logging.logWriter monitoring.metricWriter stor
 done
 
 gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/meshconfig.writer" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
+# Required for creating the NEG objects in GCP
+gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/compute.admin" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 
 if [[ "${CLUSTER_NAME}" != "" ]]; then 
   gcloud  iam service-accounts keys create "${CLUSTER_NAME}"/google-cloud-key.json --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
