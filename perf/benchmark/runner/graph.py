@@ -92,6 +92,7 @@ def get_series(df, x_label, metric):
              ("nomix.*_serveronly", "nomixer_serveronly"),
              ("nomix.*_both", "nomixer_both"),
              ("base", "base"),
+             (".*_ingress", "ingress"),
              # Make sure this set of data is last, because both type always have data to make sure rows are not empty.
              ("^both", "both")]
 
