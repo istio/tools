@@ -1,8 +1,31 @@
-# Istio Setup
+# GCP Cluster Setup
 
-For performance testing, it is recommended to setup Istio with performance oriented values, but it is not required.
+Required environment:
 
-This setup requires a very large cluster - at least 32 vCPUs reserved for Istio is recommended.
+```shell
+
+PROJECT_ID - GCP project id, for example istio-testing
+CLUSTER_NAME - name of the cluster to setup, for example istio14test1
+CLUSTER_ZONE - zone where the cluster will be setup, for example us-central1-a
+DNS_DOMAIN - domain to use for TLS cert testing.
+
+Optional:
+export MACHINE_TYPE=n1-standard-4 - will use a small machine, for testing stability in small clusters.
+export IMAGE=UBUNTU - will use ubuntu instead of the recommended COS
+export MIN_NODES=1 - will start with 1 instead of default 4
+export ISTIO_VERSION - installed version of istio, will be set as a label on nodes
+
+```
+
+For load testing, the setup requires a very large cluster - at least 32 vCPUs reserved for Istio is recommended.
+The defaults values are 32vCP and at least 4 nodes.
+
+For testing stability and e2e behavior in small clusters - 4vCPU per node and 1 node with auto-scaling should work.
+
+The script will create files to be used later in the setup, as config maps:
+- ${CLUSTER_NAME}/google-cloud-key.json - will be used for authenticating control plane for GCP operations.
+- ${CLUSTER_NAME}/kube.yaml - credentials for accessing k8s
+- ${CLUSTER_NAME}/configmap* - configmaps with GCP-specific configurations
 
 ## Setup with operator
 
