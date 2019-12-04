@@ -108,8 +108,8 @@ function enable_perf_record() {
 }
 
 function prerun_v2_nullvm() {
-  kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml
-  kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
+  kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/"${GIT_BRANCH}"/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml
+  kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/"${GIT_BRANCH}"/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
 }
 
 function prerun_nomixer() {
