@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -x
+
 # support other container tools, e.g. podman
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
