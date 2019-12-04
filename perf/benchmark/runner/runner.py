@@ -21,14 +21,12 @@ import argparse
 import subprocess
 import shlex
 import uuid
+import sys
+from subprocess import getoutput
+from urllib.parse import urlparse
 import yaml
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
-import sys
 
-if sys.version_info.major == 2:
-    from commands import getoutput
-else:
-    from subprocess import getoutput
 
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 
@@ -63,8 +61,8 @@ def run_command_sync(command):
 
 class Fortio:
     ports = {
-        "http": {"direct_port": 8077, "port": 8080, "ingress": 80},
-        "grpc": {"direct_port": 8076, "port": 8079, "ingress": 80},
+        "http": {"direct_port": 8077, "port": 8080},
+        "grpc": {"direct_port": 8076, "port": 8079},
         "direct_envoy": {"direct_port": 8076, "port": 8079},
     }
 
@@ -87,7 +85,8 @@ class Fortio:
             serversidecar=False,
             clientsidecar=True,
             ingress=None,
-            mesh="istio"):
+            mesh="istio",
+            cacert=None):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
         self.conn = conn
         self.qps = qps
@@ -109,6 +108,7 @@ class Fortio:
         self.run_serversidecar = serversidecar
         self.run_clientsidecar = clientsidecar
         self.run_ingress = ingress
+        self.cacert = cacert
 
         if mesh == "linkerd":
             self.mesh = "linkerd"
@@ -139,12 +139,13 @@ class Fortio:
             svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
 
     def ingress(self, fortio_cmd):
-        svc = self.run_ingress
-        if ':' not in svc:
-            svc += ":{port}".format(port=self.ports[self.mode]["ingress"])
+        url = urlparse(self.run_ingress)
+        # If scheme is not defined fallback to http
+        if url.scheme == "":
+            url = urlparse("http://{svc}".format(svc=self.run_ingress))
 
-        return fortio_cmd + "_ingress http://{svc}/echo?size={size}".format(
-            svc=svc, size=self.size)
+        return fortio_cmd + "_ingress {url}/echo?size={size}".format(
+            url=url.geturl(), size=self.size)
 
     def run(self, conn, qps, size, duration):
         size = size or self.size
@@ -170,14 +171,19 @@ class Fortio:
         if self.mode == "grpc":
             grpc = "-grpc -ping"
 
+        cacert_path = ""
+        if self.cacert is not None:
+            cacert_path = "-cacert {cacert_path}".format(cacert_path=self.cacert)
+
         fortio_cmd = (
-            "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {grpc} -httpbufferkb=128 " +
+            "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_path} {grpc} -httpbufferkb=128 " +
             "-labels {labels}").format(
                 conn=conn,
                 qps=qps,
                 duration=duration,
                 r=self.r,
                 grpc=grpc,
+                cacert_path=cacert_path,
                 labels=labels)
 
         if self.run_ingress:
@@ -334,7 +340,8 @@ def run(args):
             ingress=args.ingress,
             mode=args.mode,
             mesh=args.mesh,
-            mixer_mode=args.mixer_mode)
+            mixer_mode=args.mixer_mode,
+            cacert=args.cacert)
 
     if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
@@ -392,7 +399,7 @@ def get_parser():
         default=False)
     parser.add_argument(
         "--ingress",
-        help="run traffic through ingress",
+        help="run traffic through ingress, should be a valid URL",
         default=None)
     parser.add_argument(
         "--extra_labels",
@@ -405,6 +412,10 @@ def get_parser():
     parser.add_argument(
         "--config_file",
         help="config yaml file",
+        default=None)
+    parser.add_argument(
+        "--cacert",
+        help="path to the cacert for the fortio client inside the container",
         default=None)
 
     define_bool(parser, "baseline", "run baseline for all", False)
@@ -432,5 +443,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main(sys.argv[1:]))
