@@ -88,15 +88,15 @@ The test has three sidecar modes:
 
 1. run with CLI argument directly
 
-``
+```bash
 python runner.py --conn <conn> --qps <qps> --duration <duration> --OPTIONAL-FLAGS
-``
+```
 
 1. run with config yaml
 
-``
+```bash
 python runner.py --config_file ../configs/mixer_latency.yaml
-``
+```
 
 Required fields to specified via CLI or config file:
 
@@ -212,6 +212,8 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
 1. Enable metadata exchange filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml>
 
 1. Enable stats filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml>
+
+Note: the above config files is for `master` branch, please specify the corresponding branch for your installed istio-version, like `release-1.4`.
 
 ## Gather Result Metrics
 
