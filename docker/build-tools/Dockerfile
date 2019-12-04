@@ -241,7 +241,7 @@ ENV FPM_VERSION=1.11.0
 ENV HTMLPROOFER_VERSION=3.12.0
 ENV LICENSEE_VERSION=9.11.0
 ENV MDL_VERSION=0.5.0
-ENV RUBY_VERSION=2.6.3
+ENV RUBY_VERSION=2.6.5
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
