@@ -58,6 +58,20 @@ set -u
 # Optional params
 ZONE=${ZONE:-us-central1-a}
 # specify REGION to create a regional cluster
+REGION=${REGION:-}
+
+# Check if zone or region is valid
+if [[ -n "${REGION}" ]]; then
+  if [[ -z "$(gcloud compute regions list --filter="name=('${REGION:-}')" --format="csv[no-heading](name)")" ]]; then
+    echo "No such region: ${REGION:-}. Exiting."
+    exit 1
+  fi
+else
+  if [[ -z "$(gcloud compute zones list --filter="name=('${ZONE}')" --format="csv[no-heading](name)")"  ]]; then
+    echo "No such zone: ${ZONE}. Exiting."
+    exit 1
+  fi  
+fi
 
 # Specify GCP_SA to create and use a specific service account.
 # Default is to use same name as the cluster - each cluster can have different
@@ -151,6 +165,7 @@ if [[ -n "${ISTIO_ADDON}" ]];then
   ADDONS+=",Istio"
 fi
 set -u
+
 # shellcheck disable=SC2086
 # shellcheck disable=SC2046
 gc beta container \
