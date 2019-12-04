@@ -235,8 +235,8 @@ data:
   ISTIOD_ADDR: istiod-asm.istio-system.svc:15012
   WEBHOOK: istiod-asm
   AUDIENCE: ${PROJECT_ID}.svc.id.goog
-  TRUST_DOMAIN: ${PROJECT_ID}.svc.id.goog
-  GKE_CLUSTER_URL: https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${CLUSTER_NAME}
+  trustDomain: ${PROJECT_ID}.svc.id.goog
+  gkeClusterUrl: https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${CLUSTER_NAME}
 EOF
 
 export KUBECONFIG="${CLUSTER_NAME}/kube.yaml"
