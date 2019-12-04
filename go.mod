@@ -12,7 +12,7 @@ replace (
 
 require (
 	cuelang.org/go v0.0.14
-	fortio.org/fortio v1.1.0
+	fortio.org/fortio v1.3.1
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/docker/go-units v0.3.3
 	github.com/emicklei/proto v1.6.15
