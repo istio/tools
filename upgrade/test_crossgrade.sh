@@ -31,6 +31,9 @@
 
 set -o pipefail
 
+WD=$(dirname "$0")
+WD=$(cd "$WD" || exit; pwd)
+
 command -v helm >/dev/null 2>&1 || { echo >&2 "helm must be installed, aborting."; exit 1; }
 command -v fortio >/dev/null 2>&1 || { echo >&2 "fortio must be installed, aborting."; exit 1; }
 
@@ -126,7 +129,6 @@ fi
 
 echo "Testing crossgrade from ${FROM_HUB}:${FROM_TAG} at ${FROM_PATH} to ${TO_HUB}:${TO_TAG} at ${TO_PATH} in namespace ${ISTIO_NAMESPACE}, auth=${AUTH_ENABLE}, cleanup=${SKIP_CLEANUP}"
 
-ISTIO_ROOT=${GOPATH}/src/istio.io/istio
 TMP_DIR=/tmp/istio_upgrade_test
 LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
 POD_FORTIO_LOG=${TMP_DIR}/fortio_pod.log
@@ -233,9 +235,9 @@ installIstioAtVersionUsingHelm() {
     --set prometheus.enabled=false \
     --set-string global.hub="${1}" \
     --set-string global.tag="${2}" \
-    --set global.defaultPodDisruptionBudget.enabled=true > "${ISTIO_ROOT}/istio.yaml" || die "helm template failed"
+    --set global.defaultPodDisruptionBudget.enabled=true > "${WD}/istio.yaml" || die "helm template failed"
 
-    kubectl apply -f "${ISTIO_ROOT}"/istio.yaml
+    kubectl apply -f "${WD}"/istio.yaml
 }
 
 installIstioAtVersionUsingIstioctl(){
@@ -448,7 +450,8 @@ die() {
 copy_test_files() {
     rm -Rf ${TMP_DIR}
     mkdir -p ${TMP_DIR}
-    cp -f "${ISTIO_ROOT}"/tests/upgrade/templates/* "${TMP_DIR}"/.
+    echo "${WD}"
+    cp -f "${WD}"/templates/* "${TMP_DIR}"/.
 }
 
 copy_test_files
@@ -459,9 +462,6 @@ if [[ $CLOUD == "GKE" ]];then
   user="$(gcloud config get-value core/account)"
 fi
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="${user}" || echo "clusterrolebinding already created."
-
-
-echo_and_run pushd "${ISTIO_ROOT}"
 
 resetCluster
 
@@ -546,8 +546,6 @@ elif ! errorPercentBelow "${POD_FORTIO_LOG}" "${CONNECTION_ERROR_CODE}" ${MAX_CO
 else
     echo "=== Errors found in internal traffic is within threshold ==="
 fi
-
-echo_and_run popd
 
 if [ -n "${failed}" ]; then
     exit 1
