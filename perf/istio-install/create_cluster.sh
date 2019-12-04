@@ -66,6 +66,7 @@ if [[ -n "${REGION}" ]]; then
     echo "No such region: ${REGION:-}. Exiting."
     exit 1
   fi
+  ZONE="${REGION}"
 else
   if [[ -z "$(gcloud compute zones list --filter="name=('${ZONE}')" --format="csv[no-heading](name)")"  ]]; then
     echo "No such zone: ${ZONE}. Exiting."
