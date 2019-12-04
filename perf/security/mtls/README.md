@@ -13,35 +13,45 @@ Relying on auto mTLS is more future proof.
   1. plaintext frontend -> plaintext backend
 
 
-Notes
+## Instructions
 
-- `curl http://35.224.165.189/ -H 'Host: svc-0.local'  -v`, 503, due to svc-01 is unhealthy. readiness probe fails.
-   1. reason for the readiness fail, wasm plugin fails with log
+1. Install Istio
 
-   ```
-   0.0.0.0_9091: Proto constraint validation failed (WasmValidationError.Config: ["embedded message failed validation"] | caused by PluginConfigValidationError.VmConfig: ["embedded message failed validation"] | caused by VmConfigValidationError.Code: ["embedded message failed validation"] | caused by field: "specifier", reason: is required): config {
-    vm_config {
-      runtime: "envoy.wasm.runtime.null"
-      code {
-      }
-    }
-    configuration: "envoy.wasm.metadata_exchange"
-  }
-  , 10.60.11.207_15029: Proto constraint validation failed (WasmValidationError.Config: ["embedded message failed validation"] | caused by PluginConfigValidationError.VmConfig: ["embedded message failed validation"] | caused by VmConfigValidationError.Code: ["embedded message failed validation"] | caused by field: "specifier", reason: is required): config {
-    vm_config {
-      runtime: "envoy.wasm.runtime.null"
-      code {
-      }
-    }
-    configuration: "envoy.wasm.metadata_exchange"
-  }
-  , virtualInbound: Proto constraint validation failed (WasmValidationError.Config: ["embedded message failed validation"] | caused by PluginConfigValidationError.VmConfig: ["embedded message failed validation"] | caused by VmConfigValidationError.Code: ["embedded message failed validation"] | caused by field: "specifier", reason: is required): config {
-    vm_config {
-      runtime: "envoy.wasm.runtime.null"
-      code {
-      }
-    }
-    configuration: "envoy.wasm.metadata_exchange"
-  }
-   ```
-- client fails with 404 error? gw is the same as automtls.
+    ```shell
+    source setup.sh && setup_istio
+    ```
+1. Wait Istio is ready, pods and ingress ip is assigned, and install test workloads
+
+    ```shell
+    source setup.sh && setup_test
+    ```
+
+1. Wait for couple of hours to run the test. Record the CPU/Memory footprint. Metrics we consider:
+   
+   1. Performance Dashboard, vCPU and memory, filtering by `namespace = mtls`, focused on istio-proxy
+   1. Workload dashboard, looking at the latency and success rate.
+
+1. Toggle mTLS status by configure policy in `mtls` namespace to be plaintext. Auto mTLS is assumed,
+deleting policy is all we need to do.
+
+    ```shell
+    kubectl rm policy -nmtls mtls
+    ```
+
+## Data
+
+Following is the test results, with Istio release SHA at `438827b1602037fe30dedcd0008ce0cae0ef0aee`,
+a commit at the end of the Istio 1.4 release.
+
+1. Without mTLS,
+   - 
+1. With mTLS enabled
+   - 
+
+## References
+
+Here are some links of existing TLS overhead discussion.
+
+- [IETF TLS overhead Memo](https://tools.ietf.org/id/draft-mattsson-uta-tls-overhead-01.html#rfc.section.3.3).
+- [Stackoverflow](https://stackoverflow.com/questions/1615882/how-much-network-overhead-does-tls-add-compared-to-a-non-encrypted-connection)
+new TLS session requries 6.5K bytes, the messsage itself is the same size.
