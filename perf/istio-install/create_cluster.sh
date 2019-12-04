@@ -188,6 +188,13 @@ INSTANCE=$(gcloud compute instance-groups list-instances "${INSTANCE_GROUP}" --p
 NETWORK_TAGS=$(gcloud compute instances describe "${INSTANCE}" --zone="${INSTANCE_GROUP_ZONE}" --project "${PROJECT_ID}" --format="value(tags.items)")
 
 
+NEGZONE=""
+if [[ -n "${REGION}" ]]; then
+  NEGZONE="region = ${REGION}"
+else
+  NEGZONE="local-zone = ${ZONE}"
+fi
+
 cat <<EOF > "${CLUSTER_NAME}/configmap-neg.yaml"
 apiVersion: v1
 kind: ConfigMap
@@ -209,7 +216,7 @@ data:
     # Network tags for your cluster's IG
     node-tags = ${NETWORK_TAGS}
     # Zone the cluster lives in
-    local-zone = ${ZONE}
+    ${NEGZONE}
 EOF
 
 
