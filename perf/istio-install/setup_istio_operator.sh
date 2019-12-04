@@ -50,7 +50,6 @@ popd
 
 defaultNamespace=istio-system
 
-
 function setup_admin_binding() {
   kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
