@@ -220,7 +220,7 @@ data:
 EOF
 
 
-cat <<EOF > "${CLUSTER_NAME}/configmap-galley.yaml"
+cat <<EOF > "${CLUSTER_NAME}/configmap-istiod-asm.yaml"
 apiVersion: v1
 kind: ConfigMap
 metadata:
