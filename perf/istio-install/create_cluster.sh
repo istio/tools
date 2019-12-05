@@ -159,7 +159,7 @@ if [[ -n "${USE_SUBNET}" ]];then
 fi
 set -u
 
-ADDONS="HorizontalPodAutoscaling,KubernetesDashboard"
+ADDONS="HorizontalPodAutoscaling"
 # shellcheck disable=SC2236
 set +u
 if [[ -n "${ISTIO_ADDON}" ]];then
