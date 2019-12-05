@@ -1,2 +1,0 @@
-# Istio Performance Dashboard
-
