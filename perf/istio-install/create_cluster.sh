@@ -159,7 +159,7 @@ if [[ -n "${USE_SUBNET}" ]];then
 fi
 set -u
 
-ADDONS="HorizontalPodAutoscaling,KubernetesDashboard"
+ADDONS="HorizontalPodAutoscaling"
 # shellcheck disable=SC2236
 set +u
 if [[ -n "${ISTIO_ADDON}" ]];then
@@ -275,4 +275,4 @@ kubectl -n kube-system create secret generic google-cloud-key  --from-file key.j
 
 kubectl create ns istio-system
 kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json="${CLUSTER_NAME}/google-cloud-key.json"
-kubectl -n istio-system apply -f "${CLUSTER_NAME}/configmap-galley.yaml"
+kubectl -n istio-system apply -f "${CLUSTER_NAME}/configmap-istiod-asm.yaml"

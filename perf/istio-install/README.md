@@ -6,7 +6,8 @@ Required environment:
 
 PROJECT_ID - GCP project id, for example istio-testing
 CLUSTER_NAME - name of the cluster to setup, for example istio14test1
-CLUSTER_ZONE - zone where the cluster will be setup, for example us-central1-a
+ZONE - zone where the cluster will be setup, for example us-central1-a
+REGION - region where a regional cluster will be set up, for example us-central1. Overrides ZONE.
 DNS_DOMAIN - domain to use for TLS cert testing.
 
 Optional:
