@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+
+{% block sidebar_active %}
+<ul id="side-main-menu" class="side-menu list-unstyled">
+    <li class="active"><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
+    <li><a href="{% url 'release_build' %}"> <i class="fa fa-list-ol"></i>Release Builds</a></li>
+    <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Benchmarks</a>
+    <ul id="dropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'cpu_memory' %}"></i>CPU & Memory Usage</a></li>
+        <li><a href="{% url 'latency' %}"></i>Latency Quantiles</a></li>
+        <li><a href="{% url 'flame_graph' %}"></i>Flame Graph</a></li>
+        <li><a href="{% url 'micro_benchmarks' %}"></i>Micro Benchmarks</a></li>
+    </ul>
+    <li><a href="{% url 'configuration' %}"><i class="fa fa-cogs"></i>Configurations</a></li>
+    <li><a href="{% url 'alert' %}"><i class="fa fa-exclamation-triangle"></i>Regression Alerts</a></li>
+    <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+</ul>
+{% endblock sidebar_active %}
+
+{% block page_content %}
+<!-- Header Section-->
+<section class="dashboard-header section-padding">
+        <div class="container-fluid">
+          <div class="row d-flex align-items-md-stretch">
+            <!-- List-->
+            <div class="col-lg-6 col-md-3">
+              <div class="card">
+                <div class="card-header">
+                  <h2>Istio Performance Benchmark Tests Overview (14 Days)</h2>
+                </div>
+                <div class="card-body">
+                  <p>Note: This page may take up to 30 minutes to show new runs. Deleted or modified Benchmarks (ex: changing benchmark name) will propagate within 24 hours.</p>
+                  <ul>
+                    <li>Last run: 18 minutes ago</li>
+                    <li>Runs: 7057</li>
+                    <li>Analysis failures: 84</li>
+                    <ul>
+                      <li>Untriaged: 30</li>
+                      <li>Regressions: 12</li>
+                      <li>Ignored: 14</li>
+                      <li>False positives: 10</li>
+                      <li>Type unknown: 18</li>
+                    </ul>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <!-- Pie Chart-->
+            <div class="col-lg-6 col-md-3">
+              <div class="card project-progress">
+                <div class="card-header">
+                  <h2>Performance Benchmark Builds Statistics</h2>
+                </div>
+                <div class="card-body">
+                  <p>Statistics about last 14 days.</p>
+                  <div class="pie-chart">
+                    <canvas id="pieChart" width="300" height="300"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+<section class="dashboard-header section-padding">
+        <div class="container-fluid">
+          <div class="row d-flex align-items-md-stretch">
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h2>Active Benchmarks</h2>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table table-striped " >
+                        <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Benchmark Name</th>
+                          <th>Untriaged Failures</th>
+                          <th>Total Failures</th>
+                          <th>Run Count</th>
+                          <th>Last Run</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                          <th scope="row">1</th>
+                          <td><a href="https://github.com/istio/tools/tree/master/perf/benchmark" target="_blank">Istio Latency Benchmark</a></td>
+                          <td>7970</td>
+                          <td>3100</td>
+                          <td>820</td>
+                          <td>2 hours ago</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">2</th>
+                          <td><a href="https://github.com/istio/tools/tree/master/perf/benchmark" target="_blank">Istio CPU and Memory Usage Benchmark</a></td>
+                          <td>2</td>
+                          <td>13</td>
+                          <td>74</td>
+                          <td>36 minutes ago</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">3</th>
+                          <td><a href="https://github.com/istio/tools/tree/master/isotope" target="_blank">Istio Topology Performance Benchmark</a></td>
+                          <td>7</td>
+                          <td>7</td>
+                          <td>833</td>
+                          <td>4 days ago</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">4</th>
+                          <td><a href="https://ibmcloud-perf.istio.io/regpatrol/" target="_blank">IBM Regapatrol</a></td>
+                          <td>0</td>
+                          <td>0</td>
+                          <td>205</td>
+                          <td>18 minutes ago</td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+{% endblock page_content %}
+
+{% block charts_js %}
+    <script src="{% static 'js/overview.js' %}"></script>
+{% endblock charts_js %}

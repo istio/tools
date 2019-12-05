@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+
+{% block sidebar_active %}
+<ul id="side-main-menu" class="side-menu list-unstyled">
+    <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
+    <li><a href="{% url 'release_build' %}"> <i class="fa fa-list-ol"></i>Release Builds</a></li>
+    <li><a href="#dropDown" aria-expanded="true" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Benchmarks</a>
+    <ul id="dropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'cpu_memory' %}"></i>CPU & Memory Usage</a></li>
+        <li><a href="{% url 'latency' %}"></i>Latency Quantiles</a></li>
+        <li><a href="{% url 'flame_graph' %}"></i>Flame Graph</a></li>
+        <li><a href="{% url 'micro_benchmarks' %}"></i>Micro Benchmarks</a></li>
+    </ul>
+    <li><a href="{% url 'configuration' %}"><i class="fa fa-cogs"></i>Configurations</a></li>
+    <li><a href="{% url 'alert' %}"><i class="fa fa-exclamation-triangle"></i>Regression Alerts</a></li>
+    <li class="active"><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+</ul>
+{% endblock sidebar_active %}
+
+{% block current_active %}
+<li class="breadcrumb-item active">Artifacts</li>
+{% endblock current_active %}
+
+{% block page_content %}
+<section>
+    <div class="container-fluid">
+      <!-- Page Header-->
+      <header>
+        <h1 class="h3 display"><a href="https://console.cloud.google.com/storage/browser/istio-build/perf?project=istio-testing&folder=true&organizationId=433637338589" target="_blank">
+          Istio Performance Benchmark Artifacts</a></h1>
+        <p style="color:#888;">(CPU/mem/Latency/Flame Graph/Others)</p>
+      </header>
+      <div class="row">
+        <div class="col-lg-10">
+          <div class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-striped " >
+                  <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Build</th>
+                    <th>GCS Link</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr>
+                    <th scope="row">1</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.4-alpha.ffbbd35e3fb94a065fe03f838f582d0569fa278e</a></td>
+                    <td><a href="https://pantheon.corp.google.com/storage/browser/istio-build/perf/benchmark_data-master.20191024-08.65caf45f04a77f666c96ac8a164d9491e46912a5/?project=istio-testing&folder=true&organizationId=433637338589&pli=1" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">2</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.4-alpha.ff09ea498c5292d6dffbb63eec47bf5062a4ca43</a></td>
+                    <td><a href="https://pantheon.corp.google.com/storage/browser/istio-build/perf/benchmark_data-master.20191024-08.65caf45f04a77f666c96ac8a164d9491e46912a5/?project=istio-testing&folder=true&organizationId=433637338589&pli=1" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">3</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.4-alpha.da4339e8974e1d7e964bba560893eb21f9845d5e</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">4</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.4-alpha.d987b85f52bb9fa5937caa6d590c31ed5ffc5882</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">5</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.4-alpha.d932390e61fcf4334eb19c3046909d937406d3ae</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">6</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.4-alpha.d8eb9d3699ef8945aa4cc6a1001a5455683df3b5</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">7</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.4-alpha.d8adc7e15ed64e9c7304de5c39d129689fd71146</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">8</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.5-alpha.22b983647f0b91faa8a90de389c708b7a3e53f17</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">9</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.5-alpha.20feda437cc17b653c7a3821bd1e852e85386fa4</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">10</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.5-alpha.2079aec7f02b20d3c3191374c6a1b55f9d0b8e28</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">11</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.5-alpha.1eb32f36eaf8067443f11bf887060cc0a9e08127</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">12</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.5-alpha.1d903db64d9435e72bb76c641349caa975e0f081</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr><tr>
+                    <th scope="row">13</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.5-alpha.1a4f36147769176e823965845978c700faee7abf</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr><tr>
+                    <th scope="row">14</th>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">1.5-alpha.19637b4cee344843917f79cd568fe034be462863</a></td>
+                    <td><a href="https://gcsweb.istio.io/gcs/istio-release-pipeline-data/daily-build/release-1.3-20191005-10-15/" target="_blank">data</a></td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+{% endblock page_content %}
+
