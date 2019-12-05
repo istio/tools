@@ -266,9 +266,9 @@ RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
 RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 
-#############
+##############
 # Python
-#############
+##############
 
 FROM ubuntu:bionic as python_context
 
