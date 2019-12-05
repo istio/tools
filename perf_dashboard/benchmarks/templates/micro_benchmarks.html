@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+
+{% block sidebar_active %}
+<ul id="side-main-menu" class="side-menu list-unstyled">
+    <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
+    <li><a href="{% url 'release_build' %}"> <i class="fa fa-list-ol"></i>Release Builds</a></li>
+    <li><a href="#dropDown" aria-expanded="true" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Benchmarks</a>
+    <ul id="dropDown" class="list-unstyled">
+        <li><a href="{% url 'cpu_memory' %}"></i>CPU & Memory Usage</a></li>
+        <li><a href="{% url 'latency' %}"></i>Latency Quantiles</a></li>
+        <li><a href="{% url 'flame_graph' %}"></i>Flame Graph</a></li>
+        <li class="active"><a href="{% url 'micro_benchmarks' %}"></i>Micro Benchmarks</a></li>
+    </ul>
+    <li><a href="{% url 'configuration' %}"><i class="fa fa-cogs"></i>Configurations</a></li>
+    <li><a href="{% url 'alert' %}"><i class="fa fa-exclamation-triangle"></i>Regression Alerts</a></li>
+    <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+</ul>
+{% endblock sidebar_active %}
+
+{% block current_active %}
+<li class="breadcrumb-item">Benchmarks</li>
+<li class="breadcrumb-item active">Micro Benchmarks</li>
+{% endblock current_active %}
+
+{% block page_content %}
+<section class="charts">
+        <div class="container-fluid">
+          <!-- Page Header-->
+          <header>
+            <h1 class="h3 display">Micro Benchmark Demo</h1>
+          </header>
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="card line-chart-example">
+                <div class="card-header d-flex align-items-center">
+                  <h4>Demo 1</h4>
+                </div>
+                <div class="card-body">
+                  <canvas id="lineChartExample"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="card bar-chart-example">
+                <div class="card-header d-flex align-items-center">
+                  <h4>Demo 2</h4>
+                </div>
+                <div class="card-body">
+                  <canvas id="barChartExample"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+{% endblock page_content %}
+
+
+{% block charts_js %}
+    <script src="{% static 'js/microbenchmarks.js' %}"></script>
+{% endblock charts_js %}
