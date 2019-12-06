@@ -96,6 +96,7 @@ function setup_gcloud_credentials() {
 # use mason_client to get resources
 function get_resource() {
   # cd to tmp, otherwise the go.mod file may be updated
+  # shellcheck disable=SC2164
   (cd /tmp; go get istio.io/test-infra/boskos/cmd/mason_client)
   local type="${1}"
   local owner="${2}"
