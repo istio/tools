@@ -95,8 +95,8 @@ function setup_gcloud_credentials() {
 
 # use mason_client to get resources
 function get_resource() {
-  # Turn off modules, otherwise the go.mod file will be updated
-  GO111MODULE=off go get istio.io/test-infra/boskos/cmd/mason_client
+  # cd to tmp, otherwise the go.mod file may be updated
+  (cd /tmp; go get istio.io/test-infra/boskos/cmd/mason_client)
   local type="${1}"
   local owner="${2}"
   local info_path="${3}"
