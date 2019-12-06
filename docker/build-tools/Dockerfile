@@ -29,7 +29,6 @@ FROM golang:1.13.4 as binary_tools_context
 
 # Istio tools SHA that we use for this image
 ARG ISTIO_TOOLS_SHA
-ENV ISTIO_TOOLS_SHA=${ISTIO_TOOLS_SHA}
 
 # Pinned versions of stuff we pull in
 ENV COUNTERFEITER_VERSION=v6.2.2
