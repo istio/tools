@@ -17,13 +17,15 @@
 # support other container tools, e.g. podman
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
+REPO=https://github.com/istio/tools.git
 HUB=${HUB:-gcr.io/istio-testing}
 DATE=$(date +%Y-%m-%dT%H-%M-%S)
 BRANCH=master
 VERSION="${BRANCH}-${DATE}"
+SHA=$(git ls-remote ${REPO} ${BRANCH} | cut -f 1)
 
-${CONTAINER_CLI} build --target build_tools --build-arg "ISTIO_TOOLS_BRANCH=${BRANCH}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
-${CONTAINER_CLI} build --build-arg "ISTIO_TOOLS_BRANCH=${BRANCH}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
+${CONTAINER_CLI} build --target build_tools --build-arg "ISTIO_TOOLS_SHA=${SHA}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
+${CONTAINER_CLI} build --build-arg "ISTIO_TOOLS_SHA=${SHA}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
 
 if [[ -z "${DRY_RUN}" ]]; then
   ${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
