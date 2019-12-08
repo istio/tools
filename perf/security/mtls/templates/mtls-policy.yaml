@@ -2,11 +2,10 @@
 apiVersion: "authentication.istio.io/v1alpha1"
 kind: "Policy"
 metadata:
-  name: "mtls"
+  name: "default"
   namespace: {{ .Values.Namespace }}
 spec:
-{{- if .Values.enableMtls }}
   peers:
-  - mtls: {}
-{{- end }}
+  - mtls:
+      mode: PERMISSIVE # TODO: this is workaround due to limitation of the rewrite probe not working.
 ---

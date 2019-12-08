@@ -9,7 +9,7 @@ spec:
   - port:
       number: 80
       name: http
-      protocol: HTTP
+      protocol: HTTP  
     hosts:
     - {{ .Values.serviceNamePrefix }}0.local
 ---
