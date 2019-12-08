@@ -46,7 +46,6 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output_dir, show_gr
 
     # 1. read CSV to pandas dataframe
     df = pd.read_csv(csv, index_col=None, header=0)
-    df["Labels"] = [x.split('_', 6)[-1] for x in df['Labels']]
 
     # 2. generate series to plot (x= numthreads or qps, y=y_)
     x_series, y_series = get_series(df, x_label, y_label)
@@ -86,21 +85,11 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output_dir, show_gr
 # get_series processes x_label metric / y-axis metric for different test
 # modes (both, serveronly, etc.)
 def get_series(df, x_label, metric):
-
-    # map CSV label regex --> cleaner labels for graph legend
-    modes = [('^serveronly', 'serveronly'),
-             ("nomix.*_serveronly", "nomixer_serveronly"),
-             ("nomix.*_both", "nomixer_both"),
-             ("base", "base"),
-             (".*_ingress", "ingress"),
-             # Make sure this set of data is last, because both type always have data to make sure rows are not empty.
-             ("^both", "both")]
-
     # get y axis
     series = {}
     rows = pd.DataFrame()
-    for mode in modes:
-        temp_row = df[df.Labels.str.contains(mode[0])]
+    for label in df.Labels.unique():
+        temp_row = df[df.Labels.str.contains(label)]
         if temp_row.size == 0:
             continue
         rows = temp_row
@@ -112,7 +101,7 @@ def get_series(df, x_label, metric):
             vals = [v / 1000 for v in vals]
         # reverse to match sorted numthreads, below
         vals.reverse()
-        series[mode[1]] = vals
+        series[label] = vals
 
     # only include test modes that were in the input CSV - (if nomixer not
     # included, don't attempt to plot it)
@@ -175,7 +164,7 @@ def build_chart(title, x_label, x_series, y_label, y_label_short, y_series):
     for mode, val in y_series.items():
         col = next(colors)
         p.line(x_series, val, line_color=col)
-        p.circle(x_series, val, legend=mode, size=10, fill_color=col)
+        p.circle(x_series, val, legend_label=mode, size=10, fill_color=col)
 
     p.legend.location = "top_left"
 

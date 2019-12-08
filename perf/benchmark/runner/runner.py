@@ -152,16 +152,11 @@ class Fortio:
         if duration is None:
             duration = self.duration
 
-        labels = self.run_id
-        labels += "_qps_" + str(qps)
-        labels += "_c_" + str(conn)
-        labels += "_" + str(size)
+        labels = ""
         # Mixer label
         if self.mesh == "istio":
-            labels += "_"
             labels += self.mixer_mode
         elif self.mesh == "linkerd":
-            labels += "_"
             labels += "linkerd"
 
         if self.extra_labels is not None:
