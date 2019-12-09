@@ -3,23 +3,22 @@
 This test suite measures the performance overhead due to the mutual TLS encryption, specifically
 the data plane CPU, latency and throughput.
 
-**Test Setup**
+## Test Setup
 
-- Istio is installed with auto mTLS enabled. DestinationRule ISTIO_MUTUAL is to be deprecated for mTLS.
+Istio is installed with auto mTLS enabled. DestinationRule ISTIO_MUTUAL is to be deprecated for mTLS.
 Relying on auto mTLS is more future proof.
+
 - Deployment is described via service graph.
 - Load client is sending traffic to two group of service in the service graph:
   1. mtls frontend -> mtls backend.
   1. plaintext frontend -> plaintext backend
-
-
-## Instructions
 
 1. Install Istio
 
     ```shell
     export source setup.sh && setup_istio
     ```
+
 1. Wait Istio is ready, pods and ingress ip is assigned, and install test workloads
 
     ```shell
@@ -27,9 +26,9 @@ Relying on auto mTLS is more future proof.
     ```
 
 1. Wait for couple of hours to run the test. Record the CPU/Memory footprint. Metrics we consider:
-   
-   1. Performance Dashboard, vCPU and memory, filtering by `namespace = mtls`, focused on istio-proxy
-   1. Workload dashboard, looking at the latency and success rate.
+
+    1. Performance Dashboard, vCPU and memory, filtering by `namespace = mtls`, focused on istio-proxy
+    1. Workload dashboard, looking at the latency and success rate.
 
 1. Toggle mTLS status by configure policy in `mtls` namespace to be plaintext. Auto mTLS is assumed,
 deleting policy is all we need to do.
@@ -55,7 +54,6 @@ In short, we found the differences are
   ![cpu-diff](./data/cpu.png)
 
 - No other noticeable differences.
-
 
 ## References
 
