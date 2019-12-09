@@ -91,7 +91,8 @@ MAXPODS_PER_NODE=100
 # Labels and version
 ISTIO_VERSION=${ISTIO_VERSION:-master}
 
-# Export CLUSTER_NAME so it will be set for the create_sa.sh script, which will set up service accounts
+# Export CLUSTER_NAME so it will be set for the create_sa.sh script, which will
+# create a google-cloud-key.json file in `./${CLUSTER_NAME}/`.
 export CLUSTER_NAME
 mkdir -p "${WD}/tmp/${CLUSTER_NAME}"
 "${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
@@ -259,6 +260,8 @@ kubectl create clusterrolebinding cluster-admin-binding \
 
 # Update the cluster with the GCP-specific configmaps
 kubectl -n kube-system apply -f "${WD}/tmp/${CLUSTER_NAME}/configmap-neg.yaml"
+kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json="${WD}/tmp/${CLUSTER_NAME}/google-cloud-key.json"
 
 kubectl create ns istio-system
+kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json="${WD}/tmp/${CLUSTER_NAME}/google-cloud-key.json"
 kubectl -n istio-system apply -f "${WD}/tmp/${CLUSTER_NAME}/configmap-istiod-asm.yaml"
