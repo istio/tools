@@ -1,4 +1,5 @@
 *        @istio/wg-test-and-release-maintainers
 perf/    @istio/wg-test-and-release-maintainers @istio/wg-perf-and-scalability-maintainers
+perf/security/mtls    @incfly
 isotope/ @istio/wg-test-and-release-maintainers @istio/wg-perf-and-scalability-maintainers
 metrics/ @istio/wg-test-and-release-maintainers @istio/wg-perf-and-scalability-maintainers
