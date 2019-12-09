@@ -45,10 +45,17 @@ a commit at the end of the Istio 1.4 release.
 
 `data/` folder contains the screenshot from grafana for performance data.
 
-1. Without mTLS,
-   - 
-1. With mTLS enabled, 15:22, 1203-2019
-   - 
+In short, we found the differences are
+
+- P99 latency increase from 6ms to 8ms. No changes for P90 and P50 latency.
+  ![p99-diff](./data/mtls-before-after-p99.png)
+
+- istio-proxy CPU usage increased about 10% - 15%.
+
+  ![cpu-diff](./data/mtls-before-after-cpu.png)
+
+- No other noticeable differences.
+
 
 ## References
 
