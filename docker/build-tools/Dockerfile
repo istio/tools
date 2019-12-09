@@ -174,6 +174,11 @@ WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
 
+# Install pr-creator
+RUN git clone --depth=1 https://github.com/kubernetes/test-infra.git /tmp/test-infra/
+WORKDIR /tmp/test-infra
+RUN GO111MODULE=on go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./robots/pr-creator/
+
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
 RUN rm -fr /usr/local/go/test
