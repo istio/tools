@@ -16,6 +16,9 @@
 
 set -eux
 
+git remote -v
+git ls-remote origin master
+
 # support other container tools, e.g. podman
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
@@ -25,8 +28,6 @@ BRANCH=master
 VERSION="${BRANCH}-${DATE}"
 SHA=$(git rev-parse origin/${BRANCH})
 
-git remote -v
-git ls-remote origin master
 
 ${CONTAINER_CLI} build --target build_tools --build-arg "ISTIO_TOOLS_SHA=${SHA}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
 ${CONTAINER_CLI} build --build-arg "ISTIO_TOOLS_SHA=${SHA}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
