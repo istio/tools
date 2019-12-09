@@ -48,11 +48,11 @@ a commit at the end of the Istio 1.4 release.
 In short, we found the differences are
 
 - P99 latency increase from 6ms to 8ms. No changes for P90 and P50 latency.
-  ![p99-diff](./data/mtls-before-after-p99.png)
+  ![p99-diff](./data/p99.png)
 
 - istio-proxy CPU usage increased about 10% - 15%.
 
-  ![cpu-diff](./data/mtls-before-after-cpu.png)
+  ![cpu-diff](./data/cpu.png)
 
 - No other noticeable differences.
 
