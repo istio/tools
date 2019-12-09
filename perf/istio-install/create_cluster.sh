@@ -94,7 +94,8 @@ ISTIO_VERSION=${ISTIO_VERSION:-master}
 # Export CLUSTER_NAME so it will be set for the create_sa.sh script, which will
 # create a google-cloud-key.json file in `./${CLUSTER_NAME}/`.
 export CLUSTER_NAME
-mkdir -p "${WD}/tmp/${CLUSTER_NAME}"
+export CLUSTER_OUTPUT="${WD}/tmp/${CLUSTER_NAME}"
+mkdir -p "${CLUSTER_OUTPUT}"
 "${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
 
 DEFAULT_GKE_VERSION=$(default_gke_version "${ZONE}")
@@ -200,7 +201,7 @@ else
   NEGZONE="local-zone = ${ZONE}"
 fi
 
-cat <<EOF > "${WD}/tmp/${CLUSTER_NAME}/configmap-neg.yaml"
+cat <<EOF > "${CLUSTER_OUTPUT}/configmap-neg.yaml"
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -225,7 +226,7 @@ data:
 EOF
 
 
-cat <<EOF > "${WD}/tmp/${CLUSTER_NAME}/configmap-istiod-asm.yaml"
+cat <<EOF > "${CLUSTER_OUTPUT}/configmap-istiod-asm.yaml"
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -251,7 +252,7 @@ data:
   gkeClusterUrl: https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${CLUSTER_NAME}
 EOF
 
-export KUBECONFIG="${WD}/tmp/${CLUSTER_NAME}/kube.yaml"
+export KUBECONFIG="${CLUSTER_OUTPUT}/kube.yaml"
 gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone "${ZONE}"
 
 kubectl create clusterrolebinding cluster-admin-binding \
@@ -259,9 +260,12 @@ kubectl create clusterrolebinding cluster-admin-binding \
   --user="$(gcloud config get-value core/account)"
 
 # Update the cluster with the GCP-specific configmaps
-kubectl -n kube-system apply -f "${WD}/tmp/${CLUSTER_NAME}/configmap-neg.yaml"
-kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json="${WD}/tmp/${CLUSTER_NAME}/google-cloud-key.json"
+kubectl -n kube-system apply -f "${CLUSTER_OUTPUT}/configmap-neg.yaml"
+kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json="${CLUSTER_OUTPUT}/google-cloud-key.json"
 
 kubectl create ns istio-system
-kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json="${WD}/tmp/${CLUSTER_NAME}/google-cloud-key.json"
-kubectl -n istio-system apply -f "${WD}/tmp/${CLUSTER_NAME}/configmap-istiod-asm.yaml"
+kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json="${CLUSTER_OUTPUT}/google-cloud-key.json"
+kubectl -n istio-system apply -f "${CLUSTER_OUTPUT}/configmap-istiod-asm.yaml"
+
+# Clean up the secret
+rm "${CLUSTER_OUTPUT}/google-cloud-key.json"

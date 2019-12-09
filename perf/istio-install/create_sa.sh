@@ -57,6 +57,6 @@ gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/meshconfig.writ
 # Required for creating the NEG objects in GCP
 gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/compute.admin" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 
-if [[ "${CLUSTER_NAME}" != "" ]]; then 
-  gc iam service-accounts keys create "${WD}/tmp/${CLUSTER_NAME}/google-cloud-key.json" --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
+if [[ "${CLUSTER_NAME}" != "" ]]; then
+  gc iam service-accounts keys create "${CLUSTER_OUTPUT}/google-cloud-key.json" --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
 fi
