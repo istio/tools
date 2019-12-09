@@ -46,8 +46,8 @@ PROJECT_ID=${PROJECT_ID:?"project id is required"}
 GCP_SA=${1:-istio-data}
 GCP_CTL_SA=${2:-istio-control}
 
-gc iam service-accounts create "${GCP_SA}" # --display-name 'Istio data plane account'
-gc iam service-accounts create "${GCP_CTL_SA}" #--display-name '"Istio control plane account"'
+gc iam service-accounts create "${GCP_SA}" --project "${PROJECT_ID}" # --display-name 'Istio data plane account'
+gc iam service-accounts create "${GCP_CTL_SA}" --project "${PROJECT_ID}" #--display-name '"Istio control plane account"'
 
 for role in compute.networkViewer logging.logWriter monitoring.metricWriter storage.objectViewer cloudtrace.agent meshtelemetry.reporter; do
 	gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/${role}" --member "serviceAccount:${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
@@ -58,5 +58,5 @@ gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/meshconfig.writ
 gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/compute.admin" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 
 if [[ "${CLUSTER_NAME}" != "" ]]; then 
-  gcloud  iam service-accounts keys create "${CLUSTER_NAME}"/google-cloud-key.json --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
+  gc iam service-accounts keys create "${WD}/tmp/${CLUSTER_NAME}/google-cloud-key.json" --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
 fi

@@ -94,7 +94,7 @@ ISTIO_VERSION=${ISTIO_VERSION:-master}
 # Export CLUSTER_NAME so it will be set for the create_sa.sh script, which will
 # create a google-cloud-key.json file in `./${CLUSTER_NAME}/`.
 export CLUSTER_NAME
-mkdir -p "${CLUSTER_NAME}"
+mkdir -p "${WD}/tmp/${CLUSTER_NAME}"
 "${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
 
 DEFAULT_GKE_VERSION=$(default_gke_version "${ZONE}")
@@ -114,8 +114,6 @@ SCOPES_DEFAULT="https://www.googleapis.com/auth/devstorage.read_only,https://www
 SCOPES_FULL="https://www.googleapis.com/auth/cloud-platform"
 
 SCOPES="${SCOPES_FULL}"
-
-
 
 # A label cannot have "." in it, replace "." with "_"
 # shellcheck disable=SC2001
@@ -139,12 +137,9 @@ function gc() {
   # shellcheck disable=SC2086
   echo gcloud $* "${ZZ}" "${SA[@]}"
 
-  # shellcheck disable=SC2236
-  set +u
-  if [[ -n "${DRY_RUN}" ]];then
+  if [[ -n "${DRY_RUN:-}" ]];then
     return
   fi
-  set -u
 
   # shellcheck disable=SC2086
   # shellcheck disable=SC2048
@@ -152,20 +147,14 @@ function gc() {
 }
 
 NETWORK_SUBNET="--create-subnetwork name=${CLUSTER_NAME}-subnet"
-# shellcheck disable=SC2236
-set +u
-if [[ -n "${USE_SUBNET}" ]];then
+if [[ -n "${USE_SUBNET:-}" ]];then
   NETWORK_SUBNET="--network ${USE_SUBNET}"
 fi
-set -u
 
 ADDONS="HorizontalPodAutoscaling"
-# shellcheck disable=SC2236
-set +u
-if [[ -n "${ISTIO_ADDON}" ]];then
+if [[ -n "${ISTIO_ADDON:-}" ]];then
   ADDONS+=",Istio"
 fi
-set -u
 
 # shellcheck disable=SC2086
 # shellcheck disable=SC2046
@@ -211,7 +200,7 @@ else
   NEGZONE="local-zone = ${ZONE}"
 fi
 
-cat <<EOF > "${CLUSTER_NAME}/configmap-neg.yaml"
+cat <<EOF > "${WD}/tmp/${CLUSTER_NAME}/configmap-neg.yaml"
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -236,7 +225,7 @@ data:
 EOF
 
 
-cat <<EOF > "${CLUSTER_NAME}/configmap-istiod-asm.yaml"
+cat <<EOF > "${WD}/tmp/${CLUSTER_NAME}/configmap-istiod-asm.yaml"
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -262,7 +251,7 @@ data:
   gkeClusterUrl: https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${CLUSTER_NAME}
 EOF
 
-export KUBECONFIG="${CLUSTER_NAME}/kube.yaml"
+export KUBECONFIG="${WD}/tmp/${CLUSTER_NAME}/kube.yaml"
 gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone "${ZONE}"
 
 kubectl create clusterrolebinding cluster-admin-binding \
@@ -270,9 +259,9 @@ kubectl create clusterrolebinding cluster-admin-binding \
   --user="$(gcloud config get-value core/account)"
 
 # Update the cluster with the GCP-specific configmaps
-kubectl -n kube-system apply -f "${CLUSTER_NAME}/configmap-neg.yaml"
-kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json="${CLUSTER_NAME}/google-cloud-key.json"
+kubectl -n kube-system apply -f "${WD}/tmp/${CLUSTER_NAME}/configmap-neg.yaml"
+kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json="${WD}/tmp/${CLUSTER_NAME}/google-cloud-key.json"
 
 kubectl create ns istio-system
-kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json="${CLUSTER_NAME}/google-cloud-key.json"
-kubectl -n istio-system apply -f "${CLUSTER_NAME}/configmap-istiod-asm.yaml"
+kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json="${WD}/tmp/${CLUSTER_NAME}/google-cloud-key.json"
+kubectl -n istio-system apply -f "${WD}/tmp/${CLUSTER_NAME}/configmap-istiod-asm.yaml"
