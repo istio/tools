@@ -39,7 +39,7 @@ export OWNER="${OWNER:-perf-tests}"
 export PILOT_CLUSTER="${PILOT_CLUSTER:-}"
 export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
 export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
-export NAMESPACE="${NAMESPACE:-twopods}"
+export NAMESPACE=${NAMESPACE:-'twopods-istio'}
 
 function setup_metrics() {
   # shellcheck disable=SC2155
@@ -56,7 +56,6 @@ function setup_metrics() {
 function collect_metrics() {
   # shellcheck disable=SC2155
   export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
-  pipenv install
   pipenv run python3 fortio.py ${FORTIO_CLIENT_URL} --csv_output="$CSV_OUTPUT" --prometheus=${PROMETHEUS_URL} \
    --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
 mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
@@ -107,6 +106,14 @@ function enable_perf_record() {
   done
 }
 
+function setup_fortio_and_prometheus() {
+    setup_metrics
+    FORTIO_CLIENT_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioclient | awk '{print $1}')
+    export FORTIO_CLIENT_POD
+    FORTIO_SERVER_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioserver | awk '{print $1}')
+    export FORTIO_SERVER_POD
+}
+
 function prerun_v2_nullvm() {
   kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/"${GIT_BRANCH}"/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml
   kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/"${GIT_BRANCH}"/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
@@ -143,7 +150,7 @@ popd
 cd "${WD}/runner"
 pipenv install
 
-# setup test
+# setup istio test
 pushd "${WD}"
 export ISTIO_INJECT="true"
 ./setup_test.sh
@@ -153,12 +160,7 @@ export OUTPUT_DIR="benchmark_data-${GIT_BRANCH}.${dt}.${GIT_SHA}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
 
-# Setup fortio and prometheus
-setup_metrics
-FORTIO_CLIENT_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioclient | awk '{print $1}')
-export FORTIO_CLIENT_POD
-FORTIO_SERVER_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioserver | awk '{print $1}')
-export FORTIO_SERVER_POD
+setup_fortio_and_prometheus
 
 # add trap to copy raw data when exiting, also output logging information for debugging
 trap exit_handling ERR
@@ -170,7 +172,7 @@ echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GC
 enable_perf_record
 
 # For adding or modifying configurations, refer to perf/benchmark/README.md
-CONFIG_DIR="${WD}/configs"
+CONFIG_DIR="${WD}/configs/istio"
 
 for f in "${CONFIG_DIR}"/*; do
     fn=$(basename "${f}")
@@ -193,3 +195,28 @@ echo "collect flame graph ..."
 collect_flame_graph
 
 echo "perf benchmark test is done."
+
+# The following section is to run linkerd tests in the same cluster but within a different Namespace
+export NAMESPACE=${NAMESPACE:-'twopods-linkerd'}
+
+echo "Install Linkerd"
+cd "${WD}/linkerd"
+./setup_linkerd.sh
+
+# setup linkerd test
+pushd "${WD}"
+export LINKERD_INJECT="enabled"
+./setup_test.sh
+popd
+
+export OUTPUT_DIR="linkerd_benchmark_data"
+LINKERD_LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
+mkdir -p "${LINKERD_LOCAL_OUTPUT_DIR}"
+
+setup_fortio_and_prometheus
+
+CONFIG_DIR="${WD}/configs/linkerd"
+
+for f in "${CONFIG_DIR}"/*; do
+    get_benchmark_data "${f}"
+done
