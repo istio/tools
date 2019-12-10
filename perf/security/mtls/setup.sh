@@ -45,8 +45,7 @@ function setup_test() {
 
 function setup_istio() {
   pushd ../../istio-install || exit
-  export OPERATOR_PROFILE="automtls.yaml" OPERATOR_SHA='438827b1602037fe30dedcd0008ce0cae0ef0aee' &&
-    ./setup_istio_operator.sh
+  export OPERATOR_PROFILE="automtls.yaml" && ./setup_istio_operator.sh
   popd || exit
 }
 

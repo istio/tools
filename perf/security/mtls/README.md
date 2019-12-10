@@ -16,7 +16,9 @@ Relying on auto mTLS is more future proof.
 1. Install Istio
 
     ```shell
-    export source setup.sh && setup_istio
+    # This is the last known good SHA this test suite has been testin against.
+    export OPERATOR_SHA='438827b1602037fe30dedcd0008ce0cae0ef0aee'
+    source setup.sh && setup_istio
     ```
 
 1. Wait Istio is ready, pods and ingress ip is assigned, and install test workloads
@@ -42,16 +44,14 @@ deleting policy is all we need to do.
 Following is the test results, with Istio release SHA at `438827b1602037fe30dedcd0008ce0cae0ef0aee`,
 a commit at the end of the Istio 1.4 release.
 
-`data/` folder contains the screenshot from grafana for performance data.
-
 In short, we found the differences are
 
 - P99 latency increase from 6ms to 8ms. No changes for P90 and P50 latency.
-  ![p99-diff](./data/p99.png)
+  ![p99-diff](https://storage.googleapis.com/istio-build/perf/mtls/data/p99.png)
 
 - istio-proxy CPU usage increased about 10% - 15%.
 
-  ![cpu-diff](./data/cpu.png)
+  ![cpu-diff](https://storage.googleapis.com/istio-build/perf/mtls/data/cpu.png)
 
 - No other noticeable differences.
 
