@@ -91,12 +91,6 @@ MAXPODS_PER_NODE=100
 # Labels and version
 ISTIO_VERSION=${ISTIO_VERSION:-master}
 
-# Export CLUSTER_NAME so it will be set for the create_sa.sh script, which will
-# create a google-cloud-key.json file in `./${CLUSTER_NAME}/`.
-export CLUSTER_NAME
-mkdir -p "${CLUSTER_NAME}"
-"${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
-
 DEFAULT_GKE_VERSION=$(default_gke_version "${ZONE}")
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]];then
@@ -115,15 +109,13 @@ SCOPES_FULL="https://www.googleapis.com/auth/cloud-platform"
 
 SCOPES="${SCOPES_FULL}"
 
-
-
 # A label cannot have "." in it, replace "." with "_"
 # shellcheck disable=SC2001
 ISTIO_VERSION=$(echo "${ISTIO_VERSION}" | sed 's/\./_/g')
 
 function gc() {
   # shellcheck disable=SC2236
-  if [[ -n "${REGION}" ]];then
+  if [[ -n "${REGION:-}" ]];then
     ZZ="--region=${REGION}"
   else
     ZZ="--zone=${ZONE}"
@@ -131,7 +123,7 @@ function gc() {
 
   SA=""
   # shellcheck disable=SC2236
-  if [[ -n "${GCP_SA}" ]];then
+  if [[ -n "${GCP_SA:-}" ]];then
     SA=("--identity-namespace=${PROJECT_ID}.svc.id.goog" "--service-account=${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "--workload-metadata-from-node=EXPOSED")
   fi
 
@@ -141,7 +133,7 @@ function gc() {
 
   # shellcheck disable=SC2236
   set +u
-  if [[ -n "${DRY_RUN}" ]];then
+  if [[ -n "${DRY_RUN:-}" ]];then
     return
   fi
   set -u
@@ -154,7 +146,7 @@ function gc() {
 NETWORK_SUBNET="--create-subnetwork name=${CLUSTER_NAME}-subnet"
 # shellcheck disable=SC2236
 set +u
-if [[ -n "${USE_SUBNET}" ]];then
+if [[ -n "${USE_SUBNET:-}" ]];then
   NETWORK_SUBNET="--network ${USE_SUBNET}"
 fi
 set -u
@@ -162,31 +154,41 @@ set -u
 ADDONS="HorizontalPodAutoscaling"
 # shellcheck disable=SC2236
 set +u
-if [[ -n "${ISTIO_ADDON}" ]];then
+if [[ -n "${ISTIO_ADDON:-}" ]];then
   ADDONS+=",Istio"
 fi
 set -u
 
+# Export CLUSTER_NAME so it will be set for the create_sa.sh script, which will
+# create set up service accounts
+export CLUSTER_NAME
+mkdir -p "${WD}/tmp/${CLUSTER_NAME}"
+"${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
+
 # shellcheck disable=SC2086
 # shellcheck disable=SC2046
-gc beta container \
-  --project "${PROJECT_ID}" \
-  clusters create "${CLUSTER_NAME}" \
-  --no-enable-basic-auth --cluster-version "${GKE_VERSION}" \
-  --issue-client-certificate \
-  --machine-type "${MACHINE_TYPE}" --image-type ${IMAGE} --disk-type "pd-standard" --disk-size "${DISK_SIZE}" \
-  --scopes "${SCOPES}" \
-  --num-nodes "${MIN_NODES}" --enable-autoscaling --min-nodes "${MIN_NODES}" --max-nodes "${MAX_NODES}" --max-pods-per-node "${MAXPODS_PER_NODE}" \
-  --enable-stackdriver-kubernetes \
-  --enable-ip-alias \
-  --metadata disable-legacy-endpoints=true \
-  ${NETWORK_SUBNET} \
-  --default-max-pods-per-node "${MAXPODS_PER_NODE}" \
-  --addons "${ADDONS}" \
-  --enable-network-policy \
-  --workload-metadata-from-node=EXPOSED \
-  --enable-autoupgrade --enable-autorepair \
-  --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
+if [[ "$(gcloud beta container --project "${PROJECT_ID}" clusters list --filter=name="${CLUSTER_NAME}" --format='csv[no-heading](name)')" ]]; then
+  echo "Cluster with this name already created, skipping creation and rerunning init"
+else
+  gc beta container \
+    --project "${PROJECT_ID}" \
+    clusters create "${CLUSTER_NAME}" \
+    --no-enable-basic-auth --cluster-version "${GKE_VERSION}" \
+    --issue-client-certificate \
+    --machine-type "${MACHINE_TYPE}" --image-type ${IMAGE} --disk-type "pd-standard" --disk-size "${DISK_SIZE}" \
+    --scopes "${SCOPES}" \
+    --num-nodes "${MIN_NODES}" --enable-autoscaling --min-nodes "${MIN_NODES}" --max-nodes "${MAX_NODES}" --max-pods-per-node "${MAXPODS_PER_NODE}" \
+    --enable-stackdriver-kubernetes \
+    --enable-ip-alias \
+    --metadata disable-legacy-endpoints=true \
+    ${NETWORK_SUBNET} \
+    --default-max-pods-per-node "${MAXPODS_PER_NODE}" \
+    --addons "${ADDONS}" \
+    --enable-network-policy \
+    --workload-metadata-from-node=EXPOSED \
+    --enable-autoupgrade --enable-autorepair \
+    --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
+fi
 
 NETWORK_NAME=$(basename "$(gcloud container clusters describe "${CLUSTER_NAME}" --project "${PROJECT_ID}" --zone="${ZONE}" \
     --format='value(networkConfig.network)')")
@@ -211,7 +213,7 @@ else
   NEGZONE="local-zone = ${ZONE}"
 fi
 
-cat <<EOF > "${CLUSTER_NAME}/configmap-neg.yaml"
+CONFIGMAP_NEG=$(cat <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -234,9 +236,10 @@ data:
     # Zone the cluster lives in
     ${NEGZONE}
 EOF
+)
 
 
-cat <<EOF > "${CLUSTER_NAME}/configmap-istiod-asm.yaml"
+CONFIGMAP_GALLEY=$(cat <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -261,18 +264,41 @@ data:
   trustDomain: ${PROJECT_ID}.svc.id.goog
   gkeClusterUrl: https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${CLUSTER_NAME}
 EOF
+)
 
-export KUBECONFIG="${CLUSTER_NAME}/kube.yaml"
+export KUBECONFIG="${WD}/tmp/${CLUSTER_NAME}/kube.yaml"
 gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone "${ZONE}"
 
-kubectl create clusterrolebinding cluster-admin-binding \
-  --clusterrole=cluster-admin \
-  --user="$(gcloud config get-value core/account)"
+# The gcloud key create command requires you dump its service account
+# credentials to a file. Let that happen, then pull the contents into a varaible
+# and delete the file.
+CLOUDKEY=""
+if [[ "${CLUSTER_NAME}" != "" ]]; then 
+  if ! kubectl -n kube-system get secret google-cloud-key >/dev/null 2>&1 || ! kubectl -n istio-system get secret google-cloud-key > /dev/null 2>&1; then
+    gcloud iam service-accounts keys create "${WD}/tmp/${CLUSTER_NAME}/${CLUSTER_NAME}-cloudkey.json" --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
+    # Read from the named pipe into the CLOUDKEY variable
+    CLOUDKEY=$(cat "${WD}/tmp/${CLUSTER_NAME}/${CLUSTER_NAME}-cloudkey.json")
+    # Clean up
+    rm "${WD}/tmp/${CLUSTER_NAME}/${CLUSTER_NAME}-cloudkey.json"
+  fi
+fi
+
+if ! kubectl get clusterrolebinding cluster-admin-binding > /dev/null 2>&1; then 
+  kubectl create clusterrolebinding cluster-admin-binding \
+    --clusterrole=cluster-admin \
+    --user="$(gcloud config get-value core/account)"
+fi
 
 # Update the cluster with the GCP-specific configmaps
-kubectl -n kube-system apply -f "${CLUSTER_NAME}/configmap-neg.yaml"
-kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json="${CLUSTER_NAME}/google-cloud-key.json"
+if ! kubectl -n kube-system get secret google-cloud-key > /dev/null 2>&1; then 
+  kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json=<(echo "${CLOUDKEY}")
+fi
+kubectl -n kube-system apply -f <(echo "${CONFIGMAP_NEG}")
 
-kubectl create ns istio-system
-kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json="${CLUSTER_NAME}/google-cloud-key.json"
-kubectl -n istio-system apply -f "${CLUSTER_NAME}/configmap-istiod-asm.yaml"
+if ! kubectl get ns istio-system > /dev/null; then
+  kubectl create ns istio-system
+fi
+if ! kubectl -n istio-system get secret google-cloud-key > /dev/null 2>&1; then 
+  kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json=<(echo "${CLOUDKEY}")
+fi
+kubectl -n istio-system apply -f <(echo "${CONFIGMAP_GALLEY}")

@@ -46,17 +46,31 @@ PROJECT_ID=${PROJECT_ID:?"project id is required"}
 GCP_SA=${1:-istio-data}
 GCP_CTL_SA=${2:-istio-control}
 
-gc iam service-accounts create "${GCP_SA}" # --display-name 'Istio data plane account'
-gc iam service-accounts create "${GCP_CTL_SA}" #--display-name '"Istio control plane account"'
+if [[ -z "$(gcloud beta iam service-accounts --project="${PROJECT_ID}" list --filter=email="${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com" --format='csv[no-heading](email)')" ]]; then
+  gc beta iam service-accounts create --quiet "${GCP_SA}" # --display-name 'Istio data plane account'
+fi
+if [[ -z "$(gcloud beta iam service-accounts --project="${PROJECT_ID}" list --filter=email="${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com" --format='csv[no-heading](email)')" ]]; then
+  gc beta iam service-accounts create --quiet "${GCP_CTL_SA}" #--display-name '"Istio control plane account"'
+fi
+
+function gcloud_get_iam {
+  local sa="${1?"Must pass a SA as first argument to gcloud_get_iam function"}"
+  local role="${2?"Must pass a role as second argument to gcloud_get_iam function"}"
+  gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq ".bindings[] | select((.members[] | contains(\"serviceAccount:${sa}@${PROJECT_ID}.iam.gserviceaccount.com\")) and .role == \"roles/${role}\")| .members[0]" -Mr
+
+}
 
 for role in compute.networkViewer logging.logWriter monitoring.metricWriter storage.objectViewer cloudtrace.agent meshtelemetry.reporter; do
-	gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/${role}" --member "serviceAccount:${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
+  if [[ -z "$(gcloud_get_iam "${GCP_SA}" "${role}")" ]]; then 
+	  gc projects add-iam-policy-binding --quiet "${PROJECT_ID}" --role "roles/${role}" --member "serviceAccount:${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
+  fi
 done
 
-gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/meshconfig.writer" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
-# Required for creating the NEG objects in GCP
-gc projects add-iam-policy-binding "${PROJECT_ID}" --role "roles/compute.admin" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
-
-if [[ "${CLUSTER_NAME}" != "" ]]; then 
-  gcloud  iam service-accounts keys create "${CLUSTER_NAME}"/google-cloud-key.json --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
+if [[ -z "$(gcloud_get_iam "${GCP_CTL_SA}" meshconfig.writer )" ]]; then
+  gc projects add-iam-policy-binding --quiet "${PROJECT_ID}" --role "roles/meshconfig.writer" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 fi
+# Required for creating the NEG objects in GCP
+if [[ -z "$(gcloud_get_iam "${GCP_CTL_SA}" compute.admin )" ]]; then
+  gc projects add-iam-policy-binding --quiet "${PROJECT_ID}" --role "roles/compute.admin" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
+fi
+
