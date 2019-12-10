@@ -56,21 +56,21 @@ fi
 function gcloud_get_iam {
   local sa="${1?"Must pass a SA as first argument to gcloud_get_iam function"}"
   local role="${2?"Must pass a role as second argument to gcloud_get_iam function"}"
-  gcloud projects get-iam-policy ${PROJECT_ID} --format=json | jq ".bindings[] | select((.members[] | contains(\"serviceAccount:${sa}@${PROJECT_ID}.iam.gserviceaccount.com\")) and .role == \"roles/${role}\")| .members[0]" -Mr
+  gcloud projects get-iam-policy "${PROJECT_ID}" --format=json | jq ".bindings[] | select((.members[] | contains(\"serviceAccount:${sa}@${PROJECT_ID}.iam.gserviceaccount.com\")) and .role == \"roles/${role}\")| .members[0]" -Mr
 
 }
 
 for role in compute.networkViewer logging.logWriter monitoring.metricWriter storage.objectViewer cloudtrace.agent meshtelemetry.reporter; do
-  if [[ -z "$(gcloud_get_iam ${GCP_SA} ${role})" ]]; then 
+  if [[ -z "$(gcloud_get_iam "${GCP_SA}" "${role}")" ]]; then 
 	  gc projects add-iam-policy-binding --quiet "${PROJECT_ID}" --role "roles/${role}" --member "serviceAccount:${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
   fi
 done
 
-if [[ -z "$(gcloud_get_iam ${GCP_CTL_SA} meshconfig.writer )" ]]; then
+if [[ -z "$(gcloud_get_iam "${GCP_CTL_SA}" meshconfig.writer )" ]]; then
   gc projects add-iam-policy-binding --quiet "${PROJECT_ID}" --role "roles/meshconfig.writer" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 fi
 # Required for creating the NEG objects in GCP
-if [[ -z "$(gcloud_get_iam ${GCP_CTL_SA} compute.admin )" ]]; then
+if [[ -z "$(gcloud_get_iam "${GCP_CTL_SA}" compute.admin )" ]]; then
   gc projects add-iam-policy-binding --quiet "${PROJECT_ID}" --role "roles/compute.admin" --member "serviceAccount:${GCP_CTL_SA}@${PROJECT_ID}.iam.gserviceaccount.com"
 fi
 
