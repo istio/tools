@@ -302,4 +302,3 @@ if ! kubectl -n istio-system get secret google-cloud-key > /dev/null 2>&1; then
   kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json=<(echo "${CLOUDKEY}")
 fi
 kubectl -n istio-system apply -f <(echo "${CONFIGMAP_GALLEY}")
-

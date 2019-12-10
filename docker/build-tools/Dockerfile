@@ -27,9 +27,8 @@
 
 FROM golang:1.13.4 as binary_tools_context
 
-# Istio tools branch that we use for this image
-ARG ISTIO_TOOLS_BRANCH
-ENV ISTIO_TOOLS_BRANCH=${ISTIO_TOOLS_BRANCH}
+# Istio tools SHA that we use for this image
+ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in
 ENV COUNTERFEITER_VERSION=v6.2.2
@@ -44,7 +43,7 @@ ENV GOLANG_PROTOBUF_VERSION=v1.3.1
 ENV GOLANGCI_LINT_VERSION=v1.19.1
 ENV HADOLINT_VERSION=v1.17.2
 ENV HELM_VERSION=v2.16.1
-ENV HUGO_VERSION=0.59.1
+ENV HUGO_VERSION=0.60.1
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.16.2
 ENV KIND_VERSION=v0.6.0
@@ -59,6 +58,9 @@ ENV SHELLCHECK_VERSION=v0.7.0
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.95
 ENV YQ_VERSION=2.4.0
+
+ENV GO111MODULE=on
+ENV GOPROXY=https://proxy.golang.org
 
 WORKDIR /tmp
 ENV GOPATH=/tmp/go
@@ -84,38 +86,38 @@ RUN unzip /tmp/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 
 # Build and install a bunch of Go tools
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/fortio/fortio@${FORTIO_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
+RUN go get -ldflags="-s -w" github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
+RUN go get -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
+RUN go get -ldflags="-s -w" github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
+RUN go get -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
+RUN go get -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN go get -ldflags="-s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN go get -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
+RUN go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
+RUN go get -ldflags="-s -w" github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN go get -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
+RUN go get -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
+RUN go get -ldflags="-s -w" github.com/fortio/fortio@${FORTIO_VERSION}
+RUN go get -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 
 # Install latest version of Istio-owned tools in this release
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_BRANCH}
-RUN go get -ldflags="-s -w" -u istio.io/test-infra/toolbox/githubctl
-RUN go get -ldflags="-s -w" -u istio.io/test-infra/boskos/cmd/mason_client
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_SHA}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_SHA}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
+RUN go get -ldflags="-s -w" istio.io/test-infra/toolbox/githubctl
+RUN go get -ldflags="-s -w" istio.io/test-infra/boskos/cmd/mason_client
 
 # Install k8s code generation tools
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
@@ -171,6 +173,11 @@ RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
 WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
+
+# Install pr-creator
+RUN git clone --depth=1 https://github.com/kubernetes/test-infra.git /tmp/test-infra/
+WORKDIR /tmp/test-infra
+RUN GO111MODULE=on go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./robots/pr-creator/
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
@@ -266,9 +273,9 @@ RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
 RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 
-#############
+##############
 # Python
-#############
+##############
 
 FROM ubuntu:bionic as python_context
 

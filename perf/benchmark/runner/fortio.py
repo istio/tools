@@ -137,7 +137,7 @@ def output_csv(run_stats, output_file):
             stats['p99'] / 1000,
             stats['p50'] / 1000,
             stats['cpu_mili_avg_fortioserver_deployment_proxy'],
-            stats['mem_MB_avg_fortioserver_deployment_proxy'],
+            stats['mem_MB_max_fortioserver_deployment_proxy'],
         ]
         res.append(data)
     res.sort()

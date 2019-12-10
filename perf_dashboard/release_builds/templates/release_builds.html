@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+
+{% block sidebar_active %}
+<ul id="side-main-menu" class="side-menu list-unstyled">
+    <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
+    <li class="active"><a href="{% url 'release_build' %}"> <i class="fa fa-list-ol"></i>Release Builds</a></li>
+    <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Benchmarks</a>
+    <ul id="dropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'cpu_memory' %}"></i>CPU & Memory Usage</a></li>
+        <li><a href="{% url 'latency' %}"></i>Latency Quantiles</a></li>
+        <li><a href="{% url 'flame_graph' %}"></i>Flame Graph</a></li>
+        <li><a href="{% url 'micro_benchmarks' %}"></i>Micro Benchmarks</a></li>
+    </ul>
+    <li><a href="{% url 'configuration' %}"><i class="fa fa-cogs"></i>Configurations</a></li>
+    <li><a href="{% url 'alert' %}"><i class="fa fa-exclamation-triangle"></i>Regression Alerts</a></li>
+    <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+</ul>
+{% endblock sidebar_active %}
+
+{% block current_active %}
+<li class="breadcrumb-item active">Release Builds</li>
+{% endblock current_active %}
+
+{% block page_content %}
+<section>
+    <div class="container-fluid">
+          <!-- Page Header-->
+          <header>
+            <h1 class="h3 display"><a href="https://gcsweb.istio.io/gcs/istio-build/dev/" target="_blank">istio/istio Commits Build Overview</a></h1>
+            <p style="color:#888;">The following builds data in milli-seconds are listed in reverse chronological order</p>
+          </header>
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="card">
+                <div class="card-header">
+                  <h4>istio/istio 1.4-release branch: P90, 1000QPS over 240 seconds (16 connections)</h4>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-striped " >
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Build</th>
+                          <th>(A) Mixer-Both</th>
+                          <th>(B) Mixer-ServerOnly</th>
+                          <th>(C) No_Mixer-Both</th>
+                          <th>(D) No_Mixer-ServerOnly</th>
+                          <th>(E) V2_NullVM-Both</th>
+                          <th>(F) V2_NullVM-ServerOnly</th>
+                          <th>(G) Baseline</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="row">1</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.ffbbd35e3fb94a065fe03f838f582d0569fa278e/" target="_blank">1.4-alpha.ffbbd35e3fb94a065fe03f838f582d0569fa278e</a></td>
+                          <td>7.792</td>
+                          <td>2.868</td>
+                          <td>3.320</td>
+                          <td>2.438</td>
+                          <td>4.906</td>
+                          <td>2.979</td>
+                          <td>0.788</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">2</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.ff09ea498c5292d6dffbb63eec47bf5062a4ca43/" target="_blank">1.4-alpha.ff09ea498c5292d6dffbb63eec47bf5062a4ca43</a></td>
+                          <td>7.698</td>
+                          <td>2.684</td>
+                          <td>3.325</td>
+                          <td>2.458</td>
+                          <td>4.808</td>
+                          <td>2.963</td>
+                          <td>0.818</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">3</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.da4339e8974e1d7e964bba560893eb21f9845d5e/" target="_blank">1.4-alpha.da4339e8974e1d7e964bba560893eb21f9845d5e</a></td>
+                          <td>7.598</td>
+                          <td>2.678</td>
+                          <td>3.435</td>
+                          <td>2.432</td>
+                          <td>4.768</td>
+                          <td>2.785</td>
+                          <td>0.802</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">4</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d987b85f52bb9fa5937caa6d590c31ed5ffc5882/" target="_blank">1.4-alpha.d987b85f52bb9fa5937caa6d590c31ed5ffc5882</a></td>
+                          <td>7.698</td>
+                          <td>2.774</td>
+                          <td>3.465</td>
+                          <td>2.347</td>
+                          <td>4.867</td>
+                          <td>2.821</td>
+                          <td>0.789</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">5</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d932390e61fcf4334eb19c3046909d937406d3ae/" target="_blank">1.4-alpha.d932390e61fcf4334eb19c3046909d937406d3ae</a></td>
+                          <td>7.731</td>
+                          <td>2.782</td>
+                          <td>3.534</td>
+                          <td>2.612</td>
+                          <td>4.798</td>
+                          <td>2.912</td>
+                          <td>0.878</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">6</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d8eb9d3699ef8945aa4cc6a1001a5455683df3b5/" target="_blank">1.4-alpha.d8eb9d3699ef8945aa4cc6a1001a5455683df3b5</a></td>
+                          <td>7.631</td>
+                          <td>2.882</td>
+                          <td>3.434</td>
+                          <td>2.542</td>
+                          <td>4.778</td>
+                          <td>3.012</td>
+                          <td>0.778</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">7</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d8adc7e15ed64e9c7304de5c39d129689fd71146/" target="_blank">1.4-alpha.d8adc7e15ed64e9c7304de5c39d129689fd71146</a></td>
+                          <td>7.435</td>
+                          <td>2.973</td>
+                          <td>3.521</td>
+                          <td>2.489</td>
+                          <td>4.802</td>
+                          <td>2.890</td>
+                          <td>0.802</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">8</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d7ef0f109217db4dc77649c10e7378c17944386f/" target="_blank">1.4-alpha.d7ef0f109217db4dc77649c10e7378c17944386f</a></td>
+                          <td>7.535</td>
+                          <td>2.663</td>
+                          <td>3.732</td>
+                          <td>2.482</td>
+                          <td>4.799</td>
+                          <td>2.837</td>
+                          <td>0.798</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">9</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d7a1200c335f4ba4d60b93c6af663cd87d77f703/" target="_blank">1.4-alpha.d7a1200c335f4ba4d60b93c6af663cd87d77f703</a></td>
+                          <td>7.463</td>
+                          <td>2.829</td>
+                          <td>3.673</td>
+                          <td>2.428</td>
+                          <td>4.801</td>
+                          <td>2.893</td>
+                          <td>0.803</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">10</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d5964882ca1d0932623a233aa135aaba66b628eb/" target="_blank">1.4-alpha.d5964882ca1d0932623a233aa135aaba66b628eb</a></td>
+                          <td>7.564</td>
+                          <td>2.728</td>
+                          <td>3.732</td>
+                          <td>2.521</td>
+                          <td>4.791</td>
+                          <td>2.903</td>
+                          <td>0.798</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">11</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d42771b29af84d415132edb27d9e07f5ce2e5699/" target="_blank">1.4-alpha.d42771b29af84d415132edb27d9e07f5ce2e5699</a></td>
+                          <td>7.374</td>
+                          <td>2.842</td>
+                          <td>3.819</td>
+                          <td>2.351</td>
+                          <td>4.892</td>
+                          <td>2.899</td>
+                          <td>0.831</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">12</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d3849fe5cd09d2453bc43f1bfbd86e2f5e7a7197/" target="_blank">1.4-alpha.d3849fe5cd09d2453bc43f1bfbd86e2f5e7a7197</a></td>
+                          <td>7.246</td>
+                          <td>2.782</td>
+                          <td>3.728</td>
+                          <td>2.451</td>
+                          <td>4.782</td>
+                          <td>2.934</td>
+                          <td>0.781</td>
+                        </tr><tr>
+                          <th scope="row">13</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d341c8ed9a8d4af6ce9eb5fbea69dbabe7c104d8/" target="_blank">1.4-alpha.d341c8ed9a8d4af6ce9eb5fbea69dbabe7c104d8</a></td>
+                          <td>7.356</td>
+                          <td>2.852</td>
+                          <td>3.628</td>
+                          <td>2.341</td>
+                          <td>4.892</td>
+                          <td>2.924</td>
+                          <td>0.794</td>
+                        </tr><tr>
+                          <th scope="row">14</th>
+                          <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.4-alpha.d24972b5e0a2baa1564892a5e7d3a542e9e99715/" target="_blank">1.4-alpha.d24972b5e0a2baa1564892a5e7d3a542e9e99715</a></td>
+                          <td>7.646</td>
+                          <td>2.912</td>
+                          <td>3.838</td>
+                          <td>2.451</td>
+                          <td>4.822</td>
+                          <td>2.915</td>
+                          <td>0.821</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="card">
+                <div class="card-header">
+                  <h4>istio/istio master branch: P90, 1000QPS over 240 seconds (16 connections)</h4>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-striped " >
+                      <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Build</th>
+                        <th>(A) Mixer-Both</th>
+                        <th>(B) Mixer-ServerOnly</th>
+                        <th>(C) No_Mixer-Both</th>
+                        <th>(D) No_Mixer-ServerOnly</th>
+                        <th>(E) V2_NullVM-Both</th>
+                        <th>(F) V2_NullVM-ServerOnly</th>
+                        <th>(G) Baseline</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <th scope="row">1</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.22b983647f0b91faa8a90de389c708b7a3e53f17/" target="_blank">1.5-alpha.22b983647f0b91faa8a90de389c708b7a3e53f17</a></td>
+                        <td>7.792</td>
+                        <td>2.868</td>
+                        <td>3.320</td>
+                        <td>2.438</td>
+                        <td>4.906</td>
+                        <td>2.979</td>
+                        <td>0.788</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">2</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.20feda437cc17b653c7a3821bd1e852e85386fa4/" target="_blank">1.5-alpha.20feda437cc17b653c7a3821bd1e852e85386fa4</a></td>
+                        <td>7.698</td>
+                        <td>2.684</td>
+                        <td>3.325</td>
+                        <td>2.458</td>
+                        <td>4.808</td>
+                        <td>2.963</td>
+                        <td>0.818</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">3</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.2079aec7f02b20d3c3191374c6a1b55f9d0b8e28/" target="_blank">1.5-alpha.2079aec7f02b20d3c3191374c6a1b55f9d0b8e28</a></td>
+                        <td>7.598</td>
+                        <td>2.678</td>
+                        <td>3.435</td>
+                        <td>2.432</td>
+                        <td>4.768</td>
+                        <td>2.785</td>
+                        <td>0.802</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">4</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.1eb32f36eaf8067443f11bf887060cc0a9e08127/" target="_blank">1.5-alpha.1eb32f36eaf8067443f11bf887060cc0a9e08127</a></td>
+                        <td>7.698</td>
+                        <td>2.774</td>
+                        <td>3.465</td>
+                        <td>2.347</td>
+                        <td>4.867</td>
+                        <td>2.821</td>
+                        <td>0.789</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">5</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.1d903db64d9435e72bb76c641349caa975e0f081/" target="_blank">1.5-alpha.1d903db64d9435e72bb76c641349caa975e0f081</a></td>
+                        <td>7.731</td>
+                        <td>2.782</td>
+                        <td>3.534</td>
+                        <td>2.612</td>
+                        <td>4.798</td>
+                        <td>2.912</td>
+                        <td>0.878</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">6</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.1a4f36147769176e823965845978c700faee7abf/" target="_blank">1.5-alpha.1a4f36147769176e823965845978c700faee7abf</a></td>
+                        <td>7.631</td>
+                        <td>2.882</td>
+                        <td>3.434</td>
+                        <td>2.542</td>
+                        <td>4.778</td>
+                        <td>3.012</td>
+                        <td>0.778</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">7</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.19637b4cee344843917f79cd568fe034be462863/" target="_blank">1.5-alpha.19637b4cee344843917f79cd568fe034be462863</a></td>
+                        <td>7.435</td>
+                        <td>2.973</td>
+                        <td>3.521</td>
+                        <td>2.489</td>
+                        <td>4.802</td>
+                        <td>2.890</td>
+                        <td>0.802</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">8</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.1896530eaefcf7fb8d5c9ceb738d11397cd94542/" target="_blank">1.5-alpha.1896530eaefcf7fb8d5c9ceb738d11397cd94542</a></td>
+                        <td>7.535</td>
+                        <td>2.663</td>
+                        <td>3.732</td>
+                        <td>2.482</td>
+                        <td>4.799</td>
+                        <td>2.837</td>
+                        <td>0.798</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">9</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.187fc2f6bbb71979e874ac28111b6e5fed78d706/" target="_blank">1.5-alpha.187fc2f6bbb71979e874ac28111b6e5fed78d706</a></td>
+                        <td>7.463</td>
+                        <td>2.829</td>
+                        <td>3.673</td>
+                        <td>2.428</td>
+                        <td>4.801</td>
+                        <td>2.893</td>
+                        <td>0.803</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">10</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.1879f8fd01abe92f053d807bfdb7aa81138c3cb0/" target="_blank">1.5-alpha.1879f8fd01abe92f053d807bfdb7aa81138c3cb0</a></td>
+                        <td>7.564</td>
+                        <td>2.728</td>
+                        <td>3.732</td>
+                        <td>2.521</td>
+                        <td>4.791</td>
+                        <td>2.903</td>
+                        <td>0.798</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">11</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.184bd4212da112b586f25920b35c4c6830ff909e/" target="_blank">1.5-alpha.184bd4212da112b586f25920b35c4c6830ff909e</a></td>
+                        <td>7.374</td>
+                        <td>2.842</td>
+                        <td>3.819</td>
+                        <td>2.351</td>
+                        <td>4.892</td>
+                        <td>2.899</td>
+                        <td>0.831</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">12</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.179ec9e2fa0b72fbfe558d7a185f9ded5dd0cdbe/" target="_blank">1.5-alpha.179ec9e2fa0b72fbfe558d7a185f9ded5dd0cdbe</a></td>
+                        <td>7.246</td>
+                        <td>2.782</td>
+                        <td>3.728</td>
+                        <td>2.451</td>
+                        <td>4.782</td>
+                        <td>2.934</td>
+                        <td>0.781</td>
+                      </tr><tr>
+                        <th scope="row">13</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.156d828d379be772f8d04cac342210e2f04b97b2/" target="_blank">1.5-alpha.156d828d379be772f8d04cac342210e2f04b97b2</a></td>
+                        <td>7.356</td>
+                        <td>2.852</td>
+                        <td>3.628</td>
+                        <td>2.341</td>
+                        <td>4.892</td>
+                        <td>2.924</td>
+                        <td>0.794</td>
+                      </tr><tr>
+                        <th scope="row">14</th>
+                        <td><a href="https://gcsweb.istio.io/gcs/istio-build/dev/1.5-alpha.15088540b931052b0dccee209aa0fc1abffb66e7/" target="_blank">1.5-alpha.15088540b931052b0dccee209aa0fc1abffb66e7</a></td>
+                        <td>7.646</td>
+                        <td>2.912</td>
+                        <td>3.838</td>
+                        <td>2.451</td>
+                        <td>4.822</td>
+                        <td>2.915</td>
+                        <td>0.821</td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+</section>
+{% endblock page_content %}
+
+{% block charts_js %}
+    <script src="{% static 'js/overview.js' %}"></script>
+{% endblock charts_js %}
