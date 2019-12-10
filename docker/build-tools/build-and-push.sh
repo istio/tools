@@ -16,9 +16,6 @@
 
 set -eux
 
-git remote -v
-git ls-remote origin master
-
 # support other container tools, e.g. podman
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
@@ -26,8 +23,14 @@ HUB=${HUB:-gcr.io/istio-testing}
 DATE=$(date +%Y-%m-%dT%H-%M-%S)
 BRANCH=master
 VERSION="${BRANCH}-${DATE}"
-SHA=$(git rev-parse origin/${BRANCH})
+SHA="${BRANCH}"
 
+# The docker image runs `go get istio.io/tools@${SHA}`
+# In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
+# In presubmit, this SHA does not exist, so we should just pull from the head of the branch (eg master)
+if [[ "${JOB_TYPE:-}" == "postsubmit" ]]; then
+  SHA=$(git rev-parse ${BRANCH})
+fi
 
 ${CONTAINER_CLI} build --target build_tools --build-arg "ISTIO_TOOLS_SHA=${SHA}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
 ${CONTAINER_CLI} build --build-arg "ISTIO_TOOLS_SHA=${SHA}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
