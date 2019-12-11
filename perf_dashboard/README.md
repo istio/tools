@@ -22,9 +22,10 @@
 
 ## Project Overview
 
-1. MVC Pattern
+### MVC Pattern
 
 Basically, this Istio Performance Dashboard is built on top of Python Web [Django Framework](https://www.djangoproject.com/), which is a typical MVC pattern.
+
 ![mvc](MVC_pattern.png)
 
 In Django, MVC is corresponding to:
@@ -32,7 +33,7 @@ In Django, MVC is corresponding to:
 - `template` is the `view`
 - `views.py` file is the `controller`
 
-1. Project Components
+### Project Components
 - The `perf_dashboard/perf_dashboard` repo contains all project-level settings, views and urls, which is using `perf_dashboard/templates` to render the home page.
 - All there other sidebar sections you can see in this application is created by `python manage.py startapp [app_name]`. Like currently, we have the following apps:
     - release_builds
