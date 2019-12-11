@@ -11,15 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from django.shortcuts import render
 import pandas as pd
+from . import download
+import os
+
+cwd = os.getcwd()
+perf_data_path = cwd + "/perf_data/"
+current_release = os.getenv('CUR_RELEASE')
 
 
 # Create your views here.
 def latency(request):
+    current_release_names, master_release_names = download.download_benchmark_csv()
+
+    cur_selected_release = []
+    if request.method == "POST" and 'current_release_name' in request.POST:
+        cur_selected_release.append(request.POST['current_release_name'])
+
+    df = pd.read_csv(perf_data_path + current_release_names[0] + ".csv")
     # Parse data for the current release
-    df = pd.read_csv("/Users/carolynprh/PycharmProjects/perf_dashboard/perf_data/tmp3f9jejbf.csv")
+    if len(cur_selected_release) > 0:
+        df = pd.read_csv(perf_data_path + cur_selected_release[0] + ".csv")
     latency_mixer_base_p50 = get_latency_y_series(df, '_mixer_base', 'p50')
     latency_mixer_serveronly_p50 = get_latency_y_series(df, '_mixer_serveronly', 'p50')
     latency_mixer_both_p50 = get_latency_y_series(df, '_mixer_both', 'p50')
@@ -45,7 +58,14 @@ def latency(request):
     latency_v2_both_p99 = get_latency_y_series(df, 'nullvm_both', 'p99')
 
     # Parse data for the master
-    df = pd.read_csv("/Users/carolynprh/PycharmProjects/perf_dashboard/perf_data/tmp3f9jejbf.csv")
+    master_selected_release = []
+    if request.method == "POST" and 'master_release_name' in request.POST:
+        master_selected_release.append(request.POST['master_release_name'])
+
+    df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
+    # Parse data for the current release
+    if len(master_selected_release) > 0:
+        df = pd.read_csv(perf_data_path + master_selected_release[0] + ".csv")
     latency_mixer_base_p50_master = get_latency_y_series(df, '_mixer_base', 'p50')
     latency_mixer_serveronly_p50_master = get_latency_y_series(df, '_mixer_serveronly', 'p50')
     latency_mixer_both_p50_master = get_latency_y_series(df, '_mixer_both', 'p50')
@@ -70,7 +90,11 @@ def latency(request):
     latency_v2_serveronly_p99_master = get_latency_y_series(df, 'nullvm_serveronly', 'p99')
     latency_v2_both_p99_master = get_latency_y_series(df, 'nullvm_both', 'p99')
 
-    context = {'latency_mixer_base_p50': latency_mixer_base_p50,
+    context = {'cur_selected_release': cur_selected_release,
+               'master_selected_release':  master_selected_release,
+               'current_release_names': current_release_names,
+               'master_release_names': master_release_names,
+               'latency_mixer_base_p50': latency_mixer_base_p50,
                'latency_mixer_serveronly_p50': latency_mixer_serveronly_p50,
                'latency_mixer_both_p50': latency_mixer_both_p50,
                'latency_nomixer_serveronly_p50': latency_nomixer_serveronly_p50,
@@ -202,7 +226,6 @@ def get_latency_y_series(df, mixer_mode, quantiles):
             y_series_data.append(data[quantiles].head(1).values[0])
         else:
             y_series_data.append('null')
-    print(y_series_data)
     return y_series_data
 
 
@@ -215,7 +238,6 @@ def get_cpu_y_series(df, mixer_mode):
             y_series_data.append(data[cpu_metric].head(1).values[0])
         else:
             y_series_data.append('null')
-    print(y_series_data)
     return y_series_data
 
 
@@ -228,15 +250,4 @@ def get_mem_y_series(df, mixer_mode):
             y_series_data.append(data[mem_metric].head(1).values[0])
         else:
             y_series_data.append('null')
-    print(y_series_data)
     return y_series_data
-
-
-def download_csv():
-    from google.cloud import storage
-    client = storage.Client()
-    # https://console.cloud.google.com/storage/browser/[bucket-id]/
-    bucket = client.get_bucket('bucket-id-here')
-    # Then do other things...
-    blob = bucket.get_blob('remote/path/to/file.txt')
-    print(blob.download_as_string())
