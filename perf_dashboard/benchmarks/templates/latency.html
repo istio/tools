@@ -40,7 +40,7 @@
                           <div class="col-sm-9">
                             <select name="current_release_name" class="form-control mb-3">
                               <option> --- </option>
-                                {% for release in current_release_names %}
+                                {% for release in cur_release_names %}
                                     {% if release == cur_selected_release|last %}
                                     <option selected>{{ release }}</option>
                                     {% else %}
@@ -143,7 +143,7 @@
     <script>
         cur_selected_release = {{ cur_selected_release|safe }};
         master_selected_release = {{  master_selected_release|safe }};
-        current_release_names = {{ current_release_names|safe }};
+        cur_release_names = {{ cur_release_names|safe }};
         master_release_names = {{ master_release_names|safe }};
         latency_mixer_base_p50 = {{ latency_mixer_base_p50|safe }};
         latency_mixer_serveronly_p50 = {{ latency_mixer_serveronly_p50|safe }};

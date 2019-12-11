@@ -25,12 +25,12 @@ master_selected_release = []
 
 # Create your views here.
 def latency(request):
-    current_release_names, master_release_names = download.download_benchmark_csv()
+    cur_release_names, master_release_names = download.download_benchmark_csv()
 
     if request.method == "POST" and 'current_release_name' in request.POST:
         cur_selected_release.append(request.POST['current_release_name'])
 
-    df = pd.read_csv(perf_data_path + current_release_names[0] + ".csv")
+    df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
     # Parse data for the current release
     if len(cur_selected_release) > 1:
         cur_selected_release.pop(0)
@@ -98,7 +98,7 @@ def latency(request):
 
     context = {'cur_selected_release': cur_selected_release,
                'master_selected_release':  master_selected_release,
-               'current_release_names': current_release_names,
+               'cur_release_names': cur_release_names,
                'master_release_names': master_release_names,
                'latency_mixer_base_p50': latency_mixer_base_p50,
                'latency_mixer_serveronly_p50': latency_mixer_serveronly_p50,
