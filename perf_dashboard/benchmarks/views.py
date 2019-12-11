@@ -18,7 +18,6 @@ import os
 
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
-current_release = os.getenv('CUR_RELEASE')
 cur_selected_release = []
 master_selected_release = []
 

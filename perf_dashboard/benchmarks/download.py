@@ -19,7 +19,7 @@ import datetime
 
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
-current_release = os.getenv('CUR_RELEASE')
+cur_release = os.getenv('CUR_RELEASE')
 today = datetime.date.today()
 
 
@@ -31,7 +31,7 @@ def download_benchmark_csv():
     gcs_bucket_name = "istio-build/perf"
     url = url_prefix + gcs_bucket_name
     page = request.urlopen(url)
-    current_release_names = []
+    cur_release_names = []
     master_release_names = []
     soup = BeautifulSoup(page, 'html.parser')
     for link in soup.find_all('a'):
@@ -44,8 +44,8 @@ def download_benchmark_csv():
             release_name = href_str.split("/")[4][15:]
             filename = release_name + ".csv"
             d = prev_date.strftime("%Y%m%d")
-            if d in release_name and current_release in release_name:
-                current_release_names.append(release_name)
+            if d in release_name and cur_release in release_name:
+                cur_release_names.append(release_name)
                 if not check_exist(filename):
                     download_url = download_prefix + href_str[5:] + "benchmark.csv"
                     wget.download(download_url, perf_data_path + release_name + ".csv")
@@ -54,8 +54,8 @@ def download_benchmark_csv():
                 if not check_exist(filename):
                     download_url = download_prefix + href_str[5:] + "benchmark.csv"
                     wget.download(download_url, perf_data_path + release_name + ".csv")
-        delete_outdated_files(current_release_names + master_release_names)
-    return current_release_names, master_release_names
+        delete_outdated_files(cur_release_names + master_release_names)
+    return cur_release_names, master_release_names
 
 
 def delete_outdated_files(release_names):
