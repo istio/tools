@@ -1,5 +1,11 @@
-# We use an official Python runtime as a parent image
-FROM python:3.7
+FROM ubuntu:latest
+
+RUN apt-get update \
+  && apt-get install -y python3-pip python3-dev \
+  && cd /usr/local/bin \
+  && ln -s /usr/bin/python3 python \
+  && pip3 install --upgrade pip
+
 
 # The environment variable ensures that the python output is set straight
 # to the terminal without buffering it first
@@ -18,4 +24,4 @@ WORKDIR /perf_dashboard
 COPY . /perf_dashboard/
 
 # Install any needed packages specified in requirements.txt
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
