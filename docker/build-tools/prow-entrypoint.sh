@@ -17,18 +17,25 @@
 set -x
 
 # Start docker daemon and wait for dockerd to start
-daemon -U -- dockerd
+service docker start
 
 echo "Waiting for dockerd to start..."
 while :
 do
   echo "Checking for running docker daemon."
-  if [[ $(docker info > /dev/null 2>&1) -eq 0 ]]; then
+  if docker ps -q > /dev/null 2>&1; then
     echo "The docker daemon is running."
     break
   fi
   sleep 1
 done
+
+function cleanup() {
+  # Cleanup all docker artifacts
+  docker system prune -af || true
+}
+
+trap cleanup EXIT
 
 # Authenticate gcloud, allow failures
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
@@ -37,10 +44,12 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   gcloud auth configure-docker -q || true
 fi
 
+set +x
 "$@"
 EXIT_VALUE=$?
+set -x
 
-# Cleanup all docker artifacts
-docker ps -aq | xargs -r docker rm -f || true
+# We cleanup in the trap as well, but just in case try to clean up here as well
+docker system prune -af || true
 
 exit "${EXIT_VALUE}"
