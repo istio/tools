@@ -19,13 +19,14 @@ import os
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
 current_release = os.getenv('CUR_RELEASE')
+cur_selected_release = []
+master_selected_release = []
 
 
 # Create your views here.
 def latency(request):
     current_release_names, master_release_names = download.download_benchmark_csv()
 
-    cur_selected_release = []
     if request.method == "POST" and 'current_release_name' in request.POST:
         cur_selected_release.append(request.POST['current_release_name'])
 
@@ -33,6 +34,9 @@ def latency(request):
     # Parse data for the current release
     if len(cur_selected_release) > 0:
         df = pd.read_csv(perf_data_path + cur_selected_release[0] + ".csv")
+    if len(cur_selected_release) > 1:
+        cur_selected_release.pop(0)
+
     latency_mixer_base_p50 = get_latency_y_series(df, '_mixer_base', 'p50')
     latency_mixer_serveronly_p50 = get_latency_y_series(df, '_mixer_serveronly', 'p50')
     latency_mixer_both_p50 = get_latency_y_series(df, '_mixer_both', 'p50')
@@ -58,7 +62,6 @@ def latency(request):
     latency_v2_both_p99 = get_latency_y_series(df, 'nullvm_both', 'p99')
 
     # Parse data for the master
-    master_selected_release = []
     if request.method == "POST" and 'master_release_name' in request.POST:
         master_selected_release.append(request.POST['master_release_name'])
 
@@ -66,6 +69,9 @@ def latency(request):
     # Parse data for the current release
     if len(master_selected_release) > 0:
         df = pd.read_csv(perf_data_path + master_selected_release[0] + ".csv")
+    if len(master_selected_release) > 1:
+        master_selected_release.pop(0)
+
     latency_mixer_base_p50_master = get_latency_y_series(df, '_mixer_base', 'p50')
     latency_mixer_serveronly_p50_master = get_latency_y_series(df, '_mixer_serveronly', 'p50')
     latency_mixer_both_p50_master = get_latency_y_series(df, '_mixer_both', 'p50')
