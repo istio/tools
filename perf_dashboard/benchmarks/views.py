@@ -32,10 +32,10 @@ def latency(request):
 
     df = pd.read_csv(perf_data_path + current_release_names[0] + ".csv")
     # Parse data for the current release
-    if len(cur_selected_release) > 0:
-        df = pd.read_csv(perf_data_path + cur_selected_release[0] + ".csv")
     if len(cur_selected_release) > 1:
         cur_selected_release.pop(0)
+    if len(cur_selected_release) > 0:
+        df = pd.read_csv(perf_data_path + cur_selected_release[0] + ".csv")
 
     latency_mixer_base_p50 = get_latency_y_series(df, '_mixer_base', 'p50')
     latency_mixer_serveronly_p50 = get_latency_y_series(df, '_mixer_serveronly', 'p50')
@@ -67,10 +67,10 @@ def latency(request):
 
     df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
     # Parse data for the current release
-    if len(master_selected_release) > 0:
-        df = pd.read_csv(perf_data_path + master_selected_release[0] + ".csv")
     if len(master_selected_release) > 1:
         master_selected_release.pop(0)
+    if len(master_selected_release) > 0:
+        df = pd.read_csv(perf_data_path + master_selected_release[0] + ".csv")
 
     latency_mixer_base_p50_master = get_latency_y_series(df, '_mixer_base', 'p50')
     latency_mixer_serveronly_p50_master = get_latency_y_series(df, '_mixer_serveronly', 'p50')
