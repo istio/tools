@@ -126,6 +126,7 @@ function prerun_nomixer() {
 
 # install pipenv
 if [[ $(command -v pipenv) == "" ]];then
+  apt-get update && apt-get -y install python3-pip
   pip3 install pipenv
 fi
 
