@@ -124,6 +124,11 @@ function prerun_nomixer() {
   pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
 }
 
+# install pipenv
+if [[ $(command -v pipenv) == "" ]];then
+  pip3 install pipenv
+fi
+
 # setup cluster
 helm init --client-only
 # shellcheck disable=SC1090
