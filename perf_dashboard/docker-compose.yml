@@ -7,5 +7,7 @@ services:
     container_name: perf_dashboard
     volumes:
       - .:/perf_dashboard
+    environment:
+      - CUR_RELEASE=release-1.4
     ports:
       - "8000:8000"

@@ -11,43 +11,64 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from bs4 import BeautifulSoup
+from urllib import request
+import os
+import wget
+import datetime
 
-from google.cloud import storage
-
-
-def download_blob():
-    """Downloads a blob from the bucket."""
-    storage_client = storage.Client()
-    bucket_name = 'istio-build/perf'
-    bucket = storage_client.get_bucket(bucket_name)
-
-    print('ID: {}'.format(bucket.id))
-    print('Name: {}'.format(bucket.name))
-    print('Storage Class: {}'.format(bucket.storage_class))
-    print('Location: {}'.format(bucket.location))
-    print('Location Type: {}'.format(bucket.location_type))
-    print('Cors: {}'.format(bucket.cors))
-    print('Default Event Based Hold: {}'
-          .format(bucket.default_event_based_hold))
-    print('Default KMS Key Name: {}'.format(bucket.default_kms_key_name))
-    print('Metageneration: {}'.format(bucket.metageneration))
-    print('Retention Effective Time: {}'
-          .format(bucket.retention_policy_effective_time))
-    print('Retention Period: {}'.format(bucket.retention_period))
-    print('Retention Policy Locked: {}'.format(bucket.retention_policy_locked))
-    print('Requester Pays: {}'.format(bucket.requester_pays))
-    print('Self Link: {}'.format(bucket.self_link))
-    print('Time Created: {}'.format(bucket.time_created))
-    print('Versioning Enabled: {}'.format(bucket.versioning_enabled))
-    print('Labels:')
-    # bucket = storage_client.get_bucket(bucket_name)
-    # blob = bucket.blob(source_blob_name)
-    #
-    # blob.download_to_filename(destination_file_name)
-    #
-    # print('Blob {} downloaded to {}.'.format(
-    #     source_blob_name,
-    #     destination_file_name))
+cwd = os.getcwd()
+perf_data_path = cwd + "/perf_data/"
+cur_release = os.getenv('CUR_RELEASE')
+today = datetime.date.today()
 
 
-download_blob()
+def download_benchmark_csv():
+    if not os.path.exists(perf_data_path):
+        os.makedirs(perf_data_path)
+
+    url_prefix = "https://gcsweb.istio.io/gcs/"
+    gcs_bucket_name = "istio-build/perf"
+    url = url_prefix + gcs_bucket_name
+    page = request.urlopen(url)
+    cur_release_names = []
+    master_release_names = []
+    soup = BeautifulSoup(page, 'html.parser')
+    for link in soup.find_all('a'):
+        href_str = link.get('href')
+        if href_str == "/gcs/istio-build/":
+            continue
+        download_prefix = "https://storage.googleapis.com/"
+        for day_interval in list(range(1, 10)):
+            prev_date = today - datetime.timedelta(day_interval)
+            release_name = href_str.split("/")[4][15:]
+            filename = release_name + ".csv"
+            d = prev_date.strftime("%Y%m%d")
+            if d in release_name and cur_release in release_name:
+                cur_release_names.append(release_name)
+                if not check_exist(filename):
+                    download_url = download_prefix + href_str[5:] + "benchmark.csv"
+                    wget.download(download_url, perf_data_path + release_name + ".csv")
+            if d in release_name and "master" in release_name:
+                master_release_names.append(release_name)
+                if not check_exist(filename):
+                    download_url = download_prefix + href_str[5:] + "benchmark.csv"
+                    wget.download(download_url, perf_data_path + release_name + ".csv")
+        delete_outdated_files(cur_release_names + master_release_names)
+    return cur_release_names, master_release_names
+
+
+def delete_outdated_files(release_names):
+    filenames = []
+    for release in release_names:
+        filenames.append(release + ".csv")
+    for f in os.listdir(perf_data_path):
+        if f not in filenames:
+            os.remove(perf_data_path + f)
+
+
+def check_exist(filename):
+    for f in os.listdir(perf_data_path):
+        if f == filename:
+            return True
+    return False

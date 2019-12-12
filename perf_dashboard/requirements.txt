@@ -1,3 +1,4 @@
 Django==2.2.8
 beautifulsoup4==4.8.1
 pandas==0.25.3
+wget==3.2
