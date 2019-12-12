@@ -33,6 +33,27 @@
       </header>
       <div class="row">
         <div class="col-lg-6">
+          <form class="form-horizontal" action="" method="post">
+                    {% csrf_token %}
+                      <div class="form-group row">
+                          <label class="col-sm-3 form-control-label">Istio Release Builds</label>
+                          <div class="col-sm-9">
+                            <select name="current_release_name" class="form-control mb-3">
+                              <option> --- </option>
+                                {% for release in cur_release_names %}
+                                    {% if release == cpu_cur_selected_release|last %}
+                                    <option selected>{{ release }}</option>
+                                    {% else %}
+                                    <option>{{ release }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <small class="help-block-none">Choose from the latest builds</small>
+                            <input type="submit">
+                           </div>
+                       </div>
+                    <div class="line"></div>
+                </form>
           <div class="card">
             <div class="card-header d-flex align-items-center">
               <h4>Istio-1.4 CPU, 16 connections over 240 seconds</h4>
@@ -43,6 +64,27 @@
           </div>
         </div>
         <div class="col-lg-6">
+          <form class="form-horizontal" action="" method="post">
+                    {% csrf_token %}
+                      <div class="form-group row">
+                          <label class="col-sm-3 form-control-label">Istio Release Builds</label>
+                          <div class="col-sm-9">
+                            <select name="master_release_name" class="form-control mb-3">
+                              <option> --- </option>
+                                {% for release in master_release_names %}
+                                    {% if release == cpu_master_selected_release|last %}
+                                    <option selected>{{ release }}</option>
+                                    {% else %}
+                                    <option>{{ release }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <small class="help-block-none">Choose from the latest builds</small>
+                            <input type="submit">
+                           </div>
+                       </div>
+                    <div class="line"></div>
+                </form>
           <div class="card">
             <div class="card-header d-flex align-items-center">
               <h4>Istio-master CPU, 16 connections over 240 seconds</h4>
@@ -90,6 +132,10 @@
 
 {% block page_data %}
     <script>
+        cpu_cur_selected_release = {{ cpu_cur_selected_release|safe }};
+        cpu_master_selected_release = {{  cpu_master_selected_release|safe }};
+        cur_release_names = {{ cur_release_names|safe }};
+        master_release_names = {{ master_release_names|safe }};
         cpu_mixer_base = {{ cpu_mixer_base|safe }};
         cpu_mixer_serveronly = {{ cpu_mixer_serveronly|safe }};
         cpu_mixer_both = {{ cpu_mixer_both|safe }};

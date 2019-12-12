@@ -20,6 +20,8 @@ cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
 cur_selected_release = []
 master_selected_release = []
+cpu_cur_selected_release = []
+cpu_master_selected_release = []
 
 
 # Create your views here.
@@ -146,8 +148,18 @@ def latency(request):
 
 
 def cpu_memory(request):
+    cur_release_names, master_release_names = download.download_benchmark_csv()
+
+    if request.method == "POST" and 'current_release_name' in request.POST:
+        cpu_cur_selected_release.append(request.POST['current_release_name'])
+
+    df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
     # Parse data for the current release
-    df = pd.read_csv("/Users/carolynprh/PycharmProjects/perf_dashboard/perf_data/release-1.4.csv")
+    if len(cpu_cur_selected_release) > 1:
+        cpu_cur_selected_release.pop(0)
+    if len(cpu_cur_selected_release) > 0:
+        df = pd.read_csv(perf_data_path + cpu_cur_selected_release[0] + ".csv")
+
     cpu_mixer_base = get_cpu_y_series(df, '_mixer_base')
     cpu_mixer_serveronly = get_cpu_y_series(df, '_mixer_serveronly')
     cpu_mixer_both = get_cpu_y_series(df, '_mixer_both')
@@ -165,7 +177,16 @@ def cpu_memory(request):
     mem_v2_both = get_mem_y_series(df, 'nullvm_both')
 
     # Parse data for the master
-    df = pd.read_csv("/Users/carolynprh/PycharmProjects/perf_dashboard/perf_data/master.csv")
+    if request.method == "POST" and 'master_release_name' in request.POST:
+        cpu_master_selected_release.append(request.POST['master_release_name'])
+
+    df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
+    # Parse data for the current release
+    if len(cpu_master_selected_release) > 1:
+        cpu_master_selected_release.pop(0)
+    if len(cpu_master_selected_release) > 0:
+        df = pd.read_csv(perf_data_path + cpu_master_selected_release[0] + ".csv")
+
     cpu_mixer_base_master = get_cpu_y_series(df, '_mixer_base')
     cpu_mixer_serveronly_master = get_cpu_y_series(df, '_mixer_serveronly')
     cpu_mixer_both_master = get_cpu_y_series(df, '_mixer_both')
@@ -182,7 +203,11 @@ def cpu_memory(request):
     mem_v2_serveronly_master = get_mem_y_series(df, 'nullvm_serveronly')
     mem_v2_both_master = get_mem_y_series(df, 'nullvm_both')
 
-    context = {'cpu_mixer_base': cpu_mixer_base,
+    context = {'cpu_cur_selected_release': cpu_cur_selected_release,
+               'cpu_master_selected_release':  cpu_master_selected_release,
+               'cur_release_names': cur_release_names,
+               'master_release_names': master_release_names,
+               'cpu_mixer_base': cpu_mixer_base,
                'cpu_mixer_serveronly': cpu_mixer_serveronly,
                'cpu_mixer_both': cpu_mixer_both,
                'cpu_nomixer_serveronly': cpu_nomixer_serveronly,
