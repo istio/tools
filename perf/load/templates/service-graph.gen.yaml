@@ -265,7 +265,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0
 spec:
   ports:
-  - name: {{ .Values.portName }}
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0
@@ -328,7 +328,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-0
 spec:
   ports:
-  - name: {{ .Values.portName }}
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-0
