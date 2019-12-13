@@ -19,7 +19,7 @@ import pandas as pd
 # Create your views here.
 def configuration(request):
     # Parse data for the master
-    df = pd.read_csv("/Users/carolynprh/PycharmProjects/perf_dashboard/perf_data/tmp3f9jejbf.csv")
+    df = pd.read_csv("/Users/carolynprh/istio-all/tools/perf_dashboard/perf_data/master.20191203-00.e4175a0ebbfd51bfdd99b84efef75ceb44d26958.csv")
     latency_mixer_base_p90_master = get_latency_y_series(df, '_mixer_base', 'p90')
     latency_mixer_serveronly_p90_master = get_latency_y_series(df, '_mixer_serveronly', 'p90')
     latency_mixer_both_p90_master = get_latency_y_series(df, '_mixer_both', 'p90')
