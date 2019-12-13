@@ -265,7 +265,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.portName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0
@@ -328,7 +328,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-0
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.portName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-0
@@ -392,7 +392,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-1
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-1
@@ -456,7 +456,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-2
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-2
@@ -520,7 +520,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-3
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-3
@@ -584,7 +584,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-4
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-4
@@ -648,7 +648,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-5
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-5
@@ -712,7 +712,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-6
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-6
@@ -776,7 +776,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-7
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-7
@@ -840,7 +840,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-8
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-8
@@ -904,7 +904,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-0-0
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-0-0
@@ -968,7 +968,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-1-0
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-1-0
@@ -1032,7 +1032,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-2-0
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-2-0
@@ -1096,7 +1096,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-3-0
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-3-0
@@ -1160,7 +1160,7 @@ metadata:
   name: {{ .Values.serviceNamePrefix }}0-4-0
 spec:
   ports:
-  - name: http-web
+  - name: {{ .Values.httpPortName }}
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-4-0

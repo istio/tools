@@ -59,3 +59,5 @@ services:
 - "0-7-0"
 - "0-8"
 - "0-8-0"
+
+httpPortName: http-web
