@@ -26,7 +26,7 @@ cpu_master_selected_release = []
 
 # Create your views here.
 def latency(request):
-    cur_release_names, master_release_names = download.download_benchmark_csv()
+    cur_release_names, master_release_names = download.download_benchmark_csv(15)
 
     if request.method == "POST" and 'current_release_name' in request.POST:
         cur_selected_release.append(request.POST['current_release_name'])
@@ -148,7 +148,7 @@ def latency(request):
 
 
 def cpu_memory(request):
-    cur_release_names, master_release_names = download.download_benchmark_csv()
+    cur_release_names, master_release_names = download.download_benchmark_csv(15)
 
     if request.method == "POST" and 'current_release_name' in request.POST:
         cpu_cur_selected_release.append(request.POST['current_release_name'])
