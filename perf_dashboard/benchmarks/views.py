@@ -13,7 +13,7 @@
 # limitations under the License.
 from django.shortcuts import render
 import pandas as pd
-from . import download
+from helpers import download
 import os
 
 cwd = os.getcwd()

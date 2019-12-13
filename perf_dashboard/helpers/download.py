@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from bs4 import BeautifulSoup
 from urllib import request
 import os
@@ -39,7 +40,7 @@ def download_benchmark_csv():
         if href_str == "/gcs/istio-build/":
             continue
         download_prefix = "https://storage.googleapis.com/"
-        for day_interval in list(range(1, 10)):
+        for day_interval in list(range(1, 21)):
             prev_date = today - datetime.timedelta(day_interval)
             release_name = href_str.split("/")[4][15:]
             filename = release_name + ".csv"
