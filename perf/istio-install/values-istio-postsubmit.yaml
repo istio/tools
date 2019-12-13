@@ -1,7 +1,9 @@
 # This is used to generate istio.yaml for a stress/load test cluster for postsubmits for releases.
 
 global:
-  meshExpansion: true
+  meshExpansion:
+    enabled: true
+    useILB: true
   meshExpansionILB: true
   refreshInterval: 30s
   imagePullPolicy: Always
