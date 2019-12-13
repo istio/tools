@@ -24,7 +24,7 @@ cur_release = os.getenv('CUR_RELEASE')
 today = datetime.date.today()
 
 
-def download_benchmark_csv():
+def download_benchmark_csv(days):
     if not os.path.exists(perf_data_path):
         os.makedirs(perf_data_path)
 
@@ -40,7 +40,7 @@ def download_benchmark_csv():
         if href_str == "/gcs/istio-build/":
             continue
         download_prefix = "https://storage.googleapis.com/"
-        for day_interval in list(range(1, 21)):
+        for day_interval in list(range(1, days)):
             prev_date = today - datetime.timedelta(day_interval)
             release_name = href_str.split("/")[4][15:]
             filename = release_name + ".csv"

@@ -19,7 +19,7 @@ import os
 
 # Create your views here.
 def artifact(request):
-    cur_release_names, master_release_names = download.download_benchmark_csv()
+    cur_release_names, master_release_names = download.download_benchmark_csv(30)
     gcs_prefix = "https://gcsweb.istio.io/gcs/istio-build/perf/benchmark_data-"
     cur_release_bundle = [[]] * len(cur_release_names)
     master_release_bundle = [[]] * len(master_release_names)
