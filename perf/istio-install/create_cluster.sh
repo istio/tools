@@ -238,6 +238,11 @@ data:
 EOF
 )
 
+TRACECONFIG=""
+if [[ -n "${TRACEID:-}" ]]; then
+  TRACECONFIG=",trace=${TRACEID}"
+fi
+
 
 CONFIGMAP_GALLEY=$(cat <<EOF
 apiVersion: v1
@@ -249,11 +254,11 @@ data:
   galley.json: |
       {
       "EnableServiceDiscovery": true,
-      "SinkAddress": "meshconfig.googleapis.com:443",
+      "SinkAddress": "${SINKADDRESS:-meshconfig.googleapis.com:443}",
       "SinkAuthMode": "GOOGLE",
       "ExcludedResourceKinds": ["Pod", "Node", "Endpoints"],
       "sds-path": "/etc/istio/proxy/SDS",
-      "SinkMeta": ["project_id=${PROJECT_ID}"]
+      "SinkMeta": ["project_id=${PROJECT_ID}${TRACECONFIG}"]
       }
 
   PROJECT_ID: ${PROJECT_ID}
