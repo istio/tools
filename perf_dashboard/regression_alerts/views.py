@@ -33,7 +33,7 @@ def cur_alert(request):
     cur_pattern_nomixer_both = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_both')
     cur_pattern_v2_serveronly = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly')
     cur_pattern_v2_both = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both')
-    
+
     context = {'cur_pattern_mixer_base': cur_pattern_mixer_base,
                'cur_pattern_mixer_serveronly': cur_pattern_mixer_serveronly,
                'cur_pattern_mixer_both': cur_pattern_mixer_both,
