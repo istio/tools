@@ -33,7 +33,8 @@ def cur_alert(request):
     cur_pattern_nomixer_both = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_both')
     cur_pattern_v2_serveronly = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly')
     cur_pattern_v2_both = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both')
-
+    print("+++++++")
+    print(cur_pattern_v2_serveronly)
     context = {'cur_pattern_mixer_base': cur_pattern_mixer_base,
                'cur_pattern_mixer_serveronly': cur_pattern_mixer_serveronly,
                'cur_pattern_mixer_both': cur_pattern_mixer_both,
@@ -72,7 +73,7 @@ def get_latency_y_data_point(df, mixer_mode):
     y_series_data = []
     data = df.query('ActualQPS == 1000 and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
     if not data[quantiles].head().empty:
-        y_series_data.append(data[quantiles].head(1).values[0])
+        y_series_data.append(data[quantiles].head(1).values[0]/1000)
     else:
         y_series_data.append('null')
     return y_series_data

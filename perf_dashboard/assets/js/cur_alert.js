@@ -84,7 +84,7 @@ window.onload = function () {
       }
     },
     axisY: {
-      title: "Latency Pattern",
+      title: "Latency Pattern in milliseconds",
       crosshair: {
         enabled: true
       }

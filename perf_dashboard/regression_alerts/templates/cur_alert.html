@@ -30,7 +30,7 @@
 
 {% block current_active %}
 <li class="breadcrumb-item">Regression Alerts</li>
-<li class="breadcrumb-item active">Current Release</li>
+<li class="breadcrumb-item active">master</li>
 {% endblock current_active %}
 
 {% block page_content %}
@@ -44,7 +44,7 @@
           <div class="col-lg-12">
             <div class="card">
               <div class="card-header d-flex align-items-center">
-                <h4>Istio-1.4 Performance Pattern: P90, 1000QPS over 240 seconds (16 connections)</h4>
+                <h4>Istio-master Performance Pattern: P90, 1000QPS over 240 seconds (16 connections)</h4>
               </div>
               <div class="card-body">
                 <div id="chartContainer" style="height: 370px; width: 100%;">
@@ -232,3 +232,15 @@
     </div>
   </section>
 {% endblock page_content %}
+
+{% block page_data %}
+    <script>
+        cur_pattern_mixer_base = {{ cur_pattern_mixer_base|safe }}
+        cur_pattern_mixer_serveronly = {{ cur_pattern_mixer_serveronly|safe }}
+        cur_pattern_mixer_both = {{ cur_pattern_mixer_both|safe }}
+        cur_pattern_nomixer_serveronly = {{ cur_pattern_nomixer_serveronly|safe }}
+        cur_pattern_nomixer_both = {{ cur_pattern_nomixer_both|safe }}
+        cur_pattern_v2_serveronly = {{ cur_pattern_v2_serveronly|safe }}
+        cur_pattern_v2_both = {{ cur_pattern_v2_both|safe }}
+    </script>
+{% endblock page_data %}

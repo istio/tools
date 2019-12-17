@@ -252,7 +252,7 @@ def get_latency_y_series(df, mixer_mode, quantiles):
     for thread in [2, 4, 8, 16, 32, 64]:
         data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@mixer_mode)')
         if not data[quantiles].head().empty:
-            y_series_data.append(data[quantiles].head(1).values[0])
+            y_series_data.append(data[quantiles].head(1).values[0]/1000)
         else:
             y_series_data.append('null')
     return y_series_data
@@ -262,7 +262,7 @@ def get_cpu_y_series(df, mixer_mode):
     y_series_data = []
     cpu_metric = 'cpu_mili_avg_fortioserver_deployment_proxy'
     for qps in [10, 100, 500, 1000, 2000, 3000]:
-        data = df.query('ActualQPS == @qps and NumThreads == 16  and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
         if not data[cpu_metric].head().empty:
             y_series_data.append(data[cpu_metric].head(1).values[0])
         else:
@@ -274,7 +274,7 @@ def get_mem_y_series(df, mixer_mode):
     y_series_data = []
     mem_metric = 'mem_MB_max_fortioserver_deployment_proxy'
     for qps in [10, 100, 500, 1000, 2000, 3000]:
-        data = df.query('ActualQPS == @qps and NumThreads == 16  and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
         if not data[mem_metric].head().empty:
             y_series_data.append(data[mem_metric].head(1).values[0])
         else:
