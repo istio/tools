@@ -15,6 +15,8 @@
 from django.conf.urls import url
 from . import views
 
+
 urlpatterns = [
-    url(r'^$', views.alert, name="alert"),
+    url('cur_alert/', views.cur_alert, name="cur_alert"),
+    url('master_alert/', views.master_alert, name="master_alert"),
 ]

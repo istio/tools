@@ -26,11 +26,10 @@ cpu_master_selected_release = []
 
 # Create your views here.
 def latency(request):
-    cur_release_names, master_release_names = download.download_benchmark_csv(15)
+    cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
 
     if request.method == "POST" and 'current_release_name' in request.POST:
         cur_selected_release.append(request.POST['current_release_name'])
-
     df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
     # Parse data for the current release
     if len(cur_selected_release) > 1:
@@ -148,7 +147,7 @@ def latency(request):
 
 
 def cpu_memory(request):
-    cur_release_names, master_release_names = download.download_benchmark_csv(15)
+    cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
 
     if request.method == "POST" and 'current_release_name' in request.POST:
         cpu_cur_selected_release.append(request.POST['current_release_name'])

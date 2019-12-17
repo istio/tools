@@ -2,193 +2,14 @@
 {% load static from staticfiles %}
 
 {% block head_script %}
-<script>
-    window.onload = function () {
-      var chart = new CanvasJS.Chart("chartContainer", {
-        animationEnabled: true,
-        theme: "light2",
-        axisX:{
-          valueFormatString: "DD MMM",
-          crosshair: {
-            enabled: true,
-            snapToDataPoint: true
-          }
-        },
-        axisY: {
-          title: "Latency Pattern",
-          crosshair: {
-            enabled: true
-          }
-        },
-        toolTip:{
-          shared:true
-        },
-        legend:{
-          cursor:"pointer",
-          verticalAlign: "bottom",
-          horizontalAlign: "left",
-          dockInsidePlotArea: true,
-          itemclick: toogleDataSeries
-        },
-        data: [{
-          type: "line",
-          showInLegend: true,
-          name: "serveronly-baseline",
-          markerType: "square",
-          xValueFormatString: "DD MMM, YYYY",
-          color: "rgba(259, 188, 5,1)",
-          dataPoints: [
-            { x: new Date(2019, 9, 26), y: 2074 },
-            { x: new Date(2019, 9, 27), y: 2100 },
-            { x: new Date(2019, 9, 28), y: 1998 },
-            { x: new Date(2019, 9, 29), y: 2068 },
-            { x: new Date(2019, 9, 30), y: 2100 },
-            { x: new Date(2019, 9, 31), y: 2045 },
-            { x: new Date(2019, 10, 1), y: 2037 },
-            { x: new Date(2019, 10, 2), y: 2012 },
-            { x: new Date(2019, 10, 3), y: 2000 },
-            { x: new Date(2019, 10, 4), y: 1999 },
-            { x: new Date(2019, 10, 5), y: 2012 },
-            { x: new Date(2019, 10, 6), y: 2022 },
-            { x: new Date(2019, 10, 7), y: 2087 },
-            { x: new Date(2019, 10, 8), y: 2075 }
-          ]},
-          {
-            type: "line",
-            showInLegend: true,
-            name: "both-baseline",
-            markerType: "square",
-            xValueFormatString: "DD MMM, YYYY",
-            color: "rgba(66, 133, 246, 1)",
-            dataPoints: [
-              { x: new Date(2019, 9, 26), y: 7004 },
-              { x: new Date(2019, 9, 27), y: 6450 },
-              { x: new Date(2019, 9, 28), y: 6983 },
-              { x: new Date(2019, 9, 29), y: 7100 },
-              { x: new Date(2019, 9, 30), y: 7203 },
-              { x: new Date(2019, 9, 31), y: 7089 },
-              { x: new Date(2019, 10, 1), y: 7192 },
-              { x: new Date(2019, 10, 2), y: 6980 },
-              { x: new Date(2019, 10, 3), y: 6800 },
-              { x: new Date(2019, 10, 4), y: 6600 },
-              { x: new Date(2019, 10, 5), y: 7120 },
-              { x: new Date(2019, 10, 6), y: 6950 },
-              { x: new Date(2019, 10, 7), y: 7080 },
-              { x: new Date(2019, 10, 8), y: 7090 }
-            ]},
-          {
-            type: "line",
-            showInLegend: true,
-            name: "nomixer_serveronly-baseline",
-            markerType: "square",
-            xValueFormatString: "DD MMM, YYYY",
-            color: "rgba(52, 168, 85,1)",
-            dataPoints: [
-              { x: new Date(2019, 9, 26), y: 1650 },
-              { x: new Date(2019, 9, 27), y: 1500 },
-              { x: new Date(2019, 9, 28), y: 1300},
-              { x: new Date(2019, 9, 29), y: 1570},
-              { x: new Date(2019, 9, 30), y: 1890 },
-              { x: new Date(2019, 9, 31), y: 1670 },
-              { x: new Date(2019, 10, 1), y: 1890 },
-              { x: new Date(2019, 10, 2), y: 1680},
-              { x: new Date(2019, 10, 3), y: 1670},
-              { x: new Date(2019, 10, 4), y: 1500},
-              { x: new Date(2019, 10, 5), y: 1580},
-              { x: new Date(2019, 10, 6), y: 1540},
-              { x: new Date(2019, 10, 7), y: 1300},
-              { x: new Date(2019, 10, 8), y: 1500}
-            ]},
-          {
-            type: "line",
-            showInLegend: true,
-            name: "nomixer_both-baseline",
-            markerType: "square",
-            xValueFormatString: "DD MMM, YYYY",
-            color: "rgba(0,0,0,1)",
-            dataPoints: [
-              { x: new Date(2019, 9, 26), y: 2532 },
-              { x: new Date(2019, 9, 27), y: 2000 },
-              { x: new Date(2019, 9, 28), y: 2300},
-              { x: new Date(2019, 9, 29), y: 2400},
-              { x: new Date(2019, 9, 30), y: 2100},
-              { x: new Date(2019, 9, 31), y: 2010},
-              { x: new Date(2019, 10, 1), y: 2400},
-              { x: new Date(2019, 10, 2), y: 2300},
-              { x: new Date(2019, 10, 3), y: 2010},
-              { x: new Date(2019, 10, 4), y: 2100},
-              { x: new Date(2019, 10, 5), y: 2200},
-              { x: new Date(2019, 10, 6), y: 1900},
-              { x: new Date(2019, 10, 7), y: 2000},
-              { x: new Date(2019, 10, 8), y: 1890}
-            ]},
-          {
-            type: "line",
-            showInLegend: true,
-            name: "v2_serveronly-baseline",
-            markerType: "square",
-            xValueFormatString: "DD MMM, YYYY",
-            color: "rgba(168, 50, 168, 1)",
-            dataPoints: [
-              { x: new Date(2019, 9, 26), y: 2191 },
-              { x: new Date(2019, 9, 27), y: 2000 },
-              { x: new Date(2019, 9, 28), y: 1800},
-              { x: new Date(2019, 9, 29), y: 1900},
-              { x: new Date(2019, 9, 30), y: 2200},
-              { x: new Date(2019, 9, 31), y: 2300},
-              { x: new Date(2019, 10, 1), y: 2100},
-              { x: new Date(2019, 10, 2), y: 2167},
-              { x: new Date(2019, 10, 3), y: 1890},
-              { x: new Date(2019, 10, 4), y: 1990},
-              { x: new Date(2019, 10, 5), y: 2001},
-              { x: new Date(2019, 10, 6), y: 2130},
-              { x: new Date(2019, 10, 7), y: 2180},
-              { x: new Date(2019, 10, 8), y: 1900}
-            ]}
-            ,{
-            type: "line",
-            showInLegend: true,
-            name: "v2_both-baseline",
-            markerType: "square",
-            xValueFormatString: "DD MMM, YYYY",
-            color: "rgba(252, 123, 3, 1)",
-            dataPoints: [
-              { x: new Date(2019, 9, 26), y: 4118 },
-              { x: new Date(2019, 9, 27), y: 4300 },
-              { x: new Date(2019, 9, 28), y: 4200},
-              { x: new Date(2019, 9, 29), y: 3900},
-              { x: new Date(2019, 9, 30), y: 3800},
-              { x: new Date(2019, 9, 31), y: 3700},
-              { x: new Date(2019, 10, 1), y: 4000},
-              { x: new Date(2019, 10, 2), y: 4100},
-              { x: new Date(2019, 10, 3), y: 4200},
-              { x: new Date(2019, 10, 4), y: 4080},
-              { x: new Date(2019, 10, 5), y: 4000},
-              { x: new Date(2019, 10, 6), y: 4190},
-              { x: new Date(2019, 10, 7), y: 4020},
-              { x: new Date(2019, 10, 8), y: 4000}
-            ]},
-        ]
-      });
-      chart.render();
-
-      function toogleDataSeries(e){
-        if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-          e.dataSeries.visible = false;
-        } else{
-          e.dataSeries.visible = true;
-        }
-        chart.render();
-      }
-    }
-</script>
+<script src="{% static 'js/cur_alert.js' %}"></script>
 {% endblock head_script %}
 
 {% block sidebar_active %}
 <ul id="side-main-menu" class="side-menu list-unstyled">
     <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
     <li><a href="{% url 'release_build' %}"> <i class="fa fa-list-ol"></i>Release Builds</a></li>
-    <li><a href="#dropDown" aria-expanded="true" data-toggle="collapse">
+    <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
     <i class="fa fa-area-chart"></i>Benchmarks</a>
     <ul id="dropDown" class="collapse list-unstyled">
         <li><a href="{% url 'cpu_memory' %}"></i>CPU & Memory Usage</a></li>
@@ -197,13 +18,19 @@
         <li><a href="{% url 'micro_benchmarks' %}"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="{% url 'configuration' %}"><i class="fa fa-cogs"></i>Configurations</a></li>
-    <li class="active"><a href="{% url 'alert' %}"><i class="fa fa-exclamation-triangle"></i>Regression Alerts</a></li>
+    <li><a href="#alertDropDown" aria-expanded="true" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Regression Alerts</a>
+    <ul id="alertDropDown" class="list-unstyled">
+        <li class="active"><a href="{% url 'cur_alert' %}"></i>Current Release Alert</a></li>
+        <li><a href="{% url 'master_alert' %}"></i>Master Alert</a></li>
+    </ul>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
 </ul>
 {% endblock sidebar_active %}
 
 {% block current_active %}
-<li class="breadcrumb-item active">Regression Alerts</li>
+<li class="breadcrumb-item">Regression Alerts</li>
+<li class="breadcrumb-item active">Current Release</li>
 {% endblock current_active %}
 
 {% block page_content %}
