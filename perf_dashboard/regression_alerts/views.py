@@ -26,21 +26,37 @@ perf_data_path = cwd + "/perf_data/"
 def cur_alert(request):
     cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(40)
 
-    cur_pattern_mixer_base = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_base')
-    cur_pattern_mixer_serveronly = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_serveronly')
-    cur_pattern_mixer_both = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_both')
-    cur_pattern_nomixer_serveronly = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_serveronly')
-    cur_pattern_nomixer_both = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_both')
-    cur_pattern_v2_serveronly = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly')
-    cur_pattern_v2_both = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both')
+    cur_pattern_mixer_base_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_base', 'p90')
+    cur_pattern_mixer_serveronly_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_serveronly', 'p90')
+    cur_pattern_mixer_both_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_both', 'p90')
+    cur_pattern_nomixer_serveronly_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_serveronly', 'p90')
+    cur_pattern_nomixer_both_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_both', 'p90')
+    cur_pattern_v2_serveronly_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly', 'p90')
+    cur_pattern_v2_both_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both', 'p90')
 
-    context = {'cur_pattern_mixer_base': cur_pattern_mixer_base,
-               'cur_pattern_mixer_serveronly': cur_pattern_mixer_serveronly,
-               'cur_pattern_mixer_both': cur_pattern_mixer_both,
-               'cur_pattern_nomixer_serveronly': cur_pattern_nomixer_serveronly,
-               'cur_pattern_nomixer_both': cur_pattern_nomixer_both,
-               'cur_pattern_v2_serveronly': cur_pattern_v2_serveronly,
-               'cur_pattern_v2_both': cur_pattern_v2_both}
+    cur_pattern_mixer_base_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_base', 'p99')
+    cur_pattern_mixer_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_serveronly', 'p99')
+    cur_pattern_mixer_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_both', 'p99')
+    cur_pattern_nomixer_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_serveronly', 'p99')
+    cur_pattern_nomixer_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_both', 'p99')
+    cur_pattern_v2_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly', 'p99')
+    cur_pattern_v2_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both', 'p99')
+
+    context = {'cur_pattern_mixer_base_p90': cur_pattern_mixer_base_p90,
+               'cur_pattern_mixer_serveronly_p90': cur_pattern_mixer_serveronly_p90,
+               'cur_pattern_mixer_both_p90': cur_pattern_mixer_both_p90,
+               'cur_pattern_nomixer_serveronly_p90': cur_pattern_nomixer_serveronly_p90,
+               'cur_pattern_nomixer_both_p90': cur_pattern_nomixer_both_p90,
+               'cur_pattern_v2_serveronly_p90': cur_pattern_v2_serveronly_p90,
+               'cur_pattern_v2_both_p90': cur_pattern_v2_both_p90,
+               'cur_pattern_mixer_base_p99': cur_pattern_mixer_base_p99,
+               'cur_pattern_mixer_serveronly_p99': cur_pattern_mixer_serveronly_p99,
+               'cur_pattern_mixer_both_p99': cur_pattern_mixer_both_p99,
+               'cur_pattern_nomixer_serveronly_p99': cur_pattern_nomixer_serveronly_p99,
+               'cur_pattern_nomixer_both_p99': cur_pattern_nomixer_both_p99,
+               'cur_pattern_v2_serveronly_p99': cur_pattern_v2_serveronly_p99,
+               'cur_pattern_v2_both_p99': cur_pattern_v2_both_p99
+               }
     return render(request, "cur_alert.html", context=context)
 
 
@@ -48,27 +64,42 @@ def cur_alert(request):
 def master_alert(request):
     cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(40)
 
-    master_pattern_mixer_base = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_base')
-    master_pattern_mixer_serveronly = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_serveronly')
-    master_pattern_mixer_both = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_both')
-    master_pattern_nomixer_serveronly = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_serveronly')
-    master_pattern_nomixer_both = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_both')
-    master_pattern_v2_serveronly = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_serveronly')
-    master_pattern_v2_both = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_both')
+    master_pattern_mixer_base_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_base', 'p90')
+    master_pattern_mixer_serveronly_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_serveronly', 'p90')
+    master_pattern_mixer_both_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_both', 'p90')
+    master_pattern_nomixer_serveronly_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_serveronly', 'p90')
+    master_pattern_nomixer_both_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_both', 'p90')
+    master_pattern_v2_serveronly_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_serveronly', 'p90')
+    master_pattern_v2_both_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_both', 'p90')
 
-    context = {'master_pattern_mixer_base': master_pattern_mixer_base,
-               'master_pattern_mixer_serveronly': master_pattern_mixer_serveronly,
-               'master_pattern_mixer_both': master_pattern_mixer_both,
-               'master_pattern_nomixer_serveronly': master_pattern_nomixer_serveronly,
-               'master_pattern_nomixer_both': master_pattern_nomixer_both,
-               'master_pattern_v2_serveronly': master_pattern_v2_serveronly,
-               'master_pattern_v2_both': master_pattern_v2_both}
+    master_pattern_mixer_base_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_base', 'p99')
+    master_pattern_mixer_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_serveronly', 'p99')
+    master_pattern_mixer_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_both', 'p99')
+    master_pattern_nomixer_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_serveronly', 'p99')
+    master_pattern_nomixer_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_both', 'p99')
+    master_pattern_v2_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_serveronly', 'p99')
+    master_pattern_v2_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_both', 'p99')
+
+    context = {'master_pattern_mixer_base_p90': master_pattern_mixer_base_p90,
+               'master_pattern_mixer_serveronly_p90': master_pattern_mixer_serveronly_p90,
+               'master_pattern_mixer_both_p90': master_pattern_mixer_both_p90,
+               'master_pattern_nomixer_serveronly_p90': master_pattern_nomixer_serveronly_p90,
+               'master_pattern_nomixer_both_p90': master_pattern_nomixer_both_p90,
+               'master_pattern_v2_serveronly_p90': master_pattern_v2_serveronly_p90,
+               'master_pattern_v2_both_p90': master_pattern_v2_both_p90,
+               'master_pattern_mixer_base_p99': master_pattern_mixer_base_p99,
+               'master_pattern_mixer_serveronly_p99': master_pattern_mixer_serveronly_p99,
+               'master_pattern_mixer_both_p99': master_pattern_mixer_both_p99,
+               'master_pattern_nomixer_serveronly_p99': master_pattern_nomixer_serveronly_p99,
+               'master_pattern_nomixer_both_p99': master_pattern_nomixer_both_p99,
+               'master_pattern_v2_serveronly_p99': master_pattern_v2_serveronly_p99,
+               'master_pattern_v2_both_p99': master_pattern_v2_both_p99
+               }
     return render(request, "master_alert.html", context=context)
 
 
 # Helpers
-def get_latency_y_data_point(df, mixer_mode):
-    quantiles = 'p90'
+def get_latency_y_data_point(df, mixer_mode, quantiles):
     y_series_data = []
     data = df.query('ActualQPS == 1000 and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
     if not data[quantiles].head().empty:
@@ -78,7 +109,7 @@ def get_latency_y_data_point(df, mixer_mode):
     return y_series_data
 
 
-def get_mixer_mode_y_series(release_names, release_dates, mixer_mode):
+def get_mixer_mode_y_series(release_names, release_dates, mixer_mode, quantiles):
     pattern_data = [[]] * len(release_names)
     for i in range(len(release_names)):
         try:
@@ -87,5 +118,5 @@ def get_mixer_mode_y_series(release_names, release_dates, mixer_mode):
             print(e)
             pattern_data[i] = release_dates[i] + ["null"]
         else:
-            pattern_data[i] = release_dates[i] + get_latency_y_data_point(df, mixer_mode)
+            pattern_data[i] = release_dates[i] + get_latency_y_data_point(df, mixer_mode, quantiles)
     return pattern_data
