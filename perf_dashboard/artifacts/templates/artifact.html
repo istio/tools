@@ -5,7 +5,7 @@
 <ul id="side-main-menu" class="side-menu list-unstyled">
     <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
     <li><a href="{% url 'release_build' %}"> <i class="fa fa-list-ol"></i>Release Builds</a></li>
-    <li><a href="#dropDown" aria-expanded="true" data-toggle="collapse">
+    <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
     <i class="fa fa-area-chart"></i>Benchmarks</a>
     <ul id="dropDown" class="collapse list-unstyled">
         <li><a href="{% url 'cpu_memory' %}"></i>CPU & Memory Usage</a></li>
@@ -14,7 +14,12 @@
         <li><a href="{% url 'micro_benchmarks' %}"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="{% url 'configuration' %}"><i class="fa fa-cogs"></i>Configurations</a></li>
-    <li><a href="{% url 'alert' %}"><i class="fa fa-exclamation-triangle"></i>Regression Alerts</a></li>
+    <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Regression Alerts</a>
+    <ul id="alertDropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'cur_alert' %}"></i>Current Release Alert</a></li>
+        <li><a href="{% url 'master_alert' %}"></i>Master Alert</a></li>
+    </ul>
     <li class="active"><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
 </ul>
 {% endblock sidebar_active %}

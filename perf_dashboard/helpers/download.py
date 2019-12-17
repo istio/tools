@@ -20,7 +20,7 @@ import datetime
 
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
-cur_release = os.getenv('CUR_RELEASE')
+current_release = os.getenv('CUR_RELEASE')
 today = datetime.date.today()
 
 
@@ -35,6 +35,8 @@ def download_benchmark_csv(days):
     cur_release_names = []
     master_release_names = []
     soup = BeautifulSoup(page, 'html.parser')
+    cur_dateset = set()
+    master_dateset = set()
     for link in soup.find_all('a'):
         href_str = link.get('href')
         if href_str == "/gcs/istio-build/":
@@ -45,18 +47,45 @@ def download_benchmark_csv(days):
             release_name = href_str.split("/")[4][15:]
             filename = release_name + ".csv"
             d = prev_date.strftime("%Y%m%d")
-            if d in release_name and cur_release in release_name:
-                cur_release_names.append(release_name)
+
+            if d not in cur_dateset and d in release_name and current_release in release_name:
+                cur_dateset.add(d)
+                if len(cur_release_names) < days:
+                    cur_release_names.append(release_name)
                 if not check_exist(filename):
                     download_url = download_prefix + href_str[5:] + "benchmark.csv"
-                    wget.download(download_url, perf_data_path + release_name + ".csv")
-            if d in release_name and "master" in release_name:
-                master_release_names.append(release_name)
+                    try:
+                        wget.download(download_url, perf_data_path + release_name + ".csv")
+                    except Exception as e:
+                        cur_release_names.pop()
+                        print(e)
+            if d not in master_dateset and d in release_name and "master" in release_name:
+                master_dateset.add(d)
+                if len(master_release_names) < days:
+                    master_release_names.append(release_name)
                 if not check_exist(filename):
                     download_url = download_prefix + href_str[5:] + "benchmark.csv"
-                    wget.download(download_url, perf_data_path + release_name + ".csv")
-        delete_outdated_files(cur_release_names + master_release_names)
-    return cur_release_names, master_release_names
+                    try:
+                        wget.download(download_url, perf_data_path + release_name + ".csv")
+                    except Exception as e:
+                        master_release_names.pop()
+                        print(e)
+
+    delete_outdated_files(cur_release_names + master_release_names)
+    cur_release_dates = [[]] * len(cur_release_names)
+    for i in range(len(cur_release_names)):
+        cur_release = cur_release_names[i]
+        sub_str = cur_release[len(current_release) + 1:].split("-")[0]
+        cur_release_dates[i] = [0] * 3
+        cur_release_dates[i] = [sub_str[0:4], sub_str[4:6], sub_str[6:8]]
+
+    master_release_dates = [[]] * len(master_release_names)
+    for i in range(len(master_release_names)):
+        master_release = master_release_names[i]
+        sub_str = master_release[len("master") + 1:].split("-")[0]
+        master_release_dates[i] = [0] * 3
+        master_release_dates[i] = [sub_str[0:4], sub_str[4:6], sub_str[6:8]]
+    return cur_release_names, cur_release_dates, master_release_names, master_release_dates
 
 
 def delete_outdated_files(release_names):
