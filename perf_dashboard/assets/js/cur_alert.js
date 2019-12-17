@@ -1,162 +1,39 @@
 window.onload = function () {
-  let chart_cur_pattern_mixer_serveronly = [];
-  let chart_cur_pattern_mixer_both = [];
-  let chart_cur_pattern_nomixer_serveronly = [];
-  let chart_cur_pattern_nomixer_both = [];
-  let chart_cur_pattern_v2_serveronly = [];
-  let chart_cur_pattern_v2_both = [];
+  // p90
+  let chart_cur_pattern_mixer_serveronly_p90 = constructDataSeries(cur_pattern_mixer_serveronly_p90, cur_pattern_mixer_base_p90);
+  let chart_cur_pattern_mixer_both_p90 = constructDataSeries(cur_pattern_mixer_both_p90, cur_pattern_mixer_base_p90);
+  let chart_cur_pattern_nomixer_serveronly_p90 = constructDataSeries(cur_pattern_nomixer_serveronly_p90, cur_pattern_mixer_base_p90);
+  let chart_cur_pattern_nomixer_both_p90 = constructDataSeries(cur_pattern_nomixer_both_p90, cur_pattern_mixer_base_p90);
+  let chart_cur_pattern_v2_serveronly_p90 = constructDataSeries(cur_pattern_v2_serveronly_p90, cur_pattern_mixer_base_p90);
+  let chart_cur_pattern_v2_both_p90 = constructDataSeries(cur_pattern_v2_both_p90, cur_pattern_mixer_base_p90);
 
-  for (i = 0; i < cur_pattern_mixer_serveronly.length; i++) {
-    if(cur_pattern_mixer_serveronly[i][3] === "null") {
-      chart_cur_pattern_mixer_serveronly.push({ x: new Date(cur_pattern_mixer_serveronly[i][0],
-              cur_pattern_mixer_serveronly[i][1]-1, cur_pattern_mixer_serveronly[i][2]),
-          y: null })
-    } else {
-      chart_cur_pattern_mixer_serveronly.push({ x: new Date(cur_pattern_mixer_serveronly[i][0],
-              cur_pattern_mixer_serveronly[i][1]-1, cur_pattern_mixer_serveronly[i][2]),
-          y: cur_pattern_mixer_serveronly[i][3]- cur_pattern_mixer_base[i][3]})}
-  }
+  p90ModesData = [];
+  p90ModesData.push(chart_cur_pattern_mixer_serveronly_p90);
+  p90ModesData.push(chart_cur_pattern_mixer_both_p90);
+  p90ModesData.push(chart_cur_pattern_nomixer_serveronly_p90);
+  p90ModesData.push(chart_cur_pattern_nomixer_both_p90);
+  p90ModesData.push(chart_cur_pattern_v2_serveronly_p90);
+  p90ModesData.push(chart_cur_pattern_v2_both_p90);
 
-  for (i = 0; i < cur_pattern_mixer_both.length; i++) {
-    if(cur_pattern_mixer_both[i][3] === "null") {
-      chart_cur_pattern_mixer_both.push({ x: new Date(cur_pattern_mixer_both[i][0],
-              cur_pattern_mixer_both[i][1]-1, cur_pattern_mixer_both[i][2]),
-          y: null })
-    } else {
-      chart_cur_pattern_mixer_both.push({ x: new Date(cur_pattern_mixer_both[i][0],
-              cur_pattern_mixer_both[i][1]-1, cur_pattern_mixer_both[i][2]),
-          y: cur_pattern_mixer_both[i][3]- cur_pattern_mixer_base[i][3]})}
-  }
+  generateChart("chart_p90", p90ModesData);
 
-  for (i = 0; i < cur_pattern_nomixer_serveronly.length; i++) {
-    if(cur_pattern_nomixer_serveronly[i][3] === "null") {
-      chart_cur_pattern_nomixer_serveronly.push({ x: new Date(cur_pattern_nomixer_serveronly[i][0],
-              cur_pattern_nomixer_serveronly[i][1]-1, cur_pattern_nomixer_serveronly[i][2]),
-          y: null })
-    } else {
-      chart_cur_pattern_nomixer_serveronly.push({ x: new Date(cur_pattern_nomixer_serveronly[i][0],
-              cur_pattern_nomixer_serveronly[i][1]-1, cur_pattern_nomixer_serveronly[i][2]),
-          y: cur_pattern_nomixer_serveronly[i][3]- cur_pattern_mixer_base[i][3]})}
-  }
+  // p99
+  let chart_cur_pattern_mixer_serveronly_p99 = constructDataSeries(cur_pattern_mixer_serveronly_p99, cur_pattern_mixer_base_p99);
+  let chart_cur_pattern_mixer_both_p99 = constructDataSeries(cur_pattern_mixer_both_p99, cur_pattern_mixer_base_p99);
+  let chart_cur_pattern_nomixer_serveronly_p99 = constructDataSeries(cur_pattern_nomixer_serveronly_p99, cur_pattern_mixer_base_p99);
+  let chart_cur_pattern_nomixer_both_p99 = constructDataSeries(cur_pattern_nomixer_both_p99, cur_pattern_mixer_base_p99);
+  let chart_cur_pattern_v2_serveronly_p99 = constructDataSeries(cur_pattern_v2_serveronly_p99, cur_pattern_mixer_base_p99);
+  let chart_cur_pattern_v2_both_p99 = constructDataSeries(cur_pattern_v2_both_p99, cur_pattern_mixer_base_p99);
 
-  for (i = 0; i < cur_pattern_nomixer_both.length; i++) {
-    if(cur_pattern_nomixer_both[i][3] === "null") {
-      chart_cur_pattern_nomixer_both.push({ x: new Date(cur_pattern_nomixer_both[i][0],
-              cur_pattern_nomixer_both[i][1]-1, cur_pattern_nomixer_both[i][2]),
-          y: null })
-    } else {
-      chart_cur_pattern_nomixer_both.push({ x: new Date(cur_pattern_nomixer_both[i][0],
-              cur_pattern_nomixer_both[i][1]-1, cur_pattern_nomixer_both[i][2]),
-          y: cur_pattern_nomixer_both[i][3]- cur_pattern_mixer_base[i][3]})}
-  }
+  p99ModesData = [];
+  p99ModesData.push(chart_cur_pattern_mixer_serveronly_p99);
+  p99ModesData.push(chart_cur_pattern_mixer_both_p99);
+  p99ModesData.push(chart_cur_pattern_nomixer_serveronly_p99);
+  p99ModesData.push(chart_cur_pattern_nomixer_both_p99);
+  p99ModesData.push(chart_cur_pattern_v2_serveronly_p99);
+  p99ModesData.push(chart_cur_pattern_v2_both_p99);
 
-  for (i = 0; i < cur_pattern_v2_serveronly.length; i++) {
-    if(cur_pattern_v2_serveronly[i][3] === 'null') {
-      chart_cur_pattern_v2_serveronly.push({ x: new Date(cur_pattern_v2_serveronly[i][0],
-              cur_pattern_v2_serveronly[i][1]-1, cur_pattern_v2_serveronly[i][2]),
-          y: null })
-    }
-    else {
-      chart_cur_pattern_v2_serveronly.push({ x: new Date(cur_pattern_v2_serveronly[i][0],
-              cur_pattern_v2_serveronly[i][1]-1, cur_pattern_v2_serveronly[i][2]),
-          y:cur_pattern_v2_serveronly[i][3]-cur_pattern_mixer_base[i][3]})}
-  }
+  generateChart("chart_p99", p99ModesData);
+};
 
-  for (i = 0; i < cur_pattern_v2_both.length; i++) {
-    if(cur_pattern_v2_both[i][3] === "null") {
-      chart_cur_pattern_v2_both.push({ x: new Date(cur_pattern_v2_both[i][0],
-              cur_pattern_v2_both[i][1]-1, cur_pattern_v2_both[i][2]),
-          y: null })
-    } else {
-      chart_cur_pattern_v2_both.push({ x: new Date(cur_pattern_v2_both[i][0],
-              cur_pattern_v2_both[i][1]-1, cur_pattern_v2_both[i][2]),
-          y:cur_pattern_v2_both[i][3]-cur_pattern_mixer_base[i][3] })}
-  }
 
-  let chart = new CanvasJS.Chart("chartContainer", {
-    animationEnabled: true,
-    theme: "light2",
-    axisX:{
-      valueFormatString: "DD MMM",
-      crosshair: {
-        enabled: true,
-        snapToDataPoint: true
-      }
-    },
-    axisY: {
-      title: "Latency Pattern in milliseconds",
-      crosshair: {
-        enabled: true
-      }
-    },
-    toolTip:{
-      shared:true
-    },
-    legend:{
-      cursor:"pointer",
-      verticalAlign: "bottom",
-      horizontalAlign: "left",
-      dockInsidePlotArea: true,
-      itemclick: toogleDataSeries
-    },
-    data: [{
-      type: "line",
-      showInLegend: true,
-      name: "serveronly-baseline",
-      markerType: "square",
-      xValueFormatString: "DD MMM, YYYY",
-      color: "rgba(259, 188, 5,1)",
-      dataPoints: chart_cur_pattern_mixer_serveronly},
-      {
-        type: "line",
-        showInLegend: true,
-        name: "both-baseline",
-        markerType: "square",
-        xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(66, 133, 246, 1)",
-        dataPoints: chart_cur_pattern_mixer_both},
-      {
-        type: "line",
-        showInLegend: true,
-        name: "nomixer_serveronly-baseline",
-        markerType: "square",
-        xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(52, 168, 85, 1)",
-        dataPoints: chart_cur_pattern_nomixer_serveronly},
-      {
-        type: "line",
-        showInLegend: true,
-        name: "nomixer_both-baseline",
-        markerType: "square",
-        xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(0, 0, 0, 1)",
-        dataPoints: chart_cur_pattern_nomixer_both},
-      {
-        type: "line",
-        showInLegend: true,
-        name: "v2_serveronly-baseline",
-        markerType: "square",
-        xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(168, 50, 168, 1)",
-        dataPoints: chart_cur_pattern_v2_serveronly}
-        ,{
-        type: "line",
-        showInLegend: true,
-        name: "v2_both-baseline",
-        markerType: "square",
-        xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(252, 123, 3, 1)",
-        dataPoints: chart_cur_pattern_v2_both},
-    ]
-  });
-  chart.render();
-
-  function toogleDataSeries(e){
-    if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-      e.dataSeries.visible = false;
-    } else{
-      e.dataSeries.visible = true;
-    }
-    chart.render();
-  }
-}

@@ -31,7 +31,11 @@ def download_benchmark_csv(days):
     url_prefix = "https://gcsweb.istio.io/gcs/"
     gcs_bucket_name = "istio-build/perf"
     url = url_prefix + gcs_bucket_name
-    page = request.urlopen(url)
+    try:
+        page = request.urlopen(url)
+    except Exception as e:
+        print(e)
+        exit(1)
     cur_release_names = []
     master_release_names = []
     soup = BeautifulSoup(page, 'html.parser')
