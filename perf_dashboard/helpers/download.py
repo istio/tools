@@ -71,12 +71,11 @@ def download_benchmark_csv(days):
                         master_release_names.pop()
                         print(e)
 
-
     delete_outdated_files(cur_release_names + master_release_names)
     cur_release_dates = [[]] * len(cur_release_names)
     for i in range(len(cur_release_names)):
         cur_release = cur_release_names[i]
-        sub_str = cur_release[len(current_release) + 1:].split("-")[0]
+        sub_str = cur_release[len(cur_release) + 1:].split("-")[0]
         cur_release_dates[i] = [0] * 3
         cur_release_dates[i] = [sub_str[0:4], sub_str[4:6], sub_str[6:8]]
 
