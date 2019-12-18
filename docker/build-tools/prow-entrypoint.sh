@@ -50,6 +50,8 @@ EXIT_VALUE=$?
 set -x
 
 # We cleanup in the trap as well, but just in case try to clean up here as well
+# shellcheck disable=SC2046
+docker kill $(docker ps -q) || true
 docker system prune -af || true
 
 exit "${EXIT_VALUE}"
