@@ -200,8 +200,9 @@ done
 echo "collect flame graph ..."
 collect_flame_graph
 
-echo "perf benchmark test is done."
+echo "perf benchmark test for istio is done."
 
+echo "start perf benchmark test for linkerd"
 # The following section is to run linkerd tests in the same cluster but within a different Namespace
 export NAMESPACE=${NAMESPACE:-'twopods-linkerd'}
 
@@ -226,3 +227,5 @@ CONFIG_DIR="${WD}/configs/linkerd"
 for f in "${CONFIG_DIR}"/*; do
     get_benchmark_data "${f}"
 done
+
+echo "perf benchmark test for linkerd is done."
