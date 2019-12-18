@@ -112,16 +112,9 @@ spec:
     enabled: true
   values:
     certmanager:
-      certificates:
-        - ingress.v10.istio.webinf.info
-      commonName: ingress.v10.istio.webinf.info
       email: mjog@google.com
     gateways:
-      istio-ilbgateway:
-        type: NodePort
       istio-ingressgateway:
-        meshExpansion: true
-        replicas: 3
         secretVolumes:
         - mountPath: /etc/istio/ingressgateway-certs
           name: istio-ingressgateway-certs
@@ -168,20 +161,5 @@ spec:
             type: prometheus
             url: http://istio-prometheus.istio-prometheus:9090
       enabled: true
-    istiocoredns:
-      enabled: true
-    kiali:
-      enabled: false
-    mixer:
-      telemetry:
-        sessionAffinityEnabled: false
-    nodeagent:
-      image: node-agent-k8s
-    pilot:
-      sidecar: true
-    prometheus:
-      enabled: false
     tracing:
       enabled: true
-      jaeger:
-        enabled: true
