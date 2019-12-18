@@ -1,0 +1,26 @@
+apiVersion: install.istio.io/v1alpha2
+kind: IstioControlPlane
+spec:
+  security:
+    components:
+      citadel:
+        k8s:
+          replicaCount: 3
+      nodeAgent:
+        enabled: false
+
+  values:
+    global:
+      controlPlaneSecurityEnabled: false
+      mtls:
+        enabled: true
+      sds:
+        enabled: false
+        udsPath: ""
+        useNormalJwt: false
+    security:
+      workloadCertTtl: 30m
+    gateways:
+      istio-ingressgateway:
+        sds:
+          enabled: false

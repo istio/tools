@@ -1,0 +1,23 @@
+apiVersion: install.istio.io/v1alpha2
+kind: IstioControlPlane
+spec:
+  security:
+    components:
+      nodeAgent:
+        enabled: true
+
+  values:
+    global:
+      controlPlaneSecurityEnabled: false
+      # Default is 10s second
+      refreshInterval: 1s
+      mtls:
+        enabled: true
+      sds:
+        enabled: true
+        udsPath: "unix:/var/run/sds/uds_path"
+        useNormalJwt: true
+    gateways:
+      istio-ingressgateway:
+        sds:
+          enabled: false
