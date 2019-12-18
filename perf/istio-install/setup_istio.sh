@@ -134,11 +134,8 @@ function install_istio_with_helm() {
 
 # install istio with default IstioControlPlane CR yaml using istioctl.
 function install_istio_with_istioctl() {
-  local args="-f ${CR_FILENAME} --set ${SET_OVERLAY}"
-  if [[ ${EXTRA_ARGS} != "" ]];then
-    args+=${EXTRA_ARGS}
-  fi
-  ./istioctl manifest apply -f "${CR_FILENAME}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  local CR_PATH="${WD}/istioctl_profiles/${CR_FILENAME}"
+  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
 }
 
 function install_istio() {
@@ -169,9 +166,9 @@ function install_istio() {
   else
     echo "start installing istio using istioctl"
     pushd "${DIRNAME}/${release}"
-    SET_OVERLAY="defaultNamespace=istio-system"
-    CR_FILENAME="${WD}/operator_default.yaml"
-    EXTRA_ARGS="--force=true"
+    export SET_OVERLAY="defaultNamespace=istio-system"
+    export CR_FILENAME="default.yaml"
+    export EXTRA_ARGS="--force=true"
     install_istio_with_istioctl
     popd
   fi

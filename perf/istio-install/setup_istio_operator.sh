@@ -22,6 +22,11 @@ DIRNAME="${WD}/tmp"
 mkdir -p "${DIRNAME}"
 export GO111MODULE=on
 
+# The profile containing IstioControlPlane spec. Overriding this environment
+# variable allow to specify different installation options.
+OPERATOR_SHA=${OPERATOR_SHA-$(cat "${WD}"/istio_operator.sha)}
+OPERATOR_PROFILE=${OPERATOR_PROFILE:-default.yaml}
+
 ISTIO_OPERATOR_DIR="${DIRNAME}/operator"
 if [[ ! -d "${ISTIO_OPERATOR_DIR}" ]]; then
   git clone https://github.com/istio/operator.git "$ISTIO_OPERATOR_DIR"
@@ -36,7 +41,6 @@ git checkout "${SHA}"
 popd
 
 defaultNamespace=istio-system
-defaultCR="${WD}/operator_default.yaml"
 
 function setup_admin_binding() {
   kubectl create clusterrolebinding cluster-admin-binding \
@@ -45,7 +49,7 @@ function setup_admin_binding() {
 }
 
 function install_istio() {
-    local CR_FILENAME=${1}
+    local CR_FILENAME="${WD}/istioctl_profiles/${OPERATOR_PROFILE}"
     pushd "${ISTIO_OPERATOR_DIR}"
     go run ./cmd/mesh.go manifest apply -f "${CR_FILENAME}" --wait --set defaultNamespace=${defaultNamespace}
     popd
@@ -53,4 +57,4 @@ function install_istio() {
 }
 
 setup_admin_binding
-install_istio "${defaultCR}"
+install_istio
