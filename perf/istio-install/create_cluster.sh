@@ -82,12 +82,14 @@ function gc() {
   if [[ -n "${REGION:-}" ]];then
     ZZ="--region=${REGION}"
   else
+    # shellcheck disable=SC2034
     ZZ="--zone=${ZONE}"
   fi
 
   SA=""
   # shellcheck disable=SC2236
   if [[ -n "${GCP_SA:-}" ]];then
+    # shellcheck disable=SC2034
     SA=("--identity-namespace=${PROJECT_ID}.svc.id.goog" "--service-account=${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "--workload-metadata-from-node=EXPOSED")
   fi
   # shellcheck disable=SC2048
