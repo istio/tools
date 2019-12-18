@@ -191,4 +191,31 @@ done
 echo "collect flame graph ..."
 collect_flame_graph
 
-echo "perf benchmark test is done."
+echo "perf benchmark test for istio is done."
+echo "start perf benchmark test for linkerd"
+# The following section is to run linkerd tests in the same cluster but within a different Namespace
+export NAMESPACE=${NAMESPACE:-'twopods-linkerd'}
+
+echo "Install Linkerd"
+cd "${WD}/linkerd"
+./setup_linkerd.sh
+
+# setup linkerd test
+pushd "${WD}"
+export LINKERD_INJECT="enabled"
+./setup_test.sh
+popd
+
+export OUTPUT_DIR="linkerd_benchmark_data"
+LINKERD_LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
+mkdir -p "${LINKERD_LOCAL_OUTPUT_DIR}"
+
+setup_fortio_and_prometheus
+
+CONFIG_DIR="${WD}/configs/linkerd"
+
+for f in "${CONFIG_DIR}"/*; do
+    get_benchmark_data "${f}"
+done
+
+echo "perf benchmark test for linkerd is done."
