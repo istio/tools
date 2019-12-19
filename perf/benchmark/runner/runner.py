@@ -171,19 +171,19 @@ class Fortio:
         if self.mode == "grpc":
             grpc = "-grpc -ping"
 
-        cacert_path = ""
+        cacert_arg = ""
         if self.cacert is not None:
-            cacert_path = "-cacert {cacert_path}".format(cacert_path=self.cacert)
+            cacert_arg = "-cacert {cacert_path}".format(cacert_path=self.cacert)
 
         fortio_cmd = (
-            "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_path} {grpc} -httpbufferkb=128 " +
+            "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
             "-labels {labels}").format(
                 conn=conn,
                 qps=qps,
                 duration=duration,
                 r=self.r,
                 grpc=grpc,
-                cacert_path=cacert_path,
+                cacert_arg=cacert_arg,
                 labels=labels)
 
         if self.run_ingress:
