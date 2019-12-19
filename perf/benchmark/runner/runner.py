@@ -383,7 +383,7 @@ def get_parser():
         default="istio")
     parser.add_argument(
         "--mixer_mode",
-        help="run with different mixer configurations: mixer, nomixer, mixerv2",
+        help="run with different mixer configurations: mixer, envoy, mixerv2",
         default="mixer")
     parser.add_argument(
         "--client",
