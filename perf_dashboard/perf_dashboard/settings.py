@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     'configurations',
     'artifacts',
     'regression_alerts',
-    'release_builds',
 ]
 
 MIDDLEWARE = [
