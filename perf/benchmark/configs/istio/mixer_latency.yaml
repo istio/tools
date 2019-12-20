@@ -1,5 +1,5 @@
 # Configuration Set2: Latency Quantiles with mixer enabled
-mixer_mode: "mixer"
+telemetry_mode: "mixer"
 conn:
     - 2
     - 4
