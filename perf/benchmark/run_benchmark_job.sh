@@ -40,7 +40,7 @@ export PILOT_CLUSTER="${PILOT_CLUSTER:-}"
 export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
 export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 export NAMESPACE=${NAMESPACE:-'twopods-istio'}
-export PROMETHEUS_NAMESPACE=${NAMESPACE:-'istio-system'}
+export PROMETHEUS_NAMESPACE=${PROMETHEUS_NAMESPACE:-'istio-system'}
 
 function setup_metrics() {
   # shellcheck disable=SC2155
