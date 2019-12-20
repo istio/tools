@@ -40,6 +40,7 @@ export PILOT_CLUSTER="${PILOT_CLUSTER:-}"
 export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
 export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 export NAMESPACE=${NAMESPACE:-'twopods-istio'}
+export PROMETHEUS_NAMESPACE=${NAMESPACE:-'istio-system'}
 
 function setup_metrics() {
   # shellcheck disable=SC2155
@@ -50,7 +51,7 @@ function setup_metrics() {
     export FORTIO_CLIENT_URL=http://localhost:8080
   fi
   export PROMETHEUS_URL=http://localhost:9090
-  kubectl -n istio-prometheus port-forward svc/istio-prometheus 9090:9090 &>/dev/null &
+  kubectl -n "${PROMETHEUS_NAMESPACE}" port-forward svc/prometheus 9090:9090 &>/dev/null &
 }
 
 function collect_metrics() {
