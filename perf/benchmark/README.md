@@ -112,9 +112,9 @@ optional arguments:
   --duration DURATION   duration in seconds of the extract
   --size SIZE           size of the payload
   --mesh MESH           istio or linkerd
-  --mixer_mode MIXER_MODE
-                        run with different mixer configurations: mixer,
-                        nomixer, mixerv2
+  --telemetry_mode TELEMETRY_MODE
+                        run with different telemetry configurations: mixer,
+                        none, telemetryv2
   --client CLIENT       where to run the test from
   --server SERVER       pod ip of the server
   --perf PERF           also run perf and produce flame graph

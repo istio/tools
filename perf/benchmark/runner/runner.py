@@ -73,7 +73,7 @@ class Fortio:
             duration=None,
             size=None,
             mode="http",
-            mixer_mode="mixer",
+            telemetry_mode="mixer",
             mixer_cache=True,
             perf_record=False,
             server="fortioserver",
@@ -96,7 +96,7 @@ class Fortio:
         self.ns = os.environ.get("NAMESPACE", "twopods")
         # bucket resolution in seconds
         self.r = "0.00005"
-        self.mixer_mode = mixer_mode
+        self.telemetry_mode = telemetry_mode
         self.mixer_cache = mixer_cache
         self.perf_record = perf_record
         self.server = pod_info("-lapp=" + server, namespace=self.ns)
@@ -159,7 +159,7 @@ class Fortio:
         # Mixer label
         if self.mesh == "istio":
             labels += "_"
-            labels += self.mixer_mode
+            labels += self.telemetry_mode
         elif self.mesh == "linkerd":
             labels += "_"
             labels += "linkerd"
@@ -308,7 +308,7 @@ def fortio_from_config_file(args):
         fortio.conn = job_config.get('conn', 16)
         fortio.qps = job_config.get('qps', 1000)
         fortio.duration = job_config.get('duration', 240)
-        fortio.mixer_mode = job_config.get('mixer_mode', 'mixer')
+        fortio.telemetry_mode = job_config.get('telemetry_mode', 'mixer')
         fortio.metrics = job_config.get('metrics', 'p90')
         fortio.size = job_config.get('size', 1024)
         fortio.perf_record = job_config.get('perf_record', False)
@@ -340,7 +340,7 @@ def run(args):
             ingress=args.ingress,
             mode=args.mode,
             mesh=args.mesh,
-            mixer_mode=args.mixer_mode,
+            telemetry_mode=args.telemetry_mode,
             cacert=args.cacert)
 
     if fortio.duration <= min_duration:
@@ -382,8 +382,8 @@ def get_parser():
         help="istio or linkerd",
         default="istio")
     parser.add_argument(
-        "--mixer_mode",
-        help="run with different mixer configurations: mixer, nomixer, mixerv2",
+        "--telemetry_mode",
+        help="run with different mixer configurations: mixer, none, telemetryv2",
         default="mixer")
     parser.add_argument(
         "--client",
