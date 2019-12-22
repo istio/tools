@@ -209,8 +209,9 @@ echo "start perf benchmark test for linkerd"
 export NAMESPACE=${NAMESPACE:-'twopods-linkerd'}
 
 echo "Install Linkerd"
-cd "${WD}/linkerd"
+pushd "${WD}/linkerd"
 ./setup_linkerd.sh
+popd
 
 # setup linkerd test
 pushd "${WD}"
