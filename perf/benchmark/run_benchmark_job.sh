@@ -206,7 +206,7 @@ echo "perf benchmark test for istio is done."
 
 echo "start perf benchmark test for linkerd"
 # The following section is to run linkerd tests in the same cluster but within a different Namespace
-export NAMESPACE=${NAMESPACE:-'twopods-linkerd'}
+export NAMESPACE="twopods-linkerd"
 
 echo "Install Linkerd"
 pushd "${WD}/linkerd"
