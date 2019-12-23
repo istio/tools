@@ -36,7 +36,6 @@ from . import views
 urlpatterns = [
     url(r'^$', views.index, name="index_page"),
     url(r'^admin/', admin.site.urls),
-    url(r'^configurations/', include('configurations.urls')),
     url(r'^artifacts/', include('artifacts.urls')),
     url(r'^regression_alerts/', include('regression_alerts.urls')),
     url(r'^benchmarks/', include('benchmarks.urls')),
