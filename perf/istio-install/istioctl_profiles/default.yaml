@@ -95,12 +95,6 @@ spec:
       pilot:
         enabled: true
         k8s:
-          env:
-            - name: PILOT_PUSH_THROTTLE
-              value: "50"
-            - name: GODEBUG
-              value: gctrace=2
-          replicaCount: 2
           hpaSpec:
             maxReplicas: 10
             minReplicas: 2
@@ -121,8 +115,6 @@ spec:
       email: mjog@google.com
     gateways:
       istio-ingressgateway:
-        meshExpansion: true
-        replicas: 3
         secretVolumes:
         - mountPath: /etc/istio/ingressgateway-certs
           name: istio-ingressgateway-certs
@@ -130,8 +122,6 @@ spec:
         type: LoadBalancer
     global:
       controlPlaneSecurityEnabled: false
-      imagePullPolicy: Always
-      k8sIngressSelector: ingressgateway
       meshExpansion:
         enabled: true
         useILB: true
@@ -142,7 +132,6 @@ spec:
       podDNSSearchNamespaces:
         - global
         - '{{ valueOrDefault .DeploymentMeta.Namespace "default" }}.global'
-      refreshInterval: 30s
       #      TODO: sds not working with istioctl yet.
       proxy:
         enableCoreDump: true
@@ -172,20 +161,5 @@ spec:
             type: prometheus
             url: http://istio-prometheus.istio-prometheus:9090
       enabled: true
-    istiocoredns:
-      enabled: true
-    kiali:
-      enabled: false
-    mixer:
-      telemetry:
-        sessionAffinityEnabled: false
-    nodeagent:
-      image: node-agent-k8s
-    pilot:
-      sidecar: true
-    prometheus:
-      enabled: false
     tracing:
       enabled: true
-      jaeger:
-        enabled: true
