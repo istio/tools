@@ -40,6 +40,7 @@ export PILOT_CLUSTER="${PILOT_CLUSTER:-}"
 export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
 export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 export NAMESPACE="${NAMESPACE:-twopods}"
+export PROMETHEUS_NAMESPACE=${PROMETHEUS_NAMESPACE:-'istio-system'}
 
 function setup_metrics() {
   # shellcheck disable=SC2155
@@ -50,7 +51,7 @@ function setup_metrics() {
     export FORTIO_CLIENT_URL=http://localhost:8080
   fi
   export PROMETHEUS_URL=http://localhost:9090
-  kubectl -n istio-prometheus port-forward svc/istio-prometheus 9090:9090 &>/dev/null &
+  kubectl -n "${PROMETHEUS_NAMESPACE}" port-forward svc/prometheus 9090:9090 &>/dev/null &
 }
 
 function collect_metrics() {
@@ -141,6 +142,7 @@ fi
 TAG=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
 echo "Setup istio release: $TAG"
 pushd "${ROOT}/istio-install"
+   export INSTALL_WITH_ISTIOCTL="true"
    ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
 popd
 
@@ -203,8 +205,9 @@ echo "start perf benchmark test for linkerd"
 export NAMESPACE=${NAMESPACE:-'twopods-linkerd'}
 
 echo "Install Linkerd"
-cd "${WD}/linkerd"
+pushd "${WD}/linkerd"
 ./setup_linkerd.sh
+popd
 
 # setup linkerd test
 pushd "${WD}"

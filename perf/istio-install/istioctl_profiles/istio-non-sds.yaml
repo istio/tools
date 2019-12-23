@@ -1,0 +1,24 @@
+apiVersion: install.istio.io/v1alpha2
+kind: IstioControlPlane
+spec:
+  security:
+    components:
+      nodeAgent:
+        enabled: false
+
+  values:
+    global:
+      controlPlaneSecurityEnabled: false
+      mtls:
+        enabled: true
+      sds:
+        enabled: false
+        udsPath: ""
+        useNormalJwt: false
+    gateways:
+      istio-ingressgateway:
+        sds:
+          enabled: false
+    security:
+      # Short lived cert to test rotation.
+      workloadCertTtl: 300m
