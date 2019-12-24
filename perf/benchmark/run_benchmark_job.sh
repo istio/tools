@@ -125,6 +125,37 @@ function prerun_nomixer() {
   pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
 }
 
+function prerun_plaintext() {
+  # create meshpolicy to ensure the test is running as plaintext.
+  local mode=${1:-PERMISSIVE}
+  echo "Applying meshpolicy with mode ${mode}..."
+  cat <<EOF | kubectl apply -f -
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
+  name: "default"
+  namespace: "${NAMESPACE}"
+spec: {}
+EOF
+  cat <<EOF | kubectl apply -f -
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: plaintext-dr-twopods
+  namespace: ${NAMESPACE}
+spec:
+  host:  "*.svc.${NAMESPACE}.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+EOF
+}
+
+function postrun_plaintext() {
+  kubectl rm policy -n${NAMESPACE} defualt
+  kubectl rm DestinationRule -n${NAMESPACE} plaintext-dr-twopods
+}
+
 # install pipenv
 if [[ $(command -v pipenv) == "" ]];then
   apt-get update && apt-get -y install python3-pip
@@ -189,14 +220,23 @@ for f in "${CONFIG_DIR}"/*; do
         prerun_nomixer
     elif [[ "${fn}" =~ "telemetryv2" ]];then
         prerun_v2_nullvm
+    elif [[ "${fn}" =~ "plaintext" ]]; then
+        prerun_plaintext
     fi
 
     get_benchmark_data "${f}"
 
     # post run
+
+    # remove policy configured if any
+    if [[ "${fn}" =~ "plaintext" ]]; then
+      postrun_plaintext
+    fi
+
     # restart proxy after each group
     kubectl exec -n "${NAMESPACE}" "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
     kubectl exec -n "${NAMESPACE}" "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+    
 done
 
 echo "collect flame graph ..."
