@@ -152,8 +152,8 @@ EOF
 }
 
 function postrun_plaintext() {
-  kubectl rm policy -n${NAMESPACE} default
-  kubectl rm DestinationRule -n${NAMESPACE} plaintext-dr-twopods
+  kubectl delete policy -n${NAMESPACE} default
+  kubectl delete DestinationRule -n${NAMESPACE} plaintext-dr-twopods
 }
 
 # install pipenv

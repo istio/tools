@@ -1,11 +1,10 @@
 telemetry_mode: "none"
 conn:
-    # - 2
-    # - 4
-    # - 8
-    # - 16
-    # - 32
-    # TODO: restore above back.
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
     - 64
 qps:
     - 1000
@@ -15,7 +14,10 @@ metrics:
     - p90
     - p99
 perf_record: true
+
+# we only care about both sidecar mode, which is the base line for mTLs overhead comparision.
+run_bothsidecar: true
 run_serversidecar: false
-run_clientsidecar: false
-run_baseline: true
+run_baseline: false
+
 extra_labels: "plaintext"

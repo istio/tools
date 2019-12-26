@@ -74,6 +74,12 @@ pipenv shell
 pipenv install
 ```
 
+Install Python libraries
+
+```bash
+sudo pip3 install pandas bokeh
+```
+
 ## Run performance tests
 
 The benchmarking script is located at [runner.py](./runner/runner.py). This script runs a set of [Fortio](http://fortio.org/) performance tests.
