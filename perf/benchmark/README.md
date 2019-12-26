@@ -136,8 +136,8 @@ optional arguments:
   --no_baseline         do not run baseline for all
   --serversidecar       run serversidecar-only for all
   --no_serversidecar    do not run serversidecar-only for all
-  --clientsidecar       run clientsidecar and serversidecar for all
-  --no_clientsidecar    do not run clientsidecar and serversidecar for all
+  --bothsidecar         run clientsidecar and serversidecar for all
+  --no_sidecar          do not run clientsidecar and serversidecar for all
 ```
 
 Note:
