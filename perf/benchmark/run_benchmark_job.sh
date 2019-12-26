@@ -125,8 +125,8 @@ function prerun_nomixer() {
   pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
 }
 
+# Explicitly create meshpolicy to ensure the test is running as plaintext.
 function prerun_plaintext() {
-  # create meshpolicy to ensure the test is running as plaintext.
   local mode=${1:-PERMISSIVE}
   echo "Applying meshpolicy with mode ${mode}..."
   cat <<EOF | kubectl apply -f -
@@ -152,7 +152,7 @@ EOF
 }
 
 function postrun_plaintext() {
-  kubectl rm policy -n${NAMESPACE} defualt
+  kubectl rm policy -n${NAMESPACE} default
   kubectl rm DestinationRule -n${NAMESPACE} plaintext-dr-twopods
 }
 
