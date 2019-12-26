@@ -127,8 +127,7 @@ function prerun_nomixer() {
 
 # Explicitly create meshpolicy to ensure the test is running as plaintext.
 function prerun_plaintext() {
-  local mode=${1:-PERMISSIVE}
-  echo "Applying meshpolicy with mode ${mode}..."
+  echo "Applying meshpolicy with plaintext..."
   cat <<EOF | kubectl apply -f -
 apiVersion: "authentication.istio.io/v1alpha1"
 kind: "Policy"
@@ -152,8 +151,8 @@ EOF
 }
 
 function postrun_plaintext() {
-  kubectl delete policy -n${NAMESPACE} default
-  kubectl delete DestinationRule -n${NAMESPACE} plaintext-dr-twopods
+  kubectl delete policy -n"${NAMESPACE}" default
+  kubectl delete DestinationRule -n"${NAMESPACE}" plaintext-dr-twopods
 }
 
 # install pipenv
