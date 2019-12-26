@@ -108,6 +108,15 @@ function enable_perf_record() {
   done
 }
 
+# Setup fortio and prometheus
+function setup_fortio_and_prometheus() {
+    setup_metrics
+    FORTIO_CLIENT_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioclient | awk '{print $1}')
+    export FORTIO_CLIENT_POD
+    FORTIO_SERVER_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioserver | awk '{print $1}')
+    export FORTIO_SERVER_POD
+}
+
 function prerun_v2_nullvm() {
   kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/"${GIT_BRANCH}"/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml
   kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/"${GIT_BRANCH}"/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
@@ -160,12 +169,7 @@ export OUTPUT_DIR="benchmark_data-${GIT_BRANCH}.${dt}.${GIT_SHA}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
 
-# Setup fortio and prometheus
-setup_metrics
-FORTIO_CLIENT_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioclient | awk '{print $1}')
-export FORTIO_CLIENT_POD
-FORTIO_SERVER_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioserver | awk '{print $1}')
-export FORTIO_SERVER_POD
+setup_fortio_and_prometheus
 
 # add trap to copy raw data when exiting, also output logging information for debugging
 trap exit_handling ERR
@@ -200,31 +204,3 @@ echo "collect flame graph ..."
 collect_flame_graph
 
 echo "perf benchmark test for istio is done."
-echo "start perf benchmark test for linkerd"
-# The following section is to run linkerd tests in the same cluster but within a different Namespace
-export NAMESPACE=${NAMESPACE:-'twopods-linkerd'}
-
-echo "Install Linkerd"
-pushd "${WD}/linkerd"
-./setup_linkerd.sh
-popd
-
-# setup linkerd test
-pushd "${WD}"
-export LINKERD_INJECT="enabled"
-./setup_test.sh
-popd
-
-export OUTPUT_DIR="linkerd_benchmark_data"
-LINKERD_LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
-mkdir -p "${LINKERD_LOCAL_OUTPUT_DIR}"
-
-setup_fortio_and_prometheus
-
-CONFIG_DIR="${WD}/configs/linkerd"
-
-for f in "${CONFIG_DIR}"/*; do
-    get_benchmark_data "${f}"
-done
-
-echo "perf benchmark test for linkerd is done."
