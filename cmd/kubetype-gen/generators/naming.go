@@ -15,6 +15,8 @@
 package generators
 
 import (
+	"strings"
+
 	"k8s.io/gengo/namer"
 )
 
@@ -24,10 +26,23 @@ func NameSystems(generatedPackage string, tracker namer.ImportTracker) namer.Nam
 		"public":       namer.NewPublicNamer(0),
 		"raw":          namer.NewRawNamer(generatedPackage, tracker),
 		"publicPlural": namer.NewPublicPluralNamer(map[string]string{}),
+		"lower":        newLowerCaseNamer(0),
 	}
 }
 
 // DefaultNameSystem to use if none is specified
 func DefaultNameSystem() string {
 	return "public"
+}
+
+func newLowerCaseNamer(prependPackageNames int, ignoreWords ...string) *namer.NameStrategy {
+	n := &namer.NameStrategy{
+		Join:                namer.Joiner(namer.IL, strings.ToLower),
+		IgnoreWords:         map[string]bool{},
+		PrependPackageNames: prependPackageNames,
+	}
+	for _, w := range ignoreWords {
+		n.IgnoreWords[w] = true
+	}
+	return n
 }
