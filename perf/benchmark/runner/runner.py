@@ -187,7 +187,7 @@ class Fortio:
                 labels=labels)
 
         if self.run_ingress:
-            print('Running ingress mode', self.run_ingress == None)
+            print('--------------Running ingress mode--------------')
             kubectl_exec(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
                 run_perf(
@@ -197,7 +197,7 @@ class Fortio:
                     duration=40)
 
         if self.run_serversidecar:
-            print('Running server sidecar mode')
+            print('--------------Running server sidecar mode--------------')
             kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
             if self.perf_record:
                 run_perf(
@@ -217,7 +217,7 @@ class Fortio:
                     duration=40)
 
         if self.run_baseline:
-            print('Running baseline mode')
+            print('--------------Running baseline mode--------------')
             kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
 
 
