@@ -225,6 +225,10 @@ mkdir -p "${LINKERD_LOCAL_OUTPUT_DIR}"
 
 setup_fortio_and_prometheus
 
+# add trap to copy raw data when exiting, also output logging information for debugging
+trap exit_handling ERR
+trap exit_handling EXIT
+
 CONFIG_DIR="${WD}/configs/linkerd"
 
 for f in "${CONFIG_DIR}"/*; do
