@@ -77,16 +77,36 @@ func (g *registerGenerator) Imports(c *generator.Context) []string {
 
 func (g registerGenerator) Finalize(c *generator.Context, w io.Writer) error {
 	sw := generator.NewSnippetWriter(w, c, "$", "$")
+	var lowerCaseSchemeKubeTypes, camelCaseSchemeKubeTypes []metadata.KubeType
+	for _, k := range g.source.AllKubeTypes() {
+		if isLowerCaseScheme(k.Tags()) {
+			lowerCaseSchemeKubeTypes = append(lowerCaseSchemeKubeTypes, k)
+		} else {
+			camelCaseSchemeKubeTypes = append(camelCaseSchemeKubeTypes, k)
+		}
+	}
 	m := map[string]interface{}{
-		"GroupResource":     c.Universe.Type(types.Name{Name: "GroupResource", Package: "k8s.io/apimachinery/pkg/runtime/schema"}),
-		"Scheme":            c.Universe.Type(types.Name{Name: "Scheme", Package: "k8s.io/apimachinery/pkg/runtime"}),
-		"AddToGroupVersion": c.Universe.Function(types.Name{Name: "AddToGroupVersion", Package: "k8s.io/apimachinery/pkg/apis/meta/v1"}),
-		"KubeTypes":         g.source.AllKubeTypes(),
+		"GroupResource":            c.Universe.Type(types.Name{Name: "GroupResource", Package: "k8s.io/apimachinery/pkg/runtime/schema"}),
+		"Scheme":                   c.Universe.Type(types.Name{Name: "Scheme", Package: "k8s.io/apimachinery/pkg/runtime"}),
+		"AddToGroupVersion":        c.Universe.Function(types.Name{Name: "AddToGroupVersion", Package: "k8s.io/apimachinery/pkg/apis/meta/v1"}),
+		"CamelCaseSchemeKubeTypes": camelCaseSchemeKubeTypes,
+		"LowerCaseSchemeKubeTypes": lowerCaseSchemeKubeTypes,
 	}
 	sw.Do(resourceFuncTemplate, m)
 	sw.Do(addKnownTypesFuncTemplate, m)
 
 	return sw.Error()
+}
+
+// isLowerCaseScheme checks if the kubetype is reflected as lower case in Kubernetes scheme.
+// This is a workaround as Istio CRDs should have CamelCase scheme in Kubernetes, e.g. `VirtualService` instead of `virtualservice`
+func isLowerCaseScheme(tags []string) bool {
+	for _, s := range tags {
+		if s == "kubetype-gen:lowerCaseScheme" {
+			return true
+		}
+	}
+	return false
 }
 
 const resourceFuncTemplate = `
@@ -98,11 +118,15 @@ func Resource(resource string) $.GroupResource|raw$ {
 const addKnownTypesFuncTemplate = `
 func addKnownTypes(scheme *$.Scheme|raw$) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		$- range .KubeTypes $
+		$- range .CamelCaseSchemeKubeTypes $
 		&$ .Type|raw ${},
 		&$ .Type|raw $List{},
 		$- end $
 	)
+	$- range .LowerCaseSchemeKubeTypes $
+	scheme.AddKnownTypeWithName(SchemeGroupVersion.WithKind("$ .Type|lower $"), &$ .Type|raw ${})
+	scheme.AddKnownTypeWithName(SchemeGroupVersion.WithKind("$ .Type|lower $List"), &$ .Type|raw $List{})
+	$- end $
 	$.AddToGroupVersion|raw$(scheme, SchemeGroupVersion)
 	return nil
 }
