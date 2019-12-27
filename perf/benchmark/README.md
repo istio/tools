@@ -74,6 +74,12 @@ pipenv shell
 pipenv install
 ```
 
+Install Python libraries
+
+```bash
+sudo pip3 install pandas bokeh
+```
+
 ## Run performance tests
 
 The benchmarking script is located at [runner.py](./runner/runner.py). This script runs a set of [Fortio](http://fortio.org/) performance tests.
@@ -89,13 +95,13 @@ The test has three sidecar modes:
 1. run with CLI argument directly
 
 ```bash
-python runner.py --conn <conn> --qps <qps> --duration <duration> --OPTIONAL-FLAGS
+python runner/runner.py --conn <conn> --qps <qps> --duration <duration> --OPTIONAL-FLAGS
 ```
 
 1. run with config yaml
 
 ```bash
-python runner.py --config_file ../configs/mixer_latency.yaml
+python runner/runner.py --config_file ./configs/istio/mixer_latency.yaml
 ```
 
 Required fields to specified via CLI or config file:
@@ -130,8 +136,8 @@ optional arguments:
   --no_baseline         do not run baseline for all
   --serversidecar       run serversidecar-only for all
   --no_serversidecar    do not run serversidecar-only for all
-  --clientsidecar       run clientsidecar and serversidecar for all
-  --no_clientsidecar    do not run clientsidecar and serversidecar for all
+  --bothsidecar         run clientsidecar and serversidecar for all
+  --no_sidecar          do not run clientsidecar and serversidecar for all
 ```
 
 Note:
@@ -144,7 +150,7 @@ For example:
 ### Example 1
 
 ```bash
-python runner.py --config_file ../configs/mixer_latency.yaml
+python runner/runner.py --config_file ./configs/istio/mixer_latency.yaml
 ```
 
 - This will run with configuration specified in the mixer_latency.yaml
@@ -153,7 +159,7 @@ python runner.py --config_file ../configs/mixer_latency.yaml
 ### Example 2
 
 ```bash
-python runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidecar
+python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidecar
 ```
 
 - This will run separate tests for the `both` and `serversidecar` modes
@@ -164,7 +170,7 @@ python runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidec
 ### Example 3
 
 ```bash
-python runner.py --conn 16,64 --qps 1000,4000 --duration 180 --serversidecar --baseline
+python runner/runner.py --conn 16,64 --qps 1000,4000 --duration 180 --serversidecar --baseline
 ```
 
 - 12 tests total, each for **180** seconds, with all combinations of:
@@ -178,13 +184,13 @@ Example 1 and 2 is to gather the latency results by increasing the number of con
 results, you should increasing the number of QPS, like:
 
 ```bash
-python runner.py --conn 10  --qps 100,500,1000,2000,4000 --duration 240  --serversidecar --baseline
+python runner/runner.py --conn 10  --qps 100,500,1000,2000,4000 --duration 240  --serversidecar --baseline
 ```
 
 ### Example 5: flame graph
 
 ```bash
-python runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --perf=true
+python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --perf=true
 ```
 
 This will generate corresponding `xxx_perf.data.perf` file with its `.svg` flame graph in the `perf/benchmark/flame` repo.
@@ -270,7 +276,7 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 The `graph.py` script uses the output CSV file from `fortio.py` to generate a [Bokeh](https://bokeh.pydata.org/en/1.2.0/) interactive graph. The output format is `.html`, from which you can save a PNG image.
 
 ```bash
-python runner/graph.py <PATH_TO_CSV> <METRIC>
+python ./runner/graph.py <PATH_TO_CSV> <METRIC>
 ```
 
 Options:

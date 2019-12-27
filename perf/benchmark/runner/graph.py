@@ -38,7 +38,7 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output_dir, show_gr
     if y_label_short is None:
         sys.exit('need metric')
     if y_label_short not in valid_metrics:
-        sys.exit("invalid metric")
+        sys.exit("invalid metric %s" % y_label_short)
     if csv is None:
         sys.exit('need CSV file')
 
@@ -66,8 +66,8 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output_dir, show_gr
     # 4. prep file-write
     if charts_output_dir == "":
         charts_output_dir = "/tmp"
-    fn = "".join(title.split())
-    output_file(os.path.join(charts_output_dir, fn + ".html"))
+    fn = os.path.join(charts_output_dir, "".join(title.split()) + ".html")
+    output_file(fn)
 
     # 5. create chart
     p = build_chart(title, x_label, x_series, y_label, y_label_short, y_series)
@@ -80,7 +80,7 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output_dir, show_gr
         # export_png(p, filename=os.path.join(charts_output_dir, fn + ".png"))
         # p.output_backend = "svg"
         # export_svgs(p, filename=os.path.join(charts_output_dir, fn + ".svg"))
-        print("graphs saved at %s" % charts_output_dir)
+        print("graphs saved at %s" % fn)
 
 
 # get_series processes x_label metric / y-axis metric for different test

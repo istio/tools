@@ -83,7 +83,7 @@ class Fortio:
             extra_labels=None,
             baseline=False,
             serversidecar=False,
-            clientsidecar=True,
+            bothsidecar=True,
             ingress=None,
             mesh="istio",
             cacert=None):
@@ -106,7 +106,7 @@ class Fortio:
         self.extra_labels = extra_labels
         self.run_baseline = baseline
         self.run_serversidecar = serversidecar
-        self.run_clientsidecar = clientsidecar
+        self.run_bothsidecar = bothsidecar
         self.run_ingress = ingress
         self.cacert = cacert
 
@@ -187,6 +187,7 @@ class Fortio:
                 labels=labels)
 
         if self.run_ingress:
+            print('--------------Running in ingress mode--------------')
             kubectl_exec(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
                 run_perf(
@@ -196,6 +197,7 @@ class Fortio:
                     duration=40)
 
         if self.run_serversidecar:
+            print('--------------Running in server sidecar mode--------------')
             kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
             if self.perf_record:
                 run_perf(
@@ -204,7 +206,8 @@ class Fortio:
                     labels + "_srv_serveronly",
                     duration=40)
 
-        if self.run_clientsidecar:
+        if self.run_bothsidecar:
+            print('--------------Running in both sidecar mode--------------')
             kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
             if self.perf_record:
                 run_perf(
@@ -214,6 +217,7 @@ class Fortio:
                     duration=40)
 
         if self.run_baseline:
+            print('--------------Running in baseline mode--------------')
             kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
 
 
@@ -313,6 +317,7 @@ def fortio_from_config_file(args):
         fortio.size = job_config.get('size', 1024)
         fortio.perf_record = job_config.get('perf_record', False)
         fortio.run_serversidecar = job_config.get('run_serversidecar', False)
+        fortio.run_bothsidecar = job_config.get('run_bothsidecar', False)
         fortio.run_baseline = job_config.get('run_baseline', True)
         fortio.mesh = job_config.get('mesh', 'istio')
         fortio.mode = job_config.get('mode', 'http')
@@ -336,7 +341,7 @@ def run(args):
             extra_labels=args.extra_labels,
             baseline=args.baseline,
             serversidecar=args.serversidecar,
-            clientsidecar=args.clientsidecar,
+            bothsidecar=args.bothsidecar,
             ingress=args.ingress,
             mode=args.mode,
             mesh=args.mesh,
@@ -421,8 +426,8 @@ def get_parser():
     define_bool(parser, "baseline", "run baseline for all", False)
     define_bool(parser, "serversidecar",
                 "run serversidecar-only for all", False)
-    define_bool(parser, "clientsidecar",
-                "run clientsidecar and serversidecar for all", True)
+    define_bool(parser, "bothsidecar",
+                "run clientsiecar and serversidecar for all", True)
 
     return parser
 
