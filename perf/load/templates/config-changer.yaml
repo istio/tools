@@ -29,6 +29,9 @@ rules:
 - apiGroups: ["extensions"]
   resources: ["thirdpartyresources", "thirdpartyresources.extensions", "ingresses", "ingresses/status", "deployments", "deployments/scale"]
   verbs: ["*"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "deployments/scale"]
+  verbs: ["*"]
 - apiGroups: [""]
   resources: ["configmaps", "endpoints", "pods", "services", "namespaces", "secrets", "replicationcontrollers"]
   verbs: ["create", "get", "list", "watch", "update", "patch"]
@@ -74,10 +77,10 @@ spec:
             - -c
             - |-
               # Kill envoy on exit by calling quit endpoint on the Pilot agent.
-              trap "curl -X POST localhost:15020/quitquitquit" EXIT
+              trap "rc=\$?; curl -X POST -s localhost:15020/quitquitquit; exit \$rc" EXIT
               set -x
               n=0
-              until [ $n -ge 15 ]; do
+              until [ $n -ge 120 ]; do
                 kubectl version && break # wait for envoy
                 n=$[$n+1]
                 sleep 1
@@ -93,7 +96,7 @@ spec:
                   # add jitter
                 sleep $[ ( $RANDOM % {{ .Values.replicasSleep }} )  + 1 ]s
                 # example curl -v http://svc02-0:8080/
-                curl -v http://{{ .Values.serviceNamePrefix }}0:8080/
+                curl -vs http://{{ .Values.serviceNamePrefix }}0:8080/
               done
 
           restartPolicy: Never
