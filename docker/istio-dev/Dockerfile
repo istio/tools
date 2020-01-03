@@ -1,6 +1,6 @@
 FROM docker:stable as docker
 
-FROM gcr.io/istio-testing/build-tools:2019-09-16T11-57-35 as build-tools
+FROM gcr.io/istio-testing/build-tools:master-2019-12-15T16-17-48 as build-tools
 
 FROM ubuntu:xenial
 ARG user
@@ -10,16 +10,18 @@ ARG gid=1000
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+COPY --from=build-tools /usr/bin/hadolint /usr/bin/
+COPY --from=build-tools /usr/bin/helm /usr/bin/
+COPY --from=build-tools /usr/bin/hugo /usr/bin/
+COPY --from=build-tools /usr/bin/kind /usr/bin/
 COPY --from=build-tools /usr/bin/protoc /usr/bin/
 COPY --from=build-tools /usr/bin/shellcheck /usr/bin/
-COPY --from=build-tools /usr/bin/hadolint /usr/bin/
-COPY --from=build-tools /usr/bin/hugo /usr/bin/
-COPY --from=build-tools /usr/bin/helm /usr/bin/
+COPY --from=build-tools /usr/bin/yq /usr/bin/
 COPY --from=build-tools /go/ /usr/local/go/
 COPY --from=build-tools /usr/local/ /usr/local/
 COPY --from=build-tools /node_modules/ /node_modules/
 
-RUN chmod 755 /usr/local/go/pkg/mod /usr/local/go/src
+RUN chmod 755 /usr/local/go/pkg /usr/local/go/src
 
 # Install development packages.
 RUN apt-get update && apt-get -qqy install --no-install-recommends \
@@ -29,14 +31,14 @@ bash-completion=1:2.1-4.2ubuntu1.1 \
 build-essential=12.1ubuntu2 \
 ca-certificates=20170717~16.04.2 \
 curl=7.47.0-1ubuntu2.14 \
-git=1:2.7.4-0ubuntu1.6 \
+git=1:2.7.4-0ubuntu1.7 \
 iptables=1.6.0-2ubuntu3 \
 jq=1.5+dfsg-1ubuntu0.1 \
 libtool=2.4.6-0.1 \
 lsb-release=9.20160110ubuntu0.2 \
 make=4.1-6 \
 python3=3.5.1-3 \
-sudo=1.8.16-0ubuntu1.7 \
+sudo=1.8.16-0ubuntu1.8 \
 tmux=2.1-3build1 \
 unzip=6.0-20ubuntu1 \
 vim=2:7.4.1689-3ubuntu1.3 \
@@ -56,12 +58,12 @@ COPY --from=docker /usr/local/bin/docker /usr/local/bin/docker
 RUN echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -c -s) main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
 && curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
 && apt-get update && apt-get -qqy install --no-install-recommends \
-google-cloud-sdk=262.0.0-0 \
-kubectl=1.15.3-00 \
+google-cloud-sdk=272.0.0-0 \
+kubectl=1.17.0-00 \
 && rm -rf /var/lib/apt/lists/*
 
 # Install bash completion files.
-RUN /usr/local/go/bin/kind completion bash > /etc/bash_completion.d/kind \
+RUN /usr/bin/kind completion bash > /etc/bash_completion.d/kind \
 && /usr/bin/helm completion bash > /etc/bash_completion.d/helm \
 && /usr/bin/kubectl completion bash > /etc/bash_completion.d/kubectl \
 && curl -s -Lo - https://raw.githubusercontent.com/docker/cli/master/contrib/completion/bash/docker > /etc/bash_completion.d/docker
