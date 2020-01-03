@@ -34,6 +34,7 @@ import prom
 def convert_data(data):
     obj = {}
 
+    # These keys are generated from fortio default json file
     for key in "Labels,StartTime,RequestedQPS,ActualQPS,NumThreads,RunType,ActualDuration".split(
             ","):
         if key == "RequestedQPS" and data[key] == "max":
@@ -45,30 +46,7 @@ def convert_data(data):
         if key == "ActualDuration":
             obj[key] = int(data[key] / 10 ** 9)
             continue
-
-        if key == "Labels":
-            labels = data[key]
-            obj["mixer"] = True
-            if "nomixer_" in labels:
-                obj["mixer"] = False
-            obj["mixer_cache"] = True
-            if "nomixercache_" in labels:
-                obj["mixer_cache"] = False
-
-            obj["serversidecar"] = True
-            obj["clientsidecar"] = True
-            if "nosidecars" in labels:
-                obj["serversidecar"] = False
-                obj["clientsidecar"] = False
-
-            if "serversidecar" in labels:
-                obj["serversidecar"] = True
-                obj["clientsidecar"] = False
-
-            obj["proxyaccesslog"] = True
-            if "nolog" in labels:
-                obj["proxyaccesslog"] = False
-
+        # fill out other data key to obj key
         obj[key] = data[key]
 
     h = data["DurationHistogram"]
@@ -123,30 +101,7 @@ def convert_data_to_list(txt):
         end = txt.find('"', startRef)
         lines.append(txt[startRef:end])
         idx += 1
-
     return lines
-
-
-def output_csv(run_stats, output_file):
-    res = []
-    for stats in run_stats:
-        data = [
-            stats['ActualQPS'],
-            stats['NumThreads'],
-            stats['Labels'].split('_')[-1],
-            stats['p99'] / 1000,
-            stats['p50'] / 1000,
-            stats['cpu_mili_avg_fortioserver_deployment_proxy'],
-            stats['mem_MB_max_fortioserver_deployment_proxy'],
-        ]
-        res.append(data)
-    res.sort()
-    header = ['QPS', 'Connections', 'Test',
-              'p99 (ms)', 'p50 (ms)', 'CPU (m)', 'Memory (mb)']
-    with open(output_file, 'w') as out:
-        w = csv.writer(out)
-        w.writerow(header)
-        w.writerows(res)
 
 
 # number of seconds to skip after test begins.
