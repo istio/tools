@@ -74,7 +74,6 @@ class Fortio:
             size=None,
             mode="http",
             telemetry_mode="mixer",
-            mixer_cache=True,
             perf_record=False,
             server="fortioserver",
             client="fortioclient",
@@ -97,7 +96,6 @@ class Fortio:
         # bucket resolution in seconds
         self.r = "0.00005"
         self.telemetry_mode = telemetry_mode
-        self.mixer_cache = mixer_cache
         self.perf_record = perf_record
         self.server = pod_info("-lapp=" + server, namespace=self.ns)
         self.client = pod_info("-lapp=" + client, namespace=self.ns)
@@ -187,7 +185,7 @@ class Fortio:
                 labels=labels)
 
         if self.run_ingress:
-            print('--------------Running in ingress mode--------------')
+            print('-------------- Running in ingress mode --------------')
             kubectl_exec(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
                 run_perf(
@@ -197,7 +195,7 @@ class Fortio:
                     duration=40)
 
         if self.run_serversidecar:
-            print('--------------Running in server sidecar mode--------------')
+            print('-------------- Running in server sidecar mode --------------')
             kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
             if self.perf_record:
                 run_perf(
@@ -207,7 +205,7 @@ class Fortio:
                     duration=40)
 
         if self.run_bothsidecar:
-            print('--------------Running in both sidecar mode--------------')
+            print('-------------- Running in both sidecar mode --------------')
             kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
             if self.perf_record:
                 run_perf(
@@ -217,7 +215,7 @@ class Fortio:
                     duration=40)
 
         if self.run_baseline:
-            print('--------------Running in baseline mode--------------')
+            print('-------------- Running in baseline mode --------------')
             kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
 
 
