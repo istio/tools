@@ -23,7 +23,7 @@ This `Dockerfile` creates an Ubuntu-based Docker image for developing on Istio.
 To create your dev container, run:
 
 ```bash
-make dev-shell
+make dev-shell BUILD_WITH_CONTAINER=0
 ```
 
 The first time this target it run, a Docker image named `istio/dev:USER` is created, where USER is your local username.
@@ -56,6 +56,12 @@ This rewriting must be undone to allow connecting directly from within the conta
 
 ```bash
 docker exec "${CLUSTER_NAME}-control-plane" cat /etc/kubernetes/admin.conf > $KUBECONFIG
+```
+
+Check that you can access the cluster:
+
+```bash
+kubectl get nodes
 ```
 
 ## Removing The Container
