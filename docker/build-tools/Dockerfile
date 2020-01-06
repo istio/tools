@@ -215,9 +215,9 @@ RUN npm install --save-dev \
 RUN rm -rf /usr/local/sbin
 RUN rm -rf /usr/local/share
 
-#############
+##############
 # Ruby
-#############
+##############
 
 FROM ubuntu:xenial as ruby_tools_context
 
