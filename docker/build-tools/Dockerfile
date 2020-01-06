@@ -59,6 +59,9 @@ ENV SHELLCHECK_VERSION=v0.7.0
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.95
 
+ENV GO111MODULE=on
+ENV GOPROXY=https://proxy.golang.org
+
 WORKDIR /tmp
 ENV GOPATH=/tmp/go
 
@@ -82,38 +85,38 @@ RUN unzip /tmp/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 
 # Build and install a bunch of Go tools
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/jteeuwen/go-bindata/go-bindata@${GO_BINDATA_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/fortio/fortio@${FORTIO_VERSION}
-RUN GO111MODULE=on go get -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
+RUN go get -ldflags="-s -w" github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
+RUN go get -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
+RUN go get -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
+RUN go get -ldflags="-s -w" github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
+RUN go get -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
+RUN go get -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN go get -ldflags="-s -w" github.com/jteeuwen/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN go get -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
+RUN go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
+RUN go get -ldflags="-s -w" github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN go get -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
+RUN go get -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
+RUN go get -ldflags="-s -w" github.com/fortio/fortio@${FORTIO_VERSION}
+RUN go get -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 
 # Install latest version of Istio-owned tools in this release
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_BRANCH}
-RUN GO111MODULE=on go get -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_BRANCH}
-RUN go get -ldflags="-s -w" -u istio.io/test-infra/toolbox/githubctl
-RUN go get -ldflags="-s -w" -u istio.io/test-infra/boskos/cmd/mason_client
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_BRANCH}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_BRANCH}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_BRANCH}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_BRANCH}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_BRANCH}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_BRANCH}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_BRANCH}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_BRANCH}
+RUN go get -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_BRANCH}
+RUN go get -ldflags="-s -w" istio.io/test-infra/toolbox/githubctl
+RUN go get -ldflags="-s -w" istio.io/test-infra/boskos/cmd/mason_client
 
 # Install k8s code generation tools
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
