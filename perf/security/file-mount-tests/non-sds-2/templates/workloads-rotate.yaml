@@ -82,7 +82,7 @@ spec:
             - /script/run.sh
             - /bin/sleep
             - infinity
-          image: gcr.io/mixologist-142215/hyperkube:v1.12.1
+          image: gcr.io/yinjie-istio-2/hyperkube:v1.12.1
           imagePullPolicy: IfNotPresent
           name: workload-rotate
           volumeMounts:
