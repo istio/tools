@@ -47,6 +47,7 @@ function run_test() {
   # shellcheck disable=SC2046
   helm -n "${NAMESPACE}" template \
       --set rbac.enabled="${RBAC_ENABLED}" \
+      --set namespace="${NAMESPACE}" \
       --set includeOutboundIPRanges=$(svc_ip_range) \
       --set client.inject="${ISTIO_INJECT}" \
       --set server.inject="${ISTIO_INJECT}"  \
