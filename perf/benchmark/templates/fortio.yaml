@@ -170,28 +170,6 @@ spec:
 {{ toYaml $.Values.appresources1 | indent 10 }}
 {{- end }}
 ---
-{{- if $.V.inject }}
-apiVersion: authentication.istio.io/v1alpha1
-kind: Policy
-metadata:
-  name: {{ $.name }}
-spec:
-  targets:
-  - name: {{ $.name }}
-  peers:
-  - mtls:
-      mode: PERMISSIVE
----
-apiVersion: networking.istio.io/v1alpha3
-kind: DestinationRule
-metadata:
-  name: {{ $.name }}
-spec:
-  host:  {{ $.name }}
-  trafficPolicy:
-    tls:
-      mode: {{ $.V.tlsmode }}
----
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
@@ -207,8 +185,6 @@ spec:
         host: {{ $.name }}
         port:
           number: 8080
----
-{{- end }}
 {{- end }}
 
 {{- $fortioserver := dict "name" "fortioserver" "Values" .Values "V" .Values.server}}

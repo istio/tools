@@ -1,0 +1,20 @@
+apiVersion: authentication.istio.io/v1alpha1
+kind: Policy
+metadata:
+  name: "default"
+  namespace: {{ $.Values.namespace }}
+spec:
+  peers:
+  - mtls:
+      mode: PERMISSIVE
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: fortioserver
+  namespace: {{ $.Values.namespace }}
+spec:
+  host:  fortioserver
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
