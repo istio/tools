@@ -127,7 +127,13 @@ function prerun_nomixer() {
 
 # Explicitly create meshpolicy to ensure the test is running as plaintext.
 function prerun_plaintext() {
-  echo "Applying meshpolicy with plaintext..."
+  echo "Saving current mTLS config first"
+  kubectl -n "${NAMESPACE}"  get dr -oyaml > "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
+  kubectl -n "${NAMESPACE}"  get policy -oyaml > "${LOCAL_OUTPUT_DIR}/authn-policy.yaml"
+  echo "Deleting Authn Policy and DestinationRule"
+  kubectl -n "${NAMESPACE}" delete dr --all
+  kubectl -n "${NAMESPACE}" delete policy --all
+  echo "Configure plaintext..."
   cat <<EOF | kubectl apply -f -
 apiVersion: "authentication.istio.io/v1alpha1"
 kind: "Policy"
@@ -136,6 +142,7 @@ metadata:
   namespace: "${NAMESPACE}"
 spec: {}
 EOF
+  # Explicitly disable mTLS by DestinationRule to avoid potential auto mTLS effect.
   cat <<EOF | kubectl apply -f -
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
@@ -151,8 +158,12 @@ EOF
 }
 
 function postrun_plaintext() {
+  echo "Delete the plaintext related config..."
   kubectl delete policy -n"${NAMESPACE}" default
   kubectl delete DestinationRule -n"${NAMESPACE}" plaintext-dr-twopods
+  echo "Restoring original Authn Policy and DestinationRule config..."
+  kubectl apply -f "${LOCAL_OUTPUT_DIR}/authn-policy.yaml"
+  kubectl apply -f "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
 }
 
 # install pipenv
