@@ -1,4 +1,10 @@
-FROM ubuntu:latest
+############################################################
+# Dockerfile to run a Django-based web application
+# Based on an Ubuntu Image
+############################################################
+
+# Set the base image to use to Ubuntu
+FROM ubuntu:bionic
 
 RUN apt-get update \
   && apt-get install -y python3-pip python3-dev \
@@ -6,14 +12,12 @@ RUN apt-get update \
   && ln -s /usr/bin/python3 python \
   && pip3 install --upgrade pip
 
-
 # The environment variable ensures that the python output is set straight
 # to the terminal without buffering it first
 ENV PYTHONUNBUFFERED 1
 
-# Nobody
-USER 65534
-
+# Set environment variable for current release
+ENV CUR_RELEASE=release-1.4
 # Create root directory for our project in the container
 RUN mkdir /perf_dashboard
 
@@ -25,3 +29,12 @@ COPY . /perf_dashboard/
 
 # Install any needed packages specified in requirements.txt
 RUN pip3 install -r requirements.txt
+
+# uWSGI will listen on this port
+EXPOSE 8000
+
+COPY ./docker-entrypoint.sh /
+
+RUN chmod u+x docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
