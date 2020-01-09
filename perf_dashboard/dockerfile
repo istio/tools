@@ -4,10 +4,7 @@
 ############################################################
 
 # Set the base image to use to Ubuntu
-FROM ubuntu:latest
-
-# Set the file maintainer
-MAINTAINER Carolyn Hu
+FROM ubuntu:bionic
 
 RUN apt-get update \
   && apt-get install -y python3-pip python3-dev \
