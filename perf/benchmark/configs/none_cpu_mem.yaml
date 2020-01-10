@@ -1,5 +1,5 @@
-# Configuration Set5: CPU and memory with telemetryv2 using NullVM.
-telemetry_mode: "v2-nullvm"
+# Configuration Set3: CPU and memory with mixer disabled
+telemetry_mode: "none"
 conn:
     - 16
 qps:

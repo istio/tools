@@ -1,5 +1,5 @@
 # Configuration Set3: CPU and memory with mixer disabled
-mixer_mode: "nomixer"
+telemetry_mode: "none"
 conn:
     - 16
 qps:

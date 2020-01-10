@@ -186,7 +186,7 @@ CONFIG_DIR="${WD}/configs"
 for f in "${CONFIG_DIR}"/*; do
     fn=$(basename "${f}")
     # pre run
-    if [[ "${fn}" =~ "nomixer" ]];then
+    if [[ "${fn}" =~ "none" ]];then
         prerun_nomixer
     elif [[ "${fn}" =~ "telemetryv2" ]];then
         prerun_v2_nullvm
