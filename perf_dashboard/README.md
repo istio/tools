@@ -1,6 +1,6 @@
 # Istio Performance Dashboard
 
-## How to run this application locally
+## How to run and develop this application locally
 
 - Install Docker on your local machine.
     - [MacOS](https://docs.docker.com/docker-for-mac/install/)
