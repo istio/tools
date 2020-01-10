@@ -89,8 +89,8 @@ def get_series(df, x_label, metric):
 
     # map CSV label regex --> cleaner labels for graph legend
     modes = [('^serveronly', 'serveronly'),
-             ("nomix.*_serveronly", "nomixer_serveronly"),
-             ("nomix.*_both", "nomixer_both"),
+             ("nomix.*_serveronly", "none_serveronly"),
+             ("nomix.*_both", "none_both"),
              ("base", "base"),
              (".*_ingress", "ingress"),
              # Make sure this set of data is last, because both type always have data to make sure rows are not empty.
@@ -114,7 +114,7 @@ def get_series(df, x_label, metric):
         vals.reverse()
         series[mode[1]] = vals
 
-    # only include test modes that were in the input CSV - (if nomixer not
+    # only include test modes that were in the input CSV - (if none not
     # included, don't attempt to plot it)
     useries = {}
     for k, v in series.items():

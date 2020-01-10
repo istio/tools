@@ -40,24 +40,24 @@ def latency(request):
     latency_mixer_base_p50 = get_latency_y_series(df, '_mixer_base', 'p50')
     latency_mixer_serveronly_p50 = get_latency_y_series(df, '_mixer_serveronly', 'p50')
     latency_mixer_both_p50 = get_latency_y_series(df, '_mixer_both', 'p50')
-    latency_nomixer_serveronly_p50 = get_latency_y_series(df, '_nomixer_serveronly', 'p50')
-    latency_nomixer_both_p50 = get_latency_y_series(df, '_nomixer_both', 'p50')
+    latency_none_serveronly_p50 = get_latency_y_series(df, '_none_serveronly', 'p50')
+    latency_none_both_p50 = get_latency_y_series(df, '_none_both', 'p50')
     latency_v2_serveronly_p50 = get_latency_y_series(df, 'nullvm_serveronly', 'p50')
     latency_v2_both_p50 = get_latency_y_series(df, 'nullvm_both', 'p50')
 
     latency_mixer_base_p90 = get_latency_y_series(df, '_mixer_base', 'p90')
     latency_mixer_serveronly_p90 = get_latency_y_series(df, '_mixer_serveronly', 'p90')
     latency_mixer_both_p90 = get_latency_y_series(df, '_mixer_both', 'p90')
-    latency_nomixer_serveronly_p90 = get_latency_y_series(df, '_nomixer_serveronly', 'p90')
-    latency_nomixer_both_p90 = get_latency_y_series(df, '_nomixer_both', 'p90')
+    latency_none_serveronly_p90 = get_latency_y_series(df, '_none_serveronly', 'p90')
+    latency_none_both_p90 = get_latency_y_series(df, '_none_both', 'p90')
     latency_v2_serveronly_p90 = get_latency_y_series(df, 'nullvm_serveronly', 'p90')
     latency_v2_both_p90 = get_latency_y_series(df, 'nullvm_both', 'p90')
 
     latency_mixer_base_p99 = get_latency_y_series(df, '_mixer_base', 'p99')
     latency_mixer_serveronly_p99 = get_latency_y_series(df, '_mixer_serveronly', 'p99')
     latency_mixer_both_p99 = get_latency_y_series(df, '_mixer_both', 'p99')
-    latency_nomixer_serveronly_p99 = get_latency_y_series(df, '_nomixer_serveronly', 'p99')
-    latency_nomixer_both_p99 = get_latency_y_series(df, '_nomixer_both', 'p99')
+    latency_none_serveronly_p99 = get_latency_y_series(df, '_none_serveronly', 'p99')
+    latency_none_both_p99 = get_latency_y_series(df, '_none_both', 'p99')
     latency_v2_serveronly_p99 = get_latency_y_series(df, 'nullvm_serveronly', 'p99')
     latency_v2_both_p99 = get_latency_y_series(df, 'nullvm_both', 'p99')
 
@@ -75,24 +75,24 @@ def latency(request):
     latency_mixer_base_p50_master = get_latency_y_series(df, '_mixer_base', 'p50')
     latency_mixer_serveronly_p50_master = get_latency_y_series(df, '_mixer_serveronly', 'p50')
     latency_mixer_both_p50_master = get_latency_y_series(df, '_mixer_both', 'p50')
-    latency_nomixer_serveronly_p50_master = get_latency_y_series(df, '_nomixer_serveronly', 'p50')
-    latency_nomixer_both_p50_master = get_latency_y_series(df, '_nomixer_both', 'p50')
+    latency_none_serveronly_p50_master = get_latency_y_series(df, '_none_serveronly', 'p50')
+    latency_none_both_p50_master = get_latency_y_series(df, '_none_both', 'p50')
     latency_v2_serveronly_p50_master = get_latency_y_series(df, 'nullvm_serveronly', 'p50')
     latency_v2_both_p50_master = get_latency_y_series(df, 'nullvm_both', 'p50')
 
     latency_mixer_base_p90_master = get_latency_y_series(df, '_mixer_base', 'p90')
     latency_mixer_serveronly_p90_master = get_latency_y_series(df, '_mixer_serveronly', 'p90')
     latency_mixer_both_p90_master = get_latency_y_series(df, '_mixer_both', 'p90')
-    latency_nomixer_serveronly_p90_master = get_latency_y_series(df, '_nomixer_serveronly', 'p90')
-    latency_nomixer_both_p90_master = get_latency_y_series(df, '_nomixer_both', 'p90')
+    latency_none_serveronly_p90_master = get_latency_y_series(df, '_none_serveronly', 'p90')
+    latency_none_both_p90_master = get_latency_y_series(df, '_none_both', 'p90')
     latency_v2_serveronly_p90_master = get_latency_y_series(df, 'nullvm_serveronly', 'p90')
     latency_v2_both_p90_master = get_latency_y_series(df, 'nullvm_both', 'p90')
 
     latency_mixer_base_p99_master = get_latency_y_series(df, '_mixer_base', 'p99')
     latency_mixer_serveronly_p99_master = get_latency_y_series(df, '_mixer_serveronly', 'p99')
     latency_mixer_both_p99_master = get_latency_y_series(df, '_mixer_both', 'p99')
-    latency_nomixer_serveronly_p99_master = get_latency_y_series(df, '_nomixer_serveronly', 'p99')
-    latency_nomixer_both_p99_master = get_latency_y_series(df, '_nomixer_both', 'p99')
+    latency_none_serveronly_p99_master = get_latency_y_series(df, '_none_serveronly', 'p99')
+    latency_none_both_p99_master = get_latency_y_series(df, '_none_both', 'p99')
     latency_v2_serveronly_p99_master = get_latency_y_series(df, 'nullvm_serveronly', 'p99')
     latency_v2_both_p99_master = get_latency_y_series(df, 'nullvm_both', 'p99')
 
@@ -103,43 +103,43 @@ def latency(request):
                'latency_mixer_base_p50': latency_mixer_base_p50,
                'latency_mixer_serveronly_p50': latency_mixer_serveronly_p50,
                'latency_mixer_both_p50': latency_mixer_both_p50,
-               'latency_nomixer_serveronly_p50': latency_nomixer_serveronly_p50,
-               'latency_nomixer_both_p50': latency_nomixer_both_p50,
+               'latency_none_serveronly_p50': latency_none_serveronly_p50,
+               'latency_none_both_p50': latency_none_both_p50,
                'latency_v2_serveronly_p50': latency_v2_serveronly_p50,
                'latency_v2_both_p50': latency_v2_both_p50,
                'latency_mixer_base_p90': latency_mixer_base_p90,
                'latency_mixer_serveronly_p90': latency_mixer_serveronly_p90,
                'latency_mixer_both_p90': latency_mixer_both_p90,
-               'latency_nomixer_serveronly_p90': latency_nomixer_serveronly_p90,
-               'latency_nomixer_both_p90': latency_nomixer_both_p90,
+               'latency_none_serveronly_p90': latency_none_serveronly_p90,
+               'latency_none_both_p90': latency_none_both_p90,
                'latency_v2_serveronly_p90': latency_v2_serveronly_p90,
                'latency_v2_both_p90': latency_v2_both_p90,
                'latency_mixer_base_p99': latency_mixer_base_p99,
                'latency_mixer_serveronly_p99': latency_mixer_serveronly_p99,
                'latency_mixer_both_p99': latency_mixer_both_p99,
-               'latency_nomixer_serveronly_p99': latency_nomixer_serveronly_p99,
-               'latency_nomixer_both_p99': latency_nomixer_both_p99,
+               'latency_none_serveronly_p99': latency_none_serveronly_p99,
+               'latency_none_both_p99': latency_none_both_p99,
                'latency_v2_serveronly_p99': latency_v2_serveronly_p99,
                'latency_v2_both_p99': latency_v2_both_p99,
                'latency_mixer_base_p50_master': latency_mixer_base_p50_master,
                'latency_mixer_serveronly_p50_master': latency_mixer_serveronly_p50_master,
                'latency_mixer_both_p50_master': latency_mixer_both_p50_master,
-               'latency_nomixer_serveronly_p50_master': latency_nomixer_serveronly_p50_master,
-               'latency_nomixer_both_p50_master': latency_nomixer_both_p50_master,
+               'latency_none_serveronly_p50_master': latency_none_serveronly_p50_master,
+               'latency_none_both_p50_master': latency_none_both_p50_master,
                'latency_v2_serveronly_p50_master': latency_v2_serveronly_p50_master,
                'latency_v2_both_p50_master': latency_v2_both_p50_master,
                'latency_mixer_base_p90_master': latency_mixer_base_p90_master,
                'latency_mixer_serveronly_p90_master': latency_mixer_serveronly_p90_master,
                'latency_mixer_both_p90_master': latency_mixer_both_p90_master,
-               'latency_nomixer_serveronly_p90_master': latency_nomixer_serveronly_p90_master,
-               'latency_nomixer_both_p90_master': latency_nomixer_both_p90_master,
+               'latency_none_serveronly_p90_master': latency_none_serveronly_p90_master,
+               'latency_none_both_p90_master': latency_none_both_p90_master,
                'latency_v2_serveronly_p90_master': latency_v2_serveronly_p90_master,
                'latency_v2_both_p90_master': latency_v2_both_p90_master,
                'latency_mixer_base_p99_master': latency_mixer_base_p99_master,
                'latency_mixer_serveronly_p99_master': latency_mixer_serveronly_p99_master,
                'latency_mixer_both_p99_master': latency_mixer_both_p99_master,
-               'latency_nomixer_serveronly_p99_master': latency_nomixer_serveronly_p99_master,
-               'latency_nomixer_both_p99_master': latency_nomixer_both_p99_master,
+               'latency_none_serveronly_p99_master': latency_none_serveronly_p99_master,
+               'latency_none_both_p99_master': latency_none_both_p99_master,
                'latency_v2_serveronly_p99_master': latency_v2_serveronly_p99_master,
                'latency_v2_both_p99_master': latency_v2_both_p99_master,
                }
@@ -162,16 +162,16 @@ def cpu_memory(request):
     cpu_mixer_base = get_cpu_y_series(df, '_mixer_base')
     cpu_mixer_serveronly = get_cpu_y_series(df, '_mixer_serveronly')
     cpu_mixer_both = get_cpu_y_series(df, '_mixer_both')
-    cpu_nomixer_serveronly = get_cpu_y_series(df, '_nomixer_serveronly')
-    cpu_nomixer_both = get_cpu_y_series(df, '_nomixer_both')
+    cpu_none_serveronly = get_cpu_y_series(df, '_none_serveronly')
+    cpu_none_both = get_cpu_y_series(df, '_none_both')
     cpu_v2_serveronly = get_cpu_y_series(df, 'nullvm_serveronly')
     cpu_v2_both = get_cpu_y_series(df, 'nullvm_both')
 
     mem_mixer_base = get_mem_y_series(df, '_mixer_base')
     mem_mixer_serveronly = get_mem_y_series(df, '_mixer_serveronly')
     mem_mixer_both = get_mem_y_series(df, '_mixer_both')
-    mem_nomixer_serveronly = get_mem_y_series(df, '_nomixer_serveronly')
-    mem_nomixer_both = get_mem_y_series(df, '_nomixer_both')
+    mem_none_serveronly = get_mem_y_series(df, '_none_serveronly')
+    mem_none_both = get_mem_y_series(df, '_none_both')
     mem_v2_serveronly = get_mem_y_series(df, 'nullvm_serveronly')
     mem_v2_both = get_mem_y_series(df, 'nullvm_both')
 
@@ -189,16 +189,16 @@ def cpu_memory(request):
     cpu_mixer_base_master = get_cpu_y_series(df, '_mixer_base')
     cpu_mixer_serveronly_master = get_cpu_y_series(df, '_mixer_serveronly')
     cpu_mixer_both_master = get_cpu_y_series(df, '_mixer_both')
-    cpu_nomixer_serveronly_master = get_cpu_y_series(df, '_nomixer_serveronly')
-    cpu_nomixer_both_master = get_cpu_y_series(df, '_nomixer_both')
+    cpu_none_serveronly_master = get_cpu_y_series(df, '_none_serveronly')
+    cpu_none_both_master = get_cpu_y_series(df, '_none_both')
     cpu_v2_serveronly_master = get_cpu_y_series(df, 'nullvm_serveronly')
     cpu_v2_both_master = get_cpu_y_series(df, 'nullvm_both')
 
     mem_mixer_base_master = get_mem_y_series(df, '_mixer_base')
     mem_mixer_serveronly_master = get_mem_y_series(df, '_mixer_serveronly')
     mem_mixer_both_master = get_mem_y_series(df, '_mixer_both')
-    mem_nomixer_serveronly_master = get_mem_y_series(df, '_nomixer_serveronly')
-    mem_nomixer_both_master = get_mem_y_series(df, '_nomixer_both')
+    mem_none_serveronly_master = get_mem_y_series(df, '_none_serveronly')
+    mem_none_both_master = get_mem_y_series(df, '_none_both')
     mem_v2_serveronly_master = get_mem_y_series(df, 'nullvm_serveronly')
     mem_v2_both_master = get_mem_y_series(df, 'nullvm_both')
 
@@ -209,29 +209,29 @@ def cpu_memory(request):
                'cpu_mixer_base': cpu_mixer_base,
                'cpu_mixer_serveronly': cpu_mixer_serveronly,
                'cpu_mixer_both': cpu_mixer_both,
-               'cpu_nomixer_serveronly': cpu_nomixer_serveronly,
-               'cpu_nomixer_both': cpu_nomixer_both,
+               'cpu_none_serveronly': cpu_none_serveronly,
+               'cpu_none_both': cpu_none_both,
                'cpu_v2_serveronly': cpu_v2_serveronly,
                'cpu_v2_both': cpu_v2_both,
                'cpu_mixer_base_master': cpu_mixer_base_master,
                'cpu_mixer_serveronly_master': cpu_mixer_serveronly_master,
                'cpu_mixer_both_master': cpu_mixer_both_master,
-               'cpu_nomixer_serveronly_master': cpu_nomixer_serveronly_master,
-               'cpu_nomixer_both_master': cpu_nomixer_both_master,
+               'cpu_none_serveronly_master': cpu_none_serveronly_master,
+               'cpu_none_both_master': cpu_none_both_master,
                'cpu_v2_serveronly_master': cpu_v2_serveronly_master,
                'cpu_v2_both_master': cpu_v2_both_master,
                'mem_mixer_base': mem_mixer_base,
                'mem_mixer_serveronly': mem_mixer_serveronly,
                'mem_mixer_both': mem_mixer_both,
-               'mem_nomixer_serveronly': mem_nomixer_serveronly,
-               'mem_nomixer_both': mem_nomixer_both,
+               'mem_none_serveronly': mem_none_serveronly,
+               'mem_none_both': mem_none_both,
                'mem_v2_serveronly': mem_v2_serveronly,
                'mem_v2_both': mem_v2_both,
                'mem_mixer_base_master': mem_mixer_base_master,
                'mem_mixer_serveronly_master': mem_mixer_serveronly_master,
                'mem_mixer_both_master': mem_mixer_both_master,
-               'mem_nomixer_serveronly_master': mem_nomixer_serveronly_master,
-               'mem_nomixer_both_master': mem_nomixer_both_master,
+               'mem_none_serveronly_master': mem_none_serveronly_master,
+               'mem_none_both_master': mem_none_both_master,
                'mem_v2_serveronly_master': mem_v2_serveronly_master,
                'mem_v2_both_master': mem_v2_both_master,
                }
