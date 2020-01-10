@@ -106,23 +106,6 @@ Required fields to specified via CLI or config file:
 
 ```bash
 optional arguments:
-<<<<<<< HEAD
-  -h, --help          show this help message and exit
-  --size SIZE         size of the payload, default is 1024
-  --mesh MESH         istio or linkerd, default is istio
-  --client CLIENT     where to run the test from
-  --server SERVER     pod ip of the server
-  --mixer_mode mixer/nomixer/telemetryv2-nullvm  run with mixer enabled(default), mixer disabled and mixer v2
-  --perf              also run perf and produce flame graph, default is false
-  --baseline          run baseline for all
-  --no_baseline       do not run baseline for all
-  --serversidecar     run serversidecar-only for all
-  --no_serversidecar  do not run serversidecar-only for all
-  --clientsidecar     run clientsidecar and serversidecar for all, this is corresponding to the "both" mode, which will be executed by default
-  --no_clientsidecar  do not run clientsidecar and serversidecar for all
-  --ingress INGRESS   run traffic through ingress
-  --extra_labels      add extra labels
-=======
   -h, --help            show this help message and exit
   --conn CONN           number of connections, comma separated list
   --qps QPS             qps, comma separated list
