@@ -44,16 +44,16 @@ new Chart(document.getElementById('latency-p50-release'), {
                 data: latency_mixer_both_p50,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: latency_nomixer_serveronly_p50,
+                data: latency_none_serveronly_p50,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: latency_nomixer_both_p50,
+                data: latency_none_both_p50,
                 fill: false
             }, {
                 label: "v2-serveronly",
@@ -97,16 +97,16 @@ new Chart(document.getElementById('latency-p90-release'), {
                 data: latency_mixer_both_p90,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: latency_nomixer_serveronly_p90,
+                data: latency_none_serveronly_p90,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: latency_nomixer_both_p90,
+                data: latency_none_both_p90,
                 fill: false
             }, {
                 label: "v2-serveronly",
@@ -150,16 +150,16 @@ new Chart(document.getElementById('latency-p99-release'), {
                 data: latency_mixer_both_p99,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: latency_nomixer_serveronly_p99,
+                data: latency_none_serveronly_p99,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: latency_nomixer_both_p99,
+                data: latency_none_both_p99,
                 fill: false
             }, {
                 label: "v2-serveronly",
@@ -203,16 +203,16 @@ new Chart(document.getElementById('latency-p50-master'), {
                 data: latency_mixer_both_p50_master,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: latency_nomixer_serveronly_p50_master,
+                data: latency_none_serveronly_p50_master,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: latency_nomixer_both_p50_master,
+                data: latency_none_both_p50_master,
                 fill: false
             }, {
                 label: "v2-serveronly",
@@ -256,16 +256,16 @@ new Chart(document.getElementById('latency-p90-master'), {
                 data: latency_mixer_both_p90_master,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: latency_nomixer_serveronly_p90_master,
+                data: latency_none_serveronly_p90_master,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: latency_nomixer_both_p90_master,
+                data: latency_none_both_p90_master,
                 fill: false
             }, {
                 label: "v2-serveronly",
@@ -309,16 +309,16 @@ new Chart(document.getElementById('latency-p99-master'), {
                 data: latency_mixer_both_p99_master,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: latency_nomixer_serveronly_p99_master,
+                data: latency_none_serveronly_p99_master,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: latency_nomixer_both_p99_master,
+                data: latency_none_both_p99_master,
                 fill: false
             }, {
                 label: "v2-serveronly",

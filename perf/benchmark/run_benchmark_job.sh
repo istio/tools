@@ -120,7 +120,7 @@ function prerun_v2_nullvm() {
   kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/"${GIT_BRANCH}"/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
 }
 
-function prerun_nomixer() {
+function prerun_none() {
   kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
   pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
 }
@@ -227,7 +227,7 @@ for f in "${CONFIG_DIR}"/*; do
     fn=$(basename "${f}")
     # pre run
     if [[ "${fn}" =~ "none" ]];then
-        prerun_nomixer
+        prerun_none
     elif [[ "${fn}" =~ "telemetryv2" ]];then
         prerun_v2_nullvm
     elif [[ "${fn}" =~ "plaintext" ]]; then

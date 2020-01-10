@@ -62,7 +62,7 @@ window.generateChart = function(chartID, modesData) {
       {
         type: "line",
         showInLegend: true,
-        name: "nomixer_serveronly-baseline",
+        name: "none_serveronly-baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
         color: "rgba(52, 168, 85, 1)",
@@ -71,7 +71,7 @@ window.generateChart = function(chartID, modesData) {
       {
         type: "line",
         showInLegend: true,
-        name: "nomixer_both-baseline",
+        name: "none_both-baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
         color: "rgba(0, 0, 0, 1)",

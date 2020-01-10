@@ -45,16 +45,16 @@ new Chart(document.getElementById('latency-config-demo'), {
                 data: latency_mixer_both_p90_master,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: latency_nomixer_serveronly_p90_master,
+                data: latency_none_serveronly_p90_master,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: latency_nomixer_both_p90_master,
+                data: latency_none_both_p90_master,
                 fill: false
             }, {
                 label: "v2-serveronly",

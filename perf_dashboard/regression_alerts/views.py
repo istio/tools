@@ -29,31 +29,31 @@ def cur_alert(request):
     cur_pattern_mixer_base_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_base', 'p90')
     cur_pattern_mixer_serveronly_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_serveronly', 'p90')
     cur_pattern_mixer_both_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_both', 'p90')
-    cur_pattern_nomixer_serveronly_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_serveronly', 'p90')
-    cur_pattern_nomixer_both_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_both', 'p90')
+    cur_pattern_none_serveronly_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_none_serveronly', 'p90')
+    cur_pattern_none_both_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_none_both', 'p90')
     cur_pattern_v2_serveronly_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly', 'p90')
     cur_pattern_v2_both_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both', 'p90')
 
     cur_pattern_mixer_base_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_base', 'p99')
     cur_pattern_mixer_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_serveronly', 'p99')
     cur_pattern_mixer_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_both', 'p99')
-    cur_pattern_nomixer_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_serveronly', 'p99')
-    cur_pattern_nomixer_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_nomixer_both', 'p99')
+    cur_pattern_none_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_none_serveronly', 'p99')
+    cur_pattern_none_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_none_both', 'p99')
     cur_pattern_v2_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly', 'p99')
     cur_pattern_v2_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both', 'p99')
 
     context = {'cur_pattern_mixer_base_p90': cur_pattern_mixer_base_p90,
                'cur_pattern_mixer_serveronly_p90': cur_pattern_mixer_serveronly_p90,
                'cur_pattern_mixer_both_p90': cur_pattern_mixer_both_p90,
-               'cur_pattern_nomixer_serveronly_p90': cur_pattern_nomixer_serveronly_p90,
-               'cur_pattern_nomixer_both_p90': cur_pattern_nomixer_both_p90,
+               'cur_pattern_none_serveronly_p90': cur_pattern_none_serveronly_p90,
+               'cur_pattern_none_both_p90': cur_pattern_none_both_p90,
                'cur_pattern_v2_serveronly_p90': cur_pattern_v2_serveronly_p90,
                'cur_pattern_v2_both_p90': cur_pattern_v2_both_p90,
                'cur_pattern_mixer_base_p99': cur_pattern_mixer_base_p99,
                'cur_pattern_mixer_serveronly_p99': cur_pattern_mixer_serveronly_p99,
                'cur_pattern_mixer_both_p99': cur_pattern_mixer_both_p99,
-               'cur_pattern_nomixer_serveronly_p99': cur_pattern_nomixer_serveronly_p99,
-               'cur_pattern_nomixer_both_p99': cur_pattern_nomixer_both_p99,
+               'cur_pattern_none_serveronly_p99': cur_pattern_none_serveronly_p99,
+               'cur_pattern_none_both_p99': cur_pattern_none_both_p99,
                'cur_pattern_v2_serveronly_p99': cur_pattern_v2_serveronly_p99,
                'cur_pattern_v2_both_p99': cur_pattern_v2_both_p99
                }
@@ -67,31 +67,31 @@ def master_alert(request):
     master_pattern_mixer_base_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_base', 'p90')
     master_pattern_mixer_serveronly_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_serveronly', 'p90')
     master_pattern_mixer_both_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_both', 'p90')
-    master_pattern_nomixer_serveronly_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_serveronly', 'p90')
-    master_pattern_nomixer_both_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_both', 'p90')
+    master_pattern_none_serveronly_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_none_serveronly', 'p90')
+    master_pattern_none_both_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_none_both', 'p90')
     master_pattern_v2_serveronly_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_serveronly', 'p90')
     master_pattern_v2_both_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_both', 'p90')
 
     master_pattern_mixer_base_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_base', 'p99')
     master_pattern_mixer_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_serveronly', 'p99')
     master_pattern_mixer_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_both', 'p99')
-    master_pattern_nomixer_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_serveronly', 'p99')
-    master_pattern_nomixer_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_nomixer_both', 'p99')
+    master_pattern_none_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_none_serveronly', 'p99')
+    master_pattern_none_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_none_both', 'p99')
     master_pattern_v2_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_serveronly', 'p99')
     master_pattern_v2_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_both', 'p99')
 
     context = {'master_pattern_mixer_base_p90': master_pattern_mixer_base_p90,
                'master_pattern_mixer_serveronly_p90': master_pattern_mixer_serveronly_p90,
                'master_pattern_mixer_both_p90': master_pattern_mixer_both_p90,
-               'master_pattern_nomixer_serveronly_p90': master_pattern_nomixer_serveronly_p90,
-               'master_pattern_nomixer_both_p90': master_pattern_nomixer_both_p90,
+               'master_pattern_none_serveronly_p90': master_pattern_none_serveronly_p90,
+               'master_pattern_none_both_p90': master_pattern_none_both_p90,
                'master_pattern_v2_serveronly_p90': master_pattern_v2_serveronly_p90,
                'master_pattern_v2_both_p90': master_pattern_v2_both_p90,
                'master_pattern_mixer_base_p99': master_pattern_mixer_base_p99,
                'master_pattern_mixer_serveronly_p99': master_pattern_mixer_serveronly_p99,
                'master_pattern_mixer_both_p99': master_pattern_mixer_both_p99,
-               'master_pattern_nomixer_serveronly_p99': master_pattern_nomixer_serveronly_p99,
-               'master_pattern_nomixer_both_p99': master_pattern_nomixer_both_p99,
+               'master_pattern_none_serveronly_p99': master_pattern_none_serveronly_p99,
+               'master_pattern_none_both_p99': master_pattern_none_both_p99,
                'master_pattern_v2_serveronly_p99': master_pattern_v2_serveronly_p99,
                'master_pattern_v2_both_p99': master_pattern_v2_both_p99
                }

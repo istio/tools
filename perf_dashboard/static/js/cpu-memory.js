@@ -59,16 +59,16 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 data: cpu_mixer_both,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: cpu_nomixer_serveronly,
+                data: cpu_none_serveronly,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: cpu_nomixer_both,
+                data: cpu_none_both,
                 fill: false
             }, {
                 label: "v2-serveronly",
@@ -112,16 +112,16 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 data: cpu_mixer_both_master,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: cpu_nomixer_serveronly_master,
+                data: cpu_none_serveronly_master,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: cpu_nomixer_both_master,
+                data: cpu_none_both_master,
                 fill: false
             }, {
                 label: "v2-serveronly",
@@ -165,16 +165,16 @@ new Chart(document.getElementById("mem-qps-release"), {
                 data: mem_mixer_both,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: mem_nomixer_serveronly,
+                data: mem_none_serveronly,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: mem_nomixer_both,
+                data: mem_none_both,
                 fill: false
             }, {
                 label: "v2-serveronly",
@@ -218,16 +218,16 @@ new Chart(document.getElementById("mem-qps-master"), {
                 data: mem_mixer_both_master,
                 fill: false
             }, {
-                label: "nomixer-serveronly",
+                label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
-                data: mem_nomixer_serveronly_master,
+                data: mem_none_serveronly_master,
                 fill: false
             }, {
-                label: "nomixer-both",
+                label: "none-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
-                data: mem_nomixer_both_master,
+                data: mem_none_both_master,
                 fill: false
             }, {
                 label: "v2-serveronly",
