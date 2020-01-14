@@ -356,7 +356,7 @@ def cpu_memory(request):
                'mem_v2_serveronly_master': mem_v2_serveronly_master,
                'mem_v2_both_master': mem_v2_both_master,
                }
-    return render(request, "cpu-memory.html", context=context)
+    return render(request, "cpu_memory.html", context=context)
 
 
 def flame_graph(request):
