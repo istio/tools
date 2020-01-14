@@ -26,7 +26,7 @@ window.generateChart = function(chartID, modesData) {
       }
     },
     axisY: {
-      title: "p90 Latency Pattern in milliseconds",
+      title: "Latency Pattern (milliseconds)",
       crosshair: {
         enabled: true
       }
