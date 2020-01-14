@@ -15,11 +15,17 @@
 
 def find_outliers(pattern_data):
     perf_val = []
+    """
+    Example of an array in pattern_data: ['2019', '12', '23', 4.478, '20191223', 'release-1.4.20191223-16.da6d4af0a2e1c3207edfd97f09d07a638c59e89a']
+    """
     for data in pattern_data:
-        if data[3] != 'null':
-            perf_val.append((data[3], data[4], data[5]))
+        perf_num = data[3]
+        if perf_num != 'null':
+            release_date = data[4]
+            release_name = data[5]
+            perf_val.append((perf_num, release_date, release_name))
 
-    perf_val.sort(key=lambda x: x[0])
+    perf_val.sort(key=lambda x: x[0])   # sort by perf_number
     lower_inner_fence, upper_inner_fence, lower_outer_fence, upper_outer_fence = calculate_fences(perf_val)
     mild_outliers = []
     extreme_outliers = []
@@ -64,16 +70,23 @@ def cacluate_interquartile_range(perf_val):
 
 
 def format_outliers(outliers, mixer_mode):
+    """
+    outliers is a tuple of array, a tuple example:
+    (2.634, '20200105', 'release-1.4.20200105-16.c6691c61f845791e58ab42ede6cd836da93aa63a')
+    """
     formatted_outlier = [[]] * len(outliers)
     if len(outliers) > 0:
         istio_git_commit_url = "https://github.com/istio/istio/commit/"
         for i in range(len(outliers)):
             formatted_outlier[i] = [0] * 4
-            formatted_outlier[i][0] = outliers[i][1]
+            perf_num = outliers[i][1]
+            formatted_outlier[i][0] = perf_num
+            release_name = outliers[i][2]
+            commit_sha = outliers[i][2].split('-')[1].split('.')[1]
             if outliers[i][2].startswith('master'):
-                formatted_outlier[i][1] = istio_git_commit_url + outliers[i][2].split('-')[1].split('.')[1]
+                formatted_outlier[i][1] = istio_git_commit_url + commit_sha
             else:
-                formatted_outlier[i][1] = istio_git_commit_url + outliers[i][2].split('-')[2].split('.')[1]
-            formatted_outlier[i][2] = outliers[i][2]
-            formatted_outlier[i][3] = (mixer_mode, outliers[i][0])
+                formatted_outlier[i][1] = istio_git_commit_url + commit_sha
+            formatted_outlier[i][2] = release_name
+            formatted_outlier[i][3] = (mixer_mode, perf_num)
     return formatted_outlier

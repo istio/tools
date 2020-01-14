@@ -77,18 +77,24 @@ def download_benchmark_csv(days):
 
     delete_outdated_files(cur_release_names + master_release_names)
     cur_release_dates = [[]] * len(cur_release_names)
+    """
+    The following section is to parse the cur_release_name (e.g. 'release-1.4.20200109-16.929d965ee418ae5146da39194475e24c3c4656e0')
+    , and master_release_name (e.g. 'master.20200113-00.2e3abf0')
+    In order to get an array of array named 'cur_release_dates' and 'master_release_dates'
+    Each array in the dates matrix looks like: [ year, month, day, YY/MM/DD"]
+    ['2020', '01', '13', '20200113']
+    """
     for i in range(len(cur_release_names)):
         cur_release = cur_release_names[i]
         sub_str = cur_release[len(current_release) + 1:].split("-")[0]
-        cur_release_dates[i] = [0] * 4
-        cur_release_dates[i] = [sub_str[0:4], sub_str[4:6], sub_str[6:8], sub_str]
+        cur_release_dates[i] = generate_date_array(sub_str)
 
     master_release_dates = [[]] * len(master_release_names)
     for i in range(len(master_release_names)):
         master_release = master_release_names[i]
         sub_str = master_release[len("master") + 1:].split("-")[0]
-        master_release_dates[i] = [0] * 4
-        master_release_dates[i] = [sub_str[0:4], sub_str[4:6], sub_str[6:8], sub_str]
+        master_release_dates[i] = generate_date_array(sub_str)
+
     return cur_release_names, cur_release_dates, master_release_names, master_release_dates
 
 
@@ -106,3 +112,10 @@ def check_exist(filename):
         if f == filename:
             return True
     return False
+
+
+def generate_date_array(date_str):
+    year = date_str[0:4]
+    month = date_str[4:6]
+    date = date_str[6:8]
+    return [year, month, date, date_str]

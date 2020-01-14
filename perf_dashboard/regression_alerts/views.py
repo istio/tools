@@ -166,4 +166,8 @@ def get_mixer_mode_y_series(release_names, release_dates, mixer_mode, quantiles)
         else:
             pattern_data[i] = release_dates[i][:3] + get_latency_y_data_point(df, mixer_mode, quantiles) + \
                 [release_dates[i][3]] + [release_names[i]]
+    """
+    The patten_data we get here is an array of array, each element is in the following format:
+    ['2019', '12', '23', 4.478, '20191223', 'release-1.4.20191223-16.da6d4af0a2e1c3207edfd97f09d07a638c59e89a']
+    """
     return pattern_data
