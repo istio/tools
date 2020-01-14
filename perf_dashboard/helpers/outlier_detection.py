@@ -82,11 +82,12 @@ def format_outliers(outliers, mixer_mode):
             perf_num = outliers[i][1]
             formatted_outlier[i][0] = perf_num
             release_name = outliers[i][2]
-            commit_sha = outliers[i][2].split('-')[1].split('.')[1]
             if outliers[i][2].startswith('master'):
-                formatted_outlier[i][1] = istio_git_commit_url + commit_sha
+                master_commit_sha = outliers[i][2].split('-')[1].split('.')[1]
+                formatted_outlier[i][1] = istio_git_commit_url + master_commit_sha
             else:
-                formatted_outlier[i][1] = istio_git_commit_url + commit_sha
+                cur_commit_sha = outliers[i][2].split('-')[2].split('.')[1]
+                formatted_outlier[i][1] = istio_git_commit_url + cur_commit_sha
             formatted_outlier[i][2] = release_name
             formatted_outlier[i][3] = (mixer_mode, perf_num)
     return formatted_outlier
