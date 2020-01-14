@@ -14,6 +14,7 @@
 
 from django.shortcuts import render
 from helpers import download
+from helpers import outlier_detection as od
 import pandas as pd
 import os
 
@@ -34,6 +35,17 @@ def cur_alert(request):
     cur_pattern_v2_serveronly_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly', 'p90')
     cur_pattern_v2_both_p90 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both', 'p90')
 
+    outliers_cur_mixer_serveronly_p90 = od.format_outliers(od.find_outliers(cur_pattern_mixer_serveronly_p90), 'mixer_serveronly')
+    outliers_cur_mixer_both_p90 = od.format_outliers(od.find_outliers(cur_pattern_mixer_both_p90), 'mixer_both')
+    outliers_cur_none_serveronly_p90 = od.format_outliers(od.find_outliers(cur_pattern_none_serveronly_p90), 'none_serveronly')
+    outliers_cur_none_both_p90 = od.format_outliers(od.find_outliers(cur_pattern_none_both_p90), 'none_both')
+    outliers_cur_v2_serveronly_p90 = od.format_outliers(od.find_outliers(cur_pattern_v2_serveronly_p90), 'v2_serveronly')
+    outliers_cur_v2_both_p90 = od.format_outliers(od.find_outliers(cur_pattern_v2_both_p90), 'v2_both')
+
+    outliers_cur_p90 = outliers_cur_mixer_serveronly_p90 + outliers_cur_mixer_both_p90 + \
+        outliers_cur_none_serveronly_p90 + outliers_cur_none_both_p90 + \
+        outliers_cur_v2_serveronly_p90 + outliers_cur_v2_both_p90
+
     cur_pattern_mixer_base_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_base', 'p99')
     cur_pattern_mixer_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_serveronly', 'p99')
     cur_pattern_mixer_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, '_mixer_both', 'p99')
@@ -42,7 +54,19 @@ def cur_alert(request):
     cur_pattern_v2_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly', 'p99')
     cur_pattern_v2_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both', 'p99')
 
-    context = {'cur_pattern_mixer_base_p90': cur_pattern_mixer_base_p90,
+    outliers_cur_mixer_serveronly_p99 = od.format_outliers(od.find_outliers(cur_pattern_mixer_serveronly_p99), 'mixer_serveronly')
+    outliers_cur_mixer_both_p99 = od.format_outliers(od.find_outliers(cur_pattern_mixer_both_p99), 'mixer_both')
+    outliers_cur_none_serveronly_p99 = od.format_outliers(od.find_outliers(cur_pattern_none_serveronly_p99), 'none_serveronly')
+    outliers_cur_none_both_p99 = od.format_outliers(od.find_outliers(cur_pattern_none_both_p99), 'none_both')
+    outliers_cur_v2_serveronly_p99 = od.format_outliers(od.find_outliers(cur_pattern_v2_serveronly_p99), 'v2_serveronly')
+    outliers_cur_v2_both_p99 = od.format_outliers(od.find_outliers(cur_pattern_v2_both_p99), 'v2_both')
+    outliers_cur_p99 = outliers_cur_mixer_serveronly_p99 + outliers_cur_mixer_both_p99 + \
+        outliers_cur_none_serveronly_p99 + outliers_cur_none_both_p99 + \
+        outliers_cur_v2_serveronly_p99 + outliers_cur_v2_both_p99
+
+    context = {'outliers_cur_p90':  outliers_cur_p90,
+               'outliers_cur_p99': outliers_cur_p99,
+               'cur_pattern_mixer_base_p90': cur_pattern_mixer_base_p90,
                'cur_pattern_mixer_serveronly_p90': cur_pattern_mixer_serveronly_p90,
                'cur_pattern_mixer_both_p90': cur_pattern_mixer_both_p90,
                'cur_pattern_none_serveronly_p90': cur_pattern_none_serveronly_p90,
@@ -72,6 +96,16 @@ def master_alert(request):
     master_pattern_v2_serveronly_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_serveronly', 'p90')
     master_pattern_v2_both_p90 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_both', 'p90')
 
+    outliers_master_mixer_serveronly_p90 = od.format_outliers(od.find_outliers(master_pattern_mixer_serveronly_p90), 'mixer_serveronly')
+    outliers_master_mixer_both_p90 = od.format_outliers(od.find_outliers(master_pattern_mixer_both_p90), 'mixer_both')
+    outliers_master_none_serveronly_p90 = od.format_outliers(od.find_outliers(master_pattern_none_serveronly_p90), 'none_serveronly')
+    outliers_master_none_both_p90 = od.format_outliers(od.find_outliers(master_pattern_none_both_p90), 'none_both')
+    outliers_master_v2_serveronly_p90 = od.format_outliers(od.find_outliers(master_pattern_v2_serveronly_p90), 'v2_serveronly')
+    outliers_master_v2_both_p90 = od.format_outliers(od.find_outliers(master_pattern_v2_both_p90), 'v2_both')
+    outliers_master_p90 = outliers_master_mixer_serveronly_p90 + outliers_master_mixer_both_p90 + \
+        outliers_master_none_serveronly_p90 + outliers_master_none_both_p90 + \
+        outliers_master_v2_serveronly_p90 + outliers_master_v2_both_p90
+
     master_pattern_mixer_base_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_base', 'p99')
     master_pattern_mixer_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_serveronly', 'p99')
     master_pattern_mixer_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, '_mixer_both', 'p99')
@@ -80,7 +114,19 @@ def master_alert(request):
     master_pattern_v2_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_serveronly', 'p99')
     master_pattern_v2_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_both', 'p99')
 
-    context = {'master_pattern_mixer_base_p90': master_pattern_mixer_base_p90,
+    outliers_master_mixer_serveronly_p99 = od.format_outliers(od.find_outliers(master_pattern_mixer_serveronly_p99), 'mixer_serveronly')
+    outliers_master_mixer_both_p99 = od.format_outliers(od.find_outliers(master_pattern_mixer_both_p99), 'mixer_both')
+    outliers_master_none_serveronly_p99 = od.format_outliers(od.find_outliers(master_pattern_none_serveronly_p99), 'none_serveronly')
+    outliers_master_none_both_p99 = od.format_outliers(od.find_outliers(master_pattern_none_both_p99), 'none_both')
+    outliers_master_v2_serveronly_p99 = od.format_outliers(od.find_outliers(master_pattern_v2_serveronly_p99), 'v2_serveronly')
+    outliers_master_v2_both_p99 = od.format_outliers(od.find_outliers(master_pattern_v2_both_p99), 'v2_both')
+    outliers_master_p99 = outliers_master_mixer_serveronly_p99 + outliers_master_mixer_both_p99 + \
+        outliers_master_none_serveronly_p99 + outliers_master_none_both_p99 + \
+        outliers_master_v2_serveronly_p99 + outliers_master_v2_both_p99
+
+    context = {'outliers_master_p90':  outliers_master_p90,
+               'outliers_master_p99': outliers_master_p99,
+               'master_pattern_mixer_base_p90': master_pattern_mixer_base_p90,
                'master_pattern_mixer_serveronly_p90': master_pattern_mixer_serveronly_p90,
                'master_pattern_mixer_both_p90': master_pattern_mixer_both_p90,
                'master_pattern_none_serveronly_p90': master_pattern_none_serveronly_p90,
@@ -116,7 +162,8 @@ def get_mixer_mode_y_series(release_names, release_dates, mixer_mode, quantiles)
             df = pd.read_csv(perf_data_path + release_names[i] + ".csv")
         except Exception as e:
             print(e)
-            pattern_data[i] = release_dates[i] + ["null"]
+            pattern_data[i] = release_dates[i][:3] + ["null"] + [release_dates[i][3]] + [release_names[i]]
         else:
-            pattern_data[i] = release_dates[i] + get_latency_y_data_point(df, mixer_mode, quantiles)
+            pattern_data[i] = release_dates[i][:3] + get_latency_y_data_point(df, mixer_mode, quantiles) + \
+                [release_dates[i][3]] + [release_names[i]]
     return pattern_data

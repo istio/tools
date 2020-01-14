@@ -70,10 +70,80 @@
         </div>
       </div>
 </section>
+<section>
+    <div class="container-fluid">
+      <!-- Page Header-->
+      <header>
+        <h1 class="h3 display">Istio Performance Regression Alerts</h1>
+      </header>
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header">
+              <h4>Istio-1.4: P90, 1000QPS over 240 seconds (16 connections) Regression Alerts</h4>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Github Commit</th>
+                    <th>Regression Details</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for outlier_data in outliers_cur_p90 %}
+                  <tr>
+                      <td>{{ outlier_data.0 }}</td>
+                      <td><a href="{{ outlier_data.1 }}" target="_blank">{{ outlier_data.2 }}</a></td>
+                      <td>{{ outlier_data.3 }}</td>
+                  </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header">
+              <h4>Istio-1.4: P99, 1000QPS over 240 seconds (16 connections) Regression Alerts</h4>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Github Commit</th>
+                    <th>Regression Details</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for outlier_data in outliers_cur_p99 %}
+                  <tr>
+                      <td>{{ outlier_data.0 }}</td>
+                      <td><a href="{{ outlier_data.1 }}" target="_blank">{{ outlier_data.2 }}</a></td>
+                      <td>{{ outlier_data.3 }}</td>
+                  </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 {% endblock page_content %}
 
 {% block page_data %}
     <script>
+        outliers_cur_p90 =  {{ outliers_cur_p90|safe }}
+        outliers_cur_p99 =  {{ outliers_cur_p99|safe }}
         cur_pattern_mixer_base_p90 = {{ cur_pattern_mixer_base_p90|safe }}
         cur_pattern_mixer_serveronly_p90 = {{ cur_pattern_mixer_serveronly_p90|safe }}
         cur_pattern_mixer_both_p90 = {{ cur_pattern_mixer_both_p90|safe }}
