@@ -172,7 +172,7 @@ function install_istio() {
   else
     echo "start installing istio using istioctl"
     pushd "${DIRNAME}/${release}"
-    export SET_OVERLAY="defaultNamespace=istio-system"
+    export SET_OVERLAY="meshConfig.rootNamespace=istio-system"
     export CR_FILENAME="default.yaml"
     export EXTRA_ARGS="--force=true"
     install_istio_with_istioctl
