@@ -117,5 +117,5 @@ def check_exist(filename):
 def generate_date_array(date_str):
     year = date_str[0:4]
     month = date_str[4:6]
-    date = date_str[6:8]
-    return [year, month, date, date_str]
+    day = date_str[6:8]
+    return [year, month, day, date_str]
