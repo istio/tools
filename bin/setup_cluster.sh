@@ -60,6 +60,7 @@ function mason_cleanup() {
   fi
 }
 
+# This function would get sha from tools repo instead of istio releases.
 function setup_and_export_git_sha() {
   if [[ -n "${CI:-}" ]]; then
     if [ -z "${PULL_PULL_SHA:-}" ]; then
