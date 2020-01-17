@@ -285,6 +285,7 @@ ENV GCLOUD_VERSION=265.0.0
 ENV YAMLLINT_VERSION=1.17.0
 ENV REQUESTS_VERSION=2.22.0
 ENV RUAMELYAML_VERSION=0.16.5
+ENV PYTHON_PROTOBUF_VERSION=3.11.2
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -292,17 +293,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libc-dev \
     pkg-config \
-    python3 \
-    python3-setuptools \
-    python3-distutils \
-    python3-pip
+    python3.7 \
+    python3-distutils
 
+# installing pip in this manner to get pip3.7 and not pip3.6
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3.7 get-pip.py
+
+ADD https://storage.googleapis.com/istio-build-deps/mako-0.1-cp37-cp37m-linux_x86_64.whl /tmp
 # Install Python stuff
 # hadolint ignore=DL3013
 RUN pip3 install --no-binary :all: autopep8==${AUTOPEP8_VERSION}
 RUN pip3 install yamllint==${YAMLLINT_VERSION}
 RUN pip3 install requests==${REQUESTS_VERSION}
 RUN pip3 install ruamel.yaml==${RUAMELYAML_VERSION}
+RUN pip3 install protobuf==${PYTHON_PROTOBUF_VERSION}
+# hadolint ignore=DL3013
+RUN pip3 install /tmp/mako-0.1-cp37-cp37m-linux_x86_64.whl
 
 # TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
 # commands, maybe we just need the gcloud binary out of all this?
@@ -509,6 +515,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libtool \
     ninja-build \
     python \
+    python3.7 \
     unzip \
     virtualenv \
  && apt-get clean \
