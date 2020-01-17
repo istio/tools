@@ -285,6 +285,7 @@ ENV GCLOUD_VERSION=265.0.0
 ENV YAMLLINT_VERSION=1.17.0
 ENV REQUESTS_VERSION=2.22.0
 ENV RUAMELYAML_VERSION=0.16.5
+ENV PYTHON_PROTOBUF_VERSION=3.11.2
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -305,7 +306,8 @@ RUN pip3 install --no-binary :all: autopep8==${AUTOPEP8_VERSION}
 RUN pip3 install yamllint==${YAMLLINT_VERSION}
 RUN pip3 install requests==${REQUESTS_VERSION}
 RUN pip3 install ruamel.yaml==${RUAMELYAML_VERSION}
-RUN pip3 install protobuf
+RUN pip3 install protobuf==${PYTHON_PROTOBUF_VERSION}
+# hadolint ignore=DL3013
 RUN pip3 install /tmp/mako-0.1-cp37-cp37m-linux_x86_64.whl
 
 # TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
