@@ -348,6 +348,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     pkg-config \
     python3 \
+    python3.7 \
     python3-setuptools \
     daemon \
     wget \
@@ -515,7 +516,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libtool \
     ninja-build \
     python \
-    python3.7 \
     unzip \
     virtualenv \
  && apt-get clean \
