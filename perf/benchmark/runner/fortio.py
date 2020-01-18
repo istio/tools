@@ -236,10 +236,9 @@ def get_parser():
     parser.add_argument(
         "--csv",
         help="columns in the csv file",
-        default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,"
-                "cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,"
-                "cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_"
-                "ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
+        default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99, cpu_mili_avg_fortioserver_deployment_proxy,"
+                "cpu_mili_max_fortioserver_deployment_proxy,mem_MB_avg_fortioserver_deployment_proxy,"
+                "mem_MB_max_fortioserver_deployment_proxy")
     parser.add_argument(
         "--csv_output",
         help="output path of csv file")
