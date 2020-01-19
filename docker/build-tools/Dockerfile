@@ -423,6 +423,7 @@ COPY bashrc /home/.bashrc
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
     mkdir -p /gobin && \
+    mkdir -p /blob && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
     mkdir -p /config-copy && \
@@ -437,6 +438,7 @@ RUN mkdir -p /go && \
 RUN chmod 777 /go && \
     chmod 777 /gocache && \
     chmod 777 /gobin && \
+    chmod 777 /blob && \
     chmod 777 /config && \
     chmod 777 /config/.docker && \
     chmod 777 /config/.config/gcloud && \
