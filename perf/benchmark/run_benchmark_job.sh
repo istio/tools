@@ -115,9 +115,15 @@ function setup_fortio_and_prometheus() {
     export FORTIO_SERVER_POD
 }
 
+#TODO: add stackdriver filter
 function prerun_v2_nullvm() {
-  kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/"${GIT_BRANCH}"/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml
-  kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/istio/"${GIT_BRANCH}"/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml
+  export SET_OVERLAY="values.telemetry.enabled=true,values.telemetry.v2.enabled=true"
+  export CR_FILENAME="default.yaml"
+  export EXTRA_ARGS="--force=true"
+  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
+  pushd "${ROOT}/istio-install/tmp"
+  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  popd
 }
 
 function prerun_none() {
@@ -189,6 +195,10 @@ fi
 # different branch tag resides in dev release directory like /latest, /1.4-dev, /1.5-dev etc.
 TAG=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
 echo "Setup istio release: $TAG"
+# TAG is of the form like "1.5-alpha.sha"
+# shellcheck disable=SC2155
+export GIT_SHA=$(echo "$TAG" | cut -f3 -d.)
+
 pushd "${ROOT}/istio-install"
    export INSTALL_WITH_ISTIOCTL="true"
    ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
@@ -225,6 +235,7 @@ CONFIG_DIR="${WD}/configs/istio"
 
 for f in "${CONFIG_DIR}"/*; do
     fn=$(basename "${f}")
+
     # pre run
     if [[ "${fn}" =~ "none" ]];then
         prerun_none

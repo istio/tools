@@ -1,13 +1,12 @@
-apiVersion: install.istio.io/v1alpha2
-kind: IstioControlPlane
+apiVersion: operator.istio.io/v1alpha1
+kind: IstioOperator
 spec:
-  security:
-    components:
-      citadel:
-        k8s:
-          replicaCount: 3
-      nodeAgent:
-        enabled: false
+  components:
+    citadel:
+      k8s:
+        replicaCount: 3
+    nodeAgent:
+      enabled: false
 
   values:
     global:

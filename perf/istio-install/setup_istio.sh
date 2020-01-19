@@ -141,7 +141,9 @@ function install_istio_with_helm() {
 # install istio with default IstioControlPlane CR yaml using istioctl.
 function install_istio_with_istioctl() {
   local CR_PATH="${WD}/istioctl_profiles/${CR_FILENAME}"
+  pushd "${ISTIOCTL_PATH}"
   ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  popd
 }
 
 function install_istio() {
@@ -162,21 +164,22 @@ function install_istio() {
       DN=$(mktemp -d)
       tar -xzf "${outfile}" -C "${DN}" --strip-components 1
       mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
+      cp "${DN}/bin/istioctl" "${DIRNAME}"
       mv "${DN}/bin/istioctl" "${DIRNAME}/${release}"
       rm -rf "${DN}"
   fi
+
+  export ISTIOCTL_PATH="${DIRNAME}/${release}"
 
   if [[ -z "${INSTALL_WITH_ISTIOCTL}" ]]; then
     echo "start installing istio using helm"
     install_istio_with_helm
   else
     echo "start installing istio using istioctl"
-    pushd "${DIRNAME}/${release}"
     export SET_OVERLAY="meshConfig.rootNamespace=istio-system"
     export CR_FILENAME="default.yaml"
     export EXTRA_ARGS="--force=true"
     install_istio_with_istioctl
-    popd
   fi
 }
 
