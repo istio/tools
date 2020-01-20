@@ -16,6 +16,8 @@ import pandas as pd
 from helpers import download
 import os
 
+current_release = [os.getenv('CUR_RELEASE')]
+
 
 # Create your views here.
 def artifact(request):
@@ -33,7 +35,8 @@ def artifact(request):
         master_release_bundle[i][0] = master_release_names[i]
         master_release_bundle[i][1] = gcs_prefix + master_release_names[i]
 
-    context = {'cur_release_bundle': cur_release_bundle,
+    context = {'current_release': current_release,
+               'cur_release_bundle': cur_release_bundle,
                'master_release_bundle': master_release_bundle}
 
     return render(request, "artifact.html", context=context)

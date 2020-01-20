@@ -37,7 +37,7 @@
       <!-- Page Header-->
       <header>
         <h1 class="h3 display"><a href="https://console.cloud.google.com/storage/browser/istio-build/perf?project=istio-testing&folder=true&organizationId=433637338589" target="_blank">
-          Istio Performance Benchmark Artifacts</a></h1>
+          Istio {{ current_release|first }} Performance Benchmark Artifacts</a></h1>
         <p style="color:#888;">(CPU/mem/Latency/Flame Graph/Others)</p>
       </header>
       <div class="row">
@@ -107,6 +107,7 @@
 
 {% block page_data %}
     <script>
+        current_release = {{ current_release|safe }};
         cur_release_bundle = {{ cur_release_bundle|safe }};
         master_release_bundle = {{ master_release_bundle|safe }};
     </script>

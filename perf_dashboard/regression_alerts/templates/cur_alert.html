@@ -34,7 +34,7 @@
 
 {% block current_active %}
 <li class="breadcrumb-item">Regression Alerts</li>
-<li class="breadcrumb-item active">Release 1.4</li>
+<li class="breadcrumb-item active">{{ current_release|first }}</li>
 {% endblock current_active %}
 
 {% block page_content %}
@@ -48,7 +48,7 @@
           <div class="col-lg-12">
             <div class="card">
               <div class="card-header d-flex align-items-center">
-                <h4>Istio-1.4 Performance Pattern: P90, 1000QPS over 240 seconds (16 connections)</h4>
+                <h4>Istio-{{ current_release|first }} Performance Pattern: P90, 1000QPS over 240 seconds (16 connections)</h4>
               </div>
               <div class="card-body">
                 <div id="chart_p90" style="height: 370px; width: 100%;">
@@ -59,7 +59,7 @@
           <div class="col-lg-12">
             <div class="card">
               <div class="card-header d-flex align-items-center">
-                <h4>Istio-1.4 Performance Pattern: P99, 1000QPS over 240 seconds (16 connections)</h4>
+                <h4>Istio-{{ current_release|first }} Performance Pattern: P99, 1000QPS over 240 seconds (16 connections)</h4>
               </div>
               <div class="card-body">
                 <div id="chart_p99" style="height: 370px; width: 100%;">
@@ -74,6 +74,7 @@
 
 {% block page_data %}
     <script>
+        current_release = {{ current_release|safe }}
         cur_pattern_mixer_base_p90 = {{ cur_pattern_mixer_base_p90|safe }}
         cur_pattern_mixer_serveronly_p90 = {{ cur_pattern_mixer_serveronly_p90|safe }}
         cur_pattern_mixer_both_p90 = {{ cur_pattern_mixer_both_p90|safe }}
