@@ -64,7 +64,7 @@
                 </form>
           <div class="card">
             <div class="card-header d-flex align-items-center">
-              <h4>Istio-1.4 CPU, 16 connections over 240 seconds</h4>
+              <h4>Istio-{{ current_release|first }} CPU, 16 connections over 240 seconds</h4>
             </div>
             <div class="card-body">
               <canvas id="cpu-qps-release"></canvas>
@@ -115,7 +115,7 @@
         <div class="col-lg-6">
           <div class="card">
             <div class="card-header d-flex align-items-center">
-              <h4>Istio-1.4 Memory, 16 connections over 240 seconds</h4>
+              <h4>Istio-{{ current_release|first }} Memory, 16 connections over 240 seconds</h4>
             </div>
             <div class="card-body">
               <canvas id="mem-qps-release"></canvas>
@@ -140,6 +140,7 @@
 
 {% block page_data %}
     <script>
+        current_release = {{ current_release|safe }};
         cpu_cur_selected_release = {{ cpu_cur_selected_release|safe }};
         cpu_master_selected_release = {{  cpu_master_selected_release|safe }};
         cur_release_names = {{ cur_release_names|safe }};
@@ -179,5 +180,5 @@
 {% endblock page_data %}
 
 {% block charts_js %}
-    <script src="{% static 'js/cpu-memory.js' %}"></script>
+    <script src="{% static 'js/cpu_memory.js' %}"></script>
 {% endblock charts_js %}

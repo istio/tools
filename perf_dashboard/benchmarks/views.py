@@ -22,6 +22,7 @@ cur_selected_release = []
 master_selected_release = []
 cpu_cur_selected_release = []
 cpu_master_selected_release = []
+current_release = [os.getenv('CUR_RELEASE')]
 
 
 # Create your views here.
@@ -96,7 +97,8 @@ def latency_vs_conn(request):
     latency_v2_serveronly_p99_master = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p99')
     latency_v2_both_p99_master = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p99')
 
-    context = {'cur_selected_release': cur_selected_release,
+    context = {'current_release': current_release,
+               'cur_selected_release': cur_selected_release,
                'master_selected_release':  master_selected_release,
                'cur_release_names': cur_release_names,
                'master_release_names': master_release_names,
@@ -217,7 +219,8 @@ def latency_vs_qps(request):
     latency_v2_serveronly_p99_master = get_latency_vs_qps_y_series(df, 'nullvm_serveronly', 'p99')
     latency_v2_both_p99_master = get_latency_vs_qps_y_series(df, 'nullvm_both', 'p99')
 
-    context = {'cur_selected_release': cur_selected_release,
+    context = {'current_release': current_release,
+               'cur_selected_release': cur_selected_release,
                'master_selected_release':  master_selected_release,
                'cur_release_names': cur_release_names,
                'master_release_names': master_release_names,
@@ -323,7 +326,8 @@ def cpu_memory(request):
     mem_v2_serveronly_master = get_mem_y_series(df, 'nullvm_serveronly')
     mem_v2_both_master = get_mem_y_series(df, 'nullvm_both')
 
-    context = {'cpu_cur_selected_release': cpu_cur_selected_release,
+    context = {'current_release': current_release,
+               'cpu_cur_selected_release': cpu_cur_selected_release,
                'cpu_master_selected_release':  cpu_master_selected_release,
                'cur_release_names': cur_release_names,
                'master_release_names': master_release_names,
@@ -356,7 +360,7 @@ def cpu_memory(request):
                'mem_v2_serveronly_master': mem_v2_serveronly_master,
                'mem_v2_both_master': mem_v2_both_master,
                }
-    return render(request, "cpu-memory.html", context=context)
+    return render(request, "cpu_memory.html", context=context)
 
 
 def flame_graph(request):

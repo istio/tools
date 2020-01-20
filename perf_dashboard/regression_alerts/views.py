@@ -20,6 +20,7 @@ import os
 
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
+current_release = [os.getenv('CUR_RELEASE')]
 
 
 # Create your views here.
@@ -42,7 +43,8 @@ def cur_alert(request):
     cur_pattern_v2_serveronly_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_serveronly', 'p99')
     cur_pattern_v2_both_p99 = get_mixer_mode_y_series(cur_release_names, cur_release_dates, 'nullvm_both', 'p99')
 
-    context = {'cur_pattern_mixer_base_p90': cur_pattern_mixer_base_p90,
+    context = {'current_release': current_release,
+               'cur_pattern_mixer_base_p90': cur_pattern_mixer_base_p90,
                'cur_pattern_mixer_serveronly_p90': cur_pattern_mixer_serveronly_p90,
                'cur_pattern_mixer_both_p90': cur_pattern_mixer_both_p90,
                'cur_pattern_none_serveronly_p90': cur_pattern_none_serveronly_p90,
@@ -80,7 +82,8 @@ def master_alert(request):
     master_pattern_v2_serveronly_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_serveronly', 'p99')
     master_pattern_v2_both_p99 = get_mixer_mode_y_series(master_release_names, master_release_dates, 'nullvm_both', 'p99')
 
-    context = {'master_pattern_mixer_base_p90': master_pattern_mixer_base_p90,
+    context = {'current_release': current_release,
+               'master_pattern_mixer_base_p90': master_pattern_mixer_base_p90,
                'master_pattern_mixer_serveronly_p90': master_pattern_mixer_serveronly_p90,
                'master_pattern_mixer_both_p90': master_pattern_mixer_both_p90,
                'master_pattern_none_serveronly_p90': master_pattern_none_serveronly_p90,
