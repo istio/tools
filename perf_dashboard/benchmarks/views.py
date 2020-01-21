@@ -47,7 +47,6 @@ def latency_vs_conn(request):
     latency_v2_serveronly_p50 = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p50')
     latency_v2_both_p50 = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p50')
 
-
     latency_mixer_base_p90 = get_latency_vs_conn_y_series(df, '_mixer_base', 'p90')
     latency_mixer_serveronly_p90 = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p90')
     latency_mixer_both_p90 = get_latency_vs_conn_y_series(df, '_mixer_both', 'p90')
