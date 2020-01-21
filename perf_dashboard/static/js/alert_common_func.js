@@ -39,7 +39,7 @@ window.generateChart = function(chartID, modesData) {
       verticalAlign: "bottom",
       horizontalAlign: "left",
       dockInsidePlotArea: true,
-      itemclick: toogleDataSeries
+      itemclick: toggleDataSeries
     },
     data: [{
       type: "line",
@@ -100,7 +100,7 @@ window.generateChart = function(chartID, modesData) {
   chart.render();
 };
 
-toogleDataSeries = function(e, chart) {
+toggleDataSeries = function(e, chart) {
     if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
       e.dataSeries.visible = false;
     } else {
