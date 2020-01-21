@@ -19,3 +19,7 @@ var options = {
         }]
     }
 };
+
+window.onload = function () {
+    generateLatencyChart(connNum, options)
+};
