@@ -1,5 +1,5 @@
-# Configuration Set5: CPU and memory with telemetryv2 using NullVM.
-telemetry_mode: "v2-nullvm"
+# Configuration Set5: CPU and memory with telemetryv2 using NullVM with stats envoyfilter.
+telemetry_mode: "v2-stats-nullvm"
 conn:
     - 16
 qps:

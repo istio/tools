@@ -115,11 +115,34 @@ function setup_fortio_and_prometheus() {
     export FORTIO_SERVER_POD
 }
 
-#TODO: add stackdriver filter
-function prerun_v2_nullvm() {
-  export SET_OVERLAY="values.telemetry.enabled=true,values.telemetry.v2.enabled=true"
+# enable telemetryv2 with metadata exchange filter and stats filter
+function prerun_v2_nullvm_stats() {
+  export SET_OVERLAY="${TELEMETRY_V2_DEFAULT_OVERLAY}"
   export CR_FILENAME="default.yaml"
   export EXTRA_ARGS="--force=true"
+  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
+  pushd "${ROOT}/istio-install/tmp"
+  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  popd
+}
+
+# enable telemetryv2 with metadata exchange filter and stackdriver filter
+function prerun_v2_nullvm_sd() {
+  export SET_OVERLAY="${TELEMETRY_V2_DEFAULT_OVERLAY},\
+  values.telemetryv2.stackdriver.enabled=true,\
+  values.telemetryv2.stackdriver.topology=true,\
+  values.telemetryv2.stackdriver.logging=true"
+  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
+  pushd "${ROOT}/istio-install/tmp"
+  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  popd
+}
+
+# enable telemetryv2 with metadata exchange filter and stackdriver filter with logging disabled
+function prerun_v2_nullvm_sd_nologging() {
+  export SET_OVERLAY="${TELEMETRY_V2_DEFAULT_OVERLAY},\
+  values.telemetryv2.stackdriver.enabled=true,\
+  values.telemetryv2.stackdriver.topology=true"
   local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
   pushd "${ROOT}/istio-install/tmp"
   ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
@@ -218,6 +241,7 @@ SHA=$(git rev-parse --short "${GIT_SHA}")
 export OUTPUT_DIR="benchmark_data-${GIT_BRANCH}.${dt}.${SHA}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
+export TELEMETRY_V2_DEFAULT_OVERLAY="values.telemetry.enabled=true,values.telemetry.v2.enabled=true"
 
 setup_fortio_and_prometheus
 
@@ -239,8 +263,12 @@ for f in "${CONFIG_DIR}"/*; do
     # pre run
     if [[ "${fn}" =~ "none" ]];then
         prerun_none
-    elif [[ "${fn}" =~ "telemetryv2" ]];then
-        prerun_v2_nullvm
+    elif [[ "${fn}" =~ "telemetryv2_stats" ]];then
+        prerun_v2_nullvm_stats
+    elif [[ "${fn}" =~ "telemetryv2_sdfull" ]];then
+        prerun_v2_nullvm_sd
+    elif [[ "${fn}" =~ "telemetryv2_sd" ]];then
+        prerun_v2_nullvm_sd_nologging
     elif [[ "${fn}" =~ "plaintext" ]]; then
         prerun_plaintext
     fi
