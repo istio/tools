@@ -1,0 +1,20 @@
+# Configuration Set5: CPU and memory with telemetryv2 using NullVM with stats envoyfilter.
+telemetry_mode: "v2-stats-nullvm"
+conn:
+    - 16
+qps:
+    - 10
+    - 100
+    - 500
+    - 1000
+    - 2000
+    - 3000
+duration: 240
+metrics:
+    - cpu
+    - mem
+perf_record: false
+run_bothsidecar: true
+run_serversidecar: true
+run_clientsidecar: true
+run_baseline: true
