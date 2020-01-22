@@ -48,6 +48,7 @@ function run_test() {
   helm -n "${NAMESPACE}" template \
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set namespace="${NAMESPACE}" \
+      --set excludeOutboundIPRanges=$(pod_ip_range)\
       --set includeOutboundIPRanges=$(svc_ip_range) \
       --set client.inject="${ISTIO_INJECT}" \
       --set server.inject="${ISTIO_INJECT}"  \
