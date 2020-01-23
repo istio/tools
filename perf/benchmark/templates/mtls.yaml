@@ -16,5 +16,13 @@ metadata:
 spec:
   host:  fortioserver
   trafficPolicy:
-    tls:
-      mode: ISTIO_MUTUAL
+    portLevelSettings:
+    - port:
+        number: 8080
+      tls:
+        mode: ISTIO_MUTUAL
+    - port:
+        number: 8077
+      tls:
+        mode: DISABLE
+
