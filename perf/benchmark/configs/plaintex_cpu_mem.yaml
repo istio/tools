@@ -14,6 +14,10 @@ metrics:
     - cpu
     - mem
 perf_record: false
-run_serversidecar: true
-run_baseline: true
+
+run_bothsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
+run_baseline: false
+
 extra_labels: "plaintext"

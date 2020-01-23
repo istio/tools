@@ -15,4 +15,5 @@ metrics:
     - mem
 perf_record: false
 run_serversidecar: true
+run_clientsidecar: true
 run_baseline: true
