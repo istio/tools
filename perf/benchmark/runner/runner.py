@@ -335,8 +335,8 @@ def fortio_from_config_file(args):
         fortio.perf_record = job_config.get('perf_record', False)
         fortio.run_serversidecar = job_config.get('run_serversidecar', False)
         fortio.run_clientsidecar = job_config.get('run_clientsidecar', False)
-        fortio.run_bothsidecar = job_config.get('run_bothsidecar', False)
-        fortio.run_baseline = job_config.get('run_baseline', True)
+        fortio.run_bothsidecar = job_config.get('run_bothsidecar', True)
+        fortio.run_baseline = job_config.get('run_baseline', False)
         fortio.mesh = job_config.get('mesh', 'istio')
         fortio.mode = job_config.get('mode', 'http')
         fortio.extra_labels = job_config.get('extra_labels')
@@ -449,7 +449,7 @@ def get_parser():
     define_bool(parser, "clientsidecar",
                 "run clientsidecar-only for all", False)
     define_bool(parser, "bothsidecar",
-                "run clientsiecar and serversidecar for all", True)
+                "run both clientsiecar and serversidecar", True)
 
     return parser
 
