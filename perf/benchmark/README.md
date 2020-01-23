@@ -245,14 +245,14 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
     NAME           TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)                                                       AGE
     fortioclient   LoadBalancer   xxxx          xxxx       8080:31759/TCP,8079:30495/TCP,8078:31107/TCP,8077:31034/TCP   16h
 
-    export FORTIO_CLIENT_URL=http://$(kubectl get services -n $NAMESPACE fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}"):8080
+    export FORTIO_CLIENT_URL=http://$(kubectl get services -n $NAMESPACE fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}"):9076
     ```
 
     or if you don't have an external IP:
 
     ```bash
-    kubectl -n $NAMESPACE port-forward svc/fortioclient 8080:8080 &
-    export FORTIO_CLIENT_URL=http://localhost:8080
+    kubectl -n $NAMESPACE port-forward svc/fortioclient 9076:9076 &
+    export FORTIO_CLIENT_URL=http://localhost:9076
     ```
 
 1. Set `PROMETHEUS_URL`:

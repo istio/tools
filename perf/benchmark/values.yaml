@@ -5,16 +5,17 @@ includeOutboundIPRanges: ""
 appresources: {}
 
 proxy:
-  cpu: "1000m"
+  cpu: "200m"
   memory: "512m"
 
 appresources1:
   requests:
-    cpu: "800m"
-    memory: "1000m"
+    cpu: "200m"
+    memory: "200m"
 
 fortioImage: fortio/fortio:latest_release
 curlImage: tutum/curl:trusty
+nighthawkImage: envoyproxy/nighthawk-dev:latest
 domain: local
 gateway: fortio-gateway
 rbac:
