@@ -40,3 +40,6 @@ client: # client overrides
   injectL: "disabled" # "enabled" or "disabled"
 
 cert: false
+interceptionMode: REDIRECT
+
+namespace: ""
