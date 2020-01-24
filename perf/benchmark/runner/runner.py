@@ -216,7 +216,7 @@ class Fortio:
 
         # We pass in 'AUTO' for concurrency. As the worker count acts as a multiplier,
         # we divide by qps/conn by the number of cpu's to spread load accross the workers
-        # so the sum of the workers will target the global qps/connection levels. 
+        # so the sum of the workers will target the global qps/connection levels.
         nighthawk_cmd = " ".join(nighthawk_args).format(
             conn=round(conn/cpus),
             qps=round(qps/cpus),
