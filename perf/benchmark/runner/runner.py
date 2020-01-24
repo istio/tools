@@ -133,7 +133,7 @@ class Fortio:
         return "serveronly", self.compute_uri(self.server.ip, "port")
 
     def clientsidecar(self):
-        return "clientonly", self.compute_uri(self.server.ip, "direct_port")
+        return "clientonly", self.compute_uri(self.server.labels["app"], "direct_port")
 
     def bothsidecar(self):
         return "both", self.compute_uri(self.server.labels["app"], "port")
