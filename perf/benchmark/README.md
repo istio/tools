@@ -138,8 +138,8 @@ optional arguments:
   --no_serversidecar    do not run serversidecar-only for all
   --clientsidecar       run clientsidecar-only for all
   --no_clientsidecar    do not run clientsidecar-only for all
-  --bothsidecar         run clientsidecar and serversidecar for all
-  --no_sidecar          do not run clientsidecar and serversidecar for all
+  --bothsidecar         run both clientsidecar and serversidecar
+  --no_sidecar          do not run clientsidecar and serversidecar
 ```
 
 Note:
