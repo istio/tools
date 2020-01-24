@@ -146,10 +146,10 @@ class Fortio:
                 "{protocol}://{svc}".format(protocol=self.get_protocol_uri_fragment(), svc=self.run_ingress))
         return "ingress", "{url}/".format(url=url.geturl())
 
-    def execute_mode(self, mode_description, nighthawk_cmd, fn, labels, perf_label_postfix):
+    def execute_mode(self, mode_description, nighthawk_cmd, execute_sidecar_mode, labels, perf_label_postfix):
         print('-------------- Running in {mode_description} --------------'.format(
             mode_description=mode_description))
-        mode_label, mode_url = fn()
+        mode_label, mode_url = execute_sidecar_mode()
         run_nighthawk(self.client.name, nighthawk_cmd + "_" +
                       mode_label + " " + mode_url, labels + "_" + mode_label)
 
