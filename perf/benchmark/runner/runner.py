@@ -146,10 +146,10 @@ class Fortio:
                 "{protocol}://{svc}".format(protocol=self.get_protocol_uri_fragment(), svc=self.run_ingress))
         return "ingress", "{url}/".format(url=url.geturl())
 
-    def execute_mode(self, mode_description, nighthawk_cmd, execute_sidecar_mode, labels, perf_label_postfix):
+    def execute_sidecar_mode(self, mode_description, nighthawk_cmd, sidecar_mode_function, labels, perf_label_postfix):
         print('-------------- Running in {mode_description} --------------'.format(
             mode_description=mode_description))
-        mode_label, mode_url = execute_sidecar_mode()
+        mode_label, mode_url = sidecar_mode_function()
         run_nighthawk(self.client.name, nighthawk_cmd + "_" +
                       mode_label + " " + mode_url, labels + "_" + mode_label)
 
@@ -226,24 +226,24 @@ class Fortio:
             port_forward=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
 
         if self.run_ingress:
-            self.execute_mode("ingress mode", nighthawk_cmd,
-                              self.ingress, labels, "_srv_ingress")
+            self.execute_sidecar_mode("ingress mode", nighthawk_cmd,
+                                      self.ingress, labels, "_srv_ingress")
 
         if self.run_serversidecar:
-            self.execute_mode("server sidecar mode", nighthawk_cmd,
-                              self.serversidecar, labels, "_srv_serveronly")
+            self.execute_sidecar_mode("server sidecar mode", nighthawk_cmd,
+                                      self.serversidecar, labels, "_srv_serveronly")
 
         if self.run_clientsidecar:
-            self.execute_mode("client sidecar mode", nighthawk_cmd,
-                              self.clientsidecar, labels, "_srv_clientonly")
+            self.execute_sidecar_mode("client sidecar mode", nighthawk_cmd,
+                                      self.clientsidecar, labels, "_srv_clientonly")
 
         if self.run_bothsidecar:
-            self.execute_mode("both sidecar mode", nighthawk_cmd,
-                              self.bothsidecar, labels, "_srv_bothsidecars")
+            self.execute_sidecar_mode("both sidecar mode", nighthawk_cmd,
+                                      self.bothsidecar, labels, "_srv_bothsidecars")
 
         if self.run_baseline:
-            self.execute_mode("baseline mode", nighthawk_cmd,
-                              self.nosidecar, labels, "")
+            self.execute_sidecar_mode("baseline mode", nighthawk_cmd,
+                                      self.nosidecar, labels, "")
 
         print("Completed run_id {id}".format(id=self.run_id))
 
