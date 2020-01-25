@@ -370,20 +370,20 @@ spec:
       labels:
         app: {{ $.name }}
     spec:
-#      affinity:
-#        podAntiAffinity:
-#          requiredDuringSchedulingIgnoredDuringExecution:
-#          - labelSelector:
-#              matchExpressions:
-#              - key: app
-#                operator: In
-#                values: 
-#{{- if eq $.name "fortioclient" }}
-#                - "fortioserver"
-#{{- else }}
-#                - "fortioclient"
-#{{- end }}
-#            topologyKey: "kubernetes.io/hostname"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values: 
+{{- if eq $.name "fortioclient" }}
+                - "fortioserver"
+{{- else }}
+                - "fortioclient"
+{{- end }}
+            topologyKey: "kubernetes.io/hostname"
       volumes:
       - name: shared-data
         emptyDir: {}

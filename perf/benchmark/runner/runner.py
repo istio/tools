@@ -181,9 +181,6 @@ class Fortio:
         if self.extra_labels is not None:
             labels += "_" + self.extra_labels
 
-        # TODO(oschaaf): For test, remove
-        duration = 1
-
         # Note: Labels is the last arg, and there's stuff depending on that.
         # watch out when moving it.
         nighthawk_args = [
