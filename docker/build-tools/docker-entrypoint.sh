@@ -23,8 +23,15 @@ shopt -s dotglob
 # Make a copy of the hosts's config secrets
 su-exec 0:0 cp -aR /config/* /config-copy/
 
-# Set the ownershp of the host's config secrets to that of the ontainer
+# Set the ownership of the host's config secrets to that of the ontainer
 su-exec 0:0 chown -R "${uid}":"${gid}" /config-copy
+
+# Set the permissions of / to enable writing of /livenessProbe and /healthcheckProbe
+# during test operations
+# TODO(sdake) It would be preferrable to change the path of Galley's /livenessProbe
+# and /healthcheckProbe dynamically during test runs. If that is possible in the future
+# this line may be removed. Currently the information is stored in a structure.
+su-exec 0:0 chmod 777 /
 
 # Permit only the UID:GID to read the copy of the host's config secrets
 chmod -R 700 /config-copy
