@@ -21,7 +21,7 @@ CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
 HUB=${HUB:-gcr.io/istio-testing}
 DATE=$(date +%Y-%m-%dT%H-%M-%S)
-BRANCH=master
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
 VERSION="${BRANCH}-${DATE}"
 SHA="${BRANCH}"
 
