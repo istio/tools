@@ -50,8 +50,8 @@ function download_untar_istio_release() {
 
   if [ "${TARGET_TAG}" == "master" ];then
     GIT_SHA=$(curl "https://storage.googleapis.com/istio-build/dev/latest")
-    tag="istio-${GIT_SHA}"
-    LINUX_DIST_URL="https://storage.googleapis.com/istio-build/dev/${GIT_SHA}/istio-${GIT_SHA}-linux.tar.gz"
+    tag="${GIT_SHA}"
+    LINUX_DIST_URL="https://storage.googleapis.com/istio-build/dev/${tag}/istio-${tag}-linux.tar.gz"
   fi
 
   wget  -q "${LINUX_DIST_URL}" -P "${dir}"
