@@ -48,9 +48,16 @@ function download_untar_istio_release() {
   # Download artifacts
   LINUX_DIST_URL="${url_path}/istio-${tag}-linux.tar.gz"
 
+  if [ "${TARGET_TAG}" == "master" ];then
+    GIT_SHA=$(curl "https://storage.googleapis.com/istio-build/dev/latest")
+    tag="istio-${GIT_SHA}"
+    LINUX_DIST_URL="https://storage.googleapis.com/istio-build/dev/${GIT_SHA}/istio-${GIT_SHA}-linux.tar.gz"
+  fi
+
   wget  -q "${LINUX_DIST_URL}" -P "${dir}"
   tar -xzf "${dir}/istio-${tag}-linux.tar.gz" -C "${dir}"
 }
+
 # shellcheck disable=SC1090
 source "${ROOT}/bin/setup_cluster.sh"
 # Set to any non-empty value to use kubectl configured cluster instead of mason provisioned cluster.
