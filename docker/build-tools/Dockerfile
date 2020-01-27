@@ -58,6 +58,7 @@ ENV SHELLCHECK_VERSION=v0.7.0
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.95
 ENV YQ_VERSION=2.4.0
+ENV GCLOUD_VERSION=265.0.0
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -67,6 +68,7 @@ ENV GOPATH=/tmp/go
 
 ENV OUTDIR=/out
 RUN mkdir -p ${OUTDIR}/usr/bin
+RUN mkdir -p ${OUTDIR}/usr/local
 
 # Update distro and install dependencies
 # hadolint ignore=DL3008
@@ -179,6 +181,11 @@ RUN git clone --depth=1 https://github.com/kubernetes/test-infra.git /tmp/test-i
 WORKDIR /tmp/test-infra
 RUN GO111MODULE=on go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./robots/pr-creator/
 
+# TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
+# commands, maybe we just need the gcloud binary out of all this?
+ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
+RUN tar -xzvf /tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz -C ${OUTDIR}/usr/local
+
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
 RUN rm -fr /usr/local/go/test
@@ -281,7 +288,6 @@ FROM ubuntu:bionic as python_context
 
 # Pinned versions of stuff we pull in
 ENV AUTOPEP8_VERSION=1.4.4
-ENV GCLOUD_VERSION=265.0.0
 ENV YAMLLINT_VERSION=1.17.0
 ENV REQUESTS_VERSION=2.22.0
 ENV RUAMELYAML_VERSION=0.16.5
@@ -309,11 +315,6 @@ RUN pip3 install ruamel.yaml==${RUAMELYAML_VERSION}
 RUN pip3 install protobuf==${PYTHON_PROTOBUF_VERSION}
 # hadolint ignore=DL3013
 RUN pip3 install /tmp/mako-0.1-cp37-cp37m-linux_x86_64.whl
-
-# TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
-# commands, maybe we just need the gcloud binary out of all this?
-ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
-RUN tar -xzvf /tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz -C /usr/local
 
 #############
 # Base OS
@@ -413,7 +414,6 @@ COPY --from=nodejs_tools_context /usr/local /usr/local
 COPY --from=nodejs_tools_context /node_modules /node_modules
 COPY --from=python_context /usr/local/bin /usr/local/bin
 COPY --from=python_context /usr/local/lib /usr/local/lib
-COPY --from=python_context /usr/local/google-cloud-sdk /usr/local/google-cloud-sdk
 
 # su-exec is used in place of complex sudo setup operations
 RUN chmod u+sx /usr/bin/su-exec
@@ -452,7 +452,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:bionic as clang_context
+FROM ubuntu:xenial as clang_context
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -479,7 +479,7 @@ RUN mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
 # Bazel
 ###########
 
-FROM ubuntu:bionic as bazel_context
+FROM ubuntu:xenial as bazel_context
 
 ENV BAZELISK_VERSION="v1.0"
 ENV BAZELISK_BASE_URL="https://github.com/bazelbuild/bazelisk/releases/download"
@@ -501,10 +501,63 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM build_tools
+FROM ubuntu:xenial as proxy_base_os_context
 
+# Docker
+ENV DOCKER_VERSION=5:18.09.0~3-0~ubuntu-xenial
+ENV CONTAINERD_VERSION=1.2.6-3
+
+# General
+ENV HOME=/home
+ENV LANG=C.UTF-8
+
+# Go support
+ENV GO111MODULE=on
+ENV GOPROXY=https://proxy.golang.org
+ENV GOSUMDB=sum.golang.org
+ENV GOROOT=/usr/local/go
+ENV GOPATH=/go
+ENV GOCACHE=/gocache
+ENV GOBIN=/gobin
+ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
+
+# LLVM support
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
+
+# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
+# required for general build: make, wget, curl, ssh
+# required for python: python3, pkg-config
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common \
+    ca-certificates \
+    gcc \
+    git \
+    ssh \
+    libltdl7 \
+    libc-dev \
+    make \
+    pkg-config \
+    python3 \
+    python3-setuptools \
+    daemon \
+    wget
+
+# Docker including docker-ce, docker-ce-cli, and containerd.io
+ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
+RUN apt-key add /tmp/docker-key
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+RUN apt-get update
+RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
+
+# Run dockerd in CI
+COPY prow-entrypoint.sh /usr/local/bin/entrypoint
+RUN chmod +x /usr/local/bin/entrypoint
 
 # binary dependencies to build envoy at v1.12.0
 # https://github.com/envoyproxy/envoy/blob/v1.12.0/bazel/README.md
@@ -521,6 +574,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+COPY --from=binary_tools_context /out/ /
+COPY --from=binary_tools_context /usr/local/go /usr/local/go
 COPY --from=bazel_context /usr/local/bin /usr/local/bin
 COPY --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
 COPY --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
@@ -529,6 +584,43 @@ COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
+
+# su-exec is used in place of complex sudo setup operations
+RUN chmod u+sx /usr/bin/su-exec
+
+COPY bashrc /home/.bashrc
+
+RUN mkdir -p /go && \
+    mkdir -p /gocache && \
+    mkdir -p /gobin && \
+    mkdir -p /config/.docker && \
+    mkdir -p /config/.config/gcloud && \
+    mkdir -p /config-copy
+
+# TODO must sort out how to use uid mapping in docker so these don't need to be 777
+# They are created as root 755.  As a result they are not writeable, which fails in
+# the developer environment as a volume or bind mount inherits the permissions of
+# the directory mounted rather then overridding with the permission of the volume file.
+RUN chmod 777 /go && \
+    chmod 777 /gocache && \
+    chmod 777 /gobin && \
+    chmod 777 /config && \
+    chmod 777 /config/.docker && \
+    chmod 777 /config/.config/gcloud
+
+# Clean up stuff we don't need in the final image
+RUN rm -rf /var/lib/apt/lists/*
+RUN rm -fr /usr/share/python
+RUN rm -fr /usr/share/bash-completion
+RUN rm -fr /usr/share/bug
+RUN rm -fr /usr/share/doc
+RUN rm -fr /usr/share/dh-python
+RUN rm -fr /usr/share/locale
+RUN rm -fr /usr/share/man
+RUN rm -fr /tmp/*
+
+# Run config setup in local environments
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
 WORKDIR /
 
