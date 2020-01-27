@@ -181,11 +181,9 @@ class Fortio:
         if self.extra_labels is not None:
             labels += "_" + self.extra_labels
 
-        # Note: Labels is the last arg, and there's stuff depending on that.
-        # watch out when moving it.
         nighthawk_args = [
             "nighthawk_client",
-            "--concurrency auto",
+            "--concurrency {cpus}",
             "--output-format json",
             "--prefetch-connections",
             "--open-loop",
@@ -196,8 +194,7 @@ class Fortio:
             "--connections {conn}",
             "--rps {qps}",
             "--duration {duration}",
-            "--request-header \"x-nighthawk-test-server-config: {{response_body_size:{size}}}\"",
-            "--label {labels}"
+            "--request-header \"x-nighthawk-test-server-config: {{response_body_size:{size}}}\""
         ]
 
         # Our "gRPC" mode actually means:
@@ -211,15 +208,18 @@ class Fortio:
                 nighthawk_args.append(
                     "--request-header \"content-length: {size}\"")
 
-        # We pass in 'AUTO' for concurrency. As the worker count acts as a multiplier,
-        # we divide by qps/conn by the number of cpu's to spread load accross the workers
-        # so the sum of the workers will target the global qps/connection levels.
+        # Note: Labels is the last arg, and there's stuff depending on that.
+        # watch out when moving it.
+        nighthawk_args.append("--label {labels}")
+
+        # As the worker count acts as a multiplier, we divide by qps/conn by the number of cpu's to spread load accross the workers so the sum of the workers will target the global qps/connection levels.
         nighthawk_cmd = " ".join(nighthawk_args).format(
             conn=round(conn/cpus),
             qps=round(qps/cpus),
             duration=duration,
             labels=labels,
             size=self.size,
+            cpus=cpus,
             port_forward=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
 
         if self.run_ingress:
@@ -314,7 +314,7 @@ def run_nighthawk(pod, remote_cmd, labels):
                 dest=dest, docker_image=NIGHTHAWK_DOCKER_IMAGE))
             # Copy to the Fortio report server data directory.
             kubectl_cp("{dest}.fortio.json".format(
-                dest=dest), "{pod}:/var/lib/fortio/{labels}.fortio.json".format(pod=pod, labels=labels), "shell")
+                dest=dest), "{pod}:/var/lib/fortio/{datetime}_nighthawk_{labels}.fortio.json".format(pod=pod, labels=labels, datetime=time.strftime("%Y-%m-%d-%H%M%S")), "shell")
     else:
         print("nighthawk remote execution error: %s" % exit_code)
         if output:
@@ -419,21 +419,21 @@ def run(args):
         port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
     process = subprocess.Popen(shlex.split(popen_cmd), stdout=subprocess.PIPE)
 
-    client_cpus = int(run_command_sync(
-        "kubectl exec -n \"{ns}\" svc/fortioclient -c shell nproc".format(ns=NAMESPACE)))
-    print("Client pod has {client_cpus} cpus".format(client_cpus=client_cpus))
+    # TODO(oschaaf): Figure out how to best determine the right concurrency for Nighthawk.
+    # Results seem to get very noisy as the number of workers increases, are the clients
+    # and running on separate sets of vCPU cores? nproc yields the same concurrency as grocs
+    # use to in Fortio.
+    # client_cpus = int(run_command_sync(
+    #     "kubectl exec -n \"{ns}\" svc/fortioclient -c shell nproc".format(ns=NAMESPACE)))
+    # print("Client pod has {client_cpus} cpus".format(client_cpus=client_cpus))
+
     try:
         for conn in fortio.conn:
             for qps in fortio.qps:
-                rounded_conn = round(conn/client_cpus)
-                rounded_qps = round(qps/client_cpus)
-                if (conn % client_cpus) != 0:
-                    print("WARNING: can't distribute {conn} connections over {workers} workers. Rounding to {rounded_conn}".format(
-                        conn=conn, workers=client_cpus, rounded_conn=rounded_conn*client_cpus))
-                if (qps % client_cpus) != 0:
-                    print("WARNING: can't distribute {qps} qps over {workers} workers. Rounding to {rounded_qps}".format(
-                        qps=qps, workers=client_cpus, rounded_qps=rounded_qps*client_cpus))
-                fortio.run(rounded_conn*client_cpus, rounded_qps*client_cpus, client_cpus,
+                # See the comment above, we restrict execution to a single nighthawk worker for
+                # now to avoid noise.
+                workers = 1
+                fortio.run(conn, qps, workers,
                            duration=fortio.duration, size=fortio.size)
     finally:
         process.kill()
