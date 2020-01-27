@@ -36,7 +36,7 @@ export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://github.com/istio/isti
 export TARGET_HUB=${TARGET_HUB:-"docker.io/istio"}
 export TARGET_TAG=${TARGET_TAG:-"1.3.4"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://github.com/istio/istio/releases/download/${TARGET_TAG}"}
-export INSTALL_OPTIONS=${ISTALL_OPTIONS:-"helm"}
+export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"helm"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
 
