@@ -29,7 +29,7 @@ SHA="${BRANCH}"
 # In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
 # In presubmit, this SHA does not exist, so we should just pull from the head of the branch (eg master)
 if [[ "${JOB_TYPE:-}" == "postsubmit" ]]; then
-  SHA=$(git rev-parse ${BRANCH})
+  SHA=$(git rev-parse "${BRANCH}")
 fi
 
 ${CONTAINER_CLI} build --target build_tools --build-arg "ISTIO_TOOLS_SHA=${SHA}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
