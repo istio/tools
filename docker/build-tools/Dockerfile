@@ -554,8 +554,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
 RUN apt-key add /tmp/docker-key
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
-RUN apt-get update
-RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}" \
+RUN apt-get update && apt-get -y install --no-install-recommends \
+    docker-ce="${DOCKER_VERSION}" \
+    docker-ce-cli="${DOCKER_VERSION}" \
+    containerd.io="${CONTAINERD_VERSION}" \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
