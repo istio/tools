@@ -224,9 +224,9 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
     python ./update_mesh_config.py enable_mixer /tmp/meshconfig.yaml  | kubectl -n istio-system apply -f -
     ```
 
-## [Optional] Enable Mixerless Telemetry:
+## [Optional] Enable Telemetryv2
 
-```baseh
+```bash
 $ istioctl manifest apply --set values.telemetry.enabled=true,values.telemetry.v1.enabled=false,values.telemetry.v2.enabled=true,values.telemetry.v2.prometheus.enabled=true
 ```
 
