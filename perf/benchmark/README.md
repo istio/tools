@@ -225,14 +225,9 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
     ```
 
 ## [Optional] Enable Telemetryv2
-
-1. Disable mixer v1 telemetry following previous section
-
-1. Enable metadata exchange filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/release-1.5/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml>
-
-1. Enable stats filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/release-1.5/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml>
-
-Note: the above config files is for `master` branch, please specify the corresponding branch for your installed istio-version, like `release-1.4`.
+```bash
+$ istioctl manifest apply --set values.telemetry.enabled=true,values.telemetry.v1.enabled=false,values.telemetry.v2.enabled=true,values.telemetry.v2.prometheus.enabled=true
+```
 
 ## Gather Result Metrics
 

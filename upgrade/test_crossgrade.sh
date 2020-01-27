@@ -305,6 +305,7 @@ _sendInternalRequestTraffic() {
         return 1
     fi
 }
+
 sendInternalRequestTraffic() {
     writeMsg "Sending internal traffic"
     withRetries 10 0 _sendInternalRequestTraffic
@@ -478,7 +479,7 @@ checkEchosrv
 
 # Run internal traffic in the background since we may have to relaunch it if the job fails.
 sendInternalRequestTraffic &
-sendExternalRequestTraffic "${INGRESS_ADDR}" &   # TODO: if we wait this to finish, all the following steps will succeed.
+sendExternalRequestTraffic "${INGRESS_ADDR}" &
 # Let traffic clients establish all connections. There's some small startup delay, this covers it.
 echo "Waiting for traffic to settle..."
 sleep 20
