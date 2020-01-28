@@ -43,3 +43,6 @@ cert: false
 interceptionMode: REDIRECT
 
 namespace: ""
+
+galley:
+  enableAnalysis: false
