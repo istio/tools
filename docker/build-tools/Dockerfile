@@ -501,10 +501,10 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:xenial as proxy_base_os_context
+FROM ubuntu:xenial
 
 # Docker
-ENV DOCKER_VERSION=5:18.09.0~3-0~ubuntu-xenial
+ENV DOCKER_VERSION=5:19.03.2~3-0~ubuntu-xenial
 ENV CONTAINERD_VERSION=1.2.6-3
 
 # General
