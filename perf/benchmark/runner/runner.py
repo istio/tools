@@ -313,8 +313,14 @@ def run_nighthawk(pod, remote_cmd, labels):
             os.system("cat {dest}.json | docker run -i {docker_image} nighthawk_output_transform --output-format fortio > {dest}.fortio.json".format(
                 dest=dest, docker_image=NIGHTHAWK_DOCKER_IMAGE))
             # Copy to the Fortio report server data directory.
+            # TODO(oschaaf): We output the global aggregated statistics here of request_to_response, which excludes connection set up time.
+            # It would be nice to dump a series instead, as we have more details available in the Nighthawk json:
+            # - queue/connect time
+            # - time spend blocking in closed loop mode
+            # - initiation time to completion (spanning the complete lifetime of a request/reply, including queue/connect time)
+            # - per worker output may sometimes help interpret plots that don't have a nice knee-shaped shape.
             kubectl_cp("{dest}.fortio.json".format(
-                dest=dest), "{pod}:/var/lib/fortio/{datetime}_nighthawk_{labels}.fortio.json".format(pod=pod, labels=labels, datetime=time.strftime("%Y-%m-%d-%H%M%S")), "shell")
+                dest=dest), "{pod}:/var/lib/fortio/{datetime}_nighthawk_{labels}.json".format(pod=pod, labels=labels, datetime=time.strftime("%Y-%m-%d-%H%M%S")), "shell")
     else:
         print("nighthawk remote execution error: %s" % exit_code)
         if output:
@@ -421,8 +427,8 @@ def run(args):
 
     # TODO(oschaaf): Figure out how to best determine the right concurrency for Nighthawk.
     # Results seem to get very noisy as the number of workers increases, are the clients
-    # and running on separate sets of vCPU cores? nproc yields the same concurrency as grocs
-    # use to in Fortio.
+    # and running on separate sets of vCPU cores? nproc yields the same concurrency as goprocs
+    # use with the Fortio version.
     # client_cpus = int(run_command_sync(
     #     "kubectl exec -n \"{ns}\" svc/fortioclient -c shell nproc".format(ns=NAMESPACE)))
     # print("Client pod has {client_cpus} cpus".format(client_cpus=client_cpus))
