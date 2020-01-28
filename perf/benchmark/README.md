@@ -61,6 +61,8 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
     ./setup_test.sh
     ```
 
+You can set GALLEY_ANALYSIS=true (by default this value is false) to compare the performance overhead of enabling validation messages for resource status
+
 ## Prepare Python Environment
 
 Here, `pipenv shell` will create a local Python3 virtual environment, and `pipenv install` will install all the Python packages needed to run the benchmarking scripts (see `runner/Pipfile`).

@@ -27,6 +27,7 @@ NAMESPACE="${NAMESPACE:-twopods}"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
+GALLEY_ANALYSIS="${GALLEY_ANALYSIS:-false}"
 ISTIO_INJECT="${ISTIO_INJECT:-false}"
 LINKERD_INJECT="${LINKERD_INJECT:-disabled}"
 INTERCEPTION_MODE="${INTERCEPTION_MODE:-REDIRECT}"
@@ -54,6 +55,7 @@ function run_test() {
       --set server.inject="${ISTIO_INJECT}"  \
       --set client.injectL="${LINKERD_INJECT}" \
       --set server.injectL="${LINKERD_INJECT}" \
+      --set values.galley.enableAnalysis="${GALLEY_ANALYSIS}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
           . > "${TMPDIR}/${NAMESPACE}.yaml"
