@@ -710,7 +710,7 @@ func (x *builder) writeCRDFiles() {
 		}
 		// TODO(jasonwzm): remove this when we no longer support Kubernetes <=1.13. Nullable is a valid field in structural
 		// schema, but we are removing it to accommodate for JSONSchema in Kubernetes <=1.13.
-		re := regexp.MustCompile("\\s*nullable:\\strue")
+		re := regexp.MustCompile(`\s*nullable:\strue`)
 		y = re.ReplaceAll(y, []byte(""))
 
 		// remove the status and creationTimestamp fields from the output. Ideally we could use OrderedMap to remove those.
