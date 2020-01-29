@@ -67,11 +67,11 @@ echo "start profiling..."
 kubectl exec "${POD_NAME}" -n "${POD_NAMESPACE}" -c istio-proxy -- /etc/istio/proxy/get_perfdata.sh perf.data "${SAMPLE_FREQUENCY}" "${PERF_TIME}"
 
 TMP_DIR=$(mktemp -d -t proxy-perf-XXXXXXXXXX)
-trap "rm -rf ${TMP_DIR}" EXIT
+trap 'rm -rf "${TMP_DIR}"' EXIT
 TIME="$(date '+%Y-%m-%d-%H-%M-%S')"
 PERF_FILE_NAME="${POD_NAME}"-"${TIME}".perf
 PERF_FILE="${TMP_DIR}"/"${PERF_FILE_NAME}"
 kubectl cp "${POD_NAME}":/etc/istio/proxy/perf.data.perf "${PERF_FILE}" -n "${POD_NAMESPACE}" -c istio-proxy
 
-echo "generating svg file "${PERF_FILE_NAME}""
+echo "generating svg file ${PERF_FILE_NAME}"
 "${WD}"/flame.sh "${PERF_FILE}"
