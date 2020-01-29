@@ -53,31 +53,16 @@ Flame graphs are created from data collected using linux `perf_events` by the `p
     If running perf still gives error:```You may not have permission to collect stats. Consider tweaking /proc/sys/kernel/perf_event_paranoid:```
     after running above commands, try ssh into node and run the container with --privileged flag.
 
-1. Copy [`get_perfdata.sh`](get_perfdata.sh) to the container and run it as follows. The following command collects samples at `177Hz` for `20s`.
+1. Run [`get_proxy_perf.sh`](get_proxy_perf.sh.sh) to get the profiling svg. The following command collects samples at `177Hz` for `20s`. The svg file should be created under `flameoutput` dir
 
     ```plain
-    istio-proxy@fortioserver-deployment-84fcdcbcf9-47f75:/etc/istio/proxy$ ./get_perfdata.sh perf.data 20 177
+    ./get_proxy_perf.sh -p svc05-0-7-564865d756-pvjhn -n service-graph05 -s 177 -t 20
     ...
     [ perf record: Woken up 1 times to write data ]
-    [ perf record: Captured and wrote 0.040 MB /etc/istio/proxy/perf.data (157 samples) ]
+    [ perf record: Captured and wrote 0.061 MB /etc/istio/proxy/perf.data (74 samples) ]
 
     Wrote /etc/istio/proxy/perf.data.perf
     ...
-    ```
-
-1. Copy file out of the container
-
-    ```bash
-    kubectl cp <pod>:/etc/istio/proxy/perf.data.perf ./perf.data.perf -c istio-proxy
-    ```
-
-1. Run [`flame.sh`](flame.sh) on the downloaded file
-
-    ```bash
-    ./flame.sh ./perf.data.perf
-    Wrote perf.svg
-
-    Copying file://perf.svg [Content-Type=image/svg+xml]...
-    / [1 files][ 89.4 KiB/ 89.4 KiB]
-    Operation completed over 1 objects/89.4 KiB.
+    generating svg file svc05-0-7-564865d756-pvjhn-2020-01-29-22-34-19.perf
+    ...
     ```
