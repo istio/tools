@@ -134,4 +134,4 @@ tools.code-workspace
 # perf/benchmark results 
 .csv
 .DS_Store
-palette.map
+**/palette.map
