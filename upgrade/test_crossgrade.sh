@@ -243,20 +243,20 @@ installIstioAtVersionUsingHelm() {
 installIstioAtVersionUsingIstioctl(){
   writeMsg "istioctl install istio using version ${2} from ${3}."
   istioctl_path="${3}"/bin
-  "${istioctl_path}"/istioctl experimental manifest apply --skip-confirmation
+  if "${2}" >= "1.4.0"; then
+      "${istioctl_path}"/istioctl manifest apply --skip-confirmation
+  else
+      "${istioctl_path}"/istioctl x manifest apply --yes
+  fi
 }
 
-# istioctl x upgrade supports upgrade istio release version
-# from 1.3.x to 1.4.0
-# 1.3.3 to 1.4.0
-# 1.3.0 to 1.4.0 --force
 upgradeIstioAtVersionUsingIstioctl(){
   writeMsg "istioctl upgrade istio using version ${2} from ${3}."
   istioctl_path="${3}"/bin
-  if "${FROM_TAG}" < "1.3.3"; then
-    "${istioctl_path}"/istioctl experimental manifest upgrade --skip-confirmation --force
-  else
-    "${istioctl_path}"/istioctl experimental manifest upgrade --skip-confirmation
+  if "${TO_TAG}" >= "1.5.0"; then
+    "${istioctl_path}"/istioctl upgrade --skip-confirmation
+  elif "${TO_TAG}" >= "1.4.0"; then
+    "${istioctl_path}"/istioctl x upgrade --skip-confirmation
   fi
 }
 
