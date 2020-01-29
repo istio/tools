@@ -135,3 +135,4 @@ tools.code-workspace
 .csv
 .DS_Store
 **/palette.map
+**/flameoutput/
