@@ -47,14 +47,13 @@
                           <label class="col-sm-3 form-control-label">Istio Release Builds</label>
                           <div class="col-sm-9">
                             <select name="current_release_name" class="form-control mb-3">
-                              <option> --- </option>
-                                {% for release in cur_release_names %}
-                                    {% if release == cpu_cur_selected_release|last %}
-                                    <option selected>{{ release }}</option>
-                                    {% else %}
-                                    <option>{{ release }}</option>
-                                    {% endif %}
-                                {% endfor %}
+                            {% for release in cur_release_names %}
+                                {% if release == cpu_cur_selected_release|last %}
+                                <option selected>{{ release }}</option>
+                                {% else %}
+                                <option>{{ release }}</option>
+                                {% endif %}
+                            {% endfor %}
                             </select>
                             <small class="help-block-none">Choose from the latest builds</small>
                             <input type="submit">
@@ -78,14 +77,13 @@
                           <label class="col-sm-3 form-control-label">Istio Release Builds</label>
                           <div class="col-sm-9">
                             <select name="master_release_name" class="form-control mb-3">
-                              <option> --- </option>
-                                {% for release in master_release_names %}
-                                    {% if release == cpu_master_selected_release|last %}
-                                    <option selected>{{ release }}</option>
-                                    {% else %}
-                                    <option>{{ release }}</option>
-                                    {% endif %}
-                                {% endfor %}
+                            {% for release in master_release_names %}
+                                {% if release == cpu_master_selected_release|last %}
+                                <option selected>{{ release }}</option>
+                                {% else %}
+                                <option>{{ release }}</option>
+                                {% endif %}
+                            {% endfor %}
                             </select>
                             <small class="help-block-none">Choose from the latest builds</small>
                             <input type="submit">
