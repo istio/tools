@@ -810,9 +810,6 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 	result = bytes.Replace(result, []byte("&amp;lt;"), []byte("&lt;"), -1)
 	result = bytes.Replace(result, []byte("&amp;gt;"), []byte("&gt;"), -1)
 
-	// prevent any { contained in the markdown from being interpreted as Hugo shortcodes
-	result = bytes.Replace(result, []byte("{"), []byte("&lbrace;"), -1)
-
 	g.buffer.Write(result)
 	g.buffer.WriteByte('\n')
 }
