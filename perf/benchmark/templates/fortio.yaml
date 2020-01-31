@@ -459,6 +459,11 @@ spec:
         - /var/lib/fortio/
 {{- else }}
         image: {{ $.Values.nighthawkImage }}
+        ports:
+        - containerPort: 8077
+          protocol: TCP
+        - containerPort: 8076
+          protocol: TCP
         volumeMounts:
         - name: shared-data
           mountPath: /var/lib/fortio
