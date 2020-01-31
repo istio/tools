@@ -47,19 +47,15 @@ function download_untar_istio_release() {
   local dir=${3:-.}
   # Download artifacts
   LINUX_DIST_URL="${url_path}/istio-${tag}-linux.tar.gz"
-  echo "${LINUX_DIST_URL}"
 
-  if [ "${TARGET_TAG}" == "master" ];then
+  if [ "${tag}" == "master" ];then
     GIT_SHA=$(curl "https://storage.googleapis.com/istio-build/dev/latest")
     tag="${GIT_SHA}"
     LINUX_DIST_URL="https://storage.googleapis.com/istio-build/dev/${tag}/istio-${tag}-linux.tar.gz"
   fi
 
   wget -q "${LINUX_DIST_URL}" -P "${dir}"
-
   tar -xzf "${dir}/istio-${tag}-linux.tar.gz" -C "${dir}"
-  find "${dir}" -maxdepth 1 -type f
-  find "${dir}/istio-${tag}" -maxdepth 1 -type f
 }
 
 # shellcheck disable=SC1090
