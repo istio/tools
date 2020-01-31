@@ -17,12 +17,18 @@ from django.core.files.storage import FileSystemStorage
 
 
 def graph_plotting(request):
-    if request.method == 'POST' and request.FILES.get('myfile'):
-        myfile = request.FILES.get('myfile')
+    if request.method == 'POST' and request.POST.get('my_benchmark_type') and request.POST.get('my_graph_name') and \
+            request.FILES.get('my_file'):
+        my_benchmark_type = request.POST.get('my_benchmark_type')
+        my_graph_name = request.POST.get('my_graph_name')
+        my_file = request.FILES.get('my_file')
         fs = FileSystemStorage()
-        filename = fs.save(myfile.name, myfile)
+        filename = fs.save(my_file.name, my_file)
         uploaded_file_url = fs.url(filename)
-        return render(request, 'graph_plotting.html', {
-            'uploaded_file_url': uploaded_file_url
-        })
+        context = {
+            'uploaded_file_url': uploaded_file_url,
+            'user_benchmark_type': my_benchmark_type,
+            'user_graph_name': my_graph_name,
+        }
+        return render(request, 'graph_plotting.html', context=context)
     return render(request, 'graph_plotting.html')

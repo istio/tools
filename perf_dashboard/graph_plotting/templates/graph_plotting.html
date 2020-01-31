@@ -57,7 +57,7 @@
                             <div class="form-group row">
                               <label class="col-sm-3 form-control-label">Benchmark Types</label>
                               <div class="col-sm-9">
-                                <select name="account" class="form-control mb-3">
+                                <select name="my_benchmark_type" class="form-control mb-3">
                                   <!-- TODO: need to add help text or the current default display -->
                                   <option> ----- Choose the benchmark types you want to plot ----- </option>
                                   <option>Latency</option>
@@ -71,7 +71,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 form-control-label">Graph Name</label>
                                 <div class="col-sm-9">
-                                <input type="text" class="form-control"><span class="text-small text-gray help-block-none">Please give a proper name for your graph.</span>
+                                    <input type="text" name="my_graph_name" class="form-control"><span class="text-small text-gray help-block-none">Please give a proper name for your graph.</span>
                                 </div>
                             </div>
                             <div class="line"></div>
@@ -79,7 +79,7 @@
                             <div class="form-group row">
                               <label for="fileInput" class="col-sm-3 form-control-label">Choose Your .csv file for CPU/Memory/Latency</label>
                               <div class="col-sm-9">
-                                <input id="fileInput" type="file" name="myfile" class="form-control-file">
+                                <input id="fileInput" type="file" name="my_file" class="form-control-file">
                               </div>
                             </div>
                             <div class="line"></div>
@@ -101,11 +101,12 @@
     </div>
 </section>
 
+
 <section class="charts">
     <div class="container-fluid">
         <!-- Page Header-->
         <header>
-            <h1 class="h3 display">Latency vs. Client Connections</h1>
+            <h1 class="h3 display">Benchmark Type: {{ user_benchmark_type }}</h1>
         </header>
         <div class="row">
             <div class="col-lg-2">
@@ -113,7 +114,7 @@
             <div class="col-lg-8">
               <div class="card">
                 <div class="card-header d-flex align-items-center">
-                  <h4>Istio-master: P90, 1000QPS over 240 seconds</h4>
+                  <h4>Graph Name: {{ user_graph_name }}</h4>
                 </div>
                 <div class="card-body">
                   <canvas id="latency-config-demo"></canvas>
@@ -129,6 +130,7 @@
 
 {% block page_data %}
     <script>
-
+        user_benchmark_type = {{ my_benchmark_type|safe }}
+        user_graph_name = {{ my_graph_name|safe }}
     </script>
 {% endblock page_data %}
