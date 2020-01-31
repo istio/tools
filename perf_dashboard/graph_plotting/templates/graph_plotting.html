@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+
+{% block sidebar_active %}
+<ul id="side-main-menu" class="side-menu list-unstyled">
+    <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
+    <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Benchmarks</a>
+    <ul id="dropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'cpu_memory' %}"><i class="fa fa-asterisk"></i>CPU & Memory Usage</a></li>
+        <li><a href="#dropDownLatency" aria-expanded="false" data-toggle="collapse">
+            <i class="fa fa-asterisk"></i>Latency Quantiles</a>
+            <ul id="dropDownLatency" class="collapse list-unstyled">
+                <li><a href="{% url 'latency_conn' %}"><i class="fa fa-chevron-right"></i>Latency vs. Connection</a></li>
+                <li><a href="{% url 'latency_qps' %}"><i class="fa fa-chevron-right"></i>Latency vs. QPS</a></li>
+            </ul>
+        <li><a href="{% url 'flame_graph' %}"><i class="fa fa-asterisk"></i>Flame Graph</a></li>
+        <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
+    </ul>
+    <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
+    <i class="fa fa-bullhorn"></i>Regression Alerts</a>
+    <ul id="alertDropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'cur_alert' %}"><i class="fa fa-asterisk"></i>Current Release Alert</a></li>
+        <li><a href="{% url 'master_alert' %}"><i class="fa fa-asterisk"></i>Master Alert</a></li>
+    </ul>
+    <li class="active"><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
+    <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+</ul>
+{% endblock sidebar_active %}
+
+{% block current_active %}
+<li class="breadcrumb-item active">Graph Plotting</li>
+{% endblock current_active %}
+
+{% block page_content %}
+<section>
+    <div class="container-fluid">
+      <!-- Page Header-->
+      <header>
+        <h1 class="h1 display">Benchmark Test Data Plotting</h1>
+      </header>
+    </div>
+</section>
+
+<section class="forms">
+    <div class="container-fluid">
+        <div class="row">
+        <!-- Form Elements -->
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center">
+                        <h4 class="h4">Please upload your csv file</h4>
+                    </div>
+                    <div class="card-body">
+                        <form class="form-horizontal" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group row">
+                              <label class="col-sm-3 form-control-label">Benchmark Types</label>
+                              <div class="col-sm-9">
+                                <select name="account" class="form-control mb-3">
+                                  <!-- TODO: need to add help text or the current default display -->
+                                  <option> ----- Choose the benchmark types you want to plot ----- </option>
+                                  <option>Latency</option>
+                                  <option>CPU</option>
+                                  <option>Memory</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="line"></div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-3 form-control-label">Graph Name</label>
+                                <div class="col-sm-9">
+                                <input type="text" class="form-control"><span class="text-small text-gray help-block-none">Please give a proper name for your graph.</span>
+                                </div>
+                            </div>
+                            <div class="line"></div>
+
+                            <div class="form-group row">
+                              <label for="fileInput" class="col-sm-3 form-control-label">Choose Your .csv file for CPU/Memory/Latency</label>
+                              <div class="col-sm-9">
+                                <input id="fileInput" type="file" name="myfile" class="form-control-file">
+                              </div>
+                            </div>
+                            <div class="line"></div>
+
+                            <div class="form-group row">
+                              <div class="col-sm-4 offset-sm-3">
+                                <button type="submit" class="btn btn-secondary">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Upload</button>
+                              </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if uploaded_file_url %}
+        <h2>File uploaded at: <a href="{{ uploaded_file_url }}">{{ uploaded_file_url }}</a></h2>
+        {% endif %}
+    </div>
+</section>
+
+<section class="charts">
+    <div class="container-fluid">
+        <!-- Page Header-->
+        <header>
+            <h1 class="h3 display">Latency vs. Client Connections</h1>
+        </header>
+        <div class="row">
+            <div class="col-lg-2">
+            </div>
+            <div class="col-lg-8">
+              <div class="card">
+                <div class="card-header d-flex align-items-center">
+                  <h4>Istio-master: P90, 1000QPS over 240 seconds</h4>
+                </div>
+                <div class="card-body">
+                  <canvas id="latency-config-demo"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-2">
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock page_content %}
+
+{% block page_data %}
+    <script>
+
+    </script>
+{% endblock page_data %}
