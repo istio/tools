@@ -31,7 +31,11 @@ def latency_vs_conn(request):
 
     if request.method == "POST" and 'current_release_name' in request.POST:
         cur_selected_release.append(request.POST['current_release_name'])
-    df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
+
+    df = pd.read_csv(perf_data_path + "cur_temp.csv")
+
+    if cur_release_names is not None and len(cur_release_names) > 0:
+        df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
     # Parse data for the current release
     if len(cur_selected_release) > 1:
         cur_selected_release.pop(0)
@@ -69,7 +73,10 @@ def latency_vs_conn(request):
     if request.method == "POST" and 'master_release_name' in request.POST:
         master_selected_release.append(request.POST['master_release_name'])
 
-    df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
+    df = pd.read_csv(perf_data_path + "master_temp.csv")
+
+    if master_release_names is not None and len(master_release_names) > 0:
+        df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
     # Parse data for the current release
     if len(master_selected_release) > 1:
         master_selected_release.pop(0)
@@ -165,7 +172,11 @@ def latency_vs_qps(request):
 
     if request.method == "POST" and 'current_release_name' in request.POST:
         cur_selected_release.append(request.POST['current_release_name'])
-    df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
+
+    df = pd.read_csv(perf_data_path + "cur_temp.csv")
+
+    if cur_release_names is not None and len(cur_release_names) > 0:
+        df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
     # Parse data for the current release
     if len(cur_selected_release) > 1:
         cur_selected_release.pop(0)
@@ -203,7 +214,10 @@ def latency_vs_qps(request):
     if request.method == "POST" and 'master_release_name' in request.POST:
         master_selected_release.append(request.POST['master_release_name'])
 
-    df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
+    df = pd.read_csv(perf_data_path + "master_temp.csv")
+
+    if master_release_names is not None and len(master_release_names) > 0:
+        df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
     # Parse data for the current release
     if len(master_selected_release) > 1:
         master_selected_release.pop(0)
@@ -300,7 +314,10 @@ def cpu_memory(request):
     if request.method == "POST" and 'current_release_name' in request.POST:
         cpu_cur_selected_release.append(request.POST['current_release_name'])
 
-    df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
+    df = pd.read_csv(perf_data_path + "cur_temp.csv")
+
+    if cur_release_names is not None and len(cur_release_names) > 0:
+        df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
     # Parse data for the current release
     if len(cpu_cur_selected_release) > 1:
         cpu_cur_selected_release.pop(0)
@@ -329,7 +346,10 @@ def cpu_memory(request):
     if request.method == "POST" and 'master_release_name' in request.POST:
         cpu_master_selected_release.append(request.POST['master_release_name'])
 
-    df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
+    df = pd.read_csv(perf_data_path + "master_temp.csv")
+
+    if master_release_names is not None and len(master_release_names) > 0:
+        df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
     # Parse data for the current release
     if len(cpu_master_selected_release) > 1:
         cpu_master_selected_release.pop(0)
