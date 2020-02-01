@@ -30,9 +30,10 @@ current_release = [os.getenv('CUR_RELEASE')]
 # Create your views here.
 def latency_vs_conn(request, uploaded_csv_url=None):
     if uploaded_csv_url is not None:
-        uploade_csv_path = cwd + uploaded_csv_url
-        df = pd.read_csv(uploade_csv_path)
+        uploaded_csv_path = cwd + uploaded_csv_url
+        df = pd.read_csv(uploaded_csv_path)
         context = get_lantency_vs_conn_context(df)
+        os.remove(uploaded_csv_path)
         return context
     else:
         cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
@@ -135,9 +136,10 @@ def latency_vs_conn(request, uploaded_csv_url=None):
 
 def latency_vs_qps(request, uploaded_csv_url=None):
     if uploaded_csv_url is not None:
-        uploade_csv_path = cwd + uploaded_csv_url
-        df = pd.read_csv(uploade_csv_path)
+        uploaded_csv_path = cwd + uploaded_csv_url
+        df = pd.read_csv(uploaded_csv_path)
         context = get_lantency_vs_qps_context(df)
+        os.remove(uploaded_csv_path)
         return context
     else:
         cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
@@ -238,9 +240,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
 
 def cpu_memory(request, uploaded_csv_url=None):
     if uploaded_csv_url is not None:
-        uploade_csv_path = cwd + uploaded_csv_url
-        df = pd.read_csv(uploade_csv_path)
+        uploaded_csv_path = cwd + uploaded_csv_url
+        df = pd.read_csv(uploaded_csv_path)
         context = get_cpu_mem_context(df)
+        os.remove(uploaded_csv_path)
         return context
     else:
         cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
@@ -531,3 +534,4 @@ def get_mem_y_series(df, mixer_mode):
         else:
             y_series_data.append('null')
     return y_series_data
+
