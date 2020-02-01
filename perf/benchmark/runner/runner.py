@@ -32,7 +32,8 @@ from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
 NAMESPACE = os.environ.get("NAMESPACE", "twopods")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
-POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels', 'cluster_ip'])
+POD = collections.namedtuple(
+    'Pod', ['name', 'namespace', 'ip', 'labels', 'cluster_ip'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:latest"
 
 
@@ -50,13 +51,14 @@ def pod_info(filterstr="", namespace=os.environ.get("NAMESPACE", "twopods"), mul
         raise Exception("no pods found with command [" + cmd + "]")
 
     i = items[0]
-    cmd="kubectl -n {namespace} get svc fortioserver --no-headers".format(namespace=namespace)
+    cmd = "kubectl -n {namespace} get svc fortioserver --no-headers".format(
+        namespace=namespace)
     # The nighthawk docker image has a problem resolving DNS on gcloud.
     # The currency theory is we're running into https://github.com/gliderlabs/docker-alpine/issues/476
     # Hence, a temporary hack to figure out the cluster ip ourselves for when we want to send traffic
     # through the client side car.
     # TODO(oschaaf): back this out once resolved properly.
-    cluster_ip=getoutput(cmd).split()[2]
+    cluster_ip = getoutput(cmd).split()[2]
     return POD(i['metadata']['name'], i['metadata']['namespace'],
                i['status']['podIP'], i['metadata']['labels'], cluster_ip)
 
