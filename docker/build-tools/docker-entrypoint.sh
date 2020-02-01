@@ -31,7 +31,7 @@ chmod -R 700 /config-copy
 
 # If a .docker/plaintext-passwords.json file exists, we are on docker_for_mac. Do the work of
 # importing the plaintext-passwords.json into the .docker/config.json
-if [[ -f /config-copy/.docker/plaintext-paswords.json ]]; then
+if [[ -f /config-copy/.docker/plaintext-passwords.json ]]; then
 	# Use jq parser to get the value of the auth key which contains the encrypted docker login credentials from
 	# the plaintext-passwords.json. ("${HOME}"/.docker/plaintext-passwords.json copied from the host to
 	# /config-copy/.docker/plaintext-passwords.json)

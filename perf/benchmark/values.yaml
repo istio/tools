@@ -13,7 +13,7 @@ appresources1:
     cpu: "800m"
     memory: "1000m"
 
-fortioImage: fortio/fortio:latest_release
+fortioImage: fortio/fortio:latest
 curlImage: tutum/curl:trusty
 nighthawkImage: envoyproxy/nighthawk-dev:latest
 domain: local
