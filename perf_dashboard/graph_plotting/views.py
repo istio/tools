@@ -36,12 +36,13 @@ def graph_plotting(request):
         if my_benchmark_type == 'Latency vs. Connection':
             d2 = v.latency_vs_conn(request, uploaded_file_url)
             context = reduce(lambda x, y: dict(x, **y), (d1, d2))
-            print("mydic=================")
-            print(context)
-        # # elif my_benchmark_type == 'Latency vs. QPS':
-        # # elif my_benchmark_type == "CPU":
-        # # elif my_benchmark_type == "QPS":
-            return render(request, 'graph_plotting.html', context=context)
-        return render(request, 'graph_plotting.html', context=d1)
-
+        elif my_benchmark_type == 'Latency vs. QPS':
+            d3 = v.latency_vs_qps(request, uploaded_file_url)
+            context = reduce(lambda x, y: dict(x, **y), (d1, d3))
+        elif my_benchmark_type == "CPU & Memory":
+            d4 = v.cpu_memory(request, uploaded_file_url)
+            context = reduce(lambda x, y: dict(x, **y), (d1, d4))
+        else:
+            context = d1
+        return render(request, 'graph_plotting.html', context=context)
     return render(request, 'graph_plotting.html')
