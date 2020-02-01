@@ -57,42 +57,42 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         if request.method == "POST" and 'master_release_name' in request.POST:
             master_selected_release.append(request.POST['master_release_name'])
 
-        df_m = pd.read_csv(perf_data_path + "master_temp.csv")
+        df = pd.read_csv(perf_data_path + "master_temp.csv")
 
         if master_release_names is not None and len(master_release_names) > 0:
-            df_m = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
+            df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
         # Parse data for the current release
         if len(master_selected_release) > 1:
             master_selected_release.pop(0)
         if len(master_selected_release) > 0:
-            df_m = pd.read_csv(perf_data_path + master_selected_release[0] + ".csv")
+            df = pd.read_csv(perf_data_path + master_selected_release[0] + ".csv")
 
-        latency_mixer_base_p50_master = get_latency_vs_conn_y_series(df_m, '_mixer_base', 'p50')
-        latency_mixer_serveronly_p50_master = get_latency_vs_conn_y_series(df_m, '_mixer_serveronly', 'p50')
-        latency_mixer_both_p50_master = get_latency_vs_conn_y_series(df_m, '_mixer_both', 'p50')
-        latency_none_serveronly_p50_master = get_latency_vs_conn_y_series(df_m, '_none_serveronly', 'p50')
-        latency_none_both_p50_master = get_latency_vs_conn_y_series(df_m, '_none_both', 'p50')
-        latency_none_plaintext_both_p50_master = get_latency_vs_conn_y_series(df_m, '_none_plaintext_both', 'p50')
-        latency_v2_serveronly_p50_master = get_latency_vs_conn_y_series(df_m, 'nullvm_serveronly', 'p50')
-        latency_v2_both_p50_master = get_latency_vs_conn_y_series(df_m, 'nullvm_both', 'p50')
+        latency_mixer_base_p50_master = get_latency_vs_conn_y_series(df, '_mixer_base', 'p50')
+        latency_mixer_serveronly_p50_master = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p50')
+        latency_mixer_both_p50_master = get_latency_vs_conn_y_series(df, '_mixer_both', 'p50')
+        latency_none_serveronly_p50_master = get_latency_vs_conn_y_series(df, '_none_serveronly', 'p50')
+        latency_none_both_p50_master = get_latency_vs_conn_y_series(df, '_none_both', 'p50')
+        latency_none_plaintext_both_p50_master = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p50')
+        latency_v2_serveronly_p50_master = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p50')
+        latency_v2_both_p50_master = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p50')
 
-        latency_mixer_base_p90_master = get_latency_vs_conn_y_series(df_m, '_mixer_base', 'p90')
-        latency_mixer_serveronly_p90_master = get_latency_vs_conn_y_series(df_m, '_mixer_serveronly', 'p90')
-        latency_mixer_both_p90_master = get_latency_vs_conn_y_series(df_m, '_mixer_both', 'p90')
-        latency_none_serveronly_p90_master = get_latency_vs_conn_y_series(df_m, '_none_serveronly', 'p90')
-        latency_none_both_p90_master = get_latency_vs_conn_y_series(df_m, '_none_both', 'p90')
-        latency_none_plaintext_both_p90_master = get_latency_vs_conn_y_series(df_m, '_none_plaintext_both', 'p90')
-        latency_v2_serveronly_p90_master = get_latency_vs_conn_y_series(df_m, 'nullvm_serveronly', 'p90')
-        latency_v2_both_p90_master = get_latency_vs_conn_y_series(df_m, 'nullvm_both', 'p90')
+        latency_mixer_base_p90_master = get_latency_vs_conn_y_series(df, '_mixer_base', 'p90')
+        latency_mixer_serveronly_p90_master = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p90')
+        latency_mixer_both_p90_master = get_latency_vs_conn_y_series(df, '_mixer_both', 'p90')
+        latency_none_serveronly_p90_master = get_latency_vs_conn_y_series(df, '_none_serveronly', 'p90')
+        latency_none_both_p90_master = get_latency_vs_conn_y_series(df, '_none_both', 'p90')
+        latency_none_plaintext_both_p90_master = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p90')
+        latency_v2_serveronly_p90_master = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p90')
+        latency_v2_both_p90_master = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p90')
 
-        latency_mixer_base_p99_master = get_latency_vs_conn_y_series(df_m, '_mixer_base', 'p99')
-        latency_mixer_serveronly_p99_master = get_latency_vs_conn_y_series(df_m, '_mixer_serveronly', 'p99')
-        latency_mixer_both_p99_master = get_latency_vs_conn_y_series(df_m, '_mixer_both', 'p99')
-        latency_none_serveronly_p99_master = get_latency_vs_conn_y_series(df_m, '_none_serveronly', 'p99')
-        latency_none_both_p99_master = get_latency_vs_conn_y_series(df_m, '_none_both', 'p99')
-        latency_none_plaintext_both_p99_master = get_latency_vs_conn_y_series(df_m, '_none_plaintext_both', 'p99')
-        latency_v2_serveronly_p99_master = get_latency_vs_conn_y_series(df_m, 'nullvm_serveronly', 'p99')
-        latency_v2_both_p99_master = get_latency_vs_conn_y_series(df_m, 'nullvm_both', 'p99')
+        latency_mixer_base_p99_master = get_latency_vs_conn_y_series(df, '_mixer_base', 'p99')
+        latency_mixer_serveronly_p99_master = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p99')
+        latency_mixer_both_p99_master = get_latency_vs_conn_y_series(df, '_mixer_both', 'p99')
+        latency_none_serveronly_p99_master = get_latency_vs_conn_y_series(df, '_none_serveronly', 'p99')
+        latency_none_both_p99_master = get_latency_vs_conn_y_series(df, '_none_both', 'p99')
+        latency_none_plaintext_both_p99_master = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p99')
+        latency_v2_serveronly_p99_master = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p99')
+        latency_v2_both_p99_master = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p99')
 
         other_context = {
            'current_release': current_release,
