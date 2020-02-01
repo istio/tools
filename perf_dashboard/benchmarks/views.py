@@ -525,4 +525,3 @@ def get_mem_y_series(df, mixer_mode):
         else:
             y_series_data.append('null')
     return y_series_data
-
