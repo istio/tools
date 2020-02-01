@@ -94,40 +94,38 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         latency_v2_serveronly_p99_master = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p99')
         latency_v2_both_p99_master = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p99')
 
-        other_context = {
-           'current_release': current_release,
-           'cur_selected_release': cur_selected_release,
-           'master_selected_release':  master_selected_release,
-           'cur_release_names': cur_release_names,
-           'master_release_names': master_release_names,
-        }
+        other_context = {'current_release': current_release,
+                         'cur_selected_release': cur_selected_release,
+                         'master_selected_release':  master_selected_release,
+                         'cur_release_names': cur_release_names,
+                         'master_release_names': master_release_names,
+                         }
 
-        master_context = {
-                   'latency_mixer_base_p50_master': latency_mixer_base_p50_master,
-                   'latency_mixer_serveronly_p50_master': latency_mixer_serveronly_p50_master,
-                   'latency_mixer_both_p50_master': latency_mixer_both_p50_master,
-                   'latency_none_serveronly_p50_master': latency_none_serveronly_p50_master,
-                   'latency_none_both_p50_master': latency_none_both_p50_master,
-                   'latency_none_plaintext_both_p50_master': latency_none_plaintext_both_p50_master,
-                   'latency_v2_serveronly_p50_master': latency_v2_serveronly_p50_master,
-                   'latency_v2_both_p50_master': latency_v2_both_p50_master,
-                   'latency_mixer_base_p90_master': latency_mixer_base_p90_master,
-                   'latency_mixer_serveronly_p90_master': latency_mixer_serveronly_p90_master,
-                   'latency_mixer_both_p90_master': latency_mixer_both_p90_master,
-                   'latency_none_serveronly_p90_master': latency_none_serveronly_p90_master,
-                   'latency_none_both_p90_master': latency_none_both_p90_master,
-                   'latency_none_plaintext_both_p90_master': latency_none_plaintext_both_p90_master,
-                   'latency_v2_serveronly_p90_master': latency_v2_serveronly_p90_master,
-                   'latency_v2_both_p90_master': latency_v2_both_p90_master,
-                   'latency_mixer_base_p99_master': latency_mixer_base_p99_master,
-                   'latency_mixer_serveronly_p99_master': latency_mixer_serveronly_p99_master,
-                   'latency_mixer_both_p99_master': latency_mixer_both_p99_master,
-                   'latency_none_serveronly_p99_master': latency_none_serveronly_p99_master,
-                   'latency_none_both_p99_master': latency_none_both_p99_master,
-                   'latency_none_plaintext_both_p99_master': latency_none_plaintext_both_p99_master,
-                   'latency_v2_serveronly_p99_master': latency_v2_serveronly_p99_master,
-                   'latency_v2_both_p99_master': latency_v2_both_p99_master,
-                   }
+        master_context = {'latency_mixer_base_p50_master': latency_mixer_base_p50_master,
+                          'latency_mixer_serveronly_p50_master': latency_mixer_serveronly_p50_master,
+                          'latency_mixer_both_p50_master': latency_mixer_both_p50_master,
+                          'latency_none_serveronly_p50_master': latency_none_serveronly_p50_master,
+                          'latency_none_both_p50_master': latency_none_both_p50_master,
+                          'latency_none_plaintext_both_p50_master': latency_none_plaintext_both_p50_master,
+                          'latency_v2_serveronly_p50_master': latency_v2_serveronly_p50_master,
+                          'latency_v2_both_p50_master': latency_v2_both_p50_master,
+                          'latency_mixer_base_p90_master': latency_mixer_base_p90_master,
+                          'latency_mixer_serveronly_p90_master': latency_mixer_serveronly_p90_master,
+                          'latency_mixer_both_p90_master': latency_mixer_both_p90_master,
+                          'latency_none_serveronly_p90_master': latency_none_serveronly_p90_master,
+                          'latency_none_both_p90_master': latency_none_both_p90_master,
+                          'latency_none_plaintext_both_p90_master': latency_none_plaintext_both_p90_master,
+                          'latency_v2_serveronly_p90_master': latency_v2_serveronly_p90_master,
+                          'latency_v2_both_p90_master': latency_v2_both_p90_master,
+                          'latency_mixer_base_p99_master': latency_mixer_base_p99_master,
+                          'latency_mixer_serveronly_p99_master': latency_mixer_serveronly_p99_master,
+                          'latency_mixer_both_p99_master': latency_mixer_both_p99_master,
+                          'latency_none_serveronly_p99_master': latency_none_serveronly_p99_master,
+                          'latency_none_both_p99_master': latency_none_both_p99_master,
+                          'latency_none_plaintext_both_p99_master': latency_none_plaintext_both_p99_master,
+                          'latency_v2_serveronly_p99_master': latency_v2_serveronly_p99_master,
+                          'latency_v2_both_p99_master': latency_v2_both_p99_master,
+                          }
 
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
 
@@ -200,39 +198,38 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_v2_serveronly_p99_master = get_latency_vs_qps_y_series(df, 'nullvm_serveronly', 'p99')
         latency_v2_both_p99_master = get_latency_vs_qps_y_series(df, 'nullvm_both', 'p99')
 
-        other_context = {
-                   'current_release': current_release,
-                   'cur_selected_release': cur_selected_release,
-                   'master_selected_release':  master_selected_release,
-                   'cur_release_names': cur_release_names,
-                   'master_release_names': master_release_names
-                    }
-        master_context = {
-                   'latency_mixer_base_p50_master': latency_mixer_base_p50_master,
-                   'latency_mixer_serveronly_p50_master': latency_mixer_serveronly_p50_master,
-                   'latency_mixer_both_p50_master': latency_mixer_both_p50_master,
-                   'latency_none_serveronly_p50_master': latency_none_serveronly_p50_master,
-                   'latency_none_both_p50_master': latency_none_both_p50_master,
-                   'latency_none_plaintext_both_p50_master': latency_none_plaintext_both_p50_master,
-                   'latency_v2_serveronly_p50_master': latency_v2_serveronly_p50_master,
-                   'latency_v2_both_p50_master': latency_v2_both_p50_master,
-                   'latency_mixer_base_p90_master': latency_mixer_base_p90_master,
-                   'latency_mixer_serveronly_p90_master': latency_mixer_serveronly_p90_master,
-                   'latency_mixer_both_p90_master': latency_mixer_both_p90_master,
-                   'latency_none_serveronly_p90_master': latency_none_serveronly_p90_master,
-                   'latency_none_both_p90_master': latency_none_both_p90_master,
-                   'latency_none_plaintext_both_p90_master': latency_none_plaintext_both_p90_master,
-                   'latency_v2_serveronly_p90_master': latency_v2_serveronly_p90_master,
-                   'latency_v2_both_p90_master': latency_v2_both_p90_master,
-                   'latency_mixer_base_p99_master': latency_mixer_base_p99_master,
-                   'latency_mixer_serveronly_p99_master': latency_mixer_serveronly_p99_master,
-                   'latency_mixer_both_p99_master': latency_mixer_both_p99_master,
-                   'latency_none_serveronly_p99_master': latency_none_serveronly_p99_master,
-                   'latency_none_both_p99_master': latency_none_both_p99_master,
-                   'latency_none_plaintext_both_p99_master': latency_none_plaintext_both_p99_master,
-                   'latency_v2_serveronly_p99_master': latency_v2_serveronly_p99_master,
-                   'latency_v2_both_p99_master': latency_v2_both_p99_master,
-                   }
+        other_context = {'current_release': current_release,
+                         'cur_selected_release': cur_selected_release,
+                         'master_selected_release':  master_selected_release,
+                         'cur_release_names': cur_release_names,
+                         'master_release_names': master_release_names,
+                         }
+
+        master_context = {'latency_mixer_base_p50_master': latency_mixer_base_p50_master,
+                          'latency_mixer_serveronly_p50_master': latency_mixer_serveronly_p50_master,
+                          'latency_mixer_both_p50_master': latency_mixer_both_p50_master,
+                          'latency_none_serveronly_p50_master': latency_none_serveronly_p50_master,
+                          'latency_none_both_p50_master': latency_none_both_p50_master,
+                          'latency_none_plaintext_both_p50_master': latency_none_plaintext_both_p50_master,
+                          'latency_v2_serveronly_p50_master': latency_v2_serveronly_p50_master,
+                          'latency_v2_both_p50_master': latency_v2_both_p50_master,
+                          'latency_mixer_base_p90_master': latency_mixer_base_p90_master,
+                          'latency_mixer_serveronly_p90_master': latency_mixer_serveronly_p90_master,
+                          'latency_mixer_both_p90_master': latency_mixer_both_p90_master,
+                          'latency_none_serveronly_p90_master': latency_none_serveronly_p90_master,
+                          'latency_none_both_p90_master': latency_none_both_p90_master,
+                          'latency_none_plaintext_both_p90_master': latency_none_plaintext_both_p90_master,
+                          'latency_v2_serveronly_p90_master': latency_v2_serveronly_p90_master,
+                          'latency_v2_both_p90_master': latency_v2_both_p90_master,
+                          'latency_mixer_base_p99_master': latency_mixer_base_p99_master,
+                          'latency_mixer_serveronly_p99_master': latency_mixer_serveronly_p99_master,
+                          'latency_mixer_both_p99_master': latency_mixer_both_p99_master,
+                          'latency_none_serveronly_p99_master': latency_none_serveronly_p99_master,
+                          'latency_none_both_p99_master': latency_none_both_p99_master,
+                          'latency_none_plaintext_both_p99_master': latency_none_plaintext_both_p99_master,
+                          'latency_v2_serveronly_p99_master': latency_v2_serveronly_p99_master,
+                          'latency_v2_both_p99_master': latency_v2_both_p99_master,
+                          }
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
 
         return render(request, "latency_vs_qps.html", context=context)
@@ -295,32 +292,30 @@ def cpu_memory(request, uploaded_csv_url=None):
         mem_v2_serveronly_master = get_mem_y_series(df, 'nullvm_serveronly')
         mem_v2_both_master = get_mem_y_series(df, 'nullvm_both')
 
-        other_context = {
-            'current_release': current_release,
-            'cpu_cur_selected_release': cpu_cur_selected_release,
-            'cpu_master_selected_release': cpu_master_selected_release,
-            'cur_release_names': cur_release_names,
-            'master_release_names': master_release_names,
-        }
+        other_context = {'current_release': current_release,
+                         'cpu_cur_selected_release': cpu_cur_selected_release,
+                         'cpu_master_selected_release': cpu_master_selected_release,
+                         'cur_release_names': cur_release_names,
+                         'master_release_names': master_release_names,
+                         }
 
-        master_context = {
-                   'cpu_mixer_base_master': cpu_mixer_base_master,
-                   'cpu_mixer_serveronly_master': cpu_mixer_serveronly_master,
-                   'cpu_mixer_both_master': cpu_mixer_both_master,
-                   'cpu_none_serveronly_master': cpu_none_serveronly_master,
-                   'cpu_none_both_master': cpu_none_both_master,
-                   'cpu_none_plaintext_both_master': cpu_none_plaintext_both_master,
-                   'cpu_v2_serveronly_master': cpu_v2_serveronly_master,
-                   'cpu_v2_both_master': cpu_v2_both_master,
-                   'mem_mixer_base_master': mem_mixer_base_master,
-                   'mem_mixer_serveronly_master': mem_mixer_serveronly_master,
-                   'mem_mixer_both_master': mem_mixer_both_master,
-                   'mem_none_serveronly_master': mem_none_serveronly_master,
-                   'mem_none_both_master': mem_none_both_master,
-                   'mem_none_plaintext_both_master': mem_none_plaintext_both_master,
-                   'mem_v2_serveronly_master': mem_v2_serveronly_master,
-                   'mem_v2_both_master': mem_v2_both_master,
-                   }
+        master_context = {'cpu_mixer_base_master': cpu_mixer_base_master,
+                          'cpu_mixer_serveronly_master': cpu_mixer_serveronly_master,
+                          'cpu_mixer_both_master': cpu_mixer_both_master,
+                          'cpu_none_serveronly_master': cpu_none_serveronly_master,
+                          'cpu_none_both_master': cpu_none_both_master,
+                          'cpu_none_plaintext_both_master': cpu_none_plaintext_both_master,
+                          'cpu_v2_serveronly_master': cpu_v2_serveronly_master,
+                          'cpu_v2_both_master': cpu_v2_both_master,
+                          'mem_mixer_base_master': mem_mixer_base_master,
+                          'mem_mixer_serveronly_master': mem_mixer_serveronly_master,
+                          'mem_mixer_both_master': mem_mixer_both_master,
+                          'mem_none_serveronly_master': mem_none_serveronly_master,
+                          'mem_none_both_master': mem_none_both_master,
+                          'mem_none_plaintext_both_master': mem_none_plaintext_both_master,
+                          'mem_v2_serveronly_master': mem_v2_serveronly_master,
+                          'mem_v2_both_master': mem_v2_both_master,
+                          }
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
 
         return render(request, "cpu_memory.html", context=context)
@@ -354,33 +349,31 @@ def get_lantency_vs_conn_context(df):
     latency_v2_serveronly_p99 = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p99')
     latency_v2_both_p99 = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p99')
 
-    context = {
-        'latency_mixer_base_p50': latency_mixer_base_p50,
-        'latency_mixer_serveronly_p50': latency_mixer_serveronly_p50,
-        'latency_mixer_both_p50': latency_mixer_both_p50,
-        'latency_none_serveronly_p50': latency_none_serveronly_p50,
-        'latency_none_both_p50': latency_none_both_p50,
-        'latency_none_plaintext_both_p50': latency_none_plaintext_both_p50,
-        'latency_v2_serveronly_p50': latency_v2_serveronly_p50,
-        'latency_v2_both_p50': latency_v2_both_p50,
-        'latency_mixer_base_p90': latency_mixer_base_p90,
-        'latency_mixer_serveronly_p90': latency_mixer_serveronly_p90,
-        'latency_mixer_both_p90': latency_mixer_both_p90,
-        'latency_none_serveronly_p90': latency_none_serveronly_p90,
-        'latency_none_both_p90': latency_none_both_p90,
-        'latency_none_plaintext_both_p90': latency_none_plaintext_both_p90,
-        'latency_v2_serveronly_p90': latency_v2_serveronly_p90,
-        'latency_v2_both_p90': latency_v2_both_p90,
-        'latency_mixer_base_p99': latency_mixer_base_p99,
-        'latency_mixer_serveronly_p99': latency_mixer_serveronly_p99,
-        'latency_mixer_both_p99': latency_mixer_both_p99,
-        'latency_none_serveronly_p99': latency_none_serveronly_p99,
-        'latency_none_both_p99': latency_none_both_p99,
-        'latency_none_plaintext_both_p99': latency_none_plaintext_both_p99,
-        'latency_v2_serveronly_p99': latency_v2_serveronly_p99,
-        'latency_v2_both_p99': latency_v2_both_p99,
-
-    }
+    context = {'latency_mixer_base_p50': latency_mixer_base_p50,
+               'latency_mixer_serveronly_p50': latency_mixer_serveronly_p50,
+               'latency_mixer_both_p50': latency_mixer_both_p50,
+               'latency_none_serveronly_p50': latency_none_serveronly_p50,
+               'latency_none_both_p50': latency_none_both_p50,
+               'latency_none_plaintext_both_p50': latency_none_plaintext_both_p50,
+               'latency_v2_serveronly_p50': latency_v2_serveronly_p50,
+               'latency_v2_both_p50': latency_v2_both_p50,
+               'latency_mixer_base_p90': latency_mixer_base_p90,
+               'latency_mixer_serveronly_p90': latency_mixer_serveronly_p90,
+               'latency_mixer_both_p90': latency_mixer_both_p90,
+               'latency_none_serveronly_p90': latency_none_serveronly_p90,
+               'latency_none_both_p90': latency_none_both_p90,
+               'latency_none_plaintext_both_p90': latency_none_plaintext_both_p90,
+               'latency_v2_serveronly_p90': latency_v2_serveronly_p90,
+               'latency_v2_both_p90': latency_v2_both_p90,
+               'latency_mixer_base_p99': latency_mixer_base_p99,
+               'latency_mixer_serveronly_p99': latency_mixer_serveronly_p99,
+               'latency_mixer_both_p99': latency_mixer_both_p99,
+               'latency_none_serveronly_p99': latency_none_serveronly_p99,
+               'latency_none_both_p99': latency_none_both_p99,
+               'latency_none_plaintext_both_p99': latency_none_plaintext_both_p99,
+               'latency_v2_serveronly_p99': latency_v2_serveronly_p99,
+               'latency_v2_both_p99': latency_v2_both_p99,
+               }
     return context
 
 
@@ -412,32 +405,31 @@ def get_lantency_vs_qps_context(df):
     latency_v2_serveronly_p99 = get_latency_vs_qps_y_series(df, 'nullvm_serveronly', 'p99')
     latency_v2_both_p99 = get_latency_vs_qps_y_series(df, 'nullvm_both', 'p99')
 
-    context = {
-        'latency_mixer_base_p50': latency_mixer_base_p50,
-        'latency_mixer_serveronly_p50': latency_mixer_serveronly_p50,
-        'latency_mixer_both_p50': latency_mixer_both_p50,
-        'latency_none_serveronly_p50': latency_none_serveronly_p50,
-        'latency_none_both_p50': latency_none_both_p50,
-        'latency_none_plaintext_both_p50': latency_none_plaintext_both_p50,
-        'latency_v2_serveronly_p50': latency_v2_serveronly_p50,
-        'latency_v2_both_p50': latency_v2_both_p50,
-        'latency_mixer_base_p90': latency_mixer_base_p90,
-        'latency_mixer_serveronly_p90': latency_mixer_serveronly_p90,
-        'latency_mixer_both_p90': latency_mixer_both_p90,
-        'latency_none_serveronly_p90': latency_none_serveronly_p90,
-        'latency_none_both_p90': latency_none_both_p90,
-        'latency_none_plaintext_both_p90': latency_none_plaintext_both_p90,
-        'latency_v2_serveronly_p90': latency_v2_serveronly_p90,
-        'latency_v2_both_p90': latency_v2_both_p90,
-        'latency_mixer_base_p99': latency_mixer_base_p99,
-        'latency_mixer_serveronly_p99': latency_mixer_serveronly_p99,
-        'latency_mixer_both_p99': latency_mixer_both_p99,
-        'latency_none_serveronly_p99': latency_none_serveronly_p99,
-        'latency_none_both_p99': latency_none_both_p99,
-        'latency_none_plaintext_both_p99': latency_none_plaintext_both_p99,
-        'latency_v2_serveronly_p99': latency_v2_serveronly_p99,
-        'latency_v2_both_p99': latency_v2_both_p99,
-    }
+    context = {'latency_mixer_base_p50': latency_mixer_base_p50,
+               'latency_mixer_serveronly_p50': latency_mixer_serveronly_p50,
+               'latency_mixer_both_p50': latency_mixer_both_p50,
+               'latency_none_serveronly_p50': latency_none_serveronly_p50,
+               'latency_none_both_p50': latency_none_both_p50,
+               'latency_none_plaintext_both_p50': latency_none_plaintext_both_p50,
+               'latency_v2_serveronly_p50': latency_v2_serveronly_p50,
+               'latency_v2_both_p50': latency_v2_both_p50,
+               'latency_mixer_base_p90': latency_mixer_base_p90,
+               'latency_mixer_serveronly_p90': latency_mixer_serveronly_p90,
+               'latency_mixer_both_p90': latency_mixer_both_p90,
+               'latency_none_serveronly_p90': latency_none_serveronly_p90,
+               'latency_none_both_p90': latency_none_both_p90,
+               'latency_none_plaintext_both_p90': latency_none_plaintext_both_p90,
+               'latency_v2_serveronly_p90': latency_v2_serveronly_p90,
+               'latency_v2_both_p90': latency_v2_both_p90,
+               'latency_mixer_base_p99': latency_mixer_base_p99,
+               'latency_mixer_serveronly_p99': latency_mixer_serveronly_p99,
+               'latency_mixer_both_p99': latency_mixer_both_p99,
+               'latency_none_serveronly_p99': latency_none_serveronly_p99,
+               'latency_none_both_p99': latency_none_both_p99,
+               'latency_none_plaintext_both_p99': latency_none_plaintext_both_p99,
+               'latency_v2_serveronly_p99': latency_v2_serveronly_p99,
+               'latency_v2_both_p99': latency_v2_both_p99,
+               }
     return context
 
 
@@ -460,26 +452,25 @@ def get_cpu_mem_context(df):
     mem_v2_serveronly = get_mem_y_series(df, 'nullvm_serveronly')
     mem_v2_both = get_mem_y_series(df, 'nullvm_both')
 
-    context = {
-        'cpu_mixer_base': cpu_mixer_base,
-        'cpu_mixer_serveronly': cpu_mixer_serveronly,
-        'cpu_mixer_both': cpu_mixer_both,
-        'cpu_none_serveronly': cpu_none_serveronly,
-        'cpu_none_both': cpu_none_both,
-        'cpu_none_plaintext_both': cpu_none_plaintext_both,
-        'cpu_v2_serveronly': cpu_v2_serveronly,
-        'cpu_v2_both': cpu_v2_both,
-        'mem_mixer_base': mem_mixer_base,
-        'mem_mixer_serveronly': mem_mixer_serveronly,
-        'mem_mixer_both': mem_mixer_both,
-        'mem_none_serveronly': mem_none_serveronly,
-        'mem_none_both': mem_none_both,
-        'mem_none_plaintext_both': mem_none_plaintext_both,
-        'mem_v2_serveronly': mem_v2_serveronly,
-        'mem_v2_both': mem_v2_both,
-    }
-
+    context = {'cpu_mixer_base': cpu_mixer_base,
+               'cpu_mixer_serveronly': cpu_mixer_serveronly,
+               'cpu_mixer_both': cpu_mixer_both,
+               'cpu_none_serveronly': cpu_none_serveronly,
+               'cpu_none_both': cpu_none_both,
+               'cpu_none_plaintext_both': cpu_none_plaintext_both,
+               'cpu_v2_serveronly': cpu_v2_serveronly,
+               'cpu_v2_both': cpu_v2_both,
+               'mem_mixer_base': mem_mixer_base,
+               'mem_mixer_serveronly': mem_mixer_serveronly,
+               'mem_mixer_both': mem_mixer_both,
+               'mem_none_serveronly': mem_none_serveronly,
+               'mem_none_both': mem_none_both,
+               'mem_none_plaintext_both': mem_none_plaintext_both,
+               'mem_v2_serveronly': mem_v2_serveronly,
+               'mem_v2_both': mem_v2_both,
+               }
     return context
+
 
 def flame_graph(request):
     return render(request, "flame_graph.html")
