@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from functools import reduce
 
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
+from benchmarks import views as v
 
 
 def graph_plotting(request):
@@ -25,10 +27,21 @@ def graph_plotting(request):
         fs = FileSystemStorage()
         filename = fs.save(my_file.name, my_file)
         uploaded_file_url = fs.url(filename)
-        context = {
+        d1 = {
             'uploaded_file_url': uploaded_file_url,
             'user_benchmark_type': my_benchmark_type,
             'user_graph_name': my_graph_name,
         }
-        return render(request, 'graph_plotting.html', context=context)
+
+        if my_benchmark_type == 'Latency vs. Connection':
+            d2 = v.latency_vs_conn(request, uploaded_file_url)
+            context = reduce(lambda x, y: dict(x, **y), (d1, d2))
+            print("mydic=================")
+            print(context)
+        # # elif my_benchmark_type == 'Latency vs. QPS':
+        # # elif my_benchmark_type == "CPU":
+        # # elif my_benchmark_type == "QPS":
+            return render(request, 'graph_plotting.html', context=context)
+        return render(request, 'graph_plotting.html', context=d1)
+
     return render(request, 'graph_plotting.html')

@@ -102,29 +102,67 @@
     </div>
 </section>
 
-
 <section class="charts">
     <div class="container-fluid">
         <!-- Page Header-->
         <header>
             <h1 class="h3 display">Benchmark Type: {{ user_benchmark_type }}</h1>
         </header>
-        <div class="row">
-            <div class="col-lg-2">
-            </div>
-            <div class="col-lg-8">
-              <div class="card">
-                <div class="card-header d-flex align-items-center">
-                  <h4>Graph Name: {{ user_graph_name }}</h4>
+
+        {% if user_benchmark_type == "Latency vs. Connection" %}
+            <div class="row">
+                    <div class="col-lg-2">
+                    </div>
+                    <div class="col-lg-8">
+                      <div class="card">
+                        <div class="card-header d-flex align-items-center">
+                          <h4>{{ user_graph_name }} P99</h4>
+                        </div>
+                        <div class="card-body">
+                          <canvas id="latency-p90-release"></canvas> <!-- todo: might need to change the id name -->
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-2">
+                    </div>
                 </div>
-                <div class="card-body">
-                  <canvas id="latency-config-demo"></canvas>
+            <div class="row">
+                    <div class="col-lg-2">
+                    </div>
+                    <div class="col-lg-8">
+                      <div class="card">
+                        <div class="card-header d-flex align-items-center">
+                          <h4>{{ user_graph_name }} P99</h4>
+                        </div>
+                        <div class="card-body">
+                          <canvas id="latency-p50-release"></canvas> <!-- todo: might need to change the id name -->
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-2">
+                    </div>
                 </div>
-              </div>
-            </div>
-            <div class="col-lg-2">
-            </div>
-        </div>
+            <div class="row">
+                    <div class="col-lg-2">
+                    </div>
+                    <div class="col-lg-8">
+                      <div class="card">
+                        <div class="card-header d-flex align-items-center">
+                          <h4>{{ user_graph_name }} P99</h4>
+                        </div>
+                        <div class="card-body">
+                          <canvas id="latency-p99-release"></canvas> <!-- todo: might need to change the id name -->
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-2">
+                    </div>
+                </div>
+        {% elif user_benchmark_type == "Latency vs. QPS" %}
+        {% elif user_benchmark_type == "CPU" %}
+        {% elif user_benchmark_type == "Memory" %}
+        {% else %}
+        {% endif %}
     </div>
 </section>
 {% endblock page_content %}
@@ -133,5 +171,41 @@
     <script>
         user_benchmark_type = {{ my_benchmark_type|safe }}
         user_graph_name = {{ my_graph_name|safe }}
+
+
+        latency_mixer_base_p50 = {{ latency_mixer_base_p50|safe }}
+        latency_mixer_serveronly_p50 = {{ latency_mixer_serveronly_p50|safe }}
+        latency_mixer_both_p50 = {{ latency_mixer_both_p50|safe }}
+        latency_none_serveronly_p50 = {{ latency_none_serveronly_p50|safe }}
+        latency_none_both_p50 = {{ latency_none_both_p50|safe }}
+        latency_none_plaintext_both_p50 = {{ latency_none_plaintext_both_p50|safe }}
+        latency_v2_serveronly_p50 = {{ latency_v2_serveronly_p50|safe }}
+        latency_v2_both_p50 = {{ latency_v2_both_p50|safe }}
+
+        latency_mixer_base_p90 = {{ latency_mixer_base_p90|safe }}
+        latency_mixer_serveronly_p90 = {{ latency_mixer_serveronly_p90|safe }}
+        latency_mixer_both_p90 = {{ latency_mixer_both_p90|safe }}
+        latency_none_serveronly_p90 = {{ latency_none_serveronly_p90|safe }}
+        latency_none_both_p90 = {{ latency_none_both_p90|safe }}
+        latency_none_plaintext_both_p90 = {{ latency_none_plaintext_both_p90|safe }}
+        latency_v2_serveronly_p90 = {{ latency_v2_serveronly_p90|safe }}
+        latency_v2_both_p90 = {{ latency_v2_both_p90|safe }}
+
+        latency_mixer_base_p99 = {{ latency_mixer_base_p99|safe }}
+        latency_mixer_serveronly_p99 = {{ latency_mixer_serveronly_p99|safe }}
+        latency_mixer_both_p99 = {{ latency_mixer_both_p99|safe }}
+        latency_none_serveronly_p99 = {{ latency_none_serveronly_p99|safe }}
+        latency_none_both_p99 = {{ latency_none_both_p99|safe }}
+        latency_none_plaintext_both_p99 = {{ latency_none_plaintext_both_p99|safe }}
+        latency_v2_serveronly_p99 = {{ latency_v2_serveronly_p99|safe }}
+        latency_v2_both_p99 = {{ latency_v2_both_p99|safe }}
+
+
     </script>
 {% endblock page_data %}
+
+
+{% block charts_js %}
+    <script src="{% static 'js/latency_common_func.js' %}"></script>
+    <script src="{% static 'js/latency_conn.js' %}"></script>
+{% endblock charts_js %}
