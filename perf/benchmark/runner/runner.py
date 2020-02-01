@@ -32,7 +32,7 @@ from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
 NAMESPACE = os.environ.get("NAMESPACE", "twopods")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
-POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
+POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels', 'cluster_ip'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:latest"
 
 
@@ -50,8 +50,15 @@ def pod_info(filterstr="", namespace=os.environ.get("NAMESPACE", "twopods"), mul
         raise Exception("no pods found with command [" + cmd + "]")
 
     i = items[0]
+    cmd="kubectl -n {namespace} get svc fortioserver --no-headers".format(namespace=namespace)
+    # The nighthawk docker image has a problem resolving DNS on gcloud.
+    # The currency theory is we're running into https://github.com/gliderlabs/docker-alpine/issues/476
+    # Hence, a temporary hack to figure out the cluster ip ourselves for when we want to send traffic
+    # through the client side car.
+    # TODO(oschaaf): back this out once resolved properly.
+    cluster_ip=getoutput(cmd).split()[2]
     return POD(i['metadata']['name'], i['metadata']['namespace'],
-               i['status']['podIP'], i['metadata']['labels'])
+               i['status']['podIP'], i['metadata']['labels'], cluster_ip)
 
 
 def run_command(command):
@@ -111,7 +118,6 @@ class Fortio:
         self.run_clientsidecar = clientsidecar
         self.run_bothsidecar = bothsidecar
         self.run_ingress = ingress
-
         if mesh == "linkerd":
             self.mesh = "linkerd"
         elif mesh == "istio":
@@ -133,10 +139,10 @@ class Fortio:
         return "serveronly", self.compute_uri(self.server.ip, "port")
 
     def clientsidecar(self):
-        return "clientonly", self.compute_uri(self.server.labels["app"], "direct_port")
+        return "clientonly", self.compute_uri(self.server.cluster_ip, "direct_port")
 
     def bothsidecar(self):
-        return "both", self.compute_uri(self.server.labels["app"], "port")
+        return "both", self.compute_uri(self.server.cluster_ip, "port")
 
     def ingress(self):
         url = urlparse(self.run_ingress)
