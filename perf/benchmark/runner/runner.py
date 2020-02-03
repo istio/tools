@@ -332,7 +332,7 @@ def fortio_from_config_file(args):
         fortio.telemetry_mode = job_config.get('telemetry_mode', 'mixer')
         fortio.metrics = job_config.get('metrics', 'p90')
         fortio.size = job_config.get('size', 1024)
-        fortio.perf_record = job_config.get('perf_record', False)
+        fortio.perf_record = False
         fortio.run_serversidecar = job_config.get('run_serversidecar', False)
         fortio.run_clientsidecar = job_config.get('run_clientsidecar', False)
         fortio.run_bothsidecar = job_config.get('run_bothsidecar', True)
