@@ -51,6 +51,7 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 backgroundColor: "rgba(259, 188, 5, 0.2)",
                 borderColor: "rgba(259, 188, 5, 1)",
                 data: cpu_mixer_serveronly,
+                hidden: true,
                 fill: false
             }, {
                 label: "both",
@@ -63,6 +64,7 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: cpu_none_serveronly,
+                hidden: true,
                 fill: false
             }, {
                 label: "none-both",
@@ -81,6 +83,7 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: cpu_v2_serveronly,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-both",
@@ -110,6 +113,7 @@ new Chart(document.getElementById("mem-qps-release"), {
                 backgroundColor: "rgba(259, 188, 5, 0.2)",
                 borderColor: "rgba(259, 188, 5, 1)",
                 data: mem_mixer_serveronly,
+                hidden: true,
                 fill: false
             }, {
                 label: "both",
@@ -122,6 +126,7 @@ new Chart(document.getElementById("mem-qps-release"), {
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: mem_none_serveronly,
+                hidden: true,
                 fill: false
             }, {
                 label: "none-both",
@@ -140,6 +145,7 @@ new Chart(document.getElementById("mem-qps-release"), {
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: mem_v2_serveronly,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-both",
@@ -169,6 +175,7 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 backgroundColor: "rgba(259, 188, 5, 0.2)",
                 borderColor: "rgba(259, 188, 5, 1)",
                 data: cpu_mixer_serveronly_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "both",
@@ -181,6 +188,7 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: cpu_none_serveronly_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "none-both",
@@ -199,6 +207,7 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: cpu_v2_serveronly_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-both",
@@ -228,6 +237,7 @@ new Chart(document.getElementById("mem-qps-master"), {
                 backgroundColor: "rgba(259, 188, 5, 0.2)",
                 borderColor: "rgba(259, 188, 5, 1)",
                 data: mem_mixer_serveronly_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "both",
@@ -240,6 +250,7 @@ new Chart(document.getElementById("mem-qps-master"), {
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: mem_none_serveronly_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "none-both",
@@ -258,6 +269,7 @@ new Chart(document.getElementById("mem-qps-master"), {
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: mem_v2_serveronly_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-both",
