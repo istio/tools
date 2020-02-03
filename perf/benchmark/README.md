@@ -136,8 +136,10 @@ optional arguments:
   --no_baseline         do not run baseline for all
   --serversidecar       run serversidecar-only for all
   --no_serversidecar    do not run serversidecar-only for all
-  --bothsidecar         run clientsidecar and serversidecar for all
-  --no_sidecar          do not run clientsidecar and serversidecar for all
+  --clientsidecar       run clientsidecar-only for all
+  --no_clientsidecar    do not run clientsidecar-only for all
+  --bothsidecar         run both clientsidecar and serversidecar
+  --no_sidecar          do not run clientsidecar and serversidecar
 ```
 
 Note:
@@ -207,10 +209,10 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
     python ./update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
     ```
 
-1. Run `runner.py`, in any sidecar mode, with the `--mixer_mode=nomixer` flag. If you run this command:
+1. Run `runner.py`, in any sidecar mode, with the `--mixer_mode=none` flag. If you run this command:
 
     ```bash
-    python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidecar --baseline --mixer_mode=nomixer
+    python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidecar --baseline --mixer_mode=none
     ```
 
     it will generate the output showing in the `Example Output` section. Which includes both with Mixer and without Mixer test results.
@@ -224,13 +226,9 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
 
 ## [Optional] Enable Telemetryv2
 
-1. Disable mixer v1 telemetry following previous section
-
-1. Enable metadata exchange filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml>
-
-1. Enable stats filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/master/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml>
-
-Note: the above config files is for `master` branch, please specify the corresponding branch for your installed istio-version, like `release-1.4`.
+```bash
+$ istioctl manifest apply --set values.telemetry.enabled=true,values.telemetry.v1.enabled=false,values.telemetry.v2.enabled=true,values.telemetry.v2.prometheus.enabled=true
+```
 
 ## Gather Result Metrics
 

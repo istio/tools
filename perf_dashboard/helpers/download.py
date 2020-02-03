@@ -52,28 +52,29 @@ def download_benchmark_csv(days):
             filename = release_name + ".csv"
             d = prev_date.strftime("%Y%m%d")
 
-            if d not in cur_dateset and d in release_name and current_release in release_name:
-                cur_dateset.add(d)
-                if len(cur_release_names) < days:
-                    cur_release_names.append(release_name)
-                if not check_exist(filename):
-                    download_url = download_prefix + href_str[5:] + "benchmark.csv"
-                    try:
-                        wget.download(download_url, perf_data_path + release_name + ".csv")
-                    except Exception as e:
-                        cur_release_names.pop()
-                        print(e)
-            if d not in master_dateset and d in release_name and "master" in release_name:
-                master_dateset.add(d)
-                if len(master_release_names) < days:
-                    master_release_names.append(release_name)
-                if not check_exist(filename):
-                    download_url = download_prefix + href_str[5:] + "benchmark.csv"
-                    try:
-                        wget.download(download_url, perf_data_path + release_name + ".csv")
-                    except Exception as e:
-                        master_release_names.pop()
-                        print(e)
+            if d is not None and current_release is not None:
+                if d not in cur_dateset and d in release_name and current_release in release_name:
+                    cur_dateset.add(d)
+                    if len(cur_release_names) < days:
+                        cur_release_names.insert(0, release_name)
+                    if not check_exist(filename):
+                        download_url = download_prefix + href_str[5:] + "benchmark.csv"
+                        try:
+                            wget.download(download_url, perf_data_path + release_name + ".csv")
+                        except Exception as e:
+                            cur_release_names.pop(0)
+                            print(e)
+                if d not in master_dateset and d in release_name and "master" in release_name:
+                    master_dateset.add(d)
+                    if len(master_release_names) < days:
+                        master_release_names.insert(0, release_name)
+                    if not check_exist(filename):
+                        download_url = download_prefix + href_str[5:] + "benchmark.csv"
+                        try:
+                            wget.download(download_url, perf_data_path + release_name + ".csv")
+                        except Exception as e:
+                            master_release_names.pop(0)
+                            print(e)
 
     delete_outdated_files(cur_release_names + master_release_names)
     cur_release_dates = [[]] * len(cur_release_names)
@@ -93,7 +94,7 @@ def download_benchmark_csv(days):
 
 
 def delete_outdated_files(release_names):
-    filenames = []
+    filenames = ['master_temp.csv', 'cur_temp.csv']
     for release in release_names:
         filenames.append(release + ".csv")
     for f in os.listdir(perf_data_path):

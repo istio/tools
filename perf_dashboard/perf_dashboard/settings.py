@@ -39,7 +39,7 @@ SECRET_KEY = '0-k61x@nbmohu87^f!gql9ug1c*5(8k@ujeeme%cx4x=d@*=-f'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'perf.dashboard.qualistio.org']
 
 
 # Application definition
@@ -133,8 +133,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'assets'),
-)
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]

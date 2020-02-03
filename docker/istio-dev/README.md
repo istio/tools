@@ -46,6 +46,16 @@ nodes:
 - role: control-plane
 - role: worker
 - role: worker
+kubeadmConfigPatches:
+  - |
+    apiVersion: kubeadm.k8s.io/v1beta2
+    kind: ClusterConfiguration
+    metadata:
+      name: config
+    apiServer:
+      extraArgs:
+        "service-account-issuer": "kubernetes.default.svc"
+        "service-account-signing-key-file": "/etc/kubernetes/pki/sa.key"
 EOF
 
 export KUBECONFIG=$(kind get kubeconfig-path --name="$CLUSTER_NAME")

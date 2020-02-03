@@ -36,10 +36,10 @@ spec:
     port: 8079
     protocol: TCP
   - name: http-echoa
-    port: 8078
+    port: 8077
     protocol: TCP
   - name: grpc-pinga
-    port: 8077
+    port: 8076
     protocol: TCP
   selector:
     app: {{ $.name }}
@@ -82,11 +82,13 @@ spec:
         {{- if $.Values.interceptionMode }}
         sidecar.istio.io/interceptionMode: {{ $.Values.interceptionMode }}
         {{- end }}
-        {{- if $.Values.excludeOutboundIPRanges }}
+        {{- if eq $.name "fortioclient" }}
+        {{- if $.Values.excludeOutboundIPRanges}}
         traffic.sidecar.istio.io/excludeOutboundIPRanges: {{ $.Values.excludeOutboundIPRanges }}
         {{- end }}
         {{- if $.Values.includeOutboundIPRanges }}
         traffic.sidecar.istio.io/includeOutboundIPRanges: {{ $.Values.includeOutboundIPRanges }}
+        {{- end }}
         {{- end }}
         sidecar.istio.io/inject: "{{ $.V.inject }}"
         linkerd.io/inject: "{{ $.V.injectL }}"
@@ -170,28 +172,6 @@ spec:
 {{ toYaml $.Values.appresources1 | indent 10 }}
 {{- end }}
 ---
-{{- if $.V.inject }}
-apiVersion: authentication.istio.io/v1alpha1
-kind: Policy
-metadata:
-  name: {{ $.name }}
-spec:
-  targets:
-  - name: {{ $.name }}
-  peers:
-  - mtls:
-      mode: PERMISSIVE
----
-apiVersion: networking.istio.io/v1alpha3
-kind: DestinationRule
-metadata:
-  name: {{ $.name }}
-spec:
-  host:  {{ $.name }}
-  trafficPolicy:
-    tls:
-      mode: {{ $.V.tlsmode }}
----
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
@@ -207,8 +187,6 @@ spec:
         host: {{ $.name }}
         port:
           number: 8080
----
-{{- end }}
 {{- end }}
 
 {{- $fortioserver := dict "name" "fortioserver" "Values" .Values "V" .Values.server}}

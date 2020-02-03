@@ -243,20 +243,21 @@ installIstioAtVersionUsingHelm() {
 installIstioAtVersionUsingIstioctl(){
   writeMsg "istioctl install istio using version ${2} from ${3}."
   istioctl_path="${3}"/bin
-  "${istioctl_path}"/istioctl experimental manifest apply --skip-confirmation
+  find "${istioctl_path}" -maxdepth 1 -type f
+  if "${2}" >= "1.4.0"; then
+      "${istioctl_path}"/istioctl manifest apply --skip-confirmation
+  else
+      "${istioctl_path}"/istioctl x manifest apply --yes
+  fi
 }
 
-# istioctl x upgrade supports upgrade istio release version
-# from 1.3.x to 1.4.0
-# 1.3.3 to 1.4.0
-# 1.3.0 to 1.4.0 --force
 upgradeIstioAtVersionUsingIstioctl(){
   writeMsg "istioctl upgrade istio using version ${2} from ${3}."
   istioctl_path="${3}"/bin
-  if "${FROM_TAG}" < "1.3.3"; then
-    "${istioctl_path}"/istioctl experimental manifest upgrade --skip-confirmation --force
-  else
-    "${istioctl_path}"/istioctl experimental manifest upgrade --skip-confirmation
+  if "${TO_TAG}" >= "1.5.0"; then
+    "${istioctl_path}"/istioctl upgrade --skip-confirmation
+  elif "${TO_TAG}" >= "1.4.0"; then
+    "${istioctl_path}"/istioctl x upgrade --skip-confirmation
   fi
 }
 
@@ -305,6 +306,7 @@ _sendInternalRequestTraffic() {
         return 1
     fi
 }
+
 sendInternalRequestTraffic() {
     writeMsg "Sending internal traffic"
     withRetries 10 0 _sendInternalRequestTraffic
@@ -478,7 +480,7 @@ checkEchosrv
 
 # Run internal traffic in the background since we may have to relaunch it if the job fails.
 sendInternalRequestTraffic &
-sendExternalRequestTraffic "${INGRESS_ADDR}" &   # TODO: if we wait this to finish, all the following steps will succeed.
+sendExternalRequestTraffic "${INGRESS_ADDR}" &
 # Let traffic clients establish all connections. There's some small startup delay, this covers it.
 echo "Waiting for traffic to settle..."
 sleep 20

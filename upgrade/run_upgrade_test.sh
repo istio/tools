@@ -36,7 +36,7 @@ export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://github.com/istio/isti
 export TARGET_HUB=${TARGET_HUB:-"docker.io/istio"}
 export TARGET_TAG=${TARGET_TAG:-"1.3.4"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://github.com/istio/istio/releases/download/${TARGET_TAG}"}
-export INSTALL_OPTIONS=${ISTALL_OPTIONS:-"helm"}
+export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"helm"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
 
@@ -48,9 +48,16 @@ function download_untar_istio_release() {
   # Download artifacts
   LINUX_DIST_URL="${url_path}/istio-${tag}-linux.tar.gz"
 
-  wget  -q "${LINUX_DIST_URL}" -P "${dir}"
+  if [ "${tag}" == "master" ];then
+    GIT_SHA=$(curl "https://storage.googleapis.com/istio-build/dev/latest")
+    tag="${GIT_SHA}"
+    LINUX_DIST_URL="https://storage.googleapis.com/istio-build/dev/${tag}/istio-${tag}-linux.tar.gz"
+  fi
+
+  wget -q "${LINUX_DIST_URL}" -P "${dir}"
   tar -xzf "${dir}/istio-${tag}-linux.tar.gz" -C "${dir}"
 }
+
 # shellcheck disable=SC1090
 source "${ROOT}/bin/setup_cluster.sh"
 # Set to any non-empty value to use kubectl configured cluster instead of mason provisioned cluster.

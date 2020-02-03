@@ -39,7 +39,7 @@ window.generateChart = function(chartID, modesData) {
       verticalAlign: "bottom",
       horizontalAlign: "left",
       dockInsidePlotArea: true,
-      itemclick: toogleDataSeries
+      itemclick: toggleDataSeries
     },
     data: [{
       type: "line",
@@ -62,7 +62,7 @@ window.generateChart = function(chartID, modesData) {
       {
         type: "line",
         showInLegend: true,
-        name: "nomixer_serveronly-baseline",
+        name: "none_serveronly-baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
         color: "rgba(52, 168, 85, 1)",
@@ -71,7 +71,7 @@ window.generateChart = function(chartID, modesData) {
       {
         type: "line",
         showInLegend: true,
-        name: "nomixer_both-baseline",
+        name: "none_both-baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
         color: "rgba(0, 0, 0, 1)",
@@ -100,7 +100,7 @@ window.generateChart = function(chartID, modesData) {
   chart.render();
 };
 
-toogleDataSeries = function(e, chart) {
+toggleDataSeries = function(e, chart) {
     if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
       e.dataSeries.visible = false;
     } else {

@@ -94,6 +94,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -707,6 +708,11 @@ func (x *builder) writeCRDFiles() {
 		if err != nil {
 			log.Fatalf("Error marsahling CRD to yaml: %v", err)
 		}
+		// TODO(jasonwzm): remove this when we no longer support Kubernetes <=1.13. Nullable is a valid field in structural
+		// schema, but we are removing it to accommodate for JSONSchema in Kubernetes <=1.13.
+		re := regexp.MustCompile(`\s*nullable:\strue`)
+		y = re.ReplaceAll(y, []byte(""))
+
 		// remove the status and creationTimestamp fields from the output. Ideally we could use OrderedMap to remove those.
 		y = bytes.ReplaceAll(y, []byte(statusOutput), []byte(""))
 		y = bytes.ReplaceAll(y, []byte(creationTimestampOutput), []byte(""))
