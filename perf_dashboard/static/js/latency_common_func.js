@@ -97,6 +97,7 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 backgroundColor: "rgba(259, 188, 5,0.2)",
                 borderColor: "rgba(259, 188, 5,1)",
                 data: modesData[1],
+                hidden: true,
                 fill: false
             }, {
                 label: "both",
@@ -109,6 +110,7 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
                 data: modesData[3],
+                hidden: true,
                 fill: false
             }, {
                 label: "none-both",
@@ -127,6 +129,7 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: modesData[6],
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-both",

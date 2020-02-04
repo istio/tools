@@ -228,7 +228,7 @@ trap exit_handling EXIT
 echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
 
 # enable flame graph
-enable_perf_record
+# enable_perf_record
 
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs/istio"
@@ -260,8 +260,8 @@ for f in "${CONFIG_DIR}"/*; do
     
 done
 
-echo "collect flame graph ..."
-collect_flame_graph
+#echo "collect flame graph ..."
+#collect_flame_graph
 
 echo "perf benchmark test for istio is done."
 

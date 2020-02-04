@@ -23,6 +23,7 @@
         <li><a href="{% url 'cur_alert' %}"><i class="fa fa-asterisk"></i>Current Release Alert</a></li>
         <li><a href="{% url 'master_alert' %}"><i class="fa fa-asterisk"></i>Master Alert</a></li>
     </ul>
+    <li><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
 </ul>
 {% endblock sidebar_active %}
@@ -138,46 +139,46 @@
 
 {% block page_data %}
     <script>
-        current_release = {{ current_release|safe }};
-        cpu_cur_selected_release = {{ cpu_cur_selected_release|safe }};
-        cpu_master_selected_release = {{  cpu_master_selected_release|safe }};
-        cur_release_names = {{ cur_release_names|safe }};
-        master_release_names = {{ master_release_names|safe }};
-        cpu_mixer_base = {{ cpu_mixer_base|safe }};
-        cpu_mixer_serveronly = {{ cpu_mixer_serveronly|safe }};
-        cpu_mixer_both = {{ cpu_mixer_both|safe }};
-        cpu_none_serveronly = {{ cpu_none_serveronly|safe }};
-        cpu_none_both = {{ cpu_none_both|safe }};
-        cpu_none_plaintext_both = {{ cpu_none_plaintext_both|safe }};
-        cpu_v2_serveronly = {{ cpu_v2_serveronly|safe }};
-        cpu_v2_both = {{ cpu_v2_both|safe }};
+        current_release = {{ current_release|safe }}
+        cpu_cur_selected_release = {{ cpu_cur_selected_release|safe }}
+        cpu_master_selected_release = {{  cpu_master_selected_release|safe }}
+        cur_release_names = {{ cur_release_names|safe }}
+        master_release_names = {{ master_release_names|safe }}
+        cpu_mixer_base = {{ cpu_mixer_base|safe }}
+        cpu_mixer_serveronly = {{ cpu_mixer_serveronly|safe }}
+        cpu_mixer_both = {{ cpu_mixer_both|safe }}
+        cpu_none_serveronly = {{ cpu_none_serveronly|safe }}
+        cpu_none_both = {{ cpu_none_both|safe }}
+        cpu_none_plaintext_both = {{ cpu_none_plaintext_both|safe }}
+        cpu_v2_serveronly = {{ cpu_v2_serveronly|safe }}
+        cpu_v2_both = {{ cpu_v2_both|safe }}
 
-        cpu_mixer_base_master = {{ cpu_mixer_base_master|safe }};
-        cpu_mixer_serveronly_master = {{ cpu_mixer_serveronly_master|safe }};
-        cpu_mixer_both_master = {{ cpu_mixer_both_master|safe }};
-        cpu_none_serveronly_master = {{ cpu_none_serveronly_master|safe }};
-        cpu_none_both_master = {{ cpu_none_both_master|safe }};
-        cpu_none_plaintext_both_master = {{ cpu_none_plaintext_both_master|safe }};
-        cpu_v2_serveronly_master = {{ cpu_v2_serveronly_master|safe }};
-        cpu_v2_both_master = {{ cpu_v2_both_master|safe }};
+        cpu_mixer_base_master = {{ cpu_mixer_base_master|safe }}
+        cpu_mixer_serveronly_master = {{ cpu_mixer_serveronly_master|safe }}
+        cpu_mixer_both_master = {{ cpu_mixer_both_master|safe }}
+        cpu_none_serveronly_master = {{ cpu_none_serveronly_master|safe }}
+        cpu_none_both_master = {{ cpu_none_both_master|safe }}
+        cpu_none_plaintext_both_master = {{ cpu_none_plaintext_both_master|safe }}
+        cpu_v2_serveronly_master = {{ cpu_v2_serveronly_master|safe }}
+        cpu_v2_both_master = {{ cpu_v2_both_master|safe }}
 
-        mem_mixer_base = {{ mem_mixer_base|safe }};
-        mem_mixer_serveronly = {{ mem_mixer_serveronly|safe }};
-        mem_mixer_both = {{ mem_mixer_both|safe }};
-        mem_none_serveronly = {{ mem_none_serveronly|safe }};
-        mem_none_both = {{ mem_none_both|safe }};
-        mem_none_plaintext_both = {{ mem_none_plaintext_both|safe }};
-        mem_v2_serveronly = {{ mem_v2_serveronly|safe }};
-        mem_v2_both = {{ mem_v2_both|safe }};
+        mem_mixer_base = {{ mem_mixer_base|safe }}
+        mem_mixer_serveronly = {{ mem_mixer_serveronly|safe }}
+        mem_mixer_both = {{ mem_mixer_both|safe }}
+        mem_none_serveronly = {{ mem_none_serveronly|safe }}
+        mem_none_both = {{ mem_none_both|safe }}
+        mem_none_plaintext_both = {{ mem_none_plaintext_both|safe }}
+        mem_v2_serveronly = {{ mem_v2_serveronly|safe }}
+        mem_v2_both = {{ mem_v2_both|safe }}
 
-        mem_mixer_base_master = {{ mem_mixer_base_master|safe }};
-        mem_mixer_serveronly_master = {{ mem_mixer_serveronly_master|safe }};
-        mem_mixer_both_master = {{ mem_mixer_both_master|safe }};
-        mem_none_serveronly_master = {{ mem_none_serveronly_master|safe }};
-        mem_none_both_master = {{ mem_none_both_master|safe }};
-        mem_none_plaintext_both_master = {{ mem_none_plaintext_both_master|safe }};
-        mem_v2_serveronly_master = {{ mem_v2_serveronly_master|safe }};
-        mem_v2_both_master = {{ mem_v2_both_master|safe }};
+        mem_mixer_base_master = {{ mem_mixer_base_master|safe }}
+        mem_mixer_serveronly_master = {{ mem_mixer_serveronly_master|safe }}
+        mem_mixer_both_master = {{ mem_mixer_both_master|safe }}
+        mem_none_serveronly_master = {{ mem_none_serveronly_master|safe }}
+        mem_none_both_master = {{ mem_none_both_master|safe }}
+        mem_none_plaintext_both_master = {{ mem_none_plaintext_both_master|safe }}
+        mem_v2_serveronly_master = {{ mem_v2_serveronly_master|safe }}
+        mem_v2_both_master = {{ mem_v2_both_master|safe }}
     </script>
 {% endblock page_data %}
 
