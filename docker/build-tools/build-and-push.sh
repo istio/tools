@@ -20,8 +20,17 @@ set -eux
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
 HUB=${HUB:-gcr.io/istio-testing}
-DATE=$(date +%Y-%m-%dT%H-%M-%S)
 BRANCH=master
+# It is crucially important to use backtick command substitution such that both Docker images
+# created by the build system have the same exact timestamp. Other components of the build system depend
+# on a matching timestamp.
+
+# While backticks are "legacy", they do not operate the same way as $(...). $(...) evaluates
+# each time the variable is evaluated, while backticks evaluate only once and execute
+# a permanent assignment. I think shellcheck has this wrong and the gnu bash docs need a minor update.
+# https://www.gnu.org/software/bash/manual/html_node/Command-Substitution.html
+# shellcheck disable=SC2006
+DATE=`date +%Y-%m-%dT%H-%M-%S`
 VERSION="${BRANCH}-${DATE}"
 SHA="${BRANCH}"
 
