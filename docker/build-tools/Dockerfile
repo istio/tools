@@ -387,6 +387,13 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 # Prepare final output image
 FROM scratch as build_tools
 
+# Version from build arguments
+ARG VERSION
+
+# Labels used by Docker
+LABEL "io.istio.repo"="https://github.com/istio/tools"
+LABEL "io.istio.version"="${VERSION}"
+
 # General
 ENV HOME=/home
 ENV LANG=C.UTF-8
@@ -502,6 +509,13 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 ########################
 
 FROM ubuntu:xenial
+
+# Version from build arguments
+ARG VERSION
+
+# Labels used by Docker
+LABEL "io.istio.repo"="https://github.com/istio/tools"
+LABEL "io.istio.version"="${VERSION}"
 
 # Docker
 ENV DOCKER_VERSION=5:19.03.2~3-0~ubuntu-xenial
