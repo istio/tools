@@ -46,6 +46,13 @@ def convert_data(data):
         if key == "ActualDuration":
             obj[key] = int(data[key] / 10 ** 9)
             continue
+        if key == "Labels":
+            # We append "Nighthawk ", which the graph generator script does not like.
+            # Hence we remove it here. The assert is to force maintenance when needed.
+            assert("Nighthawk " in data[key])
+            obj[key] = data[key].split(" ")[1]
+            continue
+
         # fill out other data key to obj key
         obj[key] = data[key]
 
@@ -61,10 +68,10 @@ def convert_data(data):
 
     success = 0
     if '200' in data["RetCodes"]:
-        success = data["RetCodes"]["200"]
+        success = int(data["RetCodes"]["200"])
 
     obj["errorPercent"] = 100 * \
-        (data["Sizes"]["Count"] - success) / data["Sizes"]["Count"]
+        (int(data["Sizes"]["Count"]) - success) / int(data["Sizes"]["Count"])
     obj["Payload"] = int(data['Sizes']['Avg'])
     return obj
 

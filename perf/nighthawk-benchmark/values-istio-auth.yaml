@@ -1,0 +1,69 @@
+# This is used to generate istio-auth.yaml for automated CI/CD test, using v1/alpha1
+# or v2/alpha3 with 'gradual migration' (using env variable at inject time).
+global:
+  # controlPlaneMtls enabled. Will result in delays starting the pods while secrets are
+  # propagated, not recommended for tests.
+  controlPlaneSecurityEnabled: true
+
+  mtls:
+    # Default setting for service-to-service mtls. Can be set explicitly using
+    # destination rules or service annotations.
+    enabled: true
+
+  # Default is 10s second
+  refreshInterval: 10s
+  proxy:
+    image: proxyv2
+    resources:
+      requests:
+        cpu: 500m
+        memory: 256Mi
+
+    # Configures the access log for each sidecar. Setting it to an empty string will
+    # disable access log for sidecar.
+    accessLogFile: "/dev/null"
+    concurrency: 2
+
+    # If set, newly injected sidecars will have core dumps enabled.
+    enableCoreDump: true
+
+ingress:
+  enabled: false
+
+gateways:
+  istio-ingressgateway:
+    enabled: true
+    secretVolumes:
+    - name: istio-ingressgateway-certs
+      secretName: istio-ingressgateway-certs
+      mountPath: /etc/istio/ingressgateway-certs
+ 
+    type: LoadBalancer #change to NodePort, ClusterIP or LoadBalancer if need be
+    ports:
+    - port: 80
+      targetPort: 80
+      name: http
+      nodePort: 31380
+    - port: 443
+      name: https
+      nodePort: 31390
+ 
+mixer:
+    resources:
+      requests:
+        cpu: 4000m
+        memory: 4048Mi
+
+pilot:
+    resources:
+      requests:
+        cpu: 2000m
+        memory: 2096Mi
+
+grafana:
+    enabled: true
+
+prometheus:
+    enabled: true
+
+interceptionMode: REDIRECT

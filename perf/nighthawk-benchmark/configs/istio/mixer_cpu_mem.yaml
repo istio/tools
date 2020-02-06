@@ -1,0 +1,21 @@
+# Configuration Set1: CPU and memory with mixer enabled
+telemetry_mode: "mixer"
+conn:
+    - 16
+qps:
+    - 10
+    - 100
+    - 500
+    - 1000
+    - 2000
+    - 3000
+duration: 240
+size: 1024
+metrics:
+    - cpu
+    - mem
+perf_record: false
+run_bothsidecar: true
+run_serversidecar: true
+run_clientsidecar: true
+run_baseline: true

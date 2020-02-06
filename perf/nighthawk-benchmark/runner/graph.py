@@ -109,7 +109,7 @@ def get_series(df, x_label, metric):
         # if y-axis metric is latency, convert microseconds to milliseconds
         if metric.startswith("p"):
             print("converting CSV microseconds to milliseconds...")
-            vals = [v / 1000 for v in vals]
+            vals = [v / 1000.0 for v in vals]
         # reverse to match sorted numthreads, below
         vals.reverse()
         series[mode[1]] = vals
