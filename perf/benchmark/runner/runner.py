@@ -21,14 +21,19 @@ import argparse
 import subprocess
 import shlex
 import uuid
+import re
 import sys
+import tempfile
+import time
 from subprocess import getoutput
 from urllib.parse import urlparse
 import yaml
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
-
+NAMESPACE = os.environ.get("NAMESPACE", "twopods")
+NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
+NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:latest"
 
 
 def pod_info(filterstr="", namespace=os.environ.get("NAMESPACE", "twopods"), multi_ok=True):
@@ -56,6 +61,7 @@ def run_command(command):
 
 def run_command_sync(command):
     op = getoutput(command)
+    print(op)
     return op.strip()
 
 
@@ -85,17 +91,14 @@ class Fortio:
             clientsidecar=False,
             bothsidecar=True,
             ingress=None,
-            mesh="istio",
-            cacert=None):
+            mesh="istio"):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
         self.conn = conn
         self.qps = qps
         self.size = size
         self.duration = duration
         self.mode = mode
-        self.ns = os.environ.get("NAMESPACE", "twopods")
-        # bucket resolution in seconds
-        self.r = "0.00005"
+        self.ns = NAMESPACE
         self.telemetry_mode = telemetry_mode
         self.perf_record = perf_record
         self.server = pod_info("-lapp=" + server, namespace=self.ns)
@@ -108,7 +111,6 @@ class Fortio:
         self.run_clientsidecar = clientsidecar
         self.run_bothsidecar = bothsidecar
         self.run_ingress = ingress
-        self.cacert = cacert
 
         if mesh == "linkerd":
             self.mesh = "linkerd"
@@ -117,44 +119,49 @@ class Fortio:
         else:
             sys.exit("invalid mesh %s, must be istio or linkerd" % mesh)
 
-    def nosidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_base " + basestr.format(
-            svc=self.server.ip, port=self.ports[self.mode]["direct_port"], size=self.size)
+    def get_protocol_uri_fragment(self):
+        return "https" if self.mode == "grpc" else "http"
 
-    def serversidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_serveronly " + basestr.format(
-            svc=self.server.ip, port=self.ports[self.mode]["port"], size=self.size)
+    def compute_uri(self, svc, port_type):
+        return "{protocol}://{svc}:{port}/".format(
+            svc=svc, port=self.ports[self.mode][port_type], protocol=self.get_protocol_uri_fragment())
 
-    def clientsidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_clientonly " + basestr.format(
-            svc=self.server.labels["app"], port=self.ports[self.mode]["direct_port"], size=self.size)
+    def nosidecar(self):
+        return "base", self.compute_uri(self.server.ip, "direct_port")
 
-    def bothsidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_both " + basestr.format(
-            svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
+    def serversidecar(self):
+        return "serveronly", self.compute_uri(self.server.ip, "port")
 
-    def ingress(self, fortio_cmd):
+    def clientsidecar(self):
+        return "clientonly", self.compute_uri(self.server.labels["app"], "direct_port")
+
+    def bothsidecar(self):
+        return "both", self.compute_uri(self.server.labels["app"], "port")
+
+    def ingress(self):
         url = urlparse(self.run_ingress)
         # If scheme is not defined fallback to http
         if url.scheme == "":
-            url = urlparse("http://{svc}".format(svc=self.run_ingress))
+            url = urlparse(
+                "{protocol}://{svc}".format(protocol=self.get_protocol_uri_fragment(), svc=self.run_ingress))
+        return "ingress", "{url}/".format(url=url.geturl())
 
-        return fortio_cmd + "_ingress {url}/echo?size={size}".format(
-            url=url.geturl(), size=self.size)
+    def execute_sidecar_mode(self, mode_description, nighthawk_cmd, sidecar_mode_function, labels, perf_label_postfix):
+        print('-------------- Running in {mode_description} --------------'.format(
+            mode_description=mode_description))
+        mode_label, mode_url = sidecar_mode_function()
+        run_nighthawk(self.client.name, nighthawk_cmd + "_" +
+                      mode_label + " " + mode_url, labels + "_" + mode_label)
 
-    def run(self, conn, qps, size, duration):
+        # baseline mode doesn't record perf, and doesn't specify a perf label postfix.
+        if self.perf_record and len(perf_label_postfix) > 0:
+            run_perf(
+                self.mesh,
+                self.server.name,
+                labels + perf_label_postfix,
+                duration=40)
+
+    def run(self, conn, qps, cpus, size, duration):
         size = size or self.size
         if duration is None:
             duration = self.duration
@@ -174,68 +181,69 @@ class Fortio:
         if self.extra_labels is not None:
             labels += "_" + self.extra_labels
 
-        grpc = ""
+        nighthawk_args = [
+            "nighthawk_client",
+            "--concurrency {cpus}",
+            "--output-format json",
+            "--prefetch-connections",
+            "--open-loop",
+            "--jitter-uniform 0.0001s",
+            "--experimental-h1-connection-reuse-strategy lru",
+            "--experimental-h2-use-multiple-connections",
+            "--nighthawk-service 127.0.0.1:{port_forward}",
+            "--label Nighthawk",
+            "--connections {conn}",
+            "--rps {qps}",
+            "--duration {duration}",
+            "--request-header \"x-nighthawk-test-server-config: {{response_body_size:{size}}}\""
+        ]
+
+        # Our "gRPC" mode actually means:
+        #  - https (see get_protocol_uri_fragment())
+        #  - h2
+        #  - with long running connections
+        #  - Also transfer request body sized according to "size".
         if self.mode == "grpc":
-            grpc = "-grpc -ping"
+            nighthawk_args.append("--h2")
+            if self.size:
+                nighthawk_args.append(
+                    "--request-header \"content-length: {size}\"")
 
-        cacert_arg = ""
-        if self.cacert is not None:
-            cacert_arg = "-cacert {cacert_path}".format(cacert_path=self.cacert)
+        # Note: Labels is the last arg, and there's stuff depending on that.
+        # watch out when moving it.
+        nighthawk_args.append("--label {labels}")
 
-        fortio_cmd = (
-            "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
-            "-labels {labels}").format(
-                conn=conn,
-                qps=qps,
-                duration=duration,
-                r=self.r,
-                grpc=grpc,
-                cacert_arg=cacert_arg,
-                labels=labels)
+        # As the worker count acts as a multiplier, we divide by qps/conn by the number of cpu's to spread load accross the workers so the sum of the workers will target the global qps/connection levels.
+        nighthawk_cmd = " ".join(nighthawk_args).format(
+            conn=round(conn/cpus),
+            qps=round(qps/cpus),
+            duration=duration,
+            labels=labels,
+            size=self.size,
+            cpus=cpus,
+            port_forward=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
 
         if self.run_ingress:
-            print('-------------- Running in ingress mode --------------')
-            kubectl_exec(self.client.name, self.ingress(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_ingress",
-                    duration=40)
+            self.execute_sidecar_mode("ingress mode", nighthawk_cmd,
+                                      self.ingress, labels, "_srv_ingress")
 
         if self.run_serversidecar:
-            print('-------------- Running in server sidecar mode --------------')
-            kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_serveronly",
-                    duration=40)
+            self.execute_sidecar_mode("server sidecar mode", nighthawk_cmd,
+                                      self.serversidecar, labels, "_srv_serveronly")
 
         if self.run_clientsidecar:
-            print('-------------- Running in client sidecar mode --------------')
-            kubectl_exec(self.client.name, self.clientsidecar(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.client.name,
-                    labels + "_srv_clientonly",
-                    duration=40)
+            self.execute_sidecar_mode("client sidecar mode", nighthawk_cmd,
+                                      self.clientsidecar, labels, "_srv_clientonly")
 
         if self.run_bothsidecar:
-            print('-------------- Running in both sidecar mode --------------')
-            kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_bothsidecars",
-                    duration=40)
+            self.execute_sidecar_mode("both sidecar mode", nighthawk_cmd,
+                                      self.bothsidecar, labels, "_srv_bothsidecars")
 
         if self.run_baseline:
-            print('-------------- Running in baseline mode --------------')
-            kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
+            self.execute_sidecar_mode("baseline mode", nighthawk_cmd,
+                                      self.nosidecar, labels, "")
+
+        print("Completed run_id {id}".format(id=self.run_id))
 
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
@@ -266,7 +274,8 @@ def run_perf(mesh, pod, labels, duration=20):
             duration=duration),
         container=mesh + "-proxy")
 
-    kubectl_cp(pod + ":" + filepath + ".perf", LOCAL_FLAMEOUTPUT + filename + ".perf", mesh + "-proxy")
+    kubectl_cp(pod + ":" + filepath + ".perf", LOCAL_FLAMEOUTPUT +
+               filename + ".perf", mesh + "-proxy")
     run_command_sync(LOCAL_FLAMEPATH + " " + filename + ".perf")
 
 
@@ -281,8 +290,47 @@ def kubectl_cp(from_file, to_file, container):
     run_command_sync(cmd)
 
 
+def run_nighthawk(pod, remote_cmd, labels):
+    # Use a local docker instance of Nighthawk to control nighthawk_service running in the pod
+    # and run transforms on the output we get.
+    docker_cmd = "docker run --network=host {docker_image} {remote_cmd}".format(
+        docker_image=NIGHTHAWK_DOCKER_IMAGE, remote_cmd=remote_cmd)
+    print(docker_cmd, flush=True)
+    process = subprocess.Popen(shlex.split(docker_cmd), stdout=subprocess.PIPE)
+    (output, err) = process.communicate()
+    exit_code = process.wait()
+
+    if exit_code == 0:
+        with tempfile.NamedTemporaryFile(dir='/tmp', delete=True) as tmpfile:
+            dest = tmpfile.name
+            with open("%s.json" % dest, 'wb') as f:
+                f.write(output)
+            print("Dumped Nighthawk's json to {dest}".format(dest=dest))
+
+            # Send human readable output to the command line.
+            os.system(
+                "cat {dest}.json | docker run -i {docker_image} nighthawk_output_transform --output-format human".format(docker_image=NIGHTHAWK_DOCKER_IMAGE, dest=dest))
+            # Transform to Fortio's reporting server json format
+            os.system("cat {dest}.json | docker run -i {docker_image} nighthawk_output_transform --output-format fortio > {dest}.fortio.json".format(
+                dest=dest, docker_image=NIGHTHAWK_DOCKER_IMAGE))
+            # Copy to the Fortio report server data directory.
+            # TODO(oschaaf): We output the global aggregated statistics here of request_to_response, which excludes connection set up time.
+            # It would be nice to dump a series instead, as we have more details available in the Nighthawk json:
+            # - queue/connect time
+            # - time spend blocking in closed loop mode
+            # - initiation time to completion (spanning the complete lifetime of a request/reply, including queue/connect time)
+            # - per worker output may sometimes help interpret plots that don't have a nice knee-shaped shape.
+            kubectl_cp("{dest}.fortio.json".format(
+                dest=dest), "{pod}:/var/lib/fortio/{datetime}_nighthawk_{labels}.json".format(pod=pod, labels=labels, datetime=time.strftime("%Y-%m-%d-%H%M%S")), "shell")
+    else:
+        print("nighthawk remote execution error: %s" % exit_code)
+        if output:
+            print("--> stdout: %s" % output.decode("utf-8"))
+        if err:
+            print("--> stderr: %s" % err.decode("utf-8"))
+
+
 def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
-    namespace = os.environ.get("NAMESPACE", "twopods")
     c = ""
     if container is not None:
         c = "-c " + container
@@ -290,15 +338,14 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
         pod=pod,
         remote_cmd=remote_cmd,
         c=c,
-        namespace=namespace)
-    print(cmd, flush=True)
+        namespace=NAMESPACE)
     runfn(cmd)
 
 
 def rc(command):
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     while True:
-        output = process.stdout.readline()
+        output = process.stdout.readline().decode("utf-8")
         if output == '' and process.poll() is not None:
             break
         if output:
@@ -314,7 +361,8 @@ def validate(job_config):
             return False
         exp_type = required_fields[k]
         if not isinstance(job_config[k], exp_type):
-            print("expecting type of parameter {} to be {}, got {}".format(k, exp_type, type(job_config[k])))
+            print("expecting type of parameter {} to be {}, got {}".format(
+                k, exp_type, type(job_config[k])))
             return False
     return True
 
@@ -365,18 +413,37 @@ def run(args):
             ingress=args.ingress,
             mode=args.mode,
             mesh=args.mesh,
-            telemetry_mode=args.telemetry_mode,
-            cacert=args.cacert)
+            telemetry_mode=args.telemetry_mode)
 
     if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
             min_duration=min_duration))
         exit(1)
 
-    for conn in fortio.conn:
-        for qps in fortio.qps:
-            fortio.run(conn=conn, qps=qps,
-                       duration=fortio.duration, size=fortio.size)
+    # Create a port_forward for accessing nighthawk_service.
+    popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
+        ns=NAMESPACE,
+        port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
+    process = subprocess.Popen(shlex.split(popen_cmd), stdout=subprocess.PIPE)
+
+    # TODO(oschaaf): Figure out how to best determine the right concurrency for Nighthawk.
+    # Results seem to get very noisy as the number of workers increases, are the clients
+    # and running on separate sets of vCPU cores? nproc yields the same concurrency as goprocs
+    # use with the Fortio version.
+    # client_cpus = int(run_command_sync(
+    #     "kubectl exec -n \"{ns}\" svc/fortioclient -c shell nproc".format(ns=NAMESPACE)))
+    # print("Client pod has {client_cpus} cpus".format(client_cpus=client_cpus))
+
+    try:
+        for conn in fortio.conn:
+            for qps in fortio.qps:
+                # See the comment above, we restrict execution to a single nighthawk worker for
+                # now to avoid noise.
+                workers = 1
+                fortio.run(conn, qps, workers,
+                           duration=fortio.duration, size=fortio.size)
+    finally:
+        process.kill()
 
 
 def csv_to_int(s):
@@ -437,10 +504,6 @@ def get_parser():
     parser.add_argument(
         "--config_file",
         help="config yaml file",
-        default=None)
-    parser.add_argument(
-        "--cacert",
-        help="path to the cacert for the fortio client inside the container",
         default=None)
 
     define_bool(parser, "baseline", "run baseline for all", False)

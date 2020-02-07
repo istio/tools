@@ -60,9 +60,9 @@ function run_test() {
   echo "Wrote file ${TMPDIR}/${NAMESPACE}.yaml"
 
   # remove stdio rules
-  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/${NAMESPACE}.yaml"
-  kubectl rollout status deployment fortioclient -n "${NAMESPACE}" --timeout=1m
-  kubectl rollout status deployment fortioserver -n "${NAMESPACE}" --timeout=1m
+  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/${NAMESPACE}.yaml" || true
+  kubectl rollout status deployment fortioclient -n "${NAMESPACE}" --timeout=5m
+  kubectl rollout status deployment fortioserver -n "${NAMESPACE}" --timeout=5m
   echo "${TMPDIR}/${NAMESPACE}.yaml"
 }
 

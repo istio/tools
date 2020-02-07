@@ -15,6 +15,7 @@ appresources1:
 
 fortioImage: fortio/fortio:latest
 curlImage: tutum/curl:trusty
+nighthawkImage: envoyproxy/nighthawk-dev:latest
 domain: local
 gateway: fortio-gateway
 rbac:
