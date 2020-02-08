@@ -117,12 +117,12 @@ function setup_fortio_and_prometheus() {
 
 #TODO: add stackdriver filter
 function prerun_v2_nullvm() {
-  export SET_OVERLAY="values.telemetry.enabled=true,values.telemetry.v1.enabled=false,values.telemetry.v2.enabled=true,values.telemetry.v2.prometheus.enabled=true"
+  export SET_OVERLAY=""
   export CR_FILENAME="default.yaml"
   export EXTRA_ARGS="--force=true"
   local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
   pushd "${ROOT}/istio-install/tmp"
-  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  ./istioctl manifest apply -f "${CR_PATH}" "${EXTRA_ARGS}"
   popd
 }
 
