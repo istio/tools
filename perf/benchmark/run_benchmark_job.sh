@@ -117,18 +117,36 @@ function setup_fortio_and_prometheus() {
 
 #TODO: add stackdriver filter
 function prerun_v2_nullvm() {
-  export SET_OVERLAY="values.telemetry.enabled=true,values.telemetry.v1.enabled=false,values.telemetry.v2.enabled=true,values.telemetry.v2.prometheus.enabled=true"
+  export SET_OVERLAY="--set values.telemetry.enabled=true --set values.telemetry.v1.enabled=false --set values.telemetry.v2.enabled=true --set values.telemetry.v2.prometheus.enabled=true"
   export CR_FILENAME="default.yaml"
   export EXTRA_ARGS="--force=true"
   local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
   pushd "${ROOT}/istio-install/tmp"
-  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  # shellcheck disable=SC2086
+  ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
+  popd
+}
+
+function prerun_v1() {
+  export SET_OVERLAY="--set values.telemetry.enabled=true --set values.telemetry.v1.enabled=true --set values.telemetry.v2.enabled=false"
+  export CR_FILENAME="default.yaml"
+  export EXTRA_ARGS="--force=true"
+  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
+  pushd "${ROOT}/istio-install/tmp"
+  # shellcheck disable=SC2086
+  ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
   popd
 }
 
 function prerun_none() {
-  kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-  pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
+  export SET_OVERLAY="--set values.telemetry.enabled=false"
+  export CR_FILENAME="default.yaml"
+  export EXTRA_ARGS="--force=true"
+  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
+  pushd "${ROOT}/istio-install/tmp"
+  # shellcheck disable=SC2086
+  ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
+  popd
 }
 
 # Explicitly create meshpolicy to ensure the test is running as plaintext.
@@ -241,6 +259,8 @@ for f in "${CONFIG_DIR}"/*; do
         prerun_none
     elif [[ "${fn}" =~ "telemetryv2" ]];then
         prerun_v2_nullvm
+    elif [[ "${fn}" =~ "mixer" ]];then
+        prerun_v1
     elif [[ "${fn}" =~ "plaintext" ]]; then
         prerun_plaintext
     fi
