@@ -190,6 +190,11 @@ function postrun_plaintext() {
   kubectl apply -f "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
 }
 
+# TODO: remove after: https://github.com/istio/istio/issues/21037
+function postrun_v2() {
+  kubectl delete envoyfilter --all -n istio-system
+}
+
 # install pipenv
 if [[ $(command -v pipenv) == "" ]];then
   apt-get update && apt-get -y install python3-pip
@@ -253,7 +258,10 @@ CONFIG_DIR="${WD}/configs/istio"
 
 for f in "${CONFIG_DIR}"/*; do
     fn=$(basename "${f}")
-
+    # TODO: skip now to reduce running time
+    if [[ "${fn}" = *cpu_mem.yaml ]];then
+      continue
+    fi
     # pre run
     if [[ "${fn}" =~ "none" ]];then
         prerun_none
@@ -261,9 +269,15 @@ for f in "${CONFIG_DIR}"/*; do
         prerun_v2_nullvm
     elif [[ "${fn}" =~ "mixer" ]];then
         prerun_v1
+#   TODO: skip now to reduce running time
     elif [[ "${fn}" =~ "plaintext" ]]; then
-        prerun_plaintext
+        continue
     fi
+
+    # get the config dump for each group
+    dump_file="${fn}.json"
+    kubectl exec "${FORTIO_CLIENT_POD}" -n "${NAMESPACE}" -c istio-proxy -- curl localhost:15000/config_dump > "${dump_file}"
+    gsutil -q cp "${dump_file}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${dump_file}"
 
     get_benchmark_data "${f}"
 
@@ -272,6 +286,8 @@ for f in "${CONFIG_DIR}"/*; do
     # remove policy configured if any
     if [[ "${fn}" =~ "plaintext" ]]; then
       postrun_plaintext
+    elif [[ "${fn}" =~ "telemetryv2" ]]; then
+      postrun_v2
     fi
 
     # restart proxy after each group
