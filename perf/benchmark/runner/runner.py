@@ -293,7 +293,7 @@ def kubectl_cp(from_file, to_file, container):
 def run_nighthawk(pod, remote_cmd, labels):
     # Use a local docker instance of Nighthawk to control nighthawk_service running in the pod
     # and run transforms on the output we get.
-    docker_cmd = "docker run --network=host {docker_image} {remote_cmd}".format(
+    docker_cmd = "docker run --rm --network=host {docker_image} {remote_cmd}".format(
         docker_image=NIGHTHAWK_DOCKER_IMAGE, remote_cmd=remote_cmd)
     print(docker_cmd, flush=True)
     process = subprocess.Popen(shlex.split(docker_cmd), stdout=subprocess.PIPE)
@@ -309,9 +309,9 @@ def run_nighthawk(pod, remote_cmd, labels):
 
             # Send human readable output to the command line.
             os.system(
-                "cat {dest}.json | docker run -i {docker_image} nighthawk_output_transform --output-format human".format(docker_image=NIGHTHAWK_DOCKER_IMAGE, dest=dest))
+                "cat {dest}.json | docker run -i --rm {docker_image} nighthawk_output_transform --output-format human".format(docker_image=NIGHTHAWK_DOCKER_IMAGE, dest=dest))
             # Transform to Fortio's reporting server json format
-            os.system("cat {dest}.json | docker run -i {docker_image} nighthawk_output_transform --output-format fortio > {dest}.fortio.json".format(
+            os.system("cat {dest}.json | docker run -i --rm {docker_image} nighthawk_output_transform --output-format fortio > {dest}.fortio.json".format(
                 dest=dest, docker_image=NIGHTHAWK_DOCKER_IMAGE))
             # Copy to the Fortio report server data directory.
             # TODO(oschaaf): We output the global aggregated statistics here of request_to_response, which excludes connection set up time.
