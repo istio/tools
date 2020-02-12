@@ -64,7 +64,7 @@ def convert_data(data):
 
         # fill out other data key to obj key
         obj[key] = data[key]
-    
+
     h = data["DurationHistogram"]
     obj["min"] = int(h["Min"] * 10 ** 6)
     obj["max"] = int(h["Max"] * 10 ** 6)
