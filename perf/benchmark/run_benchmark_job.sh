@@ -54,16 +54,16 @@ function setup_metrics() {
   kubectl -n "${PROMETHEUS_NAMESPACE}" port-forward svc/prometheus 9090:9090 &>/dev/null &
 }
 
-function collect_metrics() {
-  # shellcheck disable=SC2155
-  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
-  pipenv run python3 fortio.py ${FORTIO_CLIENT_URL} --csv_output="$CSV_OUTPUT" --prometheus=${PROMETHEUS_URL} \
-   --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
-mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
-mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
-
-  gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/benchmark.csv"
-}
+#function collect_metrics() {
+#  # shellcheck disable=SC2155
+#  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
+#  pipenv run python3 fortio.py ${FORTIO_CLIENT_URL} --csv_output="$CSV_OUTPUT" --prometheus=${PROMETHEUS_URL} \
+#   --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
+#mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
+#mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
+#
+#  gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/benchmark.csv"
+#}
 
 function collect_flame_graph() {
     FLAME_OUTPUT_DIR="${WD}/flame/flameoutput/"
@@ -77,14 +77,9 @@ function generate_graph() {
 
 function get_benchmark_data() {
   CONFIG_FILE="${1}"
+  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
   pipenv run python3 runner.py --config_file "${CONFIG_FILE}"
-  collect_metrics
-#  TODO: replace with new graph generation code
-#  for metric in "${METRICS[@]}"
-#  do
-#    generate_graph "${metric}"
-#  done
-#  gsutil -q cp -r "${LOCAL_OUTPUT_DIR}" "gs://$GCS_BUCKET/${OUTPUT_DIR}/graphs"
+  gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/benchmark.csv"
 }
 
 function exit_handling() {
@@ -115,6 +110,7 @@ function setup_fortio_and_prometheus() {
     export FORTIO_SERVER_POD
 }
 
+<<<<<<< HEAD
 #TODO: add stackdriver filter
 function prerun_v2_nullvm() {
   export SET_OVERLAY="--set components.telemetry.enabled=false --set values.telemetry.enabled=true --set values.telemetry.v1.enabled=false --set values.telemetry.v2.enabled=true --set values.telemetry.v2.prometheus.enabled=true"
@@ -148,6 +144,8 @@ function prerun_none() {
   ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
   popd
 }
+=======
+>>>>>>> initial
 
 # Explicitly create meshpolicy to ensure the test is running as plaintext.
 function prerun_plaintext() {
@@ -281,13 +279,6 @@ for f in "${CONFIG_DIR}"/*; do
     get_benchmark_data "${f}"
 
     # post run
-
-    # remove policy configured if any
-    if [[ "${fn}" =~ "plaintext" ]]; then
-      postrun_plaintext
-    elif [[ "${fn}" =~ "telemetryv2" ]]; then
-      postrun_v2
-    fi
 
     # restart proxy after each group
     kubectl exec -n "${NAMESPACE}" "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
