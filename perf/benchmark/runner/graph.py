@@ -33,7 +33,9 @@ def generate_chart(mesh, csv, x_label, y_label_short, charts_output_dir, show_gr
                      "p90": "p90",
                      "p99": "p99",
                      "mem": "mem_MB_max_fortioserver_deployment_proxy",
-                     "cpu": "cpu_mili_max_fortioserver_deployment_proxy"}
+                     "cpu": "cpu_mili_max_fortioserver_deployment_proxy",
+                     "sent_bps": "sent_bps",
+                     "received_bps": "received_bps"}
 
     if y_label_short is None:
         sys.exit('need metric')
@@ -194,7 +196,7 @@ def get_parser():
     parser.add_argument("csv", help="csv file", default="")
     parser.add_argument(
         "metric",
-        help="y-axis: one of: p50, p90, p99, mem, cpu",
+        help="y-axis: one of: p50, p90, p99, mem, cpu, sent_bps, received_bps",
         default="")
     parser.add_argument(
         "--xaxis",
