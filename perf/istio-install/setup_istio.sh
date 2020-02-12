@@ -171,6 +171,10 @@ function install_istio() {
 
   export ISTIOCTL_PATH="${DIRNAME}/${release}"
 
+  if [[ -n "${SKIP_INSTALLATION}" ]];then
+    echo "skip installation step"
+    return
+  fi
   if [[ -z "${INSTALL_WITH_ISTIOCTL}" ]]; then
     echo "start installing istio using helm"
     install_istio_with_helm
