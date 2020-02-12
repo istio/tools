@@ -1,6 +1,9 @@
 apiVersion: operator.istio.io/v1alpha1
 kind: IstioOperator
 spec:
+  components:
+    telemetry:
+      enabled: true
   values:
     telemetry:
       enabled: true

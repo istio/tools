@@ -54,16 +54,16 @@ function setup_metrics() {
   kubectl -n "${PROMETHEUS_NAMESPACE}" port-forward svc/prometheus 9090:9090 &>/dev/null &
 }
 
-#function collect_metrics() {
-#  # shellcheck disable=SC2155
-#  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
-#  pipenv run python3 fortio.py ${FORTIO_CLIENT_URL} --csv_output="$CSV_OUTPUT" --prometheus=${PROMETHEUS_URL} \
-#   --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
-#mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
-#mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
-#
-#  gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/benchmark.csv"
-#}
+function collect_metrics() {
+  # shellcheck disable=SC2155
+  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
+  pipenv run python3 fortio.py ${FORTIO_CLIENT_URL} --csv_output="$CSV_OUTPUT" --prometheus=${PROMETHEUS_URL} \
+   --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
+mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
+mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
+
+  gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/benchmark.csv"
+}
 
 function collect_flame_graph() {
     FLAME_OUTPUT_DIR="${WD}/flame/flameoutput/"
@@ -76,10 +76,11 @@ function generate_graph() {
 }
 
 function get_benchmark_data() {
+  pushd "${WD}/runner"
   CONFIG_FILE="${1}"
-  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
   pipenv run python3 runner.py --config_file "${CONFIG_FILE}"
-  gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/benchmark.csv"
+  collect_metrics
+  popd
 }
 
 function exit_handling() {
@@ -108,89 +109,6 @@ function setup_fortio_and_prometheus() {
     export FORTIO_CLIENT_POD
     FORTIO_SERVER_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioserver | awk '{print $1}')
     export FORTIO_SERVER_POD
-}
-
-<<<<<<< HEAD
-#TODO: add stackdriver filter
-function prerun_v2_nullvm() {
-  export SET_OVERLAY="--set components.telemetry.enabled=false --set values.telemetry.enabled=true --set values.telemetry.v1.enabled=false --set values.telemetry.v2.enabled=true --set values.telemetry.v2.prometheus.enabled=true"
-  export CR_FILENAME="default.yaml"
-  export EXTRA_ARGS="--force=true"
-  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
-  pushd "${ROOT}/istio-install/tmp"
-  # shellcheck disable=SC2086
-  ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
-  popd
-}
-
-function prerun_v1() {
-  export SET_OVERLAY="--set values.telemetry.enabled=true --set values.telemetry.v1.enabled=true --set values.telemetry.v2.enabled=false"
-  export CR_FILENAME="default.yaml"
-  export EXTRA_ARGS="--force=true"
-  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
-  pushd "${ROOT}/istio-install/tmp"
-  # shellcheck disable=SC2086
-  ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
-  popd
-}
-
-function prerun_none() {
-  export SET_OVERLAY="--set components.telemetry.enabled=false --set values.telemetry.enabled=false"
-  export CR_FILENAME="default.yaml"
-  export EXTRA_ARGS="--force=true"
-  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
-  pushd "${ROOT}/istio-install/tmp"
-  # shellcheck disable=SC2086
-  ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
-  popd
-}
-=======
->>>>>>> initial
-
-# Explicitly create meshpolicy to ensure the test is running as plaintext.
-function prerun_plaintext() {
-  echo "Saving current mTLS config first"
-  kubectl -n "${NAMESPACE}"  get dr -oyaml > "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
-  kubectl -n "${NAMESPACE}"  get policy -oyaml > "${LOCAL_OUTPUT_DIR}/authn-policy.yaml"
-  echo "Deleting Authn Policy and DestinationRule"
-  kubectl -n "${NAMESPACE}" delete dr --all
-  kubectl -n "${NAMESPACE}" delete policy --all
-  echo "Configure plaintext..."
-  cat <<EOF | kubectl apply -f -
-apiVersion: "authentication.istio.io/v1alpha1"
-kind: "Policy"
-metadata:
-  name: "default"
-  namespace: "${NAMESPACE}"
-spec: {}
-EOF
-  # Explicitly disable mTLS by DestinationRule to avoid potential auto mTLS effect.
-  cat <<EOF | kubectl apply -f -
-apiVersion: networking.istio.io/v1alpha3
-kind: DestinationRule
-metadata:
-  name: plaintext-dr-twopods
-  namespace: ${NAMESPACE}
-spec:
-  host:  "*.svc.${NAMESPACE}.cluster.local"
-  trafficPolicy:
-    tls:
-      mode: DISABLE
-EOF
-}
-
-function postrun_plaintext() {
-  echo "Delete the plaintext related config..."
-  kubectl delete policy -n"${NAMESPACE}" default
-  kubectl delete DestinationRule -n"${NAMESPACE}" plaintext-dr-twopods
-  echo "Restoring original Authn Policy and DestinationRule config..."
-  kubectl apply -f "${LOCAL_OUTPUT_DIR}/authn-policy.yaml"
-  kubectl apply -f "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
-}
-
-# TODO: remove after: https://github.com/istio/istio/issues/21037
-function postrun_v2() {
-  kubectl delete envoyfilter --all -n istio-system
 }
 
 # install pipenv
@@ -251,39 +169,42 @@ echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GC
 # enable flame graph
 # enable_perf_record
 
+DEFAULT_CR_PATH="${ROOT}/istio-install/istioctl_profiles/default.yaml"
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs/istio"
 
-for f in "${CONFIG_DIR}"/*; do
-    fn=$(basename "${f}")
-    # TODO: skip now to reduce running time
-    if [[ "${fn}" = *cpu_mem.yaml ]];then
-      continue
+for dr in "${CONFIG_DIR}"/*; do
+    pushd "${dr}"
+    # install istio with custom overlay
+    if [ -e "./installation.yaml" ]; then
+       extra_overlay="-f ${dr}/installation.yaml"
     fi
-    # pre run
-    if [[ "${fn}" =~ "none" ]];then
-        prerun_none
-    elif [[ "${fn}" =~ "telemetryv2" ]];then
-        prerun_v2_nullvm
-    elif [[ "${fn}" =~ "mixer" ]];then
-        prerun_v1
-    elif [[ "${fn}" =~ "plaintext" ]]; then
-        prerun_plaintext
+    pushd "${ROOT}/istio-install/tmp"
+      ./istioctl manifest apply -f "${DEFAULT_CR_PATH}" "${extra_overlay}" --force
+    popd
+
+    # custom pre run
+    if [ -e "./prerun.sh" ]; then
+       source prerun.sh
+    fi
+    # run test and get data
+    if [ -e "./cpu_mem.yaml" ]; then
+       get_benchmark_data "${dr}/cpu_mem.yaml"
+    fi
+    if [ -e "./latency.yaml" ]; then
+       get_benchmark_data "${dr}/latency.yaml"
     fi
 
-    # get the config dump for each group
-    dump_file="${fn%.*}.json"
-    kubectl exec "${FORTIO_CLIENT_POD}" -n "${NAMESPACE}" -c istio-proxy -- curl localhost:15000/config_dump > "${dump_file}"
-    gsutil -q cp "${dump_file}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${dump_file}"
-
-    get_benchmark_data "${f}"
-
-    # post run
-
+    # custom post run
+    if [ -e "./postrun.sh" ]; then
+       source postrun.sh
+    fi
+    # TODO: can be added to shared_postrun.sh
     # restart proxy after each group
     kubectl exec -n "${NAMESPACE}" "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
     kubectl exec -n "${NAMESPACE}" "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
-    
+
+    popd
 done
 
 #echo "collect flame graph ..."
