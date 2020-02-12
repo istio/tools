@@ -8,6 +8,6 @@ services:
     volumes:
       - .:/perf_dashboard
     environment:
-      - CUR_RELEASE=release-1.4
+      - CUR_RELEASE=release-1.5
     ports:
       - "8000:8000"
