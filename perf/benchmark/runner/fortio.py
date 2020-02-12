@@ -35,7 +35,7 @@ def convert_data(data):
     obj = {}
 
     # These keys are generated from fortio default json file
-    for key in "Labels,StartTime,RequestedQPS,ActualQPS,NumThreads,RunType,ActualDuration".split(
+    for key in "Labels,StartTime,RequestedQPS,ActualQPS,NumThreads,RunType,ActualDuration,BytesSent,BytesReceived".split(
             ","):
         if key == "RequestedQPS" and data[key] == "max":
             obj[key] = 99999999
@@ -52,10 +52,19 @@ def convert_data(data):
             assert("Nighthawk " in data[key])
             obj[key] = data[key].split(" ")[1]
             continue
+        if key in ["BytesSent", "BytesReceived"]:
+            target_name = "sent_bps" if key == "BytesSent" else "received_bps"
+            duration = float(data["ActualDuration"]) / (10 ** 9)
+            # Consider non-existing fields 0 so this doesn't crash with Fortio
+            transfer_in_bytes = int(data[key]) if key in data else 0
+            bits_per_second = (transfer_in_bytes * 8) / duration
+            # Round it like we do with duration
+            obj[target_name] = int(bits_per_second)
+            continue
 
         # fill out other data key to obj key
         obj[key] = data[key]
-
+    
     h = data["DurationHistogram"]
     obj["min"] = int(h["Min"] * 10 ** 6)
     obj["max"] = int(h["Max"] * 10 ** 6)
@@ -246,7 +255,7 @@ def get_parser():
         default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,"
                 "cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,"
                 "cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_"
-                "ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
+                "ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy,sent_bps,received_bps")
     parser.add_argument(
         "--csv_output",
         help="output path of csv file")
