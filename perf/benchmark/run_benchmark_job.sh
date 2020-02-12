@@ -117,7 +117,7 @@ function setup_fortio_and_prometheus() {
 
 #TODO: add stackdriver filter
 function prerun_v2_nullvm() {
-  export SET_OVERLAY="--set values.telemetry.enabled=true --set values.telemetry.v1.enabled=false --set values.telemetry.v2.enabled=true --set values.telemetry.v2.prometheus.enabled=true"
+  export SET_OVERLAY="--set components.telemetry.enabled=false --set values.telemetry.enabled=true --set values.telemetry.v1.enabled=false --set values.telemetry.v2.enabled=true --set values.telemetry.v2.prometheus.enabled=true"
   export CR_FILENAME="default.yaml"
   export EXTRA_ARGS="--force=true"
   local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
@@ -139,7 +139,7 @@ function prerun_v1() {
 }
 
 function prerun_none() {
-  export SET_OVERLAY="--set values.telemetry.enabled=false"
+  export SET_OVERLAY="--set components.telemetry.enabled=false --set values.telemetry.enabled=false"
   export CR_FILENAME="default.yaml"
   export EXTRA_ARGS="--force=true"
   local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
@@ -224,6 +224,8 @@ export GIT_SHA=$(echo "$TAG" | cut -f3 -d.)
 
 pushd "${ROOT}/istio-install"
    export INSTALL_WITH_ISTIOCTL="true"
+   # This part would only setup istioctl and installation should be done on prerun step
+   export SKIP_INSTALLATION="true"
    ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
 popd
 
@@ -269,13 +271,12 @@ for f in "${CONFIG_DIR}"/*; do
         prerun_v2_nullvm
     elif [[ "${fn}" =~ "mixer" ]];then
         prerun_v1
-#   TODO: skip now to reduce running time
     elif [[ "${fn}" =~ "plaintext" ]]; then
-        continue
+        prerun_plaintext
     fi
 
     # get the config dump for each group
-    dump_file="${fn}.json"
+    dump_file="${fn%.*}.json"
     kubectl exec "${FORTIO_CLIENT_POD}" -n "${NAMESPACE}" -c istio-proxy -- curl localhost:15000/config_dump > "${dump_file}"
     gsutil -q cp "${dump_file}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${dump_file}"
 
@@ -300,32 +301,3 @@ done
 #collect_flame_graph
 
 echo "perf benchmark test for istio is done."
-
-echo "start perf benchmark test for linkerd"
-# The following section is to run linkerd tests in the same cluster but within a different Namespace
-export NAMESPACE="twopods-linkerd"
-
-echo "Install Linkerd"
-pushd "${WD}/linkerd"
-./setup_linkerd.sh
-popd
-
-# setup linkerd test
-pushd "${WD}"
-export LINKERD_INJECT="enabled"
-./setup_test.sh
-popd
-
-export OUTPUT_DIR="linkerd_benchmark_data"
-LINKERD_LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
-mkdir -p "${LINKERD_LOCAL_OUTPUT_DIR}"
-
-setup_fortio_and_prometheus
-
-CONFIG_DIR="${WD}/configs/linkerd"
-
-for f in "${CONFIG_DIR}"/*; do
-    get_benchmark_data "${f}"
-done
-
-echo "perf benchmark test for linkerd is done."
