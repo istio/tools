@@ -224,8 +224,6 @@ export GIT_SHA=$(echo "$TAG" | cut -f3 -d.)
 
 pushd "${ROOT}/istio-install"
    export INSTALL_WITH_ISTIOCTL="true"
-   # This part would only setup istioctl and installation should be done on prerun step
-   export SKIP_INSTALLATION="true"
    ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
 popd
 
