@@ -271,30 +271,4 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 
 ## Visualize Results
 
-The `graph.py` script uses the output CSV file from `fortio.py` to generate a [Bokeh](https://bokeh.pydata.org/en/1.2.0/) interactive graph. The output format is `.html`, from which you can save a PNG image.
-
-```bash
-python ./runner/graph.py <PATH_TO_CSV> <METRIC>
-```
-
-Options:
-
-```bash
-python ./runner/graph.py --help
-usage: Service Mesh Performance Graph Generator [-h] [--xaxis XAXIS]
-                                                [--mesh MESH]
-                                                csv metric
-
-positional arguments:
-  csv            csv file
-  metric         y-axis: one of: p50, p90, p99, mem, cpu
-
-optional arguments:
-  -h, --help     show this help message and exit
-  --xaxis XAXIS  one of: connections, qps
-  --mesh MESH    which service mesh tool: istio, linkerd
-```
-
-### Example Output
-
-![screenshot](screenshots/bokeh-screenshot.png)
+Please upload your generated .csv file to the [graph plotting](http://perf.dashboard.qualistio.org/graph_plotting/) section of our performance dashboard to visualize your graph.
