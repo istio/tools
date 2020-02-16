@@ -173,30 +173,32 @@ DEFAULT_CR_PATH="${ROOT}/istio-install/istioctl_profiles/default.yaml"
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs/istio"
 
-for dr in "${CONFIG_DIR}"/*; do
-    pushd "${dr}"
+for dir in "${CONFIG_DIR}"/*; do
+    pushd "${dir}"
     # install istio with custom overlay
-    if [ -e "./installation.yaml" ]; then
-       extra_overlay="-f ${dr}/installation.yaml"
+    if [[ -e "./installation.yaml" ]]; then
+       extra_overlay="-f ${dir}/installation.yaml"
     fi
     pushd "${ROOT}/istio-install/tmp"
-      ./istioctl manifest apply -f "${DEFAULT_CR_PATH}" "${extra_overlay}" --force
+      ./istioctl manifest apply -f "${DEFAULT_CR_PATH}" "${extra_overlay}" --force --wait
     popd
 
     # custom pre run
-    if [ -e "./prerun.sh" ]; then
+    if [[ -e "./prerun.sh" ]]; then
+       # shellcheck disable=SC1091
        source prerun.sh
     fi
     # run test and get data
-    if [ -e "./cpu_mem.yaml" ]; then
-       get_benchmark_data "${dr}/cpu_mem.yaml"
+    if [[ -e "./cpu_mem.yaml" ]]; then
+       get_benchmark_data "${dir}/cpu_mem.yaml"
     fi
-    if [ -e "./latency.yaml" ]; then
-       get_benchmark_data "${dr}/latency.yaml"
+    if [[ -e "./latency.yaml" ]]; then
+       get_benchmark_data "${dir}/latency.yaml"
     fi
 
     # custom post run
-    if [ -e "./postrun.sh" ]; then
+    if [[ -e "./postrun.sh" ]]; then
+       # shellcheck disable=SC1091
        source postrun.sh
     fi
     # TODO: can be added to shared_postrun.sh
