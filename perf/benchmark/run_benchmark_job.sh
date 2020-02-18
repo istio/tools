@@ -117,18 +117,36 @@ function setup_fortio_and_prometheus() {
 
 #TODO: add stackdriver filter
 function prerun_v2_nullvm() {
-  export SET_OVERLAY="values.telemetry.enabled=true,values.telemetry.v1.enabled=false,values.telemetry.v2.enabled=true,values.telemetry.v2.prometheus.enabled=true"
+  export SET_OVERLAY="--set components.telemetry.enabled=false --set values.telemetry.enabled=true --set values.telemetry.v1.enabled=false --set values.telemetry.v2.enabled=true --set values.telemetry.v2.prometheus.enabled=true"
   export CR_FILENAME="default.yaml"
   export EXTRA_ARGS="--force=true"
   local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
   pushd "${ROOT}/istio-install/tmp"
-  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  # shellcheck disable=SC2086
+  ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
+  popd
+}
+
+function prerun_v1() {
+  export SET_OVERLAY="--set values.telemetry.enabled=true --set values.telemetry.v1.enabled=true --set values.telemetry.v2.enabled=false"
+  export CR_FILENAME="default.yaml"
+  export EXTRA_ARGS="--force=true"
+  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
+  pushd "${ROOT}/istio-install/tmp"
+  # shellcheck disable=SC2086
+  ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
   popd
 }
 
 function prerun_none() {
-  kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-  pipenv run python3 "${WD}"/update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
+  export SET_OVERLAY="--set components.telemetry.enabled=false --set values.telemetry.enabled=false"
+  export CR_FILENAME="default.yaml"
+  export EXTRA_ARGS="--force=true"
+  local CR_PATH="${ROOT}/istio-install/istioctl_profiles/${CR_FILENAME}"
+  pushd "${ROOT}/istio-install/tmp"
+  # shellcheck disable=SC2086
+  ./istioctl manifest apply -f "${CR_PATH}" ${SET_OVERLAY} "${EXTRA_ARGS}"
+  popd
 }
 
 # Explicitly create meshpolicy to ensure the test is running as plaintext.
@@ -170,6 +188,11 @@ function postrun_plaintext() {
   echo "Restoring original Authn Policy and DestinationRule config..."
   kubectl apply -f "${LOCAL_OUTPUT_DIR}/authn-policy.yaml"
   kubectl apply -f "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
+}
+
+# TODO: remove after: https://github.com/istio/istio/issues/21037
+function postrun_v2() {
+  kubectl delete envoyfilter --all -n istio-system
 }
 
 # install pipenv
@@ -228,22 +251,32 @@ trap exit_handling EXIT
 echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
 
 # enable flame graph
-enable_perf_record
+# enable_perf_record
 
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs/istio"
 
 for f in "${CONFIG_DIR}"/*; do
     fn=$(basename "${f}")
-
+    # TODO: skip now to reduce running time
+    if [[ "${fn}" = *cpu_mem.yaml ]];then
+      continue
+    fi
     # pre run
     if [[ "${fn}" =~ "none" ]];then
         prerun_none
     elif [[ "${fn}" =~ "telemetryv2" ]];then
         prerun_v2_nullvm
+    elif [[ "${fn}" =~ "mixer" ]];then
+        prerun_v1
     elif [[ "${fn}" =~ "plaintext" ]]; then
         prerun_plaintext
     fi
+
+    # get the config dump for each group
+    dump_file="${fn%.*}.json"
+    kubectl exec "${FORTIO_CLIENT_POD}" -n "${NAMESPACE}" -c istio-proxy -- curl localhost:15000/config_dump > "${dump_file}"
+    gsutil -q cp "${dump_file}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${dump_file}"
 
     get_benchmark_data "${f}"
 
@@ -252,6 +285,8 @@ for f in "${CONFIG_DIR}"/*; do
     # remove policy configured if any
     if [[ "${fn}" =~ "plaintext" ]]; then
       postrun_plaintext
+    elif [[ "${fn}" =~ "telemetryv2" ]]; then
+      postrun_v2
     fi
 
     # restart proxy after each group
@@ -260,36 +295,7 @@ for f in "${CONFIG_DIR}"/*; do
     
 done
 
-echo "collect flame graph ..."
-collect_flame_graph
+#echo "collect flame graph ..."
+#collect_flame_graph
 
 echo "perf benchmark test for istio is done."
-
-echo "start perf benchmark test for linkerd"
-# The following section is to run linkerd tests in the same cluster but within a different Namespace
-export NAMESPACE="twopods-linkerd"
-
-echo "Install Linkerd"
-pushd "${WD}/linkerd"
-./setup_linkerd.sh
-popd
-
-# setup linkerd test
-pushd "${WD}"
-export LINKERD_INJECT="enabled"
-./setup_test.sh
-popd
-
-export OUTPUT_DIR="linkerd_benchmark_data"
-LINKERD_LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
-mkdir -p "${LINKERD_LOCAL_OUTPUT_DIR}"
-
-setup_fortio_and_prometheus
-
-CONFIG_DIR="${WD}/configs/linkerd"
-
-for f in "${CONFIG_DIR}"/*; do
-    get_benchmark_data "${f}"
-done
-
-echo "perf benchmark test for linkerd is done."
