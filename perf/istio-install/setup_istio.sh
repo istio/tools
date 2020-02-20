@@ -76,7 +76,7 @@ function setup_admin_binding() {
 }
 
 function install_istio_with_helm() {
-    kubectl create ns istio-system || true
+  kubectl create ns istio-system || true
 
   if [[ -z "${DRY_RUN}" ]];then
       # apply CRD files for istio kinds
@@ -149,7 +149,12 @@ function install_istio_with_istioctl() {
 function install_istio() {
   local DIRNAME="${1:?"output dir"}"
   local release="${2:?"release"}"
-
+  # shellcheck disable=SC2155
+  local release_ver=$(echo "$release" | cut -f1 -d "-")
+  # shellcheck disable=SC2072
+  if [[ "${release_ver}" > "1.5" ]];then
+    export INSTALL_WITH_ISTIOCTL=true
+  fi
   # shellcheck disable=SC2155
   # shellcheck disable=SC2086
   local outfile="$(download ${DIRNAME} ${release})"
@@ -163,13 +168,15 @@ function install_istio() {
   if [[ ! -d "${DIRNAME}/${release}" ]];then
       DN=$(mktemp -d)
       tar -xzf "${outfile}" -C "${DN}" --strip-components 1
-      mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
+      if [[ -z "${INSTALL_WITH_ISTIOCTL}" ]]; then
+        mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
+        mv "${DN}/bin/istioctl" "${DIRNAME}/${release}"
+      fi
       cp "${DN}/bin/istioctl" "${DIRNAME}"
-      mv "${DN}/bin/istioctl" "${DIRNAME}/${release}"
       rm -rf "${DN}"
   fi
 
-  export ISTIOCTL_PATH="${DIRNAME}/${release}"
+  export ISTIOCTL_PATH="${DIRNAME}"
 
   if [[ -n "${SKIP_INSTALLATION}" ]];then
     echo "skip installation step"
