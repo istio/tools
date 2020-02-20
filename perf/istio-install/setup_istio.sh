@@ -149,9 +149,10 @@ function install_istio_with_istioctl() {
 function install_istio() {
   local DIRNAME="${1:?"output dir"}"
   local release="${2:?"release"}"
-
+  # shellcheck disable=SC2155
   local release_ver=$(echo "$release" | cut -f1 -d "-")
-  if [[ "${release_ver}" -gt "1.5" ]];then
+  # shellcheck disable=SC2072
+  if [[ "${release_ver}" > "1.5" ]];then
     export INSTALL_WITH_ISTIOCTL=true
   fi
   # shellcheck disable=SC2155
