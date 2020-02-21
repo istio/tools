@@ -1,5 +1,5 @@
-# Configuration Set6: Latency Quantiles with telemetry v2 using NullVM with stats envoyfilter.
-telemetry_mode: "v2-stats-nullvm"
+# Configuration Set10: Latency Quantiles with telemetry v2 using NullVM with stackdriver filters but logging off.
+telemetry_mode: "v2-sd-nologging-nullvm"
 conn:
     - 2
     - 4
@@ -16,6 +16,6 @@ metrics:
     - p99
 perf_record: true
 run_bothsidecar: true
-run_serversidecar: true
-run_clientsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
 run_baseline: true
