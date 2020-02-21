@@ -2,10 +2,8 @@ apiVersion: operator.istio.io/v1alpha1
 kind: IstioOperator
 spec:
   components:
-    sidecarInjector:
-      enabled: true
     galley:
-      enabled: true
+      enabled: false
     ingressGateways:
     - name: istio-ingressgateway
       enabled: true
