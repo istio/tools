@@ -22,6 +22,7 @@ import subprocess
 import shlex
 import uuid
 import re
+import socket
 import sys
 import tempfile
 import time
@@ -392,6 +393,11 @@ def fortio_from_config_file(args):
         return fortio
 
 
+def can_connect_to_nighthawk_service():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        return sock.connect_ex(('127.0.0.1', NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)) == 0
+
+
 def run(args):
     min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
 
@@ -421,10 +427,22 @@ def run(args):
         exit(1)
 
     # Create a port_forward for accessing nighthawk_service.
-    popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
-        ns=NAMESPACE,
-        port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
-    process = subprocess.Popen(shlex.split(popen_cmd), stdout=subprocess.PIPE)
+    if not can_connect_to_nighthawk_service():
+        popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
+            ns=NAMESPACE,
+            port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
+        process = subprocess.Popen(shlex.split(
+            popen_cmd), stdout=subprocess.PIPE)
+        max_tries = 10
+        while max_tries > 0 and not can_connect_to_nighthawk_service():
+            time.sleep(0.5)
+            max_tries = max_tries - 1
+
+    if not can_connect_to_nighthawk_service():
+        print("Failure connecting to nighthawk_service")
+        sys.exit(-1)
+    else:
+        print("Able to connect to nighthawk_service, proceeding")
 
     # TODO(oschaaf): Figure out how to best determine the right concurrency for Nighthawk.
     # Results seem to get very noisy as the number of workers increases, are the clients
