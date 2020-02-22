@@ -18,7 +18,7 @@ then
     # We build on a docker to make sure we produce a compatible binary
     # (we need to make sure to build it with a compatible glibc version)
     # TODO(oschaaf): is it OK to use this docker image?
-    docker run -v "$(pwd):/src/" cdrx/pyinstaller-linux:python3
+    docker run -v "$(pwd):/src/" cdrx/pyinstaller-linux:python3 "pyinstaller prom.py"
 fi
 
 echo "Deploying standalone binary"
@@ -34,7 +34,7 @@ do
     # Stop the existing service instance, if any
     kubectl --namespace ${NAMESPACE} exec ${pod} -c istio-proxy -- pkill -f prom || true
     # Fix, this neesd the kubectl command to stay running on the machine running this script 
-    kubectl --namespace ${NAMESPACE} exec ${pod} -c istio-proxy /etc/istio/proxy/procstat/dist/linux/prom/prom &
+    kubectl --namespace ${NAMESPACE} exec ${pod} -c istio-proxy /etc/istio/proxy/procstat/dist/prom/prom &
 done
 
 echo "proc stat sampling deployed"
