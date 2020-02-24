@@ -42,6 +42,7 @@ urlpatterns = [
     url(r'^regression_alerts/', include('regression_alerts.urls')),
     url(r'^benchmarks/', include('benchmarks.urls')),
     url(r'^graph_plotting/', include('graph_plotting.urls')),
+    url(r'^history/', include('history.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
