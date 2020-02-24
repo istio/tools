@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'artifacts',
     'regression_alerts',
     'graph_plotting',
+    'history',
 ]
 
 MIDDLEWARE = [
