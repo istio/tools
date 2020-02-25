@@ -54,6 +54,13 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 hidden: true,
                 fill: false
             }, {
+                label: "mixer-clientonly",
+                backgroundColor: "rgba(259, 188, 5, 0.2)",
+                borderColor: "rgba(259, 188, 5, 0.5)",
+                data: cpu_mixer_clientonly,
+                hidden: true,
+                fill: false
+            }, {
                 label: "mixer-both",
                 backgroundColor: "rgba(66, 133, 246, 0.2)",
                 borderColor: "rgba(66, 133, 246, 1)",
@@ -64,6 +71,13 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: cpu_none_serveronly,
+                hidden: true,
+                fill: false
+            }, {
+                label: "none-clientonly",
+                backgroundColor: "rgba(52, 168, 85, 0.2)",
+                borderColor: "rgba(52, 168, 85, 0.5)",
+                data: cpu_none_clientonly,
                 hidden: true,
                 fill: false
             }, {
@@ -82,6 +96,13 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 label: "v2-serveronly",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
+                data: cpu_v2_serveronly,
+                hidden: true,
+                fill: false
+            }, {
+                label: "v2-clientonly",
+                backgroundColor: "rgba(168, 50, 168, 0.2)",
+                borderColor: "rgba(168, 50, 168, 0.5)",
                 data: cpu_v2_serveronly,
                 hidden: true,
                 fill: false
@@ -116,6 +137,13 @@ new Chart(document.getElementById("mem-qps-release"), {
                 hidden: true,
                 fill: false
             }, {
+                label: "mixer-clientonly",
+                backgroundColor: "rgba(259, 188, 5, 0.2)",
+                borderColor: "rgba(259, 188, 5, 0.5)",
+                data: mem_mixer_serveronly,
+                hidden: true,
+                fill: false
+            }, {
                 label: "mixer-both",
                 backgroundColor: "rgba(66, 133, 246, 0.2)",
                 borderColor: "rgba(66, 133, 246, 1)",
@@ -125,6 +153,13 @@ new Chart(document.getElementById("mem-qps-release"), {
                 label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
+                data: mem_none_serveronly,
+                hidden: true,
+                fill: false
+            }, {
+                label: "none-clientonly",
+                backgroundColor: "rgba(52, 168, 85, 0.2)",
+                borderColor: "rgba(52, 168, 85, 0.5)",
                 data: mem_none_serveronly,
                 hidden: true,
                 fill: false
@@ -144,6 +179,13 @@ new Chart(document.getElementById("mem-qps-release"), {
                 label: "v2-serveronly",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
+                data: mem_v2_serveronly,
+                hidden: true,
+                fill: false
+            }, {
+                label: "v2-clientonly",
+                backgroundColor: "rgba(168, 50, 168, 0.2)",
+                borderColor: "rgba(168, 50, 168, 0.5)",
                 data: mem_v2_serveronly,
                 hidden: true,
                 fill: false
@@ -178,6 +220,13 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 hidden: true,
                 fill: false
             }, {
+                label: "mixer-clientonly",
+                backgroundColor: "rgba(259, 188, 5, 0.2)",
+                borderColor: "rgba(259, 188, 5, 0.5)",
+                data: cpu_mixer_serveronly_master,
+                hidden: true,
+                fill: false
+            }, {
                 label: "mixer-both",
                 backgroundColor: "rgba(66, 133, 246, 0.2)",
                 borderColor: "rgba(66, 133, 246, 1)",
@@ -187,6 +236,13 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
+                data: cpu_none_serveronly_master,
+                hidden: true,
+                fill: false
+            }, {
+                label: "none-clientonly",
+                backgroundColor: "rgba(52, 168, 85, 0.2)",
+                borderColor: "rgba(52, 168, 85, 0.5)",
                 data: cpu_none_serveronly_master,
                 hidden: true,
                 fill: false
@@ -206,6 +262,13 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 label: "v2-serveronly",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
+                data: cpu_v2_serveronly_master,
+                hidden: true,
+                fill: false
+            }, {
+                label: "v2-clientonly",
+                backgroundColor: "rgba(168, 50, 168, 0.2)",
+                borderColor: "rgba(168, 50, 168, 0.5)",
                 data: cpu_v2_serveronly_master,
                 hidden: true,
                 fill: false
@@ -240,6 +303,13 @@ new Chart(document.getElementById("mem-qps-master"), {
                 hidden: true,
                 fill: false
             }, {
+                label: "mixer-clientonly",
+                backgroundColor: "rgba(259, 188, 5, 0.2)",
+                borderColor: "rgba(259, 188, 5, 0.5)",
+                data: mem_mixer_serveronly_master,
+                hidden: true,
+                fill: false
+            }, {
                 label: "mixer-both",
                 backgroundColor: "rgba(66, 133, 246, 0.2)",
                 borderColor: "rgba(66, 133, 246, 1)",
@@ -249,6 +319,13 @@ new Chart(document.getElementById("mem-qps-master"), {
                 label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
+                data: mem_none_serveronly_master,
+                hidden: true,
+                fill: false
+            }, {
+                label: "none-clientonly",
+                backgroundColor: "rgba(52, 168, 85, 0.2)",
+                borderColor: "rgba(52, 168, 85, 0.5)",
                 data: mem_none_serveronly_master,
                 hidden: true,
                 fill: false
@@ -268,6 +345,13 @@ new Chart(document.getElementById("mem-qps-master"), {
                 label: "v2-serveronly",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
+                data: mem_v2_serveronly_master,
+                hidden: true,
+                fill: false
+            }, {
+                label: "v2-clientonly",
+                backgroundColor: "rgba(168, 50, 168, 0.2)",
+                borderColor: "rgba(168, 50, 168, 0.5)",
                 data: mem_v2_serveronly_master,
                 hidden: true,
                 fill: false
