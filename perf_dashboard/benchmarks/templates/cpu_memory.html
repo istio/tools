@@ -57,7 +57,16 @@
                                 {% endif %}
                             {% endfor %}
                             </select>
-                            <small class="help-block-none">Choose from the latest builds</small>
+                            <select name="sidecar_modes_options" class="form-control mb-3">
+                            {% for sidecar_mode in sidecar_modes %}
+                                {% if sidecar_mode == cpu_cur_selected_sidecar_mode|last %}
+                                <option selected>{{ sidecar_mode }}</option>
+                                {% else %}
+                                <option>{{ sidecar_mode }}</option>
+                                {% endif %}
+                            {% endfor %}
+                            </select>
+                            <small class="help-block-none">Choose from the latest builds and sidecar modes</small>
                             <input type="submit">
                            </div>
                        </div>
@@ -145,6 +154,7 @@
         cpu_master_selected_release = {{  cpu_master_selected_release|safe }}
         cur_release_names = {{ cur_release_names|safe }}
         master_release_names = {{ master_release_names|safe }}
+        sidecar_modes = {{ sidecar_modes|safe }}
 
         cpu_mixer_base = {{ cpu_mixer_base|safe }}
         cpu_mixer_serveronly = {{ cpu_mixer_serveronly|safe }}

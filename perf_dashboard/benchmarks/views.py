@@ -21,8 +21,10 @@ import os
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
 cur_selected_release = []
+cur_selected_sidecar_modes = []
 master_selected_release = []
 cpu_cur_selected_release = []
+cpu_cur_selected_sidecar_modes = []
 cpu_master_selected_release = []
 current_release = [os.getenv('CUR_RELEASE')]
 
@@ -272,6 +274,8 @@ def latency_vs_qps(request, uploaded_csv_url=None):
 
 
 def cpu_memory(request, uploaded_csv_url=None):
+    sidecar_modes = ['both sidecars', 'serveronly sidecar', 'clientonly sidecar']
+
     if uploaded_csv_url is not None:
         uploaded_csv_path = cwd + uploaded_csv_url
         df = pd.read_csv(uploaded_csv_path)
@@ -283,6 +287,9 @@ def cpu_memory(request, uploaded_csv_url=None):
 
         if request.method == "POST" and 'current_release_name' in request.POST:
             cpu_cur_selected_release.append(request.POST['current_release_name'])
+
+        if request.method == "POST" and 'sidecar_modes_options' in request.POST:
+            cpu_cur_selected_sidecar_modes.append(request.POST['sidecar_modes_options'])
 
         df = pd.read_csv(perf_data_path + "cur_temp.csv")
 
@@ -310,13 +317,15 @@ def cpu_memory(request, uploaded_csv_url=None):
         if len(cpu_master_selected_release) > 0:
             df = pd.read_csv(perf_data_path + cpu_master_selected_release[0] + ".csv")
 
-        cpu_mixer_base_master = get_cpu_y_series(df, '_mixer_base')
+        if cpu_cur_selected_sidecar_modes == 'both sidecars':
+            cpu_mixer_base_master = get_cpu_y_series(df, '_mixer_base')
+            cpu_mixer_both_master = get_cpu_y_series(df, '_mixer_both')
+            cpu_none_both_master = get_cpu_y_series(df, '_none_both')
+
         cpu_mixer_serveronly_master = get_cpu_y_series(df, '_mixer_serveronly')
         cpu_mixer_clientonly_master = get_cpu_y_series(df, '_mixer_clientonly')
-        cpu_mixer_both_master = get_cpu_y_series(df, '_mixer_both')
         cpu_none_serveronly_master = get_cpu_y_series(df, '_none_serveronly')
         cpu_none_clientonly_master = get_cpu_y_series(df, '_none_clientonly')
-        cpu_none_both_master = get_cpu_y_series(df, '_none_both')
         cpu_none_plaintext_both_master = get_cpu_y_series(df, '_none_plaintext_both')
         cpu_v2_serveronly_master = get_cpu_y_series(df, 'nullvm_serveronly')
         cpu_v2_clientonly_master = get_cpu_y_series(df, 'nullvm_clientonly')
@@ -339,6 +348,7 @@ def cpu_memory(request, uploaded_csv_url=None):
                          'cpu_master_selected_release': cpu_master_selected_release,
                          'cur_release_names': cur_release_names,
                          'master_release_names': master_release_names,
+                         'sidecar_modes': sidecar_modes,
                          }
 
         master_context = {'cpu_mixer_base_master': cpu_mixer_base_master,
