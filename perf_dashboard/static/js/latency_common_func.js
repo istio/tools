@@ -93,14 +93,14 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 data: modesData[0],
                 fill: false
             }, {
-                label: "serveronly",
+                label: "mixer-serveronly",
                 backgroundColor: "rgba(259, 188, 5,0.2)",
                 borderColor: "rgba(259, 188, 5,1)",
                 data: modesData[1],
                 hidden: true,
                 fill: false
             }, {
-                label: "both",
+                label: "mixer-both",
                 backgroundColor: "rgba(66, 133, 246,0.2)",
                 borderColor: "rgba(66, 133, 246, 1)",
                 data: modesData[2],
