@@ -56,6 +56,7 @@ function run_test() {
       --set server.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
+      --set fortioImage="gcr.io/carolyntestprj-262400/fortio:carolyn" \
           . > "${TMPDIR}/${NAMESPACE}.yaml"
   echo "Wrote file ${TMPDIR}/${NAMESPACE}.yaml"
 
