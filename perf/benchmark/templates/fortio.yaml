@@ -73,6 +73,7 @@ metadata:
     app: {{ $.name }}
   name: {{ $.name }}
 spec:
+  replicas: {{ $.V.replica }}
   selector:
     matchLabels:
       app: {{ $.name }}
