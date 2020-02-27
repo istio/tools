@@ -31,6 +31,7 @@ server:  # server overrides
   expose: false
   inject: "false"
   injectL: "disabled" # "enabled" or "disabled"
+  replica: 1    # default value
 
 client: # client overrides
   #tlsmode: DISABLE
@@ -38,6 +39,7 @@ client: # client overrides
   expose: true
   inject: "false"
   injectL: "disabled" # "enabled" or "disabled"
+  replica: 1    # default value
 
 cert: false
 interceptionMode: REDIRECT
