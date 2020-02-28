@@ -1,6 +1,7 @@
 # Data: latency
-# Config: mixer telemetry
-telemetry_mode: "mixer"
+# Filter: metadata-exchange and stats filters
+# VM mode: nullvm
+telemetry_mode: "v2-stats-nullvm"
 conn:
     - 2
     - 4

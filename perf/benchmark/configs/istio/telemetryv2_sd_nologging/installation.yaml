@@ -1,0 +1,16 @@
+apiVersion: operator.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  values:
+    telemetry:
+      enabled: true
+      v2:
+        enabled: true
+        stackdriver:
+          enabled: true
+          topology:
+            enabled: true
+          logging:
+            enabled: false
+      v1:
+        enabled: false

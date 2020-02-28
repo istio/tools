@@ -36,7 +36,7 @@ spec:
     nodeAgent:
       enabled: false
     telemetry:
-      enabled: true
+      enabled: false
       k8s:
         hpaSpec:
           maxReplicas: 15

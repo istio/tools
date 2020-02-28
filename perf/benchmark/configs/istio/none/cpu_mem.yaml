@@ -1,4 +1,5 @@
-# Configuration Set3: CPU and memory with mixer disabled
+# Data: cpu/mem
+# Config: No mixer and telemetry v2
 telemetry_mode: "none"
 conn:
     - 16

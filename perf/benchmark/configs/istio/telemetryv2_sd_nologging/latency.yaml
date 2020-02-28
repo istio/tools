@@ -1,6 +1,7 @@
 # Data: latency
-# Config: mixer telemetry
-telemetry_mode: "mixer"
+# Filter: metadata-exchange and stackdriver filters with logging off
+# VM mode: nullvm
+telemetry_mode: "v2-sd-nologging-nullvm"
 conn:
     - 2
     - 4
@@ -17,6 +18,6 @@ metrics:
     - p99
 perf_record: true
 run_bothsidecar: true
-run_serversidecar: true
-run_clientsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
 run_baseline: true
