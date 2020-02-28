@@ -53,7 +53,7 @@ function run_test() {
       --set excludeOutboundIPRanges=$(pod_ip_range)\
       --set includeOutboundIPRanges=$(svc_ip_range) \
       --set server.replica="${SERVER_REPLICA}" \
-      --ser client.replica="${CLIENT_REPLICA}" \
+      --set client.replica="${CLIENT_REPLICA}" \
       --set server.inject="${ISTIO_INJECT}"  \
       --set client.inject="${ISTIO_INJECT}" \
       --set server.injectL="${LINKERD_INJECT}" \
