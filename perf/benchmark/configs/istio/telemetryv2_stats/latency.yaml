@@ -1,4 +1,6 @@
-# Configuration Set6: Latency Quantiles with telemetry v2 using NullVM with stats envoyfilter.
+# Data: latency
+# Filter: metadata-exchange and stats filters
+# VM mode: nullvm
 telemetry_mode: "v2-stats-nullvm"
 conn:
     - 2

@@ -1,4 +1,5 @@
-# Configuration Set4: Latency Quantiles with mixer disabled
+# Data: latency
+# Config: No mixer and telemetry v2
 telemetry_mode: "none"
 conn:
     - 2

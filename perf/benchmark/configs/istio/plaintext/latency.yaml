@@ -1,3 +1,5 @@
+# Data: latency
+# Config: plaintext
 telemetry_mode: "none"
 conn:
     - 2
