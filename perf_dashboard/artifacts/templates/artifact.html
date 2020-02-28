@@ -23,7 +23,9 @@
         <li><a href="{% url 'cur_alert' %}"><i class="fa fa-asterisk"></i>Current Release Alert</a></li>
         <li><a href="{% url 'master_alert' %}"><i class="fa fa-asterisk"></i>Master Alert</a></li>
     </ul>
+    <li><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
     <li class="active"><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+    <li><a href="{% url 'history' %}"> <i class="fa fa-file-archive-o"></i>History</a></li>
 </ul>
 {% endblock sidebar_active %}
 
@@ -107,8 +109,8 @@
 
 {% block page_data %}
     <script>
-        current_release = {{ current_release|safe }};
-        cur_release_bundle = {{ cur_release_bundle|safe }};
-        master_release_bundle = {{ master_release_bundle|safe }};
+        current_release = {{ current_release|safe }}
+        cur_release_bundle = {{ cur_release_bundle|safe }}
+        master_release_bundle = {{ master_release_bundle|safe }}
     </script>
 {% endblock page_data %}

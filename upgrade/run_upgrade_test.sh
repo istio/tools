@@ -27,16 +27,15 @@ WD=$(dirname "$0")
 WD=$(cd "$WD"; pwd)
 ROOT=$(dirname "$WD")
 
-# Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh, the default settings is to test upgrade from
-# 1.3.0 to 1.3.4 using helm chart
+# Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh
 # These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade jobs
 export SOURCE_HUB=${SOURCE_HUB:-"docker.io/istio"}
 export SOURCE_TAG=${SOURCE_TAG:-"1.3.0"}
-export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://github.com/istio/istio/releases/download/${SOURCE_TAG}"}
+export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export TARGET_HUB=${TARGET_HUB:-"docker.io/istio"}
 export TARGET_TAG=${TARGET_TAG:-"1.3.4"}
-export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://github.com/istio/istio/releases/download/${TARGET_TAG}"}
-export INSTALL_OPTIONS=${ISTALL_OPTIONS:-"helm"}
+export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
+export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"helm"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
 
@@ -45,12 +44,20 @@ function download_untar_istio_release() {
   local url_path=${1}
   local tag=${2}
   local dir=${3:-.}
-  # Download artifacts
-  LINUX_DIST_URL="${url_path}/istio-${tag}-linux.tar.gz"
 
-  wget  -q "${LINUX_DIST_URL}" -P "${dir}"
+  if [[ "${tag}" =~ "latest" ]];then
+    release_version=$(echo "${tag}" | cut -d'_' -f1)
+    GIT_SHA=$(curl "${url_path}/${release_version}-dev")
+  elif [ "${tag}" == "master" ];then
+    GIT_SHA=$(curl "${url_path}/latest")
+  fi
+
+  # Download artifacts
+  LINUX_DIST_URL="${url_path}/${GIT_SHA}/istio-${GIT_SHA}-linux.tar.gz"
+  wget -q "${LINUX_DIST_URL}" -P "${dir}"
   tar -xzf "${dir}/istio-${tag}-linux.tar.gz" -C "${dir}"
 }
+
 # shellcheck disable=SC1090
 source "${ROOT}/bin/setup_cluster.sh"
 # Set to any non-empty value to use kubectl configured cluster instead of mason provisioned cluster.

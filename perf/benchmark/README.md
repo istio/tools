@@ -226,13 +226,9 @@ Calls to Istio's Mixer component (policy and telemetry) adds latency to the side
 
 ## [Optional] Enable Telemetryv2
 
-1. Disable mixer v1 telemetry following previous section
-
-1. Enable metadata exchange filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/release-1.5/tests/integration/telemetry/stats/prometheus/testdata/metadata_exchange_filter.yaml>
-
-1. Enable stats filter: kubectl -n istio-system apply -f <https://raw.githubusercontent.com/istio/istio/release-1.5/tests/integration/telemetry/stats/prometheus/testdata/stats_filter.yaml>
-
-Note: the above config files is for `master` branch, please specify the corresponding branch for your installed istio-version, like `release-1.4`.
+```bash
+$ istioctl manifest apply --set values.telemetry.enabled=true,values.telemetry.v1.enabled=false,values.telemetry.v2.enabled=true,values.telemetry.v2.prometheus.enabled=true
+```
 
 ## Gather Result Metrics
 
@@ -283,12 +279,12 @@ Currently we are running benchmark test towards different configs as [prow job](
 
 To add a new config to this pipeline, we need to add a new directory under [configs folder](https://github.com/istio/tools/tree/master/perf/benchmark/configs/istio), where we can define config parameters structured as below:
 
-- installation.yaml: install Istio with this IstioOperator overlay file on top of operator built-in default profile and [perf testing default overlay](https://github.com/istio/tools/tree/master/perf/istio-install/istioctl_profiles/default.yaml)
+- installation.yaml: install Istio with this IstioOperator overlay file on top of istioctl built-in default profile and [perf testing default overlay](https://github.com/istio/tools/tree/master/perf/istio-install/istioctl_profiles/default.yaml)
 - cpu_mem.yaml: if provided, run cpu, memory test with this config
 - latency.yaml: if provided, run latency test with this config
 - prerun.sh: prerun hook we want to run before test
 - postrun.sh: postrun hook we want to run after test
 
-### Example Output
+## Example Output
 
 ![screenshot](screenshots/bokeh-screenshot.png)
