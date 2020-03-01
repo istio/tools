@@ -55,7 +55,7 @@ function download_untar_istio_release() {
   # Download artifacts
   LINUX_DIST_URL="${url_path}/${GIT_SHA}/istio-${GIT_SHA}-linux.tar.gz"
   wget -q "${LINUX_DIST_URL}" -P "${dir}"
-  tar -xzf "${dir}/istio-${tag}-linux.tar.gz" -C "${dir}"
+  tar -xzf "${dir}/istio-${GIT_SHA}-linux.tar.gz" -C "${dir}"
 }
 
 # shellcheck disable=SC1090
