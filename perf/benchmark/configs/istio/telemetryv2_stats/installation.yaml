@@ -1,4 +1,4 @@
-apiVersion: operator.istio.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
   components:
@@ -9,5 +9,9 @@ spec:
       enabled: true
       v2:
         enabled: true
+        prometheus:
+          enabled: true
+        stackdriver:
+          enabled: false
       v1:
         enabled: false
