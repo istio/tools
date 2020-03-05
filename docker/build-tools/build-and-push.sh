@@ -16,9 +16,13 @@
 
 set -eux
 
+# Enable docker buildx
+export DOCKER_CLI_EXPERIMENTAL=enabled
+
 # support other container tools, e.g. podman
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
-
+# Use buildx for CI by default, allow overriding for old clients or other tools like podman
+CONTAINER_BUILDER=${CONTAINER_BUILDER:-"buildx build"}
 HUB=${HUB:-gcr.io/istio-testing}
 DATE=$(date +%Y-%m-%dT%H-%M-%S)
 BRANCH=master
@@ -32,8 +36,10 @@ if [[ "${JOB_TYPE:-}" == "postsubmit" ]]; then
   SHA=$(git rev-parse ${BRANCH})
 fi
 
-${CONTAINER_CLI} build --target build_tools --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
-${CONTAINER_CLI} build --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
+# shellcheck disable=SC2086
+${CONTAINER_CLI} ${CONTAINER_BUILDER}  --target build_tools --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
+# shellcheck disable=SC2086
+${CONTAINER_CLI} ${CONTAINER_BUILDER}  --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
 
 if [[ -z "${DRY_RUN:-}" ]]; then
   ${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
