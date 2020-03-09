@@ -21,9 +21,10 @@ spec:
           - |-
             function assert() {
               if [[ $1 != $2 ]]; then
-                echo "$1" != "$2"
+                echo "$3: FAIL - wanted $1 got $2"
                 exit 1
               fi
+              echo "$3: PASS"
             }
             POD_IP=""
             while [[ -z $POD_IP ]]; do
@@ -33,16 +34,16 @@ spec:
             done
             while true; do
               echo "`date`: Sending traffic"
-              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:8085") # HTTP Service and container port
-              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:8086") # Undeclared Port
-              assert 000 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:8087") # HTTP container port only
-              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:9085") # TCP Service and container port
-              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:9086") # Undeclared port
-              assert 000 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:9087") # TCP container port only
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:8085") "HTTP Service and container port"
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:8086") "Undeclared Port"
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:8087") "HTTP container port only"
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:9085") "TCP Service and container port"
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:9086") "Undeclared port"
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" "${POD_IP}:9087") "TCP container port only"
               # Repeat with host header
-              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" -H "Host: server" "${POD_IP}:8085") # HTTP Service and container port
-              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" -H "Host: server" "${POD_IP}:8086") # Undeclared Port
-              assert 000 $(curl -s -o /dev/null -w "%{http_code}\n" -H "Host: server" "${POD_IP}:8087") # HTTP container port only
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" -H "Host: server" "${POD_IP}:8085") "HTTP Service and container port"
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" -H "Host: server" "${POD_IP}:8086") "Undeclared Port"
+              assert 200 $(curl -s -o /dev/null -w "%{http_code}\n" -H "Host: server" "${POD_IP}:8087") "HTTP container port only"
               sleep 1
             done
         resources:
