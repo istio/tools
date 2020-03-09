@@ -185,7 +185,7 @@ class Fortio:
             cacert_arg = "-cacert {cacert_path}".format(cacert_path=self.cacert)
 
         fortio_cmd = (
-            "fortio load -H={headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {grpc} -httpbufferkb=128 " +
+            "fortio load -H={headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
             "-labels {labels}").format(
                 headers=headers,
                 conn=conn,
