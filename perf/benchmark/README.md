@@ -113,6 +113,7 @@ Required fields to specified via CLI or config file:
 ```bash
 optional arguments:
   -h, --help            show this help message and exit
+  --headers HEADERS     a list of `header:value` should be separated by comma, e.g. --headers="foo:bar,foo1:bar1,foo2:bar2"
   --conn CONN           number of connections, comma separated list
   --qps QPS             qps, comma separated list
   --duration DURATION   duration in seconds of the extract
