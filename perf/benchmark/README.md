@@ -113,6 +113,7 @@ Required fields to specified via CLI or config file:
 ```bash
 optional arguments:
   -h, --help            show this help message and exit
+  --headers HEADERS     header:value, can be specified multiple times to add headers \(including Host:\)
   --conn CONN           number of connections, comma separated list
   --qps QPS             qps, comma separated list
   --duration DURATION   duration in seconds of the extract
