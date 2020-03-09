@@ -68,6 +68,7 @@ class Fortio:
 
     def __init__(
             self,
+            headers=None,
             conn=None,
             qps=None,
             duration=None,
@@ -88,6 +89,7 @@ class Fortio:
             mesh="istio",
             cacert=None):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
+        self.headers = headers
         self.conn = conn
         self.qps = qps
         self.size = size
@@ -154,7 +156,7 @@ class Fortio:
         return fortio_cmd + "_ingress {url}/echo?size={size}".format(
             url=url.geturl(), size=self.size)
 
-    def run(self, conn, qps, size, duration):
+    def run(self, headers, conn, qps, size, duration):
         size = size or self.size
         if duration is None:
             duration = self.duration
@@ -183,8 +185,9 @@ class Fortio:
             cacert_arg = "-cacert {cacert_path}".format(cacert_path=self.cacert)
 
         fortio_cmd = (
-            "fortio load -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
+            "fortio load -H={headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {grpc} -httpbufferkb=128 " +
             "-labels {labels}").format(
+                headers=headers,
                 conn=conn,
                 qps=qps,
                 duration=duration,
@@ -326,6 +329,7 @@ def fortio_from_config_file(args):
             exit(1)
         # TODO: hard to parse yaml into object directly because of existing constructor from CLI
         fortio = Fortio()
+        fortio.headers = job_config.get('headers', None)
         fortio.conn = job_config.get('conn', 16)
         fortio.qps = job_config.get('qps', 1000)
         fortio.duration = job_config.get('duration', 240)
@@ -352,6 +356,7 @@ def run(args):
         fortio = fortio_from_config_file(args)
     else:
         fortio = Fortio(
+            headers=args.headers,
             conn=args.conn,
             qps=args.qps,
             duration=args.duration,
@@ -375,7 +380,7 @@ def run(args):
 
     for conn in fortio.conn:
         for qps in fortio.qps:
-            fortio.run(conn=conn, qps=qps,
+            fortio.run(headers=fortio.headers, conn=conn, qps=qps,
                        duration=fortio.duration, size=fortio.size)
 
 
@@ -385,6 +390,10 @@ def csv_to_int(s):
 
 def get_parser():
     parser = argparse.ArgumentParser("Run performance test")
+    parser.add_argument(
+        "--headers",
+        help="header:value, can be specified multiple times to add headers (including Host:)",
+        default=None)
     parser.add_argument(
         "--conn",
         help="number of connections, comma separated list",
