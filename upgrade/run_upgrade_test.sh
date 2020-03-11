@@ -40,7 +40,9 @@ export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
 
 function get_git_sha() {
-  local tag=${1}
+  local url_path=${1}
+  local tag=${2}
+
   GIT_SHA=""
 
   if [[ "${tag}" =~ "latest" ]];then
@@ -53,12 +55,12 @@ function get_git_sha() {
   echo "${GIT_SHA}"
 }
 
-GIT_SHA=$(get_git_sha "${SOURCE_TAG}")
+GIT_SHA=$(get_git_sha "${SOURCE_RELEASE_PATH}" "${SOURCE_TAG}")
 if [[ -n "${GIT_SHA}" ]]; then
   export SOURCE_TAG="${GIT_SHA}"
 fi
 
-GIT_SHA=$(get_git_sha "${TARGET_TAG}")
+GIT_SHA=$(get_git_sha "${TARGET_RELEASE_PATH}" "${TARGET_TAG}")
 if [[ -n "${GIT_SHA}" ]]; then
   export TARGET_TAG="${GIT_SHA}"
 fi
