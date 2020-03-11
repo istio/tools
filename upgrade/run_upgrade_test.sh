@@ -30,20 +30,18 @@ ROOT=$(dirname "$WD")
 # Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh
 # These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade jobs
 export SOURCE_HUB=${SOURCE_HUB:-"docker.io/istio"}
-export SOURCE_TAG=${SOURCE_TAG:-"1.3.0"}
-export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export TARGET_HUB=${TARGET_HUB:-"docker.io/istio"}
+export SOURCE_TAG=${SOURCE_TAG:-"1.3.0"}
 export TARGET_TAG=${TARGET_TAG:-"1.3.4"}
+export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"helm"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
 
-# Download and unpack istio release artifacts.
-function download_untar_istio_release() {
-  local url_path=${1}
-  local tag=${2}
-  local dir=${3:-.}
+function get_git_sha() {
+  local tag=${1}
+  GIT_SHA=""
 
   if [[ "${tag}" =~ "latest" ]];then
     release_version=$(echo "${tag}" | cut -d'_' -f1)
@@ -51,11 +49,30 @@ function download_untar_istio_release() {
   elif [ "${tag}" == "master" ];then
     GIT_SHA=$(curl "${url_path}/latest")
   fi
+  
+  echo "${GIT_SHA}"
+}
+
+GIT_SHA=$(get_git_sha "${SOURCE_TAG}")
+if [[ -n "${GIT_SHA}" ]]; then
+  export SOURCE_TAG="${GIT_SHA}"
+fi
+
+GIT_SHA=$(get_git_sha "${TARGET_TAG}")
+if [[ -n "${GIT_SHA}" ]]; then
+  export TARGET_TAG="${GIT_SHA}"
+fi
+
+# Download and unpack istio release artifacts.
+function download_untar_istio_release() {
+  local url_path=${1}
+  local tag=${2}
+  local dir=${3:-.}
 
   # Download artifacts
-  LINUX_DIST_URL="${url_path}/${GIT_SHA}/istio-${GIT_SHA}-linux.tar.gz"
+  LINUX_DIST_URL="${url_path}/${tag}/istio-${tag}-linux.tar.gz"
   wget -q "${LINUX_DIST_URL}" -P "${dir}"
-  tar -xzf "${dir}/istio-${GIT_SHA}-linux.tar.gz" -C "${dir}"
+  tar -xzf "${dir}/istio-${tag}-linux.tar.gz" -C "${dir}"
 }
 
 # shellcheck disable=SC1090
