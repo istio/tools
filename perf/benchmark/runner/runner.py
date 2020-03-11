@@ -185,8 +185,9 @@ class Fortio:
             cacert_arg = "-cacert {cacert_path}".format(cacert_path=self.cacert)
 
         headers_cmd = ""
-        for header_val in headers.split(","):
-            headers_cmd += "-H=" + header_val + " "
+        if headers is not None:
+            for header_val in headers.split(","):
+                headers_cmd += "-H=" + header_val + " "
 
         fortio_cmd = (
             "fortio load {headers_cmd} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
