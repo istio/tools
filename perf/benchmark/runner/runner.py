@@ -190,9 +190,9 @@ class Fortio:
                 headers_cmd += "-H=" + header_val + " "
 
         fortio_cmd = (
-            "fortio load {headers_cmd} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
+            "fortio load {headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
             "-labels {labels}").format(
-                headers=headers,
+                headers=headers_cmd,
                 conn=conn,
                 qps=qps,
                 duration=duration,
