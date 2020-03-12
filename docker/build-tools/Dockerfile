@@ -178,12 +178,12 @@ RUN cp -a su-exec ${OUTDIR}/usr/bin
 # Install istio/test-infra tools
 RUN git clone --depth=1 https://github.com/istio/test-infra.git /tmp/istio_test-infra/
 WORKDIR /tmp/istio_test-infra/
-RUN go install -ldflags="-s -w" ./boskos/cmd/mason_client
+RUN go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./boskos/cmd/mason_client
 
 # Install kubernetes/test-infra tools
 RUN git clone --depth=1 https://github.com/kubernetes/test-infra.git /tmp/k8s_test-infra/
 WORKDIR /tmp/k8s_test-infra
-RUN go install -ldflags="-s -w" ./robots/pr-creator/
+RUN go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./robots/pr-creator/
 
 # TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
 # commands, maybe we just need the gcloud binary out of all this?
