@@ -87,17 +87,10 @@ func (g *htmlGenerator) getFileContents(file *protomodel.FileDescriptor,
 	messages *[]*protomodel.MessageDescriptor,
 	enums *[]*protomodel.EnumDescriptor,
 	services *[]*protomodel.ServiceDescriptor) {
-	for _, m := range file.AllMessages {
-		*messages = append(*messages, m)
-	}
 
-	for _, e := range file.AllEnums {
-		*enums = append(*enums, e)
-	}
-
-	for _, s := range file.Services {
-		*services = append(*services, s)
-	}
+	*messages = append(*messages, file.AllMessages...)
+	*enums = append(*enums, file.AllEnums...)
+	*services = append(*services, file.Services...)
 
 	for _, m := range file.AllMessages {
 		g.includeUnsituatedDependencies(messages, enums, m)
