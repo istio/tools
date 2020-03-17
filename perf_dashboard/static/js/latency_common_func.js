@@ -145,7 +145,7 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 hidden: true,
                 fill: false
             }, {
-                label: "none-both",
+                label: "none-mtls-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
                 data: modesData[6],
