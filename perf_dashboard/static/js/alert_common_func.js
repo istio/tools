@@ -71,7 +71,7 @@ window.generateChart = function(chartID, modesData) {
       {
         type: "line",
         showInLegend: true,
-        name: "none_both-baseline",
+        name: "none_mtls_both-baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
         color: "rgba(0, 0, 0, 1)",

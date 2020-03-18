@@ -81,7 +81,7 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 hidden: true,
                 fill: false
             }, {
-                label: "none-both",
+                label: "none-mtls-both",
                 backgroundColor: "rgba(0, 0, 0, 0.2)",
                 borderColor: "rgba(0, 0, 0, 1)",
                 data: cpu_none_both,
@@ -164,7 +164,7 @@ new Chart(document.getElementById("mem-qps-release"), {
                 hidden: true,
                 fill: false
             }, {
-                label: "none-both",
+                label: "none-mtls-both",
                 backgroundColor: "rgba(0, 0, 0, 0.2)",
                 borderColor: "rgba(0, 0, 0, 1)",
                 data: mem_none_both,
@@ -247,7 +247,7 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 hidden: true,
                 fill: false
             }, {
-                label: "none-both",
+                label: "none-mtls-both",
                 backgroundColor: "rgba(0, 0, 0, 0.2)",
                 borderColor: "rgba(0, 0, 0, 1)",
                 data: cpu_none_both_master,
@@ -330,7 +330,7 @@ new Chart(document.getElementById("mem-qps-master"), {
                 hidden: true,
                 fill: false
             }, {
-                label: "none-both",
+                label: "none-mtls-both",
                 backgroundColor: "rgba(0, 0, 0, 0.2)",
                 borderColor: "rgba(0, 0, 0, 1)",
                 data: mem_none_both_master,
