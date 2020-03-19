@@ -13,7 +13,7 @@ metrics:
     - p50
     - p90
     - p99
-perf_record: true
+perf_record: false
 # we only care about both sidecar mode, which is the base line for mTLs overhead comparision.
 run_bothsidecar: true
 run_serversidecar: false
