@@ -18,6 +18,6 @@ metrics:
     - p99
 perf_record: true
 run_bothsidecar: true
-run_serversidecar: true
-run_clientsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
 run_baseline: true
