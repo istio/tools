@@ -111,40 +111,12 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 data: modesData[0],
                 fill: false
             }, {
-                label: "mixer-serveronly",
-                backgroundColor: "rgba(259, 188, 5, 0.2)",
-                borderColor: "rgba(259, 188, 5,1)",
-                data: modesData[1],
-                hidden: true,
-                fill: false
-            }, {
-                label: "mixer-clientonly",
-                backgroundColor: "rgba(259, 188, 5, 0.2)",
-                borderColor: "rgba(259, 188, 5, 0.5)",
-                data: modesData[2],
-                hidden: true,
-                fill: false
-            }, {
                 label: "mixer-both",
                 backgroundColor: "rgba(66, 133, 246, 0.2)",
                 borderColor: "rgba(66, 133, 246, 1)",
                 data: modesData[3],
                 fill: false
-            }, {
-                label: "none-serveronly",
-                backgroundColor: "rgba(52, 168, 85, 0.2)",
-                borderColor: "rgba(52, 168, 85, 1)",
-                data: modesData[4],
-                hidden: true,
-                fill: false
-            }, {
-                label: "none-clientonly",
-                backgroundColor: "rgba(52, 168, 85, 0.2)",
-                borderColor: "rgba(52, 168, 85, 0.5)",
-                data: modesData[5],
-                hidden: true,
-                fill: false
-            }, {
+            },  {
                 label: "none-mtls-both",
                 backgroundColor: "rgba(0,0,0,0.2)",
                 borderColor: "rgba(0,0,0,1)",
@@ -155,20 +127,6 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 backgroundColor: "rgba(52, 235, 219,0.2)",
                 borderColor: "rgba(52, 235, 219,1)",
                 data: modesData[7],
-                fill: false
-            }, {
-                label: "v2-serveronly",
-                backgroundColor: "rgba(168, 50, 168, 0.2)",
-                borderColor: "rgba(168, 50, 168, 1)",
-                data: modesData[8],
-                hidden: true,
-                fill: false
-            }, {
-                label: "v2-clientonly",
-                backgroundColor: "rgba(168, 50, 168, 0.2)",
-                borderColor: "rgba(168, 50, 168, 0.5)",
-                data: modesData[9],
-                hidden: true,
                 fill: false
             }, {
                 label: "v2-both",
