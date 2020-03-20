@@ -22,4 +22,3 @@ run_clientsidecar: false
 run_baseline: false
 
 extra_labels: "plaintext"
-
