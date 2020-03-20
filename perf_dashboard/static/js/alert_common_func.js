@@ -41,15 +41,7 @@ window.generateChart = function(chartID, modesData) {
       dockInsidePlotArea: true,
       itemclick: toggleDataSeries
     },
-    data: [{
-      type: "line",
-      showInLegend: true,
-      name: "serveronly-baseline",
-      markerType: "square",
-      xValueFormatString: "DD MMM, YYYY",
-      color: "rgba(259, 188, 5,1)",
-      dataPoints: modesData[0]
-      },
+    data: [
       {
         type: "line",
         showInLegend: true,
@@ -62,29 +54,11 @@ window.generateChart = function(chartID, modesData) {
       {
         type: "line",
         showInLegend: true,
-        name: "none_serveronly-baseline",
-        markerType: "square",
-        xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(52, 168, 85, 1)",
-        dataPoints: modesData[2]
-      },
-      {
-        type: "line",
-        showInLegend: true,
         name: "none_mtls_both-baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
         color: "rgba(0, 0, 0, 1)",
         dataPoints: modesData[3]
-      },
-      {
-        type: "line",
-        showInLegend: true,
-        name: "v2_serveronly-baseline",
-        markerType: "square",
-        xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(168, 50, 168, 1)",
-        dataPoints: modesData[4]
       },
       {
         type: "line",
