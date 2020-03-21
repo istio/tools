@@ -1,0 +1,12 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "perf-dashboard.fullname" . }}
+spec:
+  scaleTargetRef:
+    name: {{ include "perf-dashboard.fullname" . }}
+    kind: Deployment
+    apiVersion: apps/v1
+  maxReplicas: {{ .Values.maxReplicas }}
+  minReplicas: {{ .Values.minReplicas }}
+  targetCPUUtilizationPercentage: {{ .Values.CPUUtilization }}
