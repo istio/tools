@@ -41,6 +41,7 @@ status:
 )
 
 // Build CRDs based on the configuration and schema.
+//nolint:staticcheck
 func completeCRD(c *apiextv1beta1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap) {
 
 	for i, version := range c.Spec.Versions {
@@ -99,11 +100,12 @@ func validateStructural(s *apiextv1beta1.JSONSchemaProps) error {
 	return nil
 }
 
+//nolint:staticcheck
 func schemasEqual(versionSchemas map[string]*openapi.OrderedMap) bool {
 	if len(versionSchemas) < 2 {
 		return true
 	}
-	var schema *openapi.OrderedMap
+	var schema *openapi.OrderedMap //nolint:staticcheck
 	for _, s := range versionSchemas {
 		if schema == nil {
 			schema = s

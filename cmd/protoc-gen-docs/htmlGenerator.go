@@ -518,10 +518,7 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 
 				g.emit("</td>")
 				g.emit("<td>")
-				// oneof fields are always required.
-				if field.OneofIndex != nil {
-					g.emit("Yes")
-				} else if field.Options != nil {
+				if field.Options != nil {
 					fb := getFieldBehavior(field.Options)
 					var required bool
 					for _, e := range fb {
