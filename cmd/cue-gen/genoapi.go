@@ -113,6 +113,10 @@ import (
 	"github.com/ghodss/yaml"
 )
 
+// TODO: CUE deprecates OrderedMap. We should start using ast.File and other APIs in the
+// ast package to manipulate the schemas. This requires some more support from ast package
+// thus leaving this as a TODO. After this is done, staticcheck nolint comment can be removed.
+
 var (
 	configFile = flag.String("f", "", "configuration file; by default the directory  in which this file is located is assumed to be the root")
 	help       = flag.Bool("help", false, "show documentation for this tool")
@@ -361,7 +365,7 @@ func (x *builder) genAll(g *Grouping) {
 
 	found := map[string]bool{}
 
-	schemas := &openapi.OrderedMap{}
+	schemas := &openapi.OrderedMap{} //nolint:staticcheck
 
 	for _, inst := range all {
 		items, err := x.genOpenAPI(inst.ImportPath, inst)
@@ -374,7 +378,7 @@ func (x *builder) genAll(g *Grouping) {
 			}
 			found[kv.Key] = true
 
-			schemas.Set(kv.Key, kv.Value)
+			schemas.Set(kv.Key, kv.Value) //nolint:staticcheck
 		}
 	}
 
@@ -400,14 +404,14 @@ func (x *builder) genCRD() {
 		}
 	}
 
-	schemas := map[string]*openapi.OrderedMap{}
+	schemas := map[string]*openapi.OrderedMap{} //nolint:staticcheck
 	for _, inst := range all {
 		items, err := x.genOpenAPI(inst.ImportPath, inst)
 		if err != nil {
 			fatal(err, "Error generating OpenAPI schema")
 		}
 		for _, kv := range items.Pairs() {
-			schemas[kv.Key] = kv.Value.(*openapi.OrderedMap)
+			schemas[kv.Key] = kv.Value.(*openapi.OrderedMap) //nolint:staticcheck
 		}
 	}
 
@@ -416,7 +420,7 @@ func (x *builder) genCRD() {
 		group := c[:strings.LastIndex(c, ".")]
 		tp := crdToType[c]
 
-		versionSchemas := map[string]*openapi.OrderedMap{}
+		versionSchemas := map[string]*openapi.OrderedMap{} //nolint:staticcheck
 
 		for _, version := range v.CustomResourceDefinition.Spec.Versions {
 			var schemaName string
@@ -438,6 +442,7 @@ func (x *builder) genCRD() {
 	x.writeCRDFiles()
 }
 
+//nolint:staticcheck
 func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedMap, error) {
 	fmt.Printf("Building OpenAPIs for %s...\n", name)
 
@@ -524,6 +529,7 @@ func (x *builder) reference(goPkg string, path []string) string {
 // It does so my looking up the top-level items in the proto files defined
 // in g, recursively marking their dependencies, and then eliminating any
 // schema from items that was not marked.
+//nolint:staticcheck
 func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *Grouping) {
 	// All references found.
 	m := marker{
@@ -644,18 +650,19 @@ func protobufName(f *ast.Field) string {
 	return ""
 }
 
+//nolint:staticcheck
 func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
-	oapi := &openapi.OrderedMap{}
-	oapi.Set("openapi", "3.0.0")
+	oapi := &openapi.OrderedMap{} //nolint:staticcheck
+	oapi.Set("openapi", "3.0.0")  //nolint:staticcheck
 
-	info := &openapi.OrderedMap{}
-	info.Set("title", g.Title)
-	info.Set("version", g.Version)
-	oapi.Set("info", info)
+	info := &openapi.OrderedMap{}  //nolint:staticcheck
+	info.Set("title", g.Title)     //nolint:staticcheck
+	info.Set("version", g.Version) //nolint:staticcheck
+	oapi.Set("info", info)         //nolint:staticcheck
 
-	comps := &openapi.OrderedMap{}
-	comps.Set("schemas", schemas)
-	oapi.Set("components", comps)
+	comps := &openapi.OrderedMap{} //nolint:staticcheck
+	comps.Set("schemas", schemas)  //nolint:staticcheck
+	oapi.Set("components", comps)  //nolint:staticcheck
 
 	b, _ := json.Marshal(oapi)
 
@@ -730,7 +737,7 @@ func (x *builder) writeCRDFiles() {
 
 type marker struct {
 	found   map[string]bool
-	schemas *openapi.OrderedMap
+	schemas *openapi.OrderedMap //nolint:staticcheck
 }
 
 func (x *marker) markReference(ref string) {
@@ -741,18 +748,21 @@ func (x *marker) markReference(ref string) {
 
 	for _, kv := range x.schemas.Pairs() {
 		if kv.Key == ref {
-			x.markRecursive(kv.Value.(*openapi.OrderedMap))
+			x.markRecursive(kv.Value.(*openapi.OrderedMap)) //nolint:staticcheck
 			return
 		}
 	}
 	panic("should not happen")
 }
 
+//nolint:staticcheck
 func (x *marker) markRecursive(m *openapi.OrderedMap) {
 	for _, kv := range m.Pairs() {
 		switch v := kv.Value.(type) {
+		//nolint:staticcheck
 		case *openapi.OrderedMap:
 			x.markRecursive(v)
+		//nolint:staticcheck
 		case []*openapi.OrderedMap:
 			for _, m := range v {
 				x.markRecursive(m)
