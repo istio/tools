@@ -1,0 +1,11 @@
+apiVersion: v1
+name: perf-dashboard
+description: A Helm chart for Istio perf-dashboard
+version: 0.1.0
+keywords:
+- istio
+- perf
+- perf-dashboard
+sources:
+- https://github.com/istio/tools/perf_dashboard
+icon: https://istio.io/favicons/android-192x192.png

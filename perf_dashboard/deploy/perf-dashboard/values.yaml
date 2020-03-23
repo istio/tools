@@ -1,0 +1,23 @@
+maxReplicas: 5
+replicas: 3
+minReplicas: 1
+CPUUtilization: 80
+
+nameOverride: ""
+fullnameOverride: ""
+
+ipName: perf-dashboard
+domain: perf.dashboard.istio.io
+
+image: gcr.io/istio-testing/perf-dashboard
+version: latest
+imagePullPolicy: Always
+
+port: 8000
+
+metrics-server:
+  nameOverride: ""
+  fullnameOverride: ""
+  priorityClassName: ""
+  serviceAccount:
+    name: ""
