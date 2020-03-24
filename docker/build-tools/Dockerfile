@@ -119,7 +119,6 @@ RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS
 RUN go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
 RUN go get -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
 RUN go get -ldflags="-s -w" istio.io/test-infra/toolbox/githubctl
-RUN go get -ldflags="-s -w" istio.io/test-infra/boskos/cmd/mason_client
 
 # Install k8s code generation tools
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
@@ -176,10 +175,15 @@ WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
 
-# Install pr-creator
-RUN git clone --depth=1 https://github.com/kubernetes/test-infra.git /tmp/test-infra/
-WORKDIR /tmp/test-infra
-RUN GO111MODULE=on go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./robots/pr-creator/
+# Install istio/test-infra tools
+RUN git clone --depth=1 https://github.com/istio/test-infra.git /tmp/istio_test-infra/
+WORKDIR /tmp/istio_test-infra/
+RUN go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./boskos/cmd/mason_client
+
+# Install kubernetes/test-infra tools
+RUN git clone --depth=1 https://github.com/kubernetes/test-infra.git /tmp/k8s_test-infra/
+WORKDIR /tmp/k8s_test-infra
+RUN go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./robots/pr-creator/
 
 # TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
 # commands, maybe we just need the gcloud binary out of all this?
