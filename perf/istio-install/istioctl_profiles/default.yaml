@@ -32,7 +32,7 @@ spec:
     policy:
       enabled: false
     citadel:
-      enabled: true
+      enabled: false
     nodeAgent:
       enabled: false
     telemetry:
@@ -85,12 +85,9 @@ spec:
           secretName: istio-ingressgateway-certs
         type: LoadBalancer
     global:
-      controlPlaneSecurityEnabled: false
       meshExpansion:
         enabled: true
         useILB: true
-      mtls:
-        enabled: true
       multiCluster:
         enabled: true
       podDNSSearchNamespaces:

@@ -4,6 +4,8 @@ spec:
   components:
     telemetry:
       enabled: true
+    citadel:
+      enabled: true
   values:
     telemetry:
       enabled: true
