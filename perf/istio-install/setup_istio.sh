@@ -23,6 +23,7 @@ WD=$(dirname $0)
 # shellcheck disable=SC2086
 WD=$(cd $WD; pwd)
 mkdir -p "${WD}/tmp"
+export INSTALL_WITH_ISTIOCTL=true
 
 release="${1:?"release"}"
 
@@ -42,7 +43,7 @@ function download() {
   local DIRNAME="$1"
   local release="$2"
 
-  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  local url="https://gcsweb.istio.io/gcs/istio-build/dev/${release}/istio-${release}-linux.tar.gz"
   # shellcheck disable=SC2236
   if [[ -n "${RELEASE_URL}" ]];then
     url="${RELEASE_URL}"
@@ -142,7 +143,7 @@ function install_istio_with_helm() {
 function install_istio_with_istioctl() {
   local CR_PATH="${WD}/istioctl_profiles/${CR_FILENAME}"
   pushd "${ISTIOCTL_PATH}"
-  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}" --wait --force=true
   popd
 }
 
@@ -189,7 +190,6 @@ function install_istio() {
     echo "start installing istio using istioctl"
     export SET_OVERLAY="meshConfig.rootNamespace=istio-system"
     export CR_FILENAME="default.yaml"
-    export EXTRA_ARGS="--force=true"
     install_istio_with_istioctl
   fi
 }
