@@ -326,8 +326,8 @@ RUN pip3 install /tmp/mako-0.1-cp37-cp37m-linux_x86_64.whl
 
 FROM ubuntu:bionic as base_os_context
 
-ENV DOCKER_VERSION=5:19.03.5~3-0~ubuntu-bionic
-ENV CONTAINERD_VERSION=1.2.6-3
+ENV DOCKER_VERSION=5:19.03.8~3-0~ubuntu-bionic
+ENV CONTAINERD_VERSION=1.2.13-1
 
 ENV OUTDIR=/out
 
