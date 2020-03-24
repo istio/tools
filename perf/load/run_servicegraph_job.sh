@@ -66,7 +66,7 @@ popd
 
 function service_graph() {
   # shellcheck disable=SC1091
-  source common.sh
+  source "${WD}/common.sh"
   NAMESPACE_NUM=20
   START_NUM=0
   start_servicegraphs "${NAMESPACE_NUM}" "${START_NUM}"
@@ -80,6 +80,10 @@ function service_graph() {
 }
 
 function export_metrics() {
+  if [[ $(command -v pipenv) == "" ]];then
+    apt-get update && apt-get -y install python3-pip
+    pip3 install pipenv
+  fi
   OUTPUT_PATH=${OUTPUT_PATH:-"/tmp/output"}
 
   mkdir -p "${OUTPUT_PATH}"
@@ -88,13 +92,14 @@ function export_metrics() {
   rm "${load_metrics}" || true
 
   pushd "${ROOT}/benchmark/runner"
+  pipenv install
   count="$((TIME_TO_RUN_PERF_TESTS / 60))"
     echo "Get metric $count time(s)."
     for i in $(seq 1 "$count");
     do
       echo "Running for $i min"
       sleep 1m
-      python3 prom.py http://localhost:8060 60 --no-aggregate >> "${load_metrics}"
+      pipenv run python3 prom.py http://localhost:8060 60 --no-aggregate >> "${load_metrics}"
     done
 
     gsutil -q cp "${load_metrics}" "gs://$CB_GCS_BUILD_PATH/load_metrics.txt"
