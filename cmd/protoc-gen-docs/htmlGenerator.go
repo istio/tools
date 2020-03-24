@@ -227,23 +227,6 @@ func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor
 	var typeList []string
 	var serviceList []string
 
-	enumMap := map[string]*protomodel.EnumDescriptor{}
-	for _, enum := range enums {
-		if enum.IsHidden() {
-			continue
-		}
-
-		absName := g.absoluteName(enum)
-		known := wellKnownTypes[absName]
-		if known != "" {
-			continue
-		}
-
-		name := g.relativeName(enum)
-		typeList = append(typeList, name)
-		enumMap[name] = enum
-	}
-
 	messagesMap := map[string]*protomodel.MessageDescriptor{}
 	for _, msg := range messages {
 		// Don't generate virtual messages for maps.
@@ -264,6 +247,23 @@ func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor
 		name := g.relativeName(msg)
 		typeList = append(typeList, name)
 		messagesMap[name] = msg
+	}
+
+	enumMap := map[string]*protomodel.EnumDescriptor{}
+	for _, enum := range enums {
+		if enum.IsHidden() {
+			continue
+		}
+
+		absName := g.absoluteName(enum)
+		known := wellKnownTypes[absName]
+		if known != "" {
+			continue
+		}
+
+		name := g.relativeName(enum)
+		typeList = append(typeList, name)
+		enumMap[name] = enum
 	}
 
 	servicesMap := map[string]*protomodel.ServiceDescriptor{}
