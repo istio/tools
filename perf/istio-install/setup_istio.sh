@@ -76,74 +76,12 @@ function setup_admin_binding() {
     --user=$(gcloud config get-value core/account) || true
 }
 
-function install_istio_with_helm() {
-  kubectl create ns istio-system || true
-
-  if [[ -z "${DRY_RUN}" ]];then
-      # apply CRD files for istio kinds
-      if [[ -f "${DIRNAME}/${release}/istio/templates/crds.yaml" ]];then
-         kubectl apply -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
-         kubectl wait --for=condition=Established -f "${DIRNAME}/${release}/istio/templates/crds.yaml"
-      else
-         kubectl apply -f "${DIRNAME}/${release}/istio-init/files/"
-         kubectl wait --for=condition=Established -f "${DIRNAME}/${release}/istio-init/files/"
-      fi
-  fi
-
-  local FILENAME="${DIRNAME}/${release}.yml"
-
-  # cluster_name=gke_mixologist-142215_us-central1-a_cls1401 --> remove
-  local cluster_name
-  cluster_name=$(kubectl config get-contexts "$(kubectl config current-context)" --no-headers | awk '{print $3}')
-  local meshID
-  meshID=$(echo "${cluster_name}" | awk -F "_" '{printf "%s/%s/%s", $2, $3, $4}')
-  opts+=" --set global.meshID=${meshID}"
-
-  # if release_url is not overridden then daily builds require
-  # tag and hub overrides
-  if [[ -z "${RELEASE_URL}" ]];then
-    opts+=" --set global.tag=${release}"
-    opts+=" --set global.hub=gcr.io/istio-release"
-  fi
-
-  if [[ -n "${MIXERLESS}" ]]; then
-    opts+=" --set mixer.telemetry.enabled=false"
-    opts+=" --set mixer.policy.enabled=false"
-  fi
-
-  local values=${VALUES:-values.yaml}
-  local extravalues=${EXTRA_VALUES:-""}
-  if [[ ${extravalues} != "" ]]; then
-    extravalues="--values ${extravalues}"
-  fi
-
-  # shellcheck disable=SC2086
-  helm template --name istio --namespace istio-system \
-       ${opts} \
-       --values ${values} \
-       ${extravalues} \
-       "${DIRNAME}/${release}/istio" > "${FILENAME}"
-
-  if [[ -z "${DRY_RUN}" ]];then
-      kubectl apply -f "${FILENAME}"
-      if [[ -z "${SKIP_PROMETHEUS}" ]];then
-          # shellcheck disable=SC2086
-          "$WD/setup_prometheus.sh" ${DIRNAME}
-      fi
-      if [[ -n "${MIXERLESS}" ]]; then
-        kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/metadata-exchange_filter.yaml
-        kubectl -n istio-system apply -f https://raw.githubusercontent.com/istio/proxy/master/extensions/stats/testdata/istio/stats_filter.yaml
-      fi
-  fi
-
-  echo "Wrote file ${FILENAME}"
-}
-
 # install istio with default IstioControlPlane CR yaml using istioctl.
 function install_istio_with_istioctl() {
   local CR_PATH="${WD}/istioctl_profiles/${CR_FILENAME}"
   pushd "${ISTIOCTL_PATH}"
-  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" ${EXTRA_ARGS} --wait --force=true
+  # shellcheck disable=SC2086
+  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" ${EXTRA_ARGS} --wait
   popd
 }
 
@@ -189,7 +127,9 @@ function install_istio() {
   else
     echo "start installing istio using istioctl"
     export SET_OVERLAY="meshConfig.rootNamespace=istio-system"
-    export CR_FILENAME="default.yaml"
+    if [[ -z "${CR_FILENAME}" ]]; then
+      CR_FILENAME="default.yaml"
+    fi
     install_istio_with_istioctl
   fi
 }

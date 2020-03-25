@@ -38,4 +38,7 @@ Below commands will setup istio with corresponding release using [default perfor
 
 1. To setup Istio with prerelease candidates, run `DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.5.0-alpha.0 pre-release`
 
-To provide extra override via set or yaml file, run with EXTRA_ARGS, for example: `EXTRA_ARGS="--set values.grafana.enabled=true -f overlay.yaml" DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.5.0`
+1. To replace default overlay with other [predefined overlay files](https://github.com/istio/tools/blob/master/perf/istio-install/istioctl_profiles),
+run `export CR_FILENAME="automtls.yaml" && DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.5.0`
+
+1. To provide extra override via set or self defined yaml file, run with EXTRA_ARGS, for example: `EXTRA_ARGS="--set values.grafana.enabled=true -f overlay.yaml" DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.5.0`
