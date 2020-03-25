@@ -43,6 +43,9 @@ ENV GOLANG_PROTOBUF_VERSION=v1.3.1
 ENV GOLANGCI_LINT_VERSION=v1.23.1
 ENV HADOLINT_VERSION=v1.17.2
 ENV HELM_VERSION=v2.16.1
+ENV HELM3_VERSION=3.1.2
+ENV HELM3_RELEASE_ROOT="https://get.helm.sh"
+ENV HELM3_RELEASE_FILE="helm-v${HELM3_VERSION}-linux-amd64.tar.gz"
 ENV HUGO_VERSION=0.61.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.16.2
@@ -149,10 +152,14 @@ ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${H
 RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C /tmp
 RUN mv /tmp/hugo ${OUTDIR}/usr/bin
 
-# Helm
+# Helm and helm3
 ADD https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz /tmp
 RUN tar -xf /tmp/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp
 RUN mv /tmp/linux-amd64/helm ${OUTDIR}/usr/bin
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN curl -L ${HELM3_RELEASE_ROOT}/${HELM3_RELEASE_FILE} |tar xvz && \
+    mv linux-amd64/helm /usr/bin/helm3 && \
+    chmod +x /usr/bin/helm3
 
 # yq doesn't support go modules, so install the binary instead
 ADD https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 /tmp
