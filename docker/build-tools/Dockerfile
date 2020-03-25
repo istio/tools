@@ -73,6 +73,9 @@ ENV OUTDIR=/out
 RUN mkdir -p ${OUTDIR}/usr/bin
 RUN mkdir -p ${OUTDIR}/usr/local
 
+# Required by linter before any command using | is used.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Update distro and install dependencies
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -152,7 +155,7 @@ ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${H
 RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C /tmp
 RUN mv /tmp/hugo ${OUTDIR}/usr/bin
 
-# Helm
+# Helm and helm3
 ADD https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz /tmp
 RUN tar -xf /tmp/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp
 RUN mv /tmp/linux-amd64/helm ${OUTDIR}/usr/bin
@@ -611,7 +614,6 @@ COPY --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
 COPY --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
 COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
 
