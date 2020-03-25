@@ -65,7 +65,7 @@ pushd "${ROOT}/istio-install"
 popd
 
 function service_graph() {
-  # shellcheck disable=SC1091
+  # shellcheck disable=SC1090
   source "${WD}/common.sh"
   NAMESPACE_NUM=20
   START_NUM=0
