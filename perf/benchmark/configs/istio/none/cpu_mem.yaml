@@ -18,3 +18,5 @@ run_bothsidecar: true
 run_serversidecar: false
 run_clientsidecar: false
 run_baseline: true
+
+extra_labels: "mtls"
