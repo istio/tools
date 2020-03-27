@@ -48,7 +48,7 @@ window.generateChart = function(chartID, modesData) {
         name: "baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(66, 133, 246, 1)",
+        color: "rgba(236, 66, 53, 1)",
         dataPoints: modesData[0]
       }, {
         type: "line",
@@ -73,7 +73,7 @@ window.generateChart = function(chartID, modesData) {
         name: "v2-sd-full-nullvm_both - baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(252, 123, 3, 1)",
+        color: "rgba(168, 50, 168, 1)",
         dataPoints: modesData[3]
       },
     ]

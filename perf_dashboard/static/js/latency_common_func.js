@@ -88,20 +88,20 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 fill: false
             }, {
                 label: "baseline",
-                backgroundColor: "rgba(236, 66, 53,0.2)",
-                borderColor: "rgba(236, 66, 53,1)",
+                backgroundColor: "rgba(236, 66, 53, 0.2)",
+                borderColor: "rgba(236, 66, 53, 1)",
                 data: modesData[1],
                 fill: false
             }, {
                 label: "none-mtls_both",
-                backgroundColor: "rgba(0,0,0,0.2)",
-                borderColor: "rgba(0,0,0,1)",
+                backgroundColor: "rgba(0, 0, 0, 0.2)",
+                borderColor: "rgba(0, 0, 0, 1)",
                 data: modesData[2],
                 fill: false
             }, {
                 label: "none-plaintext_both",
-                backgroundColor: "rgba(52, 235, 219,0.2)",
-                borderColor: "rgba(52, 235, 219,1)",
+                backgroundColor: "rgba(52, 235, 219, 0.2)",
+                borderColor: "rgba(52, 235, 219, 1)",
                 data: modesData[3],
                 fill: false
             }, {
