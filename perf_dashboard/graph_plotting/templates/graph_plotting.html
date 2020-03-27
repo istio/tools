@@ -18,10 +18,10 @@
         <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
-    <i class="fa fa-bullhorn"></i>Regression Alerts</a>
+    <i class="fa fa-bullhorn"></i>Regression Pattern</a>
     <ul id="alertDropDown" class="collapse list-unstyled">
-        <li><a href="{% url 'cur_alert' %}"><i class="fa fa-asterisk"></i>Current Release Alert</a></li>
-        <li><a href="{% url 'master_alert' %}"><i class="fa fa-asterisk"></i>Master Alert</a></li>
+        <li><a href="{% url 'cur_pattern' %}"><i class="fa fa-asterisk"></i>Current Release</a></li>
+        <li><a href="{% url 'master_pattern' %}"><i class="fa fa-asterisk"></i>Master</a></li>
     </ul>
     <li class="active"><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
@@ -50,7 +50,7 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-header d-flex align-items-center">
-                        <h4 class="h4">Please upload your csv file got from this <a href="https://github.com/istio/tools/tree/master/perf/benchmark">benchmark</a></h4>
+                        <h4 class="h4">Please upload your csv file generated from this <a href="https://github.com/istio/tools/tree/master/perf/benchmark">benchmark</a></h4>
                     </div>
                     <div class="card-body">
                         <form class="form-horizontal" method="post" enctype="multipart/form-data">

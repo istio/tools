@@ -17,6 +17,6 @@ from . import views
 
 
 urlpatterns = [
-    url('cur_alert/', views.cur_alert, name="cur_alert"),
-    url('master_alert/', views.master_alert, name="master_alert"),
+    url('cur_pattern', views.cur_pattern, name="cur_pattern"),
+    url('master_pattern', views.master_pattern, name="master_pattern"),
 ]

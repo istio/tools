@@ -18,10 +18,10 @@
         <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
-    <i class="fa fa-bullhorn"></i>Regression Alerts</a>
+    <i class="fa fa-bullhorn"></i>Regression Pattern</a>
     <ul id="alertDropDown" class="collapse list-unstyled">
-        <li><a href="{% url 'cur_alert' %}"><i class="fa fa-asterisk"></i>Current Release Alert</a></li>
-        <li><a href="{% url 'master_alert' %}"><i class="fa fa-asterisk"></i>Master Alert</a></li>
+        <li><a href="{% url 'cur_pattern' %}"><i class="fa fa-asterisk"></i>Current Release</a></li>
+        <li><a href="{% url 'master_pattern' %}"><i class="fa fa-asterisk"></i>Master</a></li>
     </ul>
     <li><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
@@ -156,6 +156,7 @@
         master_release_names = {{ master_release_names|safe }}
 
         latency_mixer_both_p50 = {{ latency_mixer_both_p50|safe }}
+        latency_none_mtls_base_p50 = {{ latency_none_mtls_base_p50|safe }}
         latency_none_mtls_both_p50 = {{ latency_none_mtls_both_p50|safe }}
         latency_none_plaintext_both_p50 = {{ latency_none_plaintext_both_p50|safe }}
         latency_v2_stats_nullvm_both_p50 = {{ latency_v2_stats_nullvm_both_p50|safe }}
@@ -163,6 +164,7 @@
         latency_v2_sd_full_nullvm_both_p50 = {{ latency_v2_sd_full_nullvm_both_p50|safe }}
 
         latency_mixer_both_p90 = {{ latency_mixer_both_p90|safe }}
+        latency_none_mtls_base_p90 = {{ latency_none_mtls_base_p90|safe }}
         latency_none_mtls_both_p90 = {{ latency_none_mtls_both_p90|safe }}
         latency_none_plaintext_both_p90 = {{ latency_none_plaintext_both_p90|safe }}
         latency_v2_stats_nullvm_both_p90 = {{ latency_v2_stats_nullvm_both_p90|safe }}
@@ -170,6 +172,7 @@
         latency_v2_sd_full_nullvm_both_p90 = {{ latency_v2_sd_full_nullvm_both_p90|safe }}
 
         latency_mixer_both_p99 = {{ latency_mixer_both_p99|safe }}
+        latency_none_mtls_base_p99 = {{ latency_none_mtls_base_p99|safe }}
         latency_none_mtls_both_p99 = {{ latency_none_mtls_both_p99|safe }}
         latency_none_plaintext_both_p99 = {{ latency_none_plaintext_both_p99|safe }}
         latency_v2_stats_nullvm_both_p99 = {{ latency_v2_stats_nullvm_both_p99|safe }}
@@ -177,6 +180,7 @@
         latency_v2_sd_full_nullvm_both_p99 = {{ latency_v2_sd_full_nullvm_both_p99|safe }}
 
         latency_mixer_both_p50_master = {{ latency_mixer_both_p50_master|safe }}
+        latency_none_mtls_base_p50_master = {{ latency_none_mtls_base_p50_master|safe }}
         latency_none_mtls_both_p50_master = {{ latency_none_mtls_both_p50_master|safe }}
         latency_none_plaintext_both_p50_master = {{ latency_none_plaintext_both_p50_master|safe }}
         latency_v2_stats_nullvm_both_p50_master = {{ latency_v2_stats_nullvm_both_p50_master|safe }}
@@ -184,6 +188,7 @@
         latency_v2_sd_full_nullvm_both_p50_master = {{ latency_v2_sd_full_nullvm_both_p50_master|safe }}
 
         latency_mixer_both_p90_master = {{ latency_mixer_both_p90_master|safe }}
+        latency_none_mtls_base_p90_master = {{ latency_none_mtls_base_p90_master|safe }}
         latency_none_mtls_both_p90_master = {{ latency_none_mtls_both_p90_master|safe }}
         latency_none_plaintext_both_p90_master = {{ latency_none_plaintext_both_p90_master|safe }}
         latency_v2_stats_nullvm_both_p90_master = {{ latency_v2_stats_nullvm_both_p90_master|safe }}
@@ -191,6 +196,7 @@
         latency_v2_sd_full_nullvm_both_p90_master = {{ latency_v2_sd_full_nullvm_both_p90_master|safe }}
 
         latency_mixer_both_p99_master = {{ latency_mixer_both_p99_master|safe }}
+        latency_none_mtls_base_p99_master = {{ latency_none_mtls_base_p99_master|safe }}
         latency_none_mtls_both_p99_master = {{ latency_none_mtls_both_p99_master|safe }}
         latency_none_plaintext_both_p99_master = {{ latency_none_plaintext_both_p99_master|safe }}
         latency_v2_stats_nullvm_both_p99_master = {{ latency_v2_stats_nullvm_both_p99_master|safe }}
