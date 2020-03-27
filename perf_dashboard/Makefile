@@ -22,7 +22,7 @@ push:
 	@docker push "$(IMG_VERSION)"
 
 deploy_only: get-cluster-credentials
-	@helm template "perf-dashboard" --set version="$(VERSION)" deploy/perf-dashboard | kubectl apply -f -
+	@helm template --name "perf-dashboard" --set version="$(VERSION)" deploy/perf-dashboard | kubectl apply -f -
 	@echo "Deployed perf-dashboard:$(VERSION) to project:$(PROJECT) cluster:$(CLUSTER)"
 
 deploy: build push deploy_only
