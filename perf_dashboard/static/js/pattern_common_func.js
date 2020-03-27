@@ -42,32 +42,39 @@ window.generateChart = function(chartID, modesData) {
       itemclick: toggleDataSeries
     },
     data: [
-      {
+        {
         type: "line",
         showInLegend: true,
-        name: "both-baseline",
+        name: "baseline",
+        markerType: "square",
+        xValueFormatString: "DD MMM, YYYY",
+        color: "rgba(66, 133, 246, 1)",
+        dataPoints: modesData[0]
+      }, {
+        type: "line",
+        showInLegend: true,
+        name: "mixer_both - baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
         color: "rgba(66, 133, 246, 1)",
         dataPoints: modesData[1]
-      },
-      {
+      }, {
         type: "line",
         showInLegend: true,
-        name: "none_mtls_both-baseline",
+        name: "none-mtls_both - baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
         color: "rgba(0, 0, 0, 1)",
-        dataPoints: modesData[3]
+        dataPoints: modesData[2]
       },
       {
         type: "line",
         showInLegend: true,
-        name: "v2_both-baseline",
+        name: "v2-sd-full-nullvm_both - baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
         color: "rgba(252, 123, 3, 1)",
-        dataPoints: modesData[5]
+        dataPoints: modesData[3]
       },
     ]
   });

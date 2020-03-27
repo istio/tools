@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'benchmarks',
     'artifacts',
-    'regression_alerts',
+    'regression_pattern',
     'graph_plotting',
     'history',
 ]
