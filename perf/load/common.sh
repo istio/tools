@@ -15,9 +15,7 @@
 # limitations under the License.
 
 if [[ -z "${GATEWAY_URL:-}" ]];then
-SYSTEM_GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
-INGRESS_GATEWAY_URL=$(kubectl -n istio-ingress get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
-GATEWAY_URL=${SYSTEM_GATEWAY_URL:-$INGRESS_GATEWAY_URL}
+  GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
 fi
 
 HTTPS=${HTTPS:-"false"}
@@ -27,7 +25,7 @@ function run_test() {
   local ns=${1:?"namespaces"}
   local prefix=${2:?"prefix name for service. typically svc-"}
 
-   YAML=$(mktemp).yml
+  YAML=$(mktemp).yml
   # shellcheck disable=SC2086
   helm -n ${ns} template \
           --set serviceNamePrefix="${prefix}" \
@@ -40,8 +38,7 @@ function run_test() {
   echo "Wrote ${YAML}"
 
   kubectl create ns "${ns}" || true
-  kubectl label namespace "${ns}" istio-injection=enabled --overwrite
-  kubectl label namespace "${ns}" istio-env=istio-control --overwrite
+  kubectl label namespace "${ns}" "${INJECTION_LABEL:-istio-injection=enabled}" --overwrite
 
    if [[ -z "${DELETE}" ]];then
     sleep 3
@@ -70,9 +67,4 @@ function start_servicegraphs() {
 
     sleep 30
   }
-}
-
- # Get pod ip range, there must be a better way, but this works.
-function ip_range() {
-    kubectl get pods --namespace kube-system -o wide | grep kube-dns | awk '{print $6}'|head -1 | awk -F '.' '{printf "%s.%s.0.0/16\n", $1, $2}'
 }
