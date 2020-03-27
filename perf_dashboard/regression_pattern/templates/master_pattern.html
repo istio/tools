@@ -2,8 +2,8 @@
 {% load static from staticfiles %}
 
 {% block head_script %}
-<script src="{% static 'js/alert_common_func.js' %}"></script>
-<script src="{% static 'js/cur_alert.js' %}"></script>
+<script src="{% static 'js/pattern_common_func.js' %}"></script>
+<script src="{% static 'js/master_pattern.js' %}"></script>
 {% endblock head_script %}
 
 {% block sidebar_active %}
@@ -23,10 +23,10 @@
         <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="#alertDropDown" aria-expanded="true" data-toggle="collapse">
-    <i class="fa fa-bullhorn"></i>Regression Alerts</a>
+    <i class="fa fa-bullhorn"></i>Regression Pattern</a>
     <ul id="alertDropDown" class="list-unstyled">
-        <li class="active"><a href="{% url 'cur_alert' %}"><i class="fa fa-asterisk"></i>Current Release Alert</a></li>
-        <li><a href="{% url 'master_alert' %}"><i class="fa fa-asterisk"></i>Master Alert</a></li>
+        <li><a href="{% url 'cur_pattern' %}"><i class="fa fa-asterisk"></i>Current Release</a></li>
+        <li class="active"><a href="{% url 'master_pattern' %}"><i class="fa fa-asterisk"></i>Master</a></li>
     </ul>
     <li><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
@@ -35,8 +35,8 @@
 {% endblock sidebar_active %}
 
 {% block current_active %}
-<li class="breadcrumb-item">Regression Alerts</li>
-<li class="breadcrumb-item active">{{ current_release|first }}</li>
+<li class="breadcrumb-item">Regression Pattern</li>
+<li class="breadcrumb-item active">master</li>
 {% endblock current_active %}
 
 {% block page_content %}
@@ -50,10 +50,10 @@
           <div class="col-lg-12">
             <div class="card">
               <div class="card-header d-flex align-items-center">
-                <h4>Istio-{{ current_release|first }} Performance Pattern: P90, 1000QPS over 240 seconds (16 connections)</h4>
+                <h4>Istio-master Performance Pattern: P90, 1000QPS over 240 seconds (16 connections)</h4>
               </div>
               <div class="card-body">
-                <div id="chart_p90" style="height: 370px; width: 100%;">
+                <div id="chart_p90_master" style="height: 370px; width: 100%;">
                 </div>
               </div>
             </div>
@@ -61,10 +61,10 @@
           <div class="col-lg-12">
             <div class="card">
               <div class="card-header d-flex align-items-center">
-                <h4>Istio-{{ current_release|first }} Performance Pattern: P99, 1000QPS over 240 seconds (16 connections)</h4>
+                <h4>Istio-master Performance Pattern: P99, 1000QPS over 240 seconds (16 connections)</h4>
               </div>
               <div class="card-body">
-                <div id="chart_p99" style="height: 370px; width: 100%;">
+                <div id="chart_p99_master" style="height: 370px; width: 100%;">
                 </div>
               </div>
             </div>
@@ -76,21 +76,14 @@
 
 {% block page_data %}
     <script>
-        current_release = {{ current_release|safe }}
-        cur_pattern_mixer_base_p90 = {{ cur_pattern_mixer_base_p90|safe }}
-        cur_pattern_mixer_serveronly_p90 = {{ cur_pattern_mixer_serveronly_p90|safe }}
-        cur_pattern_mixer_both_p90 = {{ cur_pattern_mixer_both_p90|safe }}
-        cur_pattern_none_serveronly_p90 = {{ cur_pattern_none_serveronly_p90|safe }}
-        cur_pattern_none_both_p90 = {{ cur_pattern_none_both_p90|safe }}
-        cur_pattern_v2_serveronly_p90 = {{ cur_pattern_v2_serveronly_p90|safe }}
-        cur_pattern_v2_both_p90 = {{ cur_pattern_v2_both_p90|safe }}
+        mixer_both_p90_pattern_master = {{ mixer_both_p90_pattern_master|safe }}
+        none_mtls_base_p90_pattern_master = {{ none_mtls_base_p90_pattern_master|safe }}
+        none_mtls_both_p90_pattern_master = {{ none_mtls_both_p90_pattern_master|safe }}
+        v2_sd_full_nullvm_both_p90_pattern_master = {{ v2_sd_full_nullvm_both_p90_pattern_master|safe }}
 
-        cur_pattern_mixer_base_p99 = {{ cur_pattern_mixer_base_p99|safe }}
-        cur_pattern_mixer_serveronly_p99 = {{ cur_pattern_mixer_serveronly_p99|safe }}
-        cur_pattern_mixer_both_p99 = {{ cur_pattern_mixer_both_p99|safe }}
-        cur_pattern_none_serveronly_p99 = {{ cur_pattern_none_serveronly_p99|safe }}
-        cur_pattern_none_both_p99 = {{ cur_pattern_none_both_p99|safe }}
-        cur_pattern_v2_serveronly_p99 = {{ cur_pattern_v2_serveronly_p99|safe }}
-        cur_pattern_v2_both_p99 = {{ cur_pattern_v2_both_p99|safe }}
+        mixer_both_p99_pattern_master = {{ mixer_both_p99_pattern_master|safe }}
+        none_mtls_base_p99_pattern_master = {{ none_mtls_base_p99_pattern_master|safe }}
+        none_mtls_both_p99_pattern_master = {{ none_mtls_both_p99_pattern_master|safe }}
+        v2_sd_full_nullvm_both_p99_pattern_master = {{ v2_sd_full_nullvm_both_p99_pattern_master|safe }}
     </script>
 {% endblock page_data %}
