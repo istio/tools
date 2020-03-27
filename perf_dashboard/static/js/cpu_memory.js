@@ -75,12 +75,14 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: cpu_v2_sd_nologging_nullvm_both,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-sd-full-nullvm_both",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: cpu_v2_sd_full_nullvm_both,
+                hidden: true,
                 fill: false
             }
         ]
@@ -128,12 +130,14 @@ new Chart(document.getElementById("mem-qps-release"), {
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: mem_v2_sd_nologging_nullvm_both,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-sd-full-nullvm_both",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: mem_v2_sd_full_nullvm_both,
+                hidden: true,
                 fill: false
             }
         ]
@@ -181,12 +185,14 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: cpu_v2_sd_nologging_nullvm_both_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-sd-full-nullvm_both",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: cpu_v2_sd_full_nullvm_both_master,
+                hidden: true,
                 fill: false
             }
         ]
@@ -234,12 +240,14 @@ new Chart(document.getElementById("mem-qps-master"), {
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: mem_v2_sd_nologging_nullvm_both_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-sd-full-nullvm_both",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: mem_v2_sd_full_nullvm_both_master,
+                hidden: true,
                 fill: false
             }
         ]

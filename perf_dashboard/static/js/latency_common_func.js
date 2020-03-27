@@ -115,12 +115,14 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
                 data: modesData[5],
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-sd-full-nullvm_both",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: modesData[6],
+                hidden: true,
                 fill: false
             }
         ]
