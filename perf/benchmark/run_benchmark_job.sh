@@ -194,6 +194,9 @@ DEFAULT_CR_PATH="${ROOT}/istio-install/istioctl_profiles/default.yaml"
 CONFIG_DIR="${WD}/configs/istio"
 
 for dir in "${CONFIG_DIR}"/*; do
+    if [[ "${dir}" =~ "mixer" ]];then
+        continue
+    fi
     pushd "${dir}"
     # install istio with custom overlay
     if [[ -e "./installation.yaml" ]]; then
