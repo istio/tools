@@ -55,6 +55,7 @@ function setup_metrics() {
 }
 
 function setup_ingressgateway() {
+  # shellcheck disable=SC2155
   export INGRESSGATEWAY_IP="$(kubectl get svc -n istio-system istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
 }
 
