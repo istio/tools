@@ -204,7 +204,7 @@ Here is the [sample output](https://github.com/istio/tools/tree/master/perf/benc
 ```base
 export INGRESSGATEWAY_IP="$(kubectl get svc -n istio-system istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
 
-python runner/runner.py --headers=Host:fortioserver.local --ingress=true --conn 50,100 --qps 20000 --duration 240 --telemetry_mode=none  
+python runner/runner.py --headers=Host:fortioserver.local --ingress=true --conn 50,100 --qps 20000 --duration 240 --telemetry_mode=none
 ```
 
 ## [Optional] Disable Mixer

@@ -202,7 +202,7 @@ class Fortio:
                 cacert_arg=cacert_arg,
                 labels=labels)
 
-        if self.ingress:
+        if self.run_ingress:
             print('-------------- Running in ingress mode --------------')
             kubectl_exec(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
