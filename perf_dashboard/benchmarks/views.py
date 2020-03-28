@@ -453,12 +453,12 @@ def micro_benchmarks(request):
 
 
 # Helpers
-def get_latency_vs_conn_y_series(df, mixer_mode, quantiles):
+def get_latency_vs_conn_y_series(df, telemetry_mode, quantiles):
     y_series_data = []
-    if ("serveronly" in mixer_mode) or ("clientonly" in mixer_mode):
+    if "mixer" in telemetry_mode:
         return []
     for thread in [2, 4, 8, 16, 32, 64]:
-        data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@telemetry_mode)')
         if not data[quantiles].head().empty:
             y_series_data.append(data[quantiles].head(1).values[0]/1000)
         else:
@@ -466,12 +466,12 @@ def get_latency_vs_conn_y_series(df, mixer_mode, quantiles):
     return y_series_data
 
 
-def get_latency_vs_qps_y_series(df, mixer_mode, quantiles):
+def get_latency_vs_qps_y_series(df, telemetry_mode, quantiles):
     y_series_data = []
-    if ("serveronly" in mixer_mode) or ("clientonly" in mixer_mode):
+    if "mixer" in telemetry_mode:
         return []
     for qps in [10, 100, 500, 1000, 2000, 3000]:
-        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
         if not data[quantiles].head().empty:
             y_series_data.append(data[quantiles].head(1).values[0]/1000)
         else:
@@ -479,13 +479,13 @@ def get_latency_vs_qps_y_series(df, mixer_mode, quantiles):
     return y_series_data
 
 
-def get_cpu_y_series(df, mixer_mode):
+def get_cpu_y_series(df, telemetry_mode):
     y_series_data = []
-    if ("serveronly" in mixer_mode) or ("clientonly" in mixer_mode):
+    if "mixer" in telemetry_mode:
         return []
     cpu_metric = 'cpu_mili_avg_fortioserver_deployment_proxy'
     for qps in [10, 100, 500, 1000, 2000, 3000]:
-        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
         if not data[cpu_metric].head().empty:
             y_series_data.append(data[cpu_metric].head(1).values[0])
         else:
@@ -493,13 +493,13 @@ def get_cpu_y_series(df, mixer_mode):
     return y_series_data
 
 
-def get_mem_y_series(df, mixer_mode):
+def get_mem_y_series(df, telemetry_mode):
     y_series_data = []
-    if ("serveronly" in mixer_mode) or ("clientonly" in mixer_mode):
+    if "mixer" in telemetry_mode:
         return []
     mem_metric = 'mem_MB_max_fortioserver_deployment_proxy'
     for qps in [10, 100, 500, 1000, 2000, 3000]:
-        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
         if not data[mem_metric].head().empty:
             y_series_data.append(data[mem_metric].head(1).values[0])
         else:
