@@ -85,7 +85,7 @@ class Fortio:
             serversidecar=False,
             clientsidecar=False,
             bothsidecar=True,
-            ingress=None,
+            ingress=False,
             mesh="istio",
             cacert=None):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
@@ -148,10 +148,11 @@ class Fortio:
             svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
 
     def ingress(self, fortio_cmd):
-        url = urlparse(self.run_ingress)
+        ingress_ip = os.getenv("INGRESSGATEWAY_IP")
+        url = urlparse(ingress_ip)
         # If scheme is not defined fallback to http
         if url.scheme == "":
-            url = urlparse("http://{svc}".format(svc=self.run_ingress))
+            url = urlparse("http://{svc}".format(svc=ingress_ip))
 
         return fortio_cmd + "_ingress {url}/echo?size={size}".format(
             url=url.geturl(), size=self.size)
@@ -201,7 +202,7 @@ class Fortio:
                 cacert_arg=cacert_arg,
                 labels=labels)
 
-        if self.run_ingress:
+        if self.ingress:
             print('-------------- Running in ingress mode --------------')
             kubectl_exec(self.client.name, self.ingress(fortio_cmd))
             if self.perf_record:
@@ -434,14 +435,6 @@ def get_parser():
         help="pod ip of the server",
         default=None)
     parser.add_argument(
-        "--perf",
-        help="also run perf and produce flame graph",
-        default=False)
-    parser.add_argument(
-        "--ingress",
-        help="run traffic through ingress, should be a valid URL",
-        default=None)
-    parser.add_argument(
         "--extra_labels",
         help="extra labels",
         default=None)
@@ -465,6 +458,8 @@ def get_parser():
                 "run clientsidecar-only for all", False)
     define_bool(parser, "bothsidecar",
                 "run both clientsiecar and serversidecar", True)
+    define_bool(parser, "ingress", "run perf test with ingress mode", False)
+    define_bool(parser, "perf", "run perf and produce flame graph", False)
 
     return parser
 

@@ -79,9 +79,9 @@ gateways:
       ver: ingress10
       app: istio-ingressgateway
       name: gateway
-    replicas: 3
-    autoscaleMin: 3
-    autoscaleMax: 5
+    replicas: 10
+    autoscaleMin: 10
+    autoscaleMax: 10
     resources:
       limits:
         cpu: 6000m

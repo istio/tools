@@ -21,5 +21,8 @@ run_bothsidecar: true
 run_serversidecar: false
 run_clientsidecar: false
 run_baseline: true
+run_ingress: true
 
 extra_labels: "mtls"
+
+headers: 'Host:fortioserver.local'

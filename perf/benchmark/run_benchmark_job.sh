@@ -54,6 +54,10 @@ function setup_metrics() {
   kubectl -n "${PROMETHEUS_NAMESPACE}" port-forward svc/prometheus 9090:9090 &>/dev/null &
 }
 
+function setup_ingressgateway() {
+  export INGRESSGATEWAY_IP="$(kubectl get svc -n istio-system istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
+}
+
 function collect_metrics() {
   # shellcheck disable=SC2155
   export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
@@ -147,6 +151,8 @@ popd
 cd "${WD}/runner"
 pipenv install
 
+export SERVER_REPLICA=20
+
 # setup istio test
 pushd "${WD}"
 export ISTIO_INJECT="true"
@@ -159,6 +165,7 @@ LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
 
 setup_fortio_and_prometheus
+setup_ingressgateway
 
 # add trap to copy raw data when exiting, also output logging information for debugging
 trap exit_handling ERR

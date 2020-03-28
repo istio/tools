@@ -124,8 +124,8 @@ optional arguments:
                         none, telemetryv2
   --client CLIENT       where to run the test from
   --server SERVER       pod ip of the server
-  --perf PERF           also run perf and produce flame graph
-  --ingress INGRESS     run traffic through ingress, should be a valid URL
+  --perf PERF           run perf and produce flame graph, default is False
+  --ingress INGRESS     run traffic through ingress, default is False
   --extra_labels EXTRA_LABELS
                         extra labels
   --mode MODE           http or grpc
@@ -198,6 +198,14 @@ python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --perf
 
 This will generate corresponding `xxx_perf.data.perf` file with its `.svg` flame graph in the `perf/benchmark/flame` repo.
 Here is the [sample output](https://github.com/istio/tools/tree/master/perf/benchmark/flame/example_flame_graph/example_output)
+
+### Example 5: Run traffic through ingressgateway
+
+```base
+export INGRESSGATEWAY_IP="$(kubectl get svc -n istio-system istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
+
+python runner/runner.py --headers=Host:fortioserver.local --ingress=true --conn 50,100 --qps 20000 --duration 240 --telemetry_mode=none  
+```
 
 ## [Optional] Disable Mixer
 
