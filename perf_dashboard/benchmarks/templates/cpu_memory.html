@@ -18,10 +18,10 @@
         <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
-    <i class="fa fa-bullhorn"></i>Regression Alerts</a>
+    <i class="fa fa-bullhorn"></i>Regression Pattern</a>
     <ul id="alertDropDown" class="collapse list-unstyled">
-        <li><a href="{% url 'cur_alert' %}"><i class="fa fa-asterisk"></i>Current Release Alert</a></li>
-        <li><a href="{% url 'master_alert' %}"><i class="fa fa-asterisk"></i>Master Alert</a></li>
+        <li><a href="{% url 'cur_pattern' %}"><i class="fa fa-asterisk"></i>Current Release</a></li>
+        <li><a href="{% url 'master_pattern' %}"><i class="fa fa-asterisk"></i>Master</a></li>
     </ul>
     <li><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
@@ -147,6 +147,7 @@
         master_release_names = {{ master_release_names|safe }}
 
         cpu_mixer_both = {{ cpu_mixer_both|safe }}
+        cpu_none_mtls_base = {{ cpu_none_mtls_base|safe }}
         cpu_none_mtls_both = {{ cpu_none_mtls_both|safe }}
         cpu_none_plaintext_both = {{ cpu_none_plaintext_both|safe }}
         cpu_v2_stats_nullvm_both = {{ cpu_v2_stats_nullvm_both|safe }}
@@ -154,6 +155,7 @@
         cpu_v2_sd_full_nullvm_both = {{ cpu_v2_sd_full_nullvm_both|safe }}
 
         cpu_mixer_both_master = {{ cpu_mixer_both_master|safe }}
+        cpu_none_mtls_base_master = {{ cpu_none_mtls_base_master|safe }}
         cpu_none_mtls_both_master = {{ cpu_none_mtls_both_master|safe }}
         cpu_none_plaintext_both_master = {{ cpu_none_plaintext_both_master|safe }}
         cpu_v2_stats_nullvm_both_master = {{ cpu_v2_stats_nullvm_both_master|safe }}
@@ -161,6 +163,7 @@
         cpu_v2_sd_full_nullvm_both_master = {{ cpu_v2_sd_full_nullvm_both_master|safe }}
 
         mem_mixer_both = {{ mem_mixer_both|safe }}
+        mem_none_mtls_base = {{ mem_none_mtls_base|safe }}
         mem_none_mtls_both = {{ mem_none_mtls_both|safe }}
         mem_none_plaintext_both = {{ mem_none_plaintext_both|safe }}
         mem_v2_stats_nullvm_both = {{ mem_v2_stats_nullvm_both|safe }}
@@ -168,6 +171,7 @@
         mem_v2_sd_full_nullvm_both = {{ mem_v2_sd_full_nullvm_both|safe }}
 
         mem_mixer_both_master = {{ mem_mixer_both_master|safe }}
+        mem_none_mtls_base_master = {{ mem_none_mtls_base_master|safe }}
         mem_none_mtls_both_master = {{ mem_none_mtls_both_master|safe }}
         mem_none_plaintext_both_master = {{ mem_none_plaintext_both_master|safe }}
         mem_v2_stats_nullvm_both_master = {{ mem_v2_stats_nullvm_both_master|safe }}
