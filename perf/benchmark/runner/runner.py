@@ -351,6 +351,7 @@ def fortio_from_config_file(args):
         fortio.mesh = job_config.get('mesh', 'istio')
         fortio.mode = job_config.get('mode', 'http')
         fortio.extra_labels = job_config.get('extra_labels')
+        fortio.headers = job_config.get('headers')
 
         return fortio
 
