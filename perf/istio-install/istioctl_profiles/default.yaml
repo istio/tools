@@ -95,8 +95,6 @@ spec:
         enabled: true
       podDNSSearchNamespaces:
         - global
-        - '{{ valueOrDefault .DeploymentMeta.Namespace "default" }}.global'
-      #      TODO: sds not working with istioctl yet.
       proxy:
         enableCoreDump: true
         resources:
