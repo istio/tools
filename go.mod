@@ -2,12 +2,7 @@ module istio.io/tools
 
 go 1.12
 
-replace (
-	k8s.io/api => k8s.io/api v0.17.3
-	k8s.io/apimachinery => k8s.io/apimachinery v0.17.3
-	k8s.io/client-go => k8s.io/client-go v0.17.3
-	k8s.io/code-generator => k8s.io/code-generator v0.0.0-20181117043124-c2090bec4d9b
-)
+replace k8s.io/code-generator => k8s.io/code-generator v0.0.0-20181117043124-c2090bec4d9b
 
 require (
 	cuelang.org/go v0.0.16-0.20200320220106-76252f4b7486
