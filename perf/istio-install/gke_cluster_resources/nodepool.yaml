@@ -1,0 +1,41 @@
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: container.cnrm.cloud.google.com/v1alpha2
+kind: ContainerNodePool
+metadata:
+  clusterName: "test-cluster3-istio-237517/us-central1-a/test-cluster3" # {"type":"string","x-kustomize":{"partialSetters":[{"name":"gcloud.core.project","value":"test-istio-237517"},{"name":"cluster-name","value":"test-cluster3"},{"name":"gcloud.compute.zone","value":"us-central1-a"}]}}
+  name: default-pool
+  namespace: "test-istio-237517" # {"type":"string","x-kustomize":{"setter":{"name":"gcloud.core.project","value":"test-istio-237517"}}}
+spec:
+  initialNodeCount: 2
+  autoscaling:
+    minNodeCount: 4 # {"type":"integer","x-kustomize":{"setter":{"name":"min-nodes","value":"4"}}}
+    maxNodeCount: 70 # {"type":"integer","x-kustomize":{"setter":{"name":"max-nodes","value":"70"}}}
+  maxPodsConstraint:
+    maxPodsPerNode: 100 # {"type":"integer","x-kustomize":{"setter":{"name":"max-pods-pernode","value":"100"}}}
+  nodeConfig:
+    machineType: "e2-standard-4" # {"type":"string","x-kustomize":{"setter":{"name":"machine-type","value":"e2-standard-4"}}
+    workloadMetadataConfig:
+      nodeMetadata: GKE_METADATA_SERVER
+    imageType: "COS" # {"type":"string","x-kustomize":{"setter":{"name":"image-type","value":"COS"}}
+    diskType: "pd-standard"
+    diskSizeGb: 64 # {"type":"integer","x-kustomize":{"setter":{"name":"diskSize","value":"64"}}}
+    oauthScopes:
+    - "https://www.googleapis.com/auth/cloud-platform"
+  clusterRef:
+    name: "test-cluster3" # {"type":"string","x-kustomize":{"setter":{"name":"cluster-name","value":"test-cluster3"}}}
+  management:
+    autoRepair: true
+    autoUpgrade: true

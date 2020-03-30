@@ -165,29 +165,29 @@ export CLUSTER_NAME
 mkdir -p "${WD}/tmp/${CLUSTER_NAME}"
 "${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
 
+# set config use kpt then create cluster with anthoscli
+function install_with_anthoscli() {
+  kpt cfg set gke_cluster_resources gcloud.core.project ${PROJECT_ID}
+  kpt cfg set gke_cluster_resources cluster-name ${CLUSTER_NAME}
+  kpt cfg set gke_cluster_resources gcloud.compute.zone ${ZONE}
+  kpt cfg set gke_cluster_resources max-nodes ${MAX_NODES}
+  kpt cfg set gke_cluster_resources min-nodes ${MIN_NODES}
+  kpt cfg set gke_cluster_resources max-pods-pernode ${MAXPODS_PER_NODE}
+  kpt cfg set gke_cluster_resources machine-type ${MACHINE_TYPE}
+  kpt cfg set gke_cluster_resources diskSize ${DISK_SIZE}
+  kpt cfg set gke_cluster_resources GKE_VERSION ${GKE_VERSION}
+  if [[ -n "${ISTIO_ADDON:-}" ]];then
+     kpt cfg set gke_cluster_resources addon.istio.disabled false
+  fi
+
+  anthoscli apply -f gke_cluster_resources
+}
 # shellcheck disable=SC2086
 # shellcheck disable=SC2046
 if [[ "$(gcloud beta container --project "${PROJECT_ID}" clusters list --filter=name="${CLUSTER_NAME}" --format='csv[no-heading](name)')" ]]; then
   echo "Cluster with this name already created, skipping creation and rerunning init"
 else
-  gc beta container \
-    --project "${PROJECT_ID}" \
-    clusters create "${CLUSTER_NAME}" \
-    --no-enable-basic-auth --cluster-version "${GKE_VERSION}" \
-    --issue-client-certificate \
-    --machine-type "${MACHINE_TYPE}" --image-type ${IMAGE} --disk-type "pd-standard" --disk-size "${DISK_SIZE}" \
-    --scopes "${SCOPES}" \
-    --num-nodes "${MIN_NODES}" --enable-autoscaling --min-nodes "${MIN_NODES}" --max-nodes "${MAX_NODES}" --max-pods-per-node "${MAXPODS_PER_NODE}" \
-    --enable-stackdriver-kubernetes \
-    --enable-ip-alias \
-    --metadata disable-legacy-endpoints=true \
-    ${NETWORK_SUBNET} \
-    --default-max-pods-per-node "${MAXPODS_PER_NODE}" \
-    --addons "${ADDONS}" \
-    --enable-network-policy \
-    --workload-metadata-from-node=EXPOSED \
-    --enable-autoupgrade --enable-autorepair \
-    --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
+  install_with_anthoscli
 fi
 
 NETWORK_NAME=$(basename "$(gcloud container clusters describe "${CLUSTER_NAME}" --project "${PROJECT_ID}" --zone="${ZONE}" \
