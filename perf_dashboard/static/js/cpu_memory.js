@@ -7,13 +7,14 @@ var cpuOptions = {
             scaleLabel: {
                 display: true,
                 labelString: "max CPUs, server proxy (millicores)"
-            }
+            },
         }],
         xAxes: [{
+            type:"linear",
             scaleLabel: {
                 display: true,
                 labelString: "QPS"
-            }
+            },
         }]
     }
 };
@@ -24,9 +25,11 @@ var memOptions = {
             scaleLabel: {
                 display: true,
                 labelString: "max memory usage, server proxy (MB)"
-            }
+            },
+
         }],
         xAxes: [{
+            type: "linear",
             scaleLabel: {
                 display: true,
                 labelString: "QPS"
@@ -35,9 +38,31 @@ var memOptions = {
     }
 };
 
+function convertData(data) {
+  var newData = {};
+
+  newData.datasets = data.datasets.map((dataset) => {
+    return {
+      label: dataset.label,
+      backgroundColor: dataset.backgroundColor,
+      borderColor: dataset.borderColor,
+      hidden: dataset.hidden,
+      fill: dataset.fill,
+      data:
+        dataset.data.map((d, i) => {
+          return {
+          x: data.labels[i],
+          y: d,
+        }
+      })
+    };
+  });
+  return newData;
+}
+
 new Chart(document.getElementById("cpu-qps-release"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
@@ -86,13 +111,13 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 fill: false
             }
         ]
-    },
+    }),
     options: cpuOptions
 });
 
 new Chart(document.getElementById("mem-qps-release"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
@@ -141,13 +166,13 @@ new Chart(document.getElementById("mem-qps-release"), {
                 fill: false
             }
         ]
-    },
+    }),
     options: memOptions
 });
 
 new Chart(document.getElementById("cpu-qps-master"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
@@ -196,13 +221,13 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 fill: false
             }
         ]
-    },
+    }),
     options: cpuOptions
 });
 
 new Chart(document.getElementById("mem-qps-master"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
@@ -251,6 +276,6 @@ new Chart(document.getElementById("mem-qps-master"), {
                 fill: false
             }
         ]
-    },
+    }),
     options: memOptions
 });
