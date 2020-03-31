@@ -206,6 +206,7 @@
 {% endblock page_data %}
 
 {% block charts_js %}
+    <script src="{% static 'js/utils.js' %}"></script>
     <script src="{% static 'js/latency_common_func.js' %}"></script>
     <script src="{% static 'js/latency_qps.js' %}"></script>
 {% endblock charts_js %}

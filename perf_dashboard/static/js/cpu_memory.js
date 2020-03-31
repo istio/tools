@@ -7,13 +7,14 @@ var cpuOptions = {
             scaleLabel: {
                 display: true,
                 labelString: "max CPUs, server proxy (millicores)"
-            }
+            },
         }],
         xAxes: [{
+            type:"linear",
             scaleLabel: {
                 display: true,
                 labelString: "QPS"
-            }
+            },
         }]
     }
 };
@@ -24,9 +25,10 @@ var memOptions = {
             scaleLabel: {
                 display: true,
                 labelString: "max memory usage, server proxy (MB)"
-            }
+            },
         }],
         xAxes: [{
+            type: "linear",
             scaleLabel: {
                 display: true,
                 labelString: "QPS"
@@ -37,7 +39,7 @@ var memOptions = {
 
 new Chart(document.getElementById("cpu-qps-release"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
@@ -86,13 +88,13 @@ new Chart(document.getElementById("cpu-qps-release"), {
                 fill: false
             }
         ]
-    },
+    }),
     options: cpuOptions
 });
 
 new Chart(document.getElementById("mem-qps-release"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
@@ -141,13 +143,13 @@ new Chart(document.getElementById("mem-qps-release"), {
                 fill: false
             }
         ]
-    },
+    }),
     options: memOptions
 });
 
 new Chart(document.getElementById("cpu-qps-master"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
@@ -196,13 +198,13 @@ new Chart(document.getElementById("cpu-qps-master"), {
                 fill: false
             }
         ]
-    },
+    }),
     options: cpuOptions
 });
 
 new Chart(document.getElementById("mem-qps-master"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
@@ -251,6 +253,6 @@ new Chart(document.getElementById("mem-qps-master"), {
                 fill: false
             }
         ]
-    },
+    }),
     options: memOptions
 });
