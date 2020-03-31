@@ -1,4 +1,4 @@
-window.generateLatencyChart = function(connNum, options) {
+window.generateLatencyChart = function(xNum, options) {
   // p50-release
   p50ReleaseModesData = [];
   p50ReleaseModesData.push(latency_mixer_both_p50);
@@ -9,7 +9,7 @@ window.generateLatencyChart = function(connNum, options) {
   p50ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p50);
   p50ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p50);
 
-  generateLatencyChartByID("latency-p50-release", connNum, p50ReleaseModesData, options)
+  generateLatencyChartByID("latency-p50-release", xNum, p50ReleaseModesData, options)
 
   // p90-release
   p90ReleaseModesData = [];
@@ -21,7 +21,7 @@ window.generateLatencyChart = function(connNum, options) {
   p90ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p90);
   p90ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p90);
 
-  generateLatencyChartByID("latency-p90-release", connNum, p90ReleaseModesData, options)
+  generateLatencyChartByID("latency-p90-release", xNum, p90ReleaseModesData, options)
 
 
   // p99-release
@@ -34,7 +34,7 @@ window.generateLatencyChart = function(connNum, options) {
   p99ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p99);
   p99ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p99);
 
-  generateLatencyChartByID("latency-p99-release", connNum, p99ReleaseModesData, options)
+  generateLatencyChartByID("latency-p99-release", xNum, p99ReleaseModesData, options)
 
   // p50-master
   p50ModesData = [];
@@ -46,7 +46,7 @@ window.generateLatencyChart = function(connNum, options) {
   p50ModesData.push(latency_v2_sd_nologging_nullvm_both_p50_master);
   p50ModesData.push(latency_v2_sd_full_nullvm_both_p50_master);
 
-  generateLatencyChartByID("latency-p50-master", connNum, p50ModesData, options)
+  generateLatencyChartByID("latency-p50-master", xNum, p50ModesData, options)
 
   // p90-master
   p90ModesData = [];
@@ -58,7 +58,7 @@ window.generateLatencyChart = function(connNum, options) {
   p90ModesData.push(latency_v2_sd_nologging_nullvm_both_p90_master);
   p90ModesData.push(latency_v2_sd_full_nullvm_both_p90_master);
 
-  generateLatencyChartByID("latency-p90-master", connNum, p90ModesData, options)
+  generateLatencyChartByID("latency-p90-master", xNum, p90ModesData, options)
 
 
   // p99-master
@@ -71,14 +71,14 @@ window.generateLatencyChart = function(connNum, options) {
   p99ModesData.push(latency_v2_sd_nologging_nullvm_both_p99_master);
   p99ModesData.push(latency_v2_sd_full_nullvm_both_p99_master);
 
-  generateLatencyChartByID("latency-p99-master", connNum, p99ModesData, options)
+  generateLatencyChartByID("latency-p99-master", xNum, p99ModesData, options)
 };
 
-window.generateLatencyChartByID = function(chartID, connNum, modesData, options) {
+window.generateLatencyChartByID = function(chartID, xNum, modesData, options) {
     new Chart(document.getElementById(chartID), {
     type: 'line',
-    data: {
-        labels: connNum,
+    data: convertData({
+        labels: xNum,
         datasets: [
             {
                 label: "mixer_both",
@@ -126,7 +126,7 @@ window.generateLatencyChartByID = function(chartID, connNum, modesData, options)
                 fill: false
             }
         ]
-    },
+    }),
     options: options
  });
 };

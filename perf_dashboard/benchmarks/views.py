@@ -352,6 +352,8 @@ def get_lantency_vs_conn_context(df):
                'latency_v2_sd_nologging_nullvm_both_p99': latency_v2_sd_nologging_nullvm_both_p99,
                'latency_v2_sd_full_nullvm_both_p99': latency_v2_sd_full_nullvm_both_p99,
                }
+    print("====")
+    print(context)
     return context
 
 
@@ -437,7 +439,6 @@ def get_cpu_mem_context(df):
                'mem_v2_sd_nologging_nullvm_both': mem_v2_sd_nologging_nullvm_both,
                'mem_v2_sd_full_nullvm_both': mem_v2_sd_full_nullvm_both,
                }
-    print(context)
     return context
 
 
