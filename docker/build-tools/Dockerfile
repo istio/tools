@@ -217,6 +217,7 @@ ENV BABEL_CORE_VERSION=v7.7.4
 ENV BABEL_POLYFILL_VERSION=v7.7.0
 ENV BABEL_PRESET_ENV=v7.7.4
 ENV BABEL_PRESET_MINIFY_VERSION=v0.5.1
+ENV LINKINATOR_VERSION=v2.0.5
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
 ENV NODEJS_VERSION=12.8.0
 ENV SASS_LINT_VERSION=v1.13.1
@@ -243,7 +244,8 @@ RUN npm install --production --global \
     svgo@"${SVGO_VERSION}" \
     @babel/core@"${BABEL_CORE_VERSION}" \
     @babel/cli@"${BABEL_CLI_VERSION}" \
-    @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}"
+    @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}" \
+    linkinator@"${LINKINATOR_VERSION}"
 
 RUN npm install --production --save-dev \
     babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
