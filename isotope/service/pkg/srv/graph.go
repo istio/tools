@@ -21,7 +21,7 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	"fortio.org/fortio/log"
+	"istio.io/pkg/log"
 
 	"istio.io/tools/isotope/convert/pkg/graph"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
@@ -68,7 +68,7 @@ func makeRandomByteArray(n size.ByteSize) ([]byte, error) {
 }
 
 func logService(service svc.Service) error {
-	if log.Log(log.Info) {
+	if log.InfoEnabled() {
 		serviceYAML, err := yaml.Marshal(service)
 		if err != nil {
 			return err

@@ -25,12 +25,15 @@ import (
 
 	multierror "github.com/hashicorp/go-multierror"
 
-	"fortio.org/fortio/log"
-
+	"istio.io/pkg/log"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 	"istio.io/tools/isotope/service/pkg/srv/prometheus"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func execute(
 	step interface{},
@@ -59,15 +62,12 @@ func executeSleepCommand(cmd script.SleepCommand) {
 	time.Sleep(time.Duration(cmd))
 }
 
-func executeRequestCommandHelper(cmd script.RequestCommand) bool {
-	rand.Seed(time.Now().UnixNano())
-	number := rand.Intn(100 + 1)
-	ret := true
-
-	if number < cmd.Probability {
-		ret = false
+func shouldSkipRequest(cmd script.RequestCommand) bool {
+	// Probability not set, always send a request
+	if cmd.Probability == 0 {
+		return false
 	}
-	return ret
+	return rand.Intn(100) < (100 - cmd.Probability)
 }
 
 // Execute sends an HTTP request to another service. Assumes DNS is available
@@ -77,7 +77,7 @@ func executeRequestCommand(
 	forwardableHeader http.Header,
 	serviceTypes map[string]svctype.ServiceType) error {
 
-	if executeRequestCommandHelper(cmd) {
+	if shouldSkipRequest(cmd) {
 		return nil
 	}
 
@@ -90,17 +90,16 @@ func executeRequestCommand(
 	if err != nil {
 		return err
 	}
-	prometheus.RecordRequestSent(destName, uint64(cmd.Size))
+
+	// Necessary for reusing HTTP/1.x "keep-alive" TCP connections.
+	// https://golang.org/pkg/net/http/#Response
+	defer readAllAndClose(response.Body)
+	defer prometheus.RecordRequestSent(destName, uint64(cmd.Size))
+
 	log.Debugf("%s responded with %s", destName, response.Status)
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf(
 			"service %s responded with %s", destName, response.Status)
-	}
-
-	// Necessary for reusing HTTP/1.x "keep-alive" TCP connections.
-	// https://golang.org/pkg/net/http/#Response
-	if err := readAllAndClose(response.Body); err != nil {
-		return err
 	}
 
 	return nil

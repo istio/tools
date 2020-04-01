@@ -27,8 +27,9 @@ type RequestCommand struct {
 	ServiceName string `json:"service"`
 	// Size is the number of bytes in the request body.
 	Size size.ByteSize `json:"size"`
-	// Percentage is the
-	Probability int `json:"probability"`
+	// Probability is the chance a call will be made, from 1-100%. If unset, the call will always be made
+	// 1 means 1% of calls will be made; 100 means 100% of calls will be made
+	Probability int `json:"probability,omitempty"`
 }
 
 var (
