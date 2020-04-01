@@ -1,13 +1,16 @@
-apiVersion: operator.istio.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
-  components:
-    telemetry:
-      enabled: false
   values:
     telemetry:
       enabled: true
       v2:
         enabled: true
+        prometheus:
+          enabled: false
+        stackdriver:
+          enabled: true
+          topology: true
+          logging: true
       v1:
         enabled: false
