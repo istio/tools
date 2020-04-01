@@ -1,0 +1,22 @@
+# Data: cpu/mem
+# Filter: metadata-exchange and stats filters
+# VM mode: nullvm
+telemetry_mode: "v2-stats-nullvm"
+conn:
+    - 16
+qps:
+    - 10
+    - 100
+    - 500
+    - 1000
+    - 2000
+    - 3000
+duration: 240
+metrics:
+    - cpu
+    - mem
+perf_record: false
+run_bothsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
+run_baseline: false
