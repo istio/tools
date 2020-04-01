@@ -1,5 +1,7 @@
-# Configuration Set5: CPU and memory with telemetryv2 using NullVM.
-telemetry_mode: "v2-nullvm"
+# Data: cpu/mem
+# Filter: metadata-exchange and stats filters
+# VM mode: nullvm
+telemetry_mode: "v2-stats-nullvm"
 conn:
     - 16
 qps:
@@ -17,4 +19,4 @@ perf_record: false
 run_bothsidecar: true
 run_serversidecar: false
 run_clientsidecar: false
-run_baseline: true
+run_baseline: false

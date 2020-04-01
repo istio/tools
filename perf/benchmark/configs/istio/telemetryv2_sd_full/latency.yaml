@@ -1,0 +1,23 @@
+# Data: latency
+# Filter: metadata-exchange and stackdriver filters
+# VM mode: nullvm
+telemetry_mode: "v2-sd-full-nullvm"
+conn:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+    - 64
+qps:
+    - 1000
+duration: 240
+metrics:
+    - p50
+    - p90
+    - p99
+perf_record: true
+run_bothsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
+run_baseline: true
