@@ -11,8 +11,6 @@ WORKDIR /build
 
 RUN GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build -o isotope_service ./service
 
-RUN ls -la
-
 FROM scratch
 
 COPY --from=builder /build/isotope_service /usr/local/bin/isotope_service
