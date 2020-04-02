@@ -88,40 +88,53 @@ ADD https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERS
 RUN unzip /tmp/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 
+# Install gobin. We use gobin to build all of our tools such that their
+# dependencies remain independent of each other
+RUN GO111MODULE=off go get github.com/myitcv/gobin
+RUN mv /tmp/go/bin/gobin /usr/local/go/bin
+
 # Build and install a bunch of Go tools
-RUN go get -ldflags="-s -w" github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
-RUN go get -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
-RUN go get -ldflags="-s -w" github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
-RUN go get -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
-RUN go get -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN go get -ldflags="-s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
-RUN go get -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
-RUN go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
-RUN go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
-RUN go get -ldflags="-s -w" github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
-RUN go get -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
-RUN go get -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
-RUN go get -ldflags="-s -w" github.com/fortio/fortio@${FORTIO_VERSION}
-RUN go get -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
+RUN gobin github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN gobin github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
+RUN gobin github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
+RUN gobin github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
+RUN gobin github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
+RUN gobin github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
+RUN gobin github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
+RUN gobin github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
+RUN gobin golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
+RUN gobin github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN gobin github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN gobin github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
+RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
+RUN gobin github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN gobin sigs.k8s.io/kind@${KIND_VERSION}
+RUN gobin github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
+RUN gobin github.com/fortio/fortio@${FORTIO_VERSION}
+RUN gobin github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 
 # Install latest version of Istio-owned tools in this release
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/test-infra/toolbox/githubctl
+RUN gobin istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/test-infra/toolbox/githubctl
+
+# Install istio/test-infra tools
+RUN gobin istio.io/test-infra/boskos/cmd/mason_client
+
+# Install kubernetes/test-infra tools
+RUN gobin k8s.io/test-infra/robots/pr-creator
 
 # Install k8s code generation tools
+# gobin does not seem to be compatible with this pesky code-generator repo
+# Do these tools, and hopefully only these tools, this way
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/lister-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
@@ -182,16 +195,6 @@ RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
 WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
-
-# Install istio/test-infra tools
-RUN git clone --depth=1 https://github.com/istio/test-infra.git /tmp/istio_test-infra/
-WORKDIR /tmp/istio_test-infra/
-RUN go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./boskos/cmd/mason_client
-
-# Install kubernetes/test-infra tools
-RUN git clone --depth=1 https://github.com/kubernetes/test-infra.git /tmp/k8s_test-infra/
-WORKDIR /tmp/k8s_test-infra
-RUN go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./robots/pr-creator/
 
 # TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
 # commands, maybe we just need the gcloud binary out of all this?
