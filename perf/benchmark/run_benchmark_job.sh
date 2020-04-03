@@ -125,7 +125,7 @@ function collect_envoy_info() {
 
   kill_envoy_port
   port_forward_envoy "${POD_NAME}"
-  ENVOY_DUMP_NAME="${POD_NAME}"_"${FILE_SUFFIX}".yaml
+  ENVOY_DUMP_NAME="${POD_NAME}_${FILE_SUFFIX}.yaml"
   curl http://localhost:15000/"${FILE_SUFFIX}" > "${ENVOY_DUMP_NAME}"
   gsutil -q cp -r "${ENVOY_DUMP_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${FILE_SUFFIX}/${ENVOY_DUMP_NAME}"
   kill_envoy_port
