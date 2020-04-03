@@ -126,15 +126,15 @@ RUN gobin istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
 RUN gobin istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
 RUN gobin istio.io/test-infra/toolbox/githubctl
 
+# TODO(sdake/clarktm) sort out why this results in a building test-infra container
+RUN rm -rf /tmp/go/pkg/mod/cache/download/k8s.io
+
 # Install istio/test-infra tools
 RUN gobin istio.io/test-infra/boskos/cmd/mason_client
-
-# Install kubernetes/test-infra tools
 RUN gobin k8s.io/test-infra/robots/pr-creator
 
-# Install k8s code generation tools
 # gobin does not seem to be compatible with this pesky code-generator repo
-# Do these tools, and hopefully only these tools, this way
+# Install the code generator tools, and hopefully only these tools, this way
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/lister-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
