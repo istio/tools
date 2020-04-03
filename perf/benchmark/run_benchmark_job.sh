@@ -111,6 +111,25 @@ function setup_fortio_and_prometheus() {
     export FORTIO_SERVER_POD
 }
 
+function collect_envoy_info() {
+  POD_NAME=${1}
+  FILE_SUFFIX=${2}
+
+  ENVOY_DUMP_NAME="${POD_NAME}_${FILE_SUFFIX}.yaml"
+  kubectl exec -n "${NAMESPACE}" "${POD_NAME}" -c istio-proxy -- curl http://localhost:15000/"${FILE_SUFFIX}" > "${ENVOY_DUMP_NAME}"
+  gsutil -q cp -r "${ENVOY_DUMP_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${FILE_SUFFIX}/${ENVOY_DUMP_NAME}"
+}
+
+function collect_config_dump() {
+  collect_envoy_info "${FORTIO_CLIENT_POD}" "config_dump"
+  collect_envoy_info "${FORTIO_SERVER_POD}" "config_dump"
+}
+
+function collect_clusters_info() {
+  collect_envoy_info "${FORTIO_CLIENT_POD}" "clusters"
+  collect_envoy_info "${FORTIO_SERVER_POD}" "clusters"
+}
+
 # install pipenv
 if [[ $(command -v pipenv) == "" ]];then
   apt-get update && apt-get -y install python3-pip
@@ -188,6 +207,10 @@ for dir in "${CONFIG_DIR}"/*; do
        # shellcheck disable=SC1091
        source prerun.sh
     fi
+
+    # collect config dump after prerun.sh and before test run, to verify test setup is correct
+    collect_config_dump
+
     # run test and get data
     if [[ -e "./cpu_mem.yaml" ]]; then
        get_benchmark_data "${dir}/cpu_mem.yaml"
@@ -195,6 +218,9 @@ for dir in "${CONFIG_DIR}"/*; do
     if [[ -e "./latency.yaml" ]]; then
        get_benchmark_data "${dir}/latency.yaml"
     fi
+
+    # collect clusters info after test run and before cleanup script postrun.sh
+    collect_clusters_info
 
     # custom post run
     if [[ -e "./postrun.sh" ]]; then
