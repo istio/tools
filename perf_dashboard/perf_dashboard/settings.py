@@ -42,7 +42,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost',
-    'perf.dashboard.qualistio.org',
     'perf.dashboard.istio.io',
     gethostname(),
     os.getenv('NODE_IP', gethostbyname(gethostname())),
