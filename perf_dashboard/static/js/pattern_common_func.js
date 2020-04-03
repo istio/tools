@@ -42,15 +42,16 @@ window.generateChart = function(chartID, modesData) {
       itemclick: toggleDataSeries
     },
     data: [
-        {
-        type: "line",
-        showInLegend: true,
-        name: "baseline",
-        markerType: "square",
-        xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(236, 66, 53, 1)",
-        dataPoints: modesData[0]
-      }, {
+      //   {
+      //   type: "line",
+      //   showInLegend: true,
+      //   name: "baseline",
+      //   markerType: "square",
+      //   xValueFormatString: "DD MMM, YYYY",
+      //   color: "rgba(236, 66, 53, 1)",
+      //   dataPoints: modesData[0]
+      // },
+      {
         type: "line",
         showInLegend: true,
         name: "mixer_both - baseline",
