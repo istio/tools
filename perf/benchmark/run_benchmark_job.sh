@@ -111,24 +111,13 @@ function setup_fortio_and_prometheus() {
     export FORTIO_SERVER_POD
 }
 
-function port_forward_envoy() {
-  kubectl -n "${NAMESPACE}" port-forward "${1}" 15000 &
-}
-
-function kill_envoy_port() {
-    kill "$(lsof -t -i:15000)"
-}
-
 function collect_envoy_info() {
   POD_NAME=${1}
   FILE_SUFFIX=${2}
 
-  kill_envoy_port
-  port_forward_envoy "${POD_NAME}"
   ENVOY_DUMP_NAME="${POD_NAME}_${FILE_SUFFIX}.yaml"
-  curl http://localhost:15000/"${FILE_SUFFIX}" > "${ENVOY_DUMP_NAME}"
+  kubectl exec -n "${NAMESPACE}" "${POD_NAME}" -c istio-proxy -- curl http://localhost:15000/"${FILE_SUFFIX}" > "${ENVOY_DUMP_NAME}"
   gsutil -q cp -r "${ENVOY_DUMP_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${FILE_SUFFIX}/${ENVOY_DUMP_NAME}"
-  kill_envoy_port
 }
 
 function collect_config_dump() {
