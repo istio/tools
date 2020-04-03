@@ -17,7 +17,7 @@ The service graph consists of two groups of services
 
 ```bash
 pushd ../../istio-install
-export OPERATOR_PROFILE="automtls.yaml" && ./setup_istio_operator.sh
+export CR_FILENAME="automtls.yaml" && DNS_DOMAIN=your-example-domain ./setup_istio_release.sh 1.5.0
 popd
 ```
 
