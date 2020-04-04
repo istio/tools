@@ -16,6 +16,7 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
+    url('configs_measurements/', views.benchmarks_overview, name="benchmarks_overview"),
     url('cpu_memory/', views.cpu_memory, name="cpu_memory"),
     url('latency_vs_connection/', views.latency_vs_conn, name="latency_conn"),
     url('latency_vs_qps/', views.latency_vs_qps, name="latency_qps"),

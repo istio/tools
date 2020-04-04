@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+
+{% block sidebar_active %}
+<ul id="side-main-menu" class="side-menu list-unstyled">
+    <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
+    <li class="active"><a href="#dropDown" aria-expanded="true" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Benchmarks</a>
+    <ul id="dropDown" class="list-unstyled">
+        <li class="active"><a href="{% url 'benchmarks_overview' %}"><i class="fa fa-asterisk"></i>Configs & Measurements</a></li>
+        <li><a href="{% url 'cpu_memory' %}"><i class="fa fa-asterisk"></i>CPU & Memory Usage</a></li>
+        <li><a href="#dropDownLatency" aria-expanded="false" data-toggle="collapse">
+            <i class="fa fa-asterisk"></i>Latency Quantiles</a>
+            <ul id="dropDownLatency" class="collapse list-unstyled">
+                <li><a href="{% url 'latency_conn' %}"><i class="fa fa-chevron-right"></i>Latency vs. Connection</a></li>
+                <li><a href="{% url 'latency_qps' %}"><i class="fa fa-chevron-right"></i>Latency vs. QPS</a></li>
+            </ul>
+        <li><a href="{% url 'flame_graph' %}"><i class="fa fa-asterisk"></i>Flame Graph</a></li>
+        <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
+    </ul>
+    <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
+    <i class="fa fa-bullhorn"></i>Regression Pattern</a>
+    <ul id="alertDropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'cur_pattern' %}"><i class="fa fa-asterisk"></i>Current Release</a></li>
+        <li><a href="{% url 'master_pattern' %}"><i class="fa fa-asterisk"></i>Master</a></li>
+    </ul>
+    <li><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
+    <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+    <li><a href="{% url 'history' %}"> <i class="fa fa-file-archive-o"></i>History</a></li>
+</ul>
+{% endblock sidebar_active %}
+
+{% block current_active %}
+<li class="breadcrumb-item">Benchmarks</li>
+{% endblock current_active %}
+
+{% block page_content %}
+<!-- Header Section-->
+<section class="dashboard-header section-padding">
+        <div class="container-fluid">
+          <div class="row d-flex align-items-md-stretch">
+            <!-- List-->
+            <div class="col-lg-12 col-md-3">
+              <div class="card">
+                <div class="card-header">
+                  <h2>Performance Test Configurations</h2>
+                </div>
+                <div class="card-body">
+                  <p>For testing Istio performance under different settings, there are multiple perf test configurations.</p>
+                    <ul>
+                    <li>Telemetry Modes:</li>
+                    <ul>
+                      <li><b>baseline</b>: Client pod directly calls the server pod, no sidecars are present.</li>
+                      <li><b>none-mtls</b>: Mutual TLS is enabled and Istio proxy with no Istio specific filters configured.</li>
+                      <li><b>none-plaintext</b>: Only plaintext and Istio proxy with no Istio specific filters configured.</li>
+                      <li><b>v2-stats-nullvm</b>: Generate Istio standard prometheus metrics using nullvmplugin.</li>
+                      <li><b>v2-sd-nologging-nullvm</b>: Export stackdriver metrics, accesslogs and edges using nullvmplugin.</li>
+                      <li><b>v2-sd-full-nullvm</b>: Same as above, but does not export accesslogs.</li>
+                      <li><b>mixer</b>: Client and server sidecars are present with mixer configured.</li>
+                    </ul>
+                    <li>Sidecar Injection Modes:</li>
+                    <ul>
+                      <li><b>both</b>: Both client and server sidecars are enabled.</li>
+                      <li><b>serveronly</b>: Only server sidecar is enabled.</li>
+                      <li><b>clientonly</b>: Only client sidecar is enabled.</li>
+                    </ul>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-12 col-md-3">
+              <div class="card">
+                <div class="card-header">
+                  <h2>Performance Test Benchmarks and Measurements</h2>
+                </div>
+                <div class="card-body">
+                  <p>These are the benchmarks we run on a daily basis and publish those measurements in the following sections.</p>
+                    <ul>
+                        <li><a href="{% url 'cpu_memory' %}" target="_blank">CPU and Memory Usage</a></li>
+                        <li><a href="{% url 'latency_conn' %}" target="_blank">Latency vs. Connections</a></li>
+                        <li><a href="{% url 'latency_qps' %}" target="_blank">Latency vs. QPS</a></li>
+                        <li><a href="{% url 'flame_graph' %}" target="_blank">Flame Graph</a></li>
+                        <li><a href="{% url 'micro_benchmarks' %}" target="_blank">Micro Benchmarks</a></li>
+                    </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+{% endblock page_content %}
+
+{% block charts_js %}
+    <script src="{% static 'js/overview.js' %}"></script>
+{% endblock charts_js %}

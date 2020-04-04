@@ -27,6 +27,10 @@ cpu_master_selected_release = []
 current_release = [os.getenv('CUR_RELEASE')]
 
 
+def benchmarks_overview(request):
+    return render(request, "benchmarks_overview.html")
+
+
 # Create your views here.
 def latency_vs_conn(request, uploaded_csv_url=None):
     if uploaded_csv_url is not None:
