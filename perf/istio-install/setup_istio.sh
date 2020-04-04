@@ -42,7 +42,7 @@ function download() {
   local DIRNAME="$1"
   local release="$2"
 
-  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux-amd64.tar.gz"
   # shellcheck disable=SC2236
   if [[ -n "${RELEASE_URL}" ]];then
     url="${RELEASE_URL}"

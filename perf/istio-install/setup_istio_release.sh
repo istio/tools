@@ -48,21 +48,21 @@ if [[ "${stream}" == "pre-release" ]];then
   export HELMREPO_URL=https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/charts
   case "${OSTYPE}" in
     darwin*) export RELEASE_URL=https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-osx.tar.gz ;;
-    linux*) export RELEASE_URL=https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-linux.tar.gz ;;
+    linux*) export RELEASE_URL=https://gcsweb.istio.io/gcs/istio-prerelease/prerelease/${release}/istio-${release}-linux-amd64.tar.gz ;;
     *) echo "unsupported: ${OSTYPE}" ;;
   esac
 elif [[ "${stream}" == "dev" ]];then
   export HELMREPO_URL=https://gcsweb.istio.io/gcs/istio-build/dev/${release}/charts
   case "${OSTYPE}" in
     darwin*) export RELEASE_URL=https://gcsweb.istio.io/gcs/istio-build/dev/${release}/istio-${release}-osx.tar.gz ;;
-    linux*) export RELEASE_URL=https://gcsweb.istio.io/gcs/istio-build/dev/${release}/istio-${release}-linux.tar.gz ;;
+    linux*) export RELEASE_URL=https://gcsweb.istio.io/gcs/istio-build/dev/${release}/istio-${release}-linux-amd64.tar.gz ;;
     *) echo "unsupported: ${OSTYPE}" ;;
   esac
 else
   export HELMREPO_URL=https://storage.googleapis.com/istio-release/releases/${release}/charts
   case "${OSTYPE}" in
     darwin*) export RELEASE_URL=https://github.com/istio/istio/releases/download/${release}/istio-${release}-osx.tar.gz ;;
-    linux*) export RELEASE_URL=https://github.com/istio/istio/releases/download/${release}/istio-${release}-linux.tar.gz ;;
+    linux*) export RELEASE_URL=https://github.com/istio/istio/releases/download/${release}/istio-${release}-linux-amd64.tar.gz ;;
     *) echo "unsupported: ${OSTYPE}" ;;
   esac
 fi

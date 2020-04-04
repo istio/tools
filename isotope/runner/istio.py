@@ -39,7 +39,7 @@ def convert_archive(archive_url: str) -> str:
 
     full_name = "{}-09-15".format(archive_url)
 
-    return "{daily}/{full_name}/istio-{full_name}-linux.tar.gz".format(
+    return "{daily}/{full_name}/istio-{full_name}-linux-amd64.tar.gz".format(
         daily=DAILY_BUILD_URL, full_name=full_name)
 
 
