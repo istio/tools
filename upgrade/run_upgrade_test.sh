@@ -72,9 +72,9 @@ function download_untar_istio_release() {
   local dir=${3:-.}
 
   # Download artifacts
-  LINUX_DIST_URL="${url_path}/${tag}/istio-${tag}-linux.tar.gz"
+  LINUX_DIST_URL="${url_path}/${tag}/istio-${tag}-linux-amd64.tar.gz"
   wget -q "${LINUX_DIST_URL}" -P "${dir}"
-  tar -xzf "${dir}/istio-${tag}-linux.tar.gz" -C "${dir}"
+  tar -xzf "${dir}/istio-${tag}-linux-amd64.tar.gz" -C "${dir}"
 }
 
 # shellcheck disable=SC1090
