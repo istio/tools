@@ -209,6 +209,7 @@ for dir in "${CONFIG_DIR}"/*; do
        source prerun.sh
     fi
 
+    # get the last directory name after splitting dir path by '/', which is the configuration dir name
     config_name=$(echo "${dir}" | awk -F'/' '{print $NF}')
     # collect config dump after prerun.sh and before test run, to verify test setup is correct
     collect_config_dump "${config_name}"
