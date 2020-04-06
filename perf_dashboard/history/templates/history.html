@@ -7,6 +7,7 @@
     <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
     <i class="fa fa-area-chart"></i>Benchmarks</a>
     <ul id="dropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'benchmarks_overview' %}"><i class="fa fa-asterisk"></i>Configs & Measurements</a></li>
         <li><a href="{% url 'cpu_memory' %}"><i class="fa fa-asterisk"></i>CPU & Memory Usage</a></li>
         <li><a href="#dropDownLatency" aria-expanded="false" data-toggle="collapse">
             <i class="fa fa-asterisk"></i>Latency Quantiles</a>
@@ -35,29 +36,30 @@
 
 {% block page_content %}
 <section class="dashboard-header section-padding">
-        <div class="container-fluid">
-          <div class="row d-flex align-items-md-stretch">
-            <!-- List-->
-            <div class="col-lg-12 col-md-3">
-              <div class="card">
-                <div class="card-header">
-                  <h2>History of Istio Performance and Scalability</h2>
-                </div>
-                <div class="card-body">
-                  <p>Snapshots of performance and scalability page of the istio.io website for each release.</p>
-                  <ul>
-                      <li><a href="https://istio.io/docs/ops/deployment/performance-and-scalability/">v1.4</a></li>
-                      <li><a href="https://archive.istio.io/v1.3/docs/concepts/performance-and-scalability/">v1.3</a></li>
-                      <li><a href="https://archive.istio.io/v1.2/docs/concepts/performance-and-scalability/">v1.2</a></li>
-                      <li><a href="https://archive.istio.io/v1.1/docs/concepts/performance-and-scalability/">v1.1</a></li>
-                      <li><a href="https://archive.istio.io/v1.0/docs/concepts/performance-and-scalability/">v1.0</a></li>
-                  </ul>
-                </div>
-              </div>
+    <div class="container-fluid">
+      <div class="row d-flex align-items-md-stretch">
+        <!-- List-->
+        <div class="col-lg-12 col-md-3">
+          <div class="card">
+            <div class="card-header">
+              <h2>History of Istio Performance and Scalability</h2>
+            </div>
+            <div class="card-body">
+              <p>Snapshots of performance and scalability page of the istio.io website for each release.</p>
+              <ul>
+                  <li><a href="https://istio.io/docs/ops/deployment/performance-and-scalability/" target="_blank">Current Release</a></li>
+                  <li><a href="https://archive.istio.io/v1.4/docs/ops/deployment/performance-and-scalability/" target="_blank">v1.4</a></li>
+                  <li><a href="https://archive.istio.io/v1.3/docs/concepts/performance-and-scalability/" target="_blank">v1.3</a></li>
+                  <li><a href="https://archive.istio.io/v1.2/docs/concepts/performance-and-scalability/" target="_blank">v1.2</a></li>
+                  <li><a href="https://archive.istio.io/v1.1/docs/concepts/performance-and-scalability/" target="_blank">v1.1</a></li>
+                  <li><a href="https://archive.istio.io/v1.0/docs/concepts/performance-and-scalability/" target="_blank">v1.0</a></li>
+              </ul>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </div>
+</section>
 {% endblock page_content %}
 
 
