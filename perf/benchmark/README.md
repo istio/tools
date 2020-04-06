@@ -272,7 +272,7 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 
 ## Visualize Results
 
-Please upload your generated .csv file to the [graph plotting](http://perf.dashboard.qualistio.org/graph_plotting/) section of our performance dashboard to visualize your graph.
+Please upload your generated .csv file to the [graph plotting](http://perf.dashboard.istio.io/graph_plotting/) section of our performance dashboard to visualize your graph.
 
 ## Add new config to benchmark pipeline
 
