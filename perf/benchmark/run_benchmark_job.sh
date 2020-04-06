@@ -41,7 +41,7 @@ export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
 export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 export NAMESPACE=${NAMESPACE:-'twopods-istio'}
 export PROMETHEUS_NAMESPACE=${PROMETHEUS_NAMESPACE:-'istio-system'}
-export DRYRUN=${DRYRUN:-False}
+export TRIALRUN=${TRIALRUN:-False}
 
 function setup_metrics() {
   # shellcheck disable=SC2155
@@ -85,7 +85,7 @@ function get_benchmark_data() {
 }
 
 function exit_handling() {
-  if [[ "${DRYRUN}" == "True" ]]; then
+  if [[ "${TRIALRUN}" == "True" ]]; then
      return
   fi
   # copy raw data from fortio client pod
@@ -212,8 +212,8 @@ for dir in "${CONFIG_DIR}"/*; do
        source prerun.sh
     fi
 
-    # dryrun as safe check for presubmit
-    if [[ "${DRYRUN}" == "True" ]]; then
+    # TRIALRUN as safe check for presubmit
+    if [[ "${TRIALRUN}" == "True" ]]; then
        continue
     fi
     # collect config dump after prerun.sh and before test run, to verify test setup is correct
@@ -243,8 +243,8 @@ for dir in "${CONFIG_DIR}"/*; do
     popd
 done
 
-if [[ "${DRYRUN}" == "True" ]]; then
-   get_benchmark_data "${WD}/configs/dryrun.yaml"
+if [[ "${TRIALRUN}" == "True" ]]; then
+   get_benchmark_data "${WD}/configs/trialrun.yaml"
 fi
 
 #echo "collect flame graph ..."
