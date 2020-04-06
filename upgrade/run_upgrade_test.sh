@@ -48,6 +48,7 @@ function get_git_sha() {
 
   if [[ "${tag}" =~ "latest" ]];then
     release_version=$(echo "${tag}" | cut -d'_' -f1)
+    # shellcheck disable=SC2072
     if [[ ${release_version} < "1.6" ]]; then
        export LINUX_TAR_SUFFIX="linux.tar.gz"
     fi

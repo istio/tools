@@ -122,13 +122,13 @@ function collect_envoy_info() {
 }
 
 function collect_config_dump() {
-  collect_envoy_info ${1} "${FORTIO_CLIENT_POD}" "config_dump"
-  collect_envoy_info ${1} "${FORTIO_SERVER_POD}" "config_dump"
+  collect_envoy_info "${1}" "${FORTIO_CLIENT_POD}" "config_dump"
+  collect_envoy_info "${1}" "${FORTIO_SERVER_POD}" "config_dump"
 }
 
 function collect_clusters_info() {
-  collect_envoy_info ${1} "${FORTIO_CLIENT_POD}" "clusters"
-  collect_envoy_info ${1} "${FORTIO_SERVER_POD}" "clusters"
+  collect_envoy_info "${1}" "${FORTIO_CLIENT_POD}" "clusters"
+  collect_envoy_info "${1}" "${FORTIO_SERVER_POD}" "clusters"
 }
 
 # install pipenv
@@ -209,9 +209,9 @@ for dir in "${CONFIG_DIR}"/*; do
        source prerun.sh
     fi
 
-    config_name=$(echo ${dir} | awk -F'/' '{print $NF}')
+    config_name=$(echo "${dir}" | awk -F'/' '{print $NF}')
     # collect config dump after prerun.sh and before test run, to verify test setup is correct
-    collect_config_dump ${config_name}
+    collect_config_dump "${config_name}"
 
     # run test and get data
     if [[ -e "./cpu_mem.yaml" ]]; then
@@ -222,7 +222,7 @@ for dir in "${CONFIG_DIR}"/*; do
     fi
 
     # collect clusters info after test run and before cleanup script postrun.sh
-    collect_clusters_info ${config_name}
+    collect_clusters_info "${config_name}"
 
     # custom post run
     if [[ -e "./postrun.sh" ]]; then
