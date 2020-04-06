@@ -112,22 +112,23 @@ function setup_fortio_and_prometheus() {
 }
 
 function collect_envoy_info() {
-  POD_NAME=${1}
-  FILE_SUFFIX=${2}
+  CONFIG_NAME=${1}
+  POD_NAME=${2}
+  FILE_SUFFIX=${3}
 
-  ENVOY_DUMP_NAME="${POD_NAME}_${FILE_SUFFIX}.yaml"
+  ENVOY_DUMP_NAME="${POD_NAME}_${CONFIG_NAME}_${FILE_SUFFIX}.yaml"
   kubectl exec -n "${NAMESPACE}" "${POD_NAME}" -c istio-proxy -- curl http://localhost:15000/"${FILE_SUFFIX}" > "${ENVOY_DUMP_NAME}"
   gsutil -q cp -r "${ENVOY_DUMP_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${FILE_SUFFIX}/${ENVOY_DUMP_NAME}"
 }
 
 function collect_config_dump() {
-  collect_envoy_info "${FORTIO_CLIENT_POD}" "config_dump"
-  collect_envoy_info "${FORTIO_SERVER_POD}" "config_dump"
+  collect_envoy_info "${1}" "${FORTIO_CLIENT_POD}" "config_dump"
+  collect_envoy_info "${1}" "${FORTIO_SERVER_POD}" "config_dump"
 }
 
 function collect_clusters_info() {
-  collect_envoy_info "${FORTIO_CLIENT_POD}" "clusters"
-  collect_envoy_info "${FORTIO_SERVER_POD}" "clusters"
+  collect_envoy_info "${1}" "${FORTIO_CLIENT_POD}" "clusters"
+  collect_envoy_info "${1}" "${FORTIO_SERVER_POD}" "clusters"
 }
 
 # install pipenv
@@ -208,8 +209,10 @@ for dir in "${CONFIG_DIR}"/*; do
        source prerun.sh
     fi
 
+    # get the last directory name after splitting dir path by '/', which is the configuration dir name
+    config_name=$(echo "${dir}" | awk -F'/' '{print $NF}')
     # collect config dump after prerun.sh and before test run, to verify test setup is correct
-    collect_config_dump
+    collect_config_dump "${config_name}"
 
     # run test and get data
     if [[ -e "./cpu_mem.yaml" ]]; then
@@ -220,7 +223,7 @@ for dir in "${CONFIG_DIR}"/*; do
     fi
 
     # collect clusters info after test run and before cleanup script postrun.sh
-    collect_clusters_info
+    collect_clusters_info "${config_name}"
 
     # custom post run
     if [[ -e "./postrun.sh" ]]; then
