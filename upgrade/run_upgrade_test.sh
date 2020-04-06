@@ -38,6 +38,7 @@ export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com
 export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"helm"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
+export LINUX_TAR_SUFFIX=${LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
 
 function get_git_sha() {
   local url_path=${1}
@@ -47,6 +48,9 @@ function get_git_sha() {
 
   if [[ "${tag}" =~ "latest" ]];then
     release_version=$(echo "${tag}" | cut -d'_' -f1)
+    if [[ ${release_version} < "1.6" ]]; then
+       export LINUX_TAR_SUFFIX="linux.tar.gz"
+    fi
     GIT_SHA=$(curl "${url_path}/${release_version}-dev")
   elif [ "${tag}" == "master" ];then
     GIT_SHA=$(curl "${url_path}/latest")
@@ -72,9 +76,9 @@ function download_untar_istio_release() {
   local dir=${3:-.}
 
   # Download artifacts
-  LINUX_DIST_URL="${url_path}/${tag}/istio-${tag}-linux-amd64.tar.gz"
+  LINUX_DIST_URL="${url_path}/${tag}/istio-${tag}-${LINUX_TAR_SUFFIX}"
   wget -q "${LINUX_DIST_URL}" -P "${dir}"
-  tar -xzf "${dir}/istio-${tag}-linux-amd64.tar.gz" -C "${dir}"
+  tar -xzf "${dir}/istio-${tag}-${LINUX_TAR_SUFFIX}" -C "${dir}"
 }
 
 # shellcheck disable=SC1090
