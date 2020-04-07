@@ -167,16 +167,23 @@ mkdir -p "${WD}/tmp/${CLUSTER_NAME}"
 
 # set config use kpt then create cluster with anthoscli
 function install_with_anthoscli() {
-  kpt cfg set gke_cluster_resources gcloud.core.project ${PROJECT_ID}
-  kpt cfg set gke_cluster_resources cluster-name ${CLUSTER_NAME}
-  kpt cfg set gke_cluster_resources gcloud.compute.zone ${ZONE}
-  kpt cfg set gke_cluster_resources max-nodes ${MAX_NODES}
-  kpt cfg set gke_cluster_resources min-nodes ${MIN_NODES}
-  kpt cfg set gke_cluster_resources max-pods-pernode ${MAXPODS_PER_NODE}
-  kpt cfg set gke_cluster_resources machine-type ${MACHINE_TYPE}
-  kpt cfg set gke_cluster_resources diskSize ${DISK_SIZE}
-  kpt cfg set gke_cluster_resources GKE_VERSION ${GKE_VERSION}
-  if [[ -n "${ISTIO_ADDON:-}" ]];then
+  if [[ $(command -v anthoscli) == "" ]];then
+    gcloud components install anthoscli
+  fi
+  if [[ $(command -v kpt) == "" ]];then
+    gcloud components install kpt
+  fi
+  gcloud components update
+  kpt cfg set gke_cluster_resources gcloud.core.project "${PROJECT_ID}"
+  kpt cfg set gke_cluster_resources cluster-name "${CLUSTER_NAME}"
+  kpt cfg set gke_cluster_resources gcloud.compute.zone "${ZONE}"
+  kpt cfg set gke_cluster_resources max-nodes "${MAX_NODES}"
+  kpt cfg set gke_cluster_resources min-nodes "${MIN_NODES}"
+  kpt cfg set gke_cluster_resources max-pods-pernode "${MAXPODS_PER_NODE}"
+  kpt cfg set gke_cluster_resources machine-type "${MACHINE_TYPE}"
+  kpt cfg set gke_cluster_resources diskSize "${DISK_SIZE}"
+  kpt cfg set gke_cluster_resources GKE_VERSION "${GKE_VERSION}"
+  if [[ -n "${ISTIO_ADDON}" ]];then
      kpt cfg set gke_cluster_resources addon.istio.disabled false
   fi
 

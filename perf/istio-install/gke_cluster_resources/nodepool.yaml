@@ -15,9 +15,9 @@
 apiVersion: container.cnrm.cloud.google.com/v1alpha2
 kind: ContainerNodePool
 metadata:
-  clusterName: "test-cluster3-istio-237517/us-central1-a/test-cluster3" # {"type":"string","x-kustomize":{"partialSetters":[{"name":"gcloud.core.project","value":"test-istio-237517"},{"name":"cluster-name","value":"test-cluster3"},{"name":"gcloud.compute.zone","value":"us-central1-a"}]}}
+  clusterName: "PROJECT_ID/us-central1-a/asm-cluster" # {"type":"string","x-kustomize":{"partialSetters":[{"name":"gcloud.core.project","value":"PROJECT_ID"},{"name":"cluster-name","value":"asm-cluster"},{"name":"gcloud.compute.zone","value":"us-central1-a"}]}}
   name: default-pool
-  namespace: "test-istio-237517" # {"type":"string","x-kustomize":{"setter":{"name":"gcloud.core.project","value":"test-istio-237517"}}}
+  namespace: "PROJECT_ID" # {"type":"string","x-kustomize":{"setter":{"name":"gcloud.core.project"}}}
 spec:
   initialNodeCount: 2
   autoscaling:
@@ -35,7 +35,7 @@ spec:
     oauthScopes:
     - "https://www.googleapis.com/auth/cloud-platform"
   clusterRef:
-    name: "test-cluster3" # {"type":"string","x-kustomize":{"setter":{"name":"cluster-name","value":"test-cluster3"}}}
+    name: "asm-cluster" # {"type":"string","x-kustomize":{"setter":{"name":"cluster-name","value":"asm-cluster"}}}
   management:
     autoRepair: true
     autoUpgrade: true
