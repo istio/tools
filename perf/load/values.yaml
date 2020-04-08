@@ -1,4 +1,4 @@
-serviceGraphImage: tahler/isotope-service:1
+serviceGraphImage: gcr.io/istio-testing/isotope:0.0.1
 serviceNamePrefix: svc-
 requestSize: 128B
 responseSize: 1KiB
