@@ -45,6 +45,8 @@ ENV HADOLINT_VERSION=v1.17.2
 ENV HELM2_VERSION=v2.16.1
 ENV HELM3_VERSION=v3.1.2
 ENV HUGO_VERSION=0.61.0
+ENV JB_VERSION=v0.3.1
+ENV JSONNET_VERSION=v0.15.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.16.2
 ENV KIND_VERSION=v0.7.0
@@ -107,6 +109,8 @@ RUN gobin github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VE
 RUN gobin github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
 RUN gobin github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
 RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN gobin github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
+RUN gobin github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@${JB_VERSION}
 RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
 RUN gobin github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
 RUN gobin sigs.k8s.io/kind@${KIND_VERSION}
