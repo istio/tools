@@ -127,8 +127,13 @@ func getDependentModules() ([]module, error) {
 	cmd.Stderr = &stderr
 
 	err := cmd.Run()
+	errstr := stderr.String()
+	if strings.Contains(errstr, "not part of a module") {
+		// We are not in a module, return no dependencies
+		return nil, nil
+	}
 	if err != nil {
-		return nil, fmt.Errorf("%v: %v", err, stderr)
+		return nil, fmt.Errorf("%v: %v", err, errstr)
 	}
 
 	// Unmarshal json output
