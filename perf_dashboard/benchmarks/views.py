@@ -40,7 +40,7 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
+        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(60)
 
         if request.method == "POST" and 'current_release_name' in request.POST:
             cur_selected_release.append(request.POST['current_release_name'])
@@ -138,7 +138,7 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
+        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(60)
 
         if request.method == "POST" and 'current_release_name' in request.POST:
             cur_selected_release.append(request.POST['current_release_name'])
@@ -235,7 +235,7 @@ def cpu_memory(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
+        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(60)
 
         if request.method == "POST" and 'current_release_name' in request.POST:
             cpu_cur_selected_release.append(request.POST['current_release_name'])
