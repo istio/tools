@@ -12,4 +12,5 @@ To add a new config to this pipeline, we need to add a new directory under [conf
 
 An example of recently added new config: [plaintext](https://github.com/istio/tools/tree/master/perf/benchmark/configs/istio/plaintext)
 
-Note: we have a [perf_test.conf](./istio/run_perf_test.conf) file to control the disable and enable of the set of perf test configs. 
+Note: we have a [run_perf_test.conf](./istio/run_perf_test.conf) file to control the disable and enable of the set of perf test configs.
+

@@ -138,6 +138,7 @@ function read_perf_test_conf()
     case "$key" in
       '#'*) ;;
       *)
+        # shellcheck disable=SC2086
         export ${key}="${value}"
     esac
   done < "${perf_test_conf}"
