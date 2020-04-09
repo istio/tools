@@ -205,7 +205,7 @@ DEFAULT_CR_PATH="${ROOT}/istio-install/istioctl_profiles/default.yaml"
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs/istio"
 
-read_perf_test_conf "${CONFIG_DIR}/perf_test.conf"
+read_perf_test_conf "${CONFIG_DIR}/run_perf_test.conf"
 
 for dir in "${CONFIG_DIR}"/*; do
     # get the last directory name after splitting dir path by '/', which is the configuration dir name
