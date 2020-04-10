@@ -119,33 +119,23 @@ class Fortio:
         else:
             sys.exit("invalid mesh %s, must be istio or linkerd" % mesh)
 
-    def nosidecar(self, fortio_cmd):
+    def compute_uri(self, svc, port_type):
         basestr = "http://{svc}:{port}/echo?size={size}"
         if self.mode == "grpc":
             basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_base " + basestr.format(
-            svc=self.server.ip, port=self.ports[self.mode]["direct_port"], size=self.size)
+        return basestr.format(svc=svc, port=self.ports[self.mode][port_type], size=self.size)
+
+    def nosidecar(self, fortio_cmd):
+        return fortio_cmd + "_base " + self.compute_uri(self.server.ip, "direct_port")
 
     def serversidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_serveronly " + basestr.format(
-            svc=self.server.ip, port=self.ports[self.mode]["port"], size=self.size)
+        return fortio_cmd + "_serveronly " + self.compute_uri(self.server.ip, "port")
 
     def clientsidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_clientonly " + basestr.format(
-            svc=self.server.labels["app"], port=self.ports[self.mode]["direct_port"], size=self.size)
+        return fortio_cmd + "_clientonly " + self.compute_uri(self.server.labels["app"], "direct_port")
 
     def bothsidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_both " + basestr.format(
-            svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
+        return fortio_cmd + "_both " + self.compute_uri(self.server.labels["app"], "port")
 
     def ingress(self, fortio_cmd):
         url = urlparse(self.run_ingress)
@@ -155,6 +145,19 @@ class Fortio:
 
         return fortio_cmd + "_ingress {url}/echo?size={size}".format(
             url=url.geturl(), size=self.size)
+
+    def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label_suffix):
+        print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
+        if load_gen_type == "fortio":
+            kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd))
+
+        if self.perf_record and len(perf_label_suffix) > 0:
+            run_perf(
+                self.mesh,
+                self.server.name,
+                labels + perf_label_suffix,
+                duration=40)
+
 
     def run(self, headers, conn, qps, size, duration):
         size = size or self.size
@@ -212,38 +215,16 @@ class Fortio:
                     duration=40)
 
         if self.run_serversidecar:
-            print('-------------- Running in server sidecar mode --------------')
-            kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_serveronly",
-                    duration=40)
+            self.execute_sidecar_mode("server sidecar", "fortio", fortio_cmd, self.serversidecar, labels, "_srv_serveronly")
 
         if self.run_clientsidecar:
-            print('-------------- Running in client sidecar mode --------------')
-            kubectl_exec(self.client.name, self.clientsidecar(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.client.name,
-                    labels + "_srv_clientonly",
-                    duration=40)
+            self.execute_sidecar_mode("client sidecar", "fortio", fortio_cmd, self.clientsidecar, labels, "_srv_clientonly")
 
         if self.run_bothsidecar:
-            print('-------------- Running in both sidecar mode --------------')
-            kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_bothsidecars",
-                    duration=40)
+            self.execute_sidecar_mode("both sidecar", "fortio", fortio_cmd, self.bothsidecar, labels, "_srv_bothsidecars")
 
         if self.run_baseline:
-            print('-------------- Running in baseline mode --------------')
-            kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
+            self.execute_sidecar_mode("baseline", "fortio", fortio_cmd, self.nosidecar, labels, "")
 
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
