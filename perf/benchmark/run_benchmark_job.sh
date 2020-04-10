@@ -210,7 +210,7 @@ read_perf_test_conf "${CONFIG_DIR}/run_perf_test.conf"
 
 for dir in "${CONFIG_DIR}"/*; do
     # get the last directory name after splitting dir path by '/', which is the configuration dir name
-    config_name="$(basename ${dir})"
+    config_name="$(basename "${dir}")"
     # skip the test config that is disabled to run
     if (( !"${config_name}" )); then
         continue
