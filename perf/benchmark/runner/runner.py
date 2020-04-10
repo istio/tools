@@ -59,6 +59,32 @@ def run_command_sync(command):
     return op.strip()
 
 
+# kubeclt related helper funcs
+def kubectl_cp(from_file, to_file, container):
+    namespace = os.environ.get("NAMESPACE", "twopods")
+    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {container}".format(
+        namespace=namespace,
+        from_file=from_file,
+        to_file=to_file,
+        container=container)
+    print(cmd, flush=True)
+    run_command_sync(cmd)
+
+
+def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
+    namespace = os.environ.get("NAMESPACE", "twopods")
+    c = ""
+    if container is not None:
+        c = "-c " + container
+    cmd = "kubectl --namespace {namespace} exec {pod} {c} -- {remote_cmd}".format(
+        pod=pod,
+        remote_cmd=remote_cmd,
+        c=c,
+        namespace=namespace)
+    print(cmd, flush=True)
+    runfn(cmd)
+
+
 class Fortio:
     ports = {
         "http": {"direct_port": 8077, "port": 8080},
@@ -268,31 +294,6 @@ def run_perf(mesh, pod, labels, duration=20):
 
     kubectl_cp(pod + ":" + filepath + ".perf", LOCAL_FLAMEOUTPUT + filename + ".perf", mesh + "-proxy")
     run_command_sync(LOCAL_FLAMEPATH + " " + filename + ".perf")
-
-
-def kubectl_cp(from_file, to_file, container):
-    namespace = os.environ.get("NAMESPACE", "twopods")
-    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {container}".format(
-        namespace=namespace,
-        from_file=from_file,
-        to_file=to_file,
-        container=container)
-    print(cmd, flush=True)
-    run_command_sync(cmd)
-
-
-def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
-    namespace = os.environ.get("NAMESPACE", "twopods")
-    c = ""
-    if container is not None:
-        c = "-c " + container
-    cmd = "kubectl --namespace {namespace} exec {pod} {c} -- {remote_cmd}".format(
-        pod=pod,
-        remote_cmd=remote_cmd,
-        c=c,
-        namespace=namespace)
-    print(cmd, flush=True)
-    runfn(cmd)
 
 
 def validate_job_config(job_config):
