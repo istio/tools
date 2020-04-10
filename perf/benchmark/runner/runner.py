@@ -306,7 +306,7 @@ def rc(command):
     return process.poll()
 
 
-def validate(job_config):
+def validate_job_config(job_config):
     required_fields = {"conn": list, "qps": list, "duration": int}
     for k in required_fields:
         if k not in job_config:
@@ -322,7 +322,7 @@ def validate(job_config):
 def fortio_from_config_file(args):
     with open(args.config_file) as f:
         job_config = yaml.safe_load(f)
-        if not validate(job_config):
+        if not validate_job_config(job_config):
             exit(1)
         # TODO: hard to parse yaml into object directly because of existing constructor from CLI
         fortio = Fortio()
@@ -346,7 +346,7 @@ def fortio_from_config_file(args):
         return fortio
 
 
-def run(args):
+def run_perf_test(args):
     min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
 
     # run with config files
@@ -473,7 +473,7 @@ def define_bool(parser, opt, help_arg, default_val):
 def main(argv):
     args = get_parser().parse_args(argv)
     print(args)
-    return run(args)
+    return run_perf_test(args)
 
 
 if __name__ == "__main__":
