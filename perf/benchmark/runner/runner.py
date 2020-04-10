@@ -216,8 +216,8 @@ class Fortio:
             duration = self.duration
 
         fortio_cmd = (
-                "fortio load {headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
-                "-labels {labels}").format(
+            "fortio load {headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} "
+            "-httpbufferkb=128 -labels {labels}").format(
             headers=headers_cmd,
             conn=conn,
             qps=qps,
