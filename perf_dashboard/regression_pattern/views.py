@@ -77,9 +77,9 @@ def master_pattern(request):
 
 
 # Helpers
-def get_latency_y_data_point(df, mixer_mode, quantiles):
+def get_latency_y_data_point(df, telemetry_mode, quantiles):
     y_series_data = []
-    data = df.query('ActualQPS == 1000 and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
+    data = df.query('ActualQPS == 1000 and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
     if not data[quantiles].head().empty:
         y_series_data.append(data[quantiles].head(1).values[0]/1000)
     else:
@@ -87,7 +87,7 @@ def get_latency_y_data_point(df, mixer_mode, quantiles):
     return y_series_data
 
 
-def get_telemetry_mode_y_series(release_names, release_dates, mixer_mode, quantiles):
+def get_telemetry_mode_y_series(release_names, release_dates, telemetry_mode, quantiles):
     pattern_data = [[]] * len(release_names)
     for i in range(len(release_names)):
         try:
@@ -96,5 +96,5 @@ def get_telemetry_mode_y_series(release_names, release_dates, mixer_mode, quanti
             print(e)
             pattern_data[i] = release_dates[i] + ["null"]
         else:
-            pattern_data[i] = release_dates[i] + get_latency_y_data_point(df, mixer_mode, quantiles)
+            pattern_data[i] = release_dates[i] + get_latency_y_data_point(df, telemetry_mode, quantiles)
     return pattern_data
