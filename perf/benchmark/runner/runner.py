@@ -295,17 +295,6 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
     runfn(cmd)
 
 
-def rc(command):
-    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-    while True:
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-            break
-        if output:
-            print(output.strip() + "\n")
-    return process.poll()
-
-
 def validate_job_config(job_config):
     required_fields = {"conn": list, "qps": list, "duration": int}
     for k in required_fields:
