@@ -158,8 +158,7 @@ class Fortio:
                 labels + perf_label_suffix,
                 duration=40)
 
-
-    def run(self, headers, conn, qps, size, duration):
+    def generate_test_labels(self, conn, qps, size, duration):
         size = size or self.size
         if duration is None:
             duration = self.duration
@@ -179,6 +178,33 @@ class Fortio:
         if self.extra_labels is not None:
             labels += "_" + self.extra_labels
 
+        return labels
+
+    def generate_headers_cmd(self, headers):
+        headers_cmd = ""
+        if headers is not None:
+            for header_val in headers.split(","):
+                headers_cmd += "-H=" + header_val + " "
+
+        return headers_cmd
+
+    def generate_fortio_cmd(self, headers_cmd, conn, qps, duration, grpc, cacert_arg, labels):
+        fortio_cmd = (
+                "fortio load {headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
+                "-labels {labels}").format(
+            headers=headers_cmd,
+            conn=conn,
+            qps=qps,
+            duration=duration,
+            r=self.r,
+            grpc=grpc,
+            cacert_arg=cacert_arg,
+            labels=labels)
+
+        return fortio_cmd
+
+    def run(self, headers, conn, qps, size, duration):
+        labels = self.generate_test_labels(conn, qps, size, duration)
         grpc = ""
         if self.mode == "grpc":
             grpc = "-grpc -ping"
@@ -187,32 +213,11 @@ class Fortio:
         if self.cacert is not None:
             cacert_arg = "-cacert {cacert_path}".format(cacert_path=self.cacert)
 
-        headers_cmd = ""
-        if headers is not None:
-            for header_val in headers.split(","):
-                headers_cmd += "-H=" + header_val + " "
+        headers_cmd = self.generate_headers_cmd(headers)
+        fortio_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
 
-        fortio_cmd = (
-            "fortio load {headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
-            "-labels {labels}").format(
-                headers=headers_cmd,
-                conn=conn,
-                qps=qps,
-                duration=duration,
-                r=self.r,
-                grpc=grpc,
-                cacert_arg=cacert_arg,
-                labels=labels)
-
-        if self.run_ingress:
-            print('-------------- Running in ingress mode --------------')
-            kubectl_exec(self.client.name, self.ingress(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_ingress",
-                    duration=40)
+        if self.run_baseline:
+            self.execute_sidecar_mode("baseline", "fortio", fortio_cmd, self.nosidecar, labels, "")
 
         if self.run_serversidecar:
             self.execute_sidecar_mode("server sidecar", "fortio", fortio_cmd, self.serversidecar, labels, "_srv_serveronly")
@@ -223,9 +228,15 @@ class Fortio:
         if self.run_bothsidecar:
             self.execute_sidecar_mode("both sidecar", "fortio", fortio_cmd, self.bothsidecar, labels, "_srv_bothsidecars")
 
-        if self.run_baseline:
-            self.execute_sidecar_mode("baseline", "fortio", fortio_cmd, self.nosidecar, labels, "")
-
+        if self.run_ingress:
+            print('-------------- Running in ingress mode --------------')
+            kubectl_exec(self.client.name, self.ingress(fortio_cmd))
+            if self.perf_record:
+                run_perf(
+                    self.mesh,
+                    self.server.name,
+                    labels + "_srv_ingress",
+                    duration=40)
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
 FLAMESH = "flame.sh"
