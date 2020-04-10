@@ -131,6 +131,19 @@ function collect_clusters_info() {
   collect_envoy_info "${1}" "${FORTIO_SERVER_POD}" "clusters"
 }
 
+function read_perf_test_conf()
+{
+  perf_test_conf="${1}"
+  while IFS="=" read -r key value; do
+    case "$key" in
+      '#'*) ;;
+      *)
+        # shellcheck disable=SC2086
+        export ${key}="${value}"
+    esac
+  done < "${perf_test_conf}"
+}
+
 # install pipenv
 if [[ $(command -v pipenv) == "" ]];then
   apt-get update && apt-get -y install python3-pip
@@ -193,7 +206,16 @@ DEFAULT_CR_PATH="${ROOT}/istio-install/istioctl_profiles/default.yaml"
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs/istio"
 
+read_perf_test_conf "${CONFIG_DIR}/run_perf_test.conf"
+
 for dir in "${CONFIG_DIR}"/*; do
+    # get the last directory name after splitting dir path by '/', which is the configuration dir name
+    config_name="$(basename "${dir}")"
+    # skip the test config that is disabled to run
+    if (( !"${config_name}" )); then
+        continue
+    fi
+
     pushd "${dir}"
     # install istio with custom overlay
     if [[ -e "./installation.yaml" ]]; then
@@ -209,8 +231,6 @@ for dir in "${CONFIG_DIR}"/*; do
        source prerun.sh
     fi
 
-    # get the last directory name after splitting dir path by '/', which is the configuration dir name
-    config_name=$(echo "${dir}" | awk -F'/' '{print $NF}')
     # collect config dump after prerun.sh and before test run, to verify test setup is correct
     collect_config_dump "${config_name}"
 

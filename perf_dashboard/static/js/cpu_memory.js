@@ -43,12 +43,6 @@ new Chart(document.getElementById("cpu-qps-release"), {
         labels: qpsNum,
         datasets: [
             {
-                label: "mixer_both",
-                backgroundColor: "rgba(66, 133, 246, 0.2)",
-                borderColor: "rgba(66, 133, 246, 1)",
-                data: cpu_mixer_both,
-                fill: false
-            }, {
                 label: "baseline",
                 backgroundColor: "rgba(236, 66, 53, 0.2)",
                 borderColor: "rgba(236, 66, 53, 1)",
@@ -98,12 +92,6 @@ new Chart(document.getElementById("mem-qps-release"), {
         labels: qpsNum,
         datasets: [
             {
-                label: "mixer_both",
-                backgroundColor: "rgba(66, 133, 246, 0.2)",
-                borderColor: "rgba(66, 133, 246, 1)",
-                data: mem_mixer_both,
-                fill: false
-            }, {
                 label: "baseline",
                 backgroundColor: "rgba(236, 66, 53, 0.2)",
                 borderColor: "rgba(236, 66, 53, 1)",
@@ -153,12 +141,6 @@ new Chart(document.getElementById("cpu-qps-master"), {
         labels: qpsNum,
         datasets: [
             {
-                label: "mixer_both",
-                backgroundColor: "rgba(66, 133, 246, 0.2)",
-                borderColor: "rgba(66, 133, 246, 1)",
-                data: cpu_mixer_both_master,
-                fill: false
-            }, {
                 label: "baseline",
                 backgroundColor: "rgba(236, 66, 53, 0.2)",
                 borderColor: "rgba(236, 66, 53, 1)",
@@ -208,12 +190,6 @@ new Chart(document.getElementById("mem-qps-master"), {
         labels: qpsNum,
         datasets: [
             {
-                label: "mixer_both",
-                backgroundColor: "rgba(66, 133, 246, 0.2)",
-                borderColor: "rgba(66, 133, 246, 1)",
-                data: mem_mixer_both_master,
-                fill: false
-            }, {
                 label: "baseline",
                 backgroundColor: "rgba(236, 66, 53, 0.2)",
                 borderColor: "rgba(236, 66, 53, 1)",
