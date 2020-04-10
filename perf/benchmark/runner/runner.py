@@ -184,16 +184,13 @@ class Fortio:
                 labels + perf_label_suffix,
                 duration=40)
 
-    def generate_test_labels(self, conn, qps, size, duration):
+    def generate_test_labels(self, conn, qps, size):
         size = size or self.size
-        if duration is None:
-            duration = self.duration
-
         labels = self.run_id
         labels += "_qps_" + str(qps)
         labels += "_c_" + str(conn)
         labels += "_" + str(size)
-        # Mixer label
+
         if self.mesh == "istio":
             labels += "_"
             labels += self.telemetry_mode
@@ -215,6 +212,9 @@ class Fortio:
         return headers_cmd
 
     def generate_fortio_cmd(self, headers_cmd, conn, qps, duration, grpc, cacert_arg, labels):
+        if duration is None:
+            duration = self.duration
+
         fortio_cmd = (
                 "fortio load {headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
                 "-labels {labels}").format(
@@ -231,6 +231,7 @@ class Fortio:
 
     def run(self, headers, conn, qps, size, duration):
         labels = self.generate_test_labels(conn, qps, size, duration)
+
         grpc = ""
         if self.mode == "grpc":
             grpc = "-grpc -ping"
@@ -263,6 +264,7 @@ class Fortio:
                     self.server.name,
                     labels + "_srv_ingress",
                     duration=40)
+
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
 FLAMESH = "flame.sh"
