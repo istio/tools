@@ -151,7 +151,16 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(60)
+        if request.method == "POST" and 'release_days' in request.POST:
+            cur_selected_days.append(request.POST['release_days'])
+
+        days = 30
+        if len(cur_selected_days) > 1:
+            cur_selected_days.pop(0)
+        if len(cur_selected_days) > 0:
+            days = int(cur_selected_days[0])
+
+        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(days)
 
         if request.method == "POST" and 'current_release_name' in request.POST:
             cur_selected_release.append(request.POST['current_release_name'])
@@ -206,7 +215,9 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_v2_sd_nologging_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
         latency_v2_sd_full_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
-        other_context = {'current_release': current_release,
+        other_context = {'release_days': release_days,
+                         'cur_selected_days': cur_selected_days,
+                         'current_release': current_release,
                          'cur_selected_release': cur_selected_release,
                          'master_selected_release':  master_selected_release,
                          'cur_release_names': cur_release_names,
@@ -248,7 +259,16 @@ def cpu_memory(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(60)
+        if request.method == "POST" and 'release_days' in request.POST:
+            cur_selected_days.append(request.POST['release_days'])
+
+        days = 30
+        if len(cur_selected_days) > 1:
+            cur_selected_days.pop(0)
+        if len(cur_selected_days) > 0:
+            days = int(cur_selected_days[0])
+
+        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(days)
 
         if request.method == "POST" and 'current_release_name' in request.POST:
             cpu_cur_selected_release.append(request.POST['current_release_name'])
@@ -295,7 +315,9 @@ def cpu_memory(request, uploaded_csv_url=None):
         mem_v2_sd_nologging_nullvm_both_master = get_mem_y_series(df, '_v2-sd-nologging-nullvm_both')
         mem_v2_sd_full_nullvm_both_master = get_mem_y_series(df, '_v2-sd-full-nullvm_both')
 
-        other_context = {'current_release': current_release,
+        other_context = {'release_days': release_days,
+                         'cur_selected_days': cur_selected_days,
+                         'current_release': current_release,
                          'cpu_cur_selected_release': cpu_cur_selected_release,
                          'cpu_master_selected_release': cpu_master_selected_release,
                          'cur_release_names': cur_release_names,

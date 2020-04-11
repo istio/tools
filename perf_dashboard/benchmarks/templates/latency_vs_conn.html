@@ -47,7 +47,7 @@
                 <form class="form-horizontal" action="" method="post">
                     {% csrf_token %}
                       <div class="form-group row">
-                          <label class="col-sm-3 form-control-label">Choose the number of days you want to trace back (default: 30 days)</label>
+                          <label class="col-sm-3 form-control-label">Choose the number of days you want to trace back (default is 30 days)</label>
                           <div class="col-sm-9">
                             <select name="release_days" class="form-control mb-3">
                             {% for day in release_days %}
@@ -58,14 +58,13 @@
                                 {% endif %}
                             {% endfor %}
                             </select>
-                            <small class="help-block-none">Note: depending on the number of days you've chosen, downloading those release files might take amount of time.</small>
+                            <small class="help-block-none">Note: Depend on the number of days you've chosen, downloading those release files might take amount of time.</small>
                             <input type="submit">
                            </div>
                       </div>
                     <div class="line"></div>
                 </form>
             </div>
-
             <div class="col-lg-6">
               <form class="form-horizontal" action="" method="post">
                     {% csrf_token %}
