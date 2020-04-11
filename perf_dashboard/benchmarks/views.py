@@ -29,6 +29,19 @@ release_days = ['30', '60', '90']
 cur_selected_days = []
 
 
+def get_traceback_days(request):
+    if request.method == "POST" and 'release_days' in request.POST:
+        cur_selected_days.append(request.POST['release_days'])
+
+    days = 30
+    if len(cur_selected_days) > 1:
+        cur_selected_days.pop(0)
+    if len(cur_selected_days) > 0:
+        days = int(cur_selected_days[0])
+
+    return days
+
+
 def benchmarks_overview(request):
     return render(request, "benchmarks_overview.html")
 
@@ -42,14 +55,7 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        if request.method == "POST" and 'release_days' in request.POST:
-            cur_selected_days.append(request.POST['release_days'])
-
-        days = 30
-        if len(cur_selected_days) > 1:
-            cur_selected_days.pop(0)
-        if len(cur_selected_days) > 0:
-            days = int(cur_selected_days[0])
+        days = get_traceback_days(request)
 
         cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(days)
 
@@ -151,14 +157,8 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        if request.method == "POST" and 'release_days' in request.POST:
-            cur_selected_days.append(request.POST['release_days'])
 
-        days = 30
-        if len(cur_selected_days) > 1:
-            cur_selected_days.pop(0)
-        if len(cur_selected_days) > 0:
-            days = int(cur_selected_days[0])
+        days = get_traceback_days(request)
 
         cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(days)
 
@@ -259,14 +259,7 @@ def cpu_memory(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        if request.method == "POST" and 'release_days' in request.POST:
-            cur_selected_days.append(request.POST['release_days'])
-
-        days = 30
-        if len(cur_selected_days) > 1:
-            cur_selected_days.pop(0)
-        if len(cur_selected_days) > 0:
-            days = int(cur_selected_days[0])
+        days = get_traceback_days(request)
 
         cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(days)
 
