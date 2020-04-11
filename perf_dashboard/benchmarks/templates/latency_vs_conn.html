@@ -43,6 +43,29 @@
             <h1 class="h3 display">Latency vs. Client Connections</h1>
         </header>
         <div class="row">
+            <div class="col-lg-12">
+                <form class="form-horizontal" action="" method="post">
+                    {% csrf_token %}
+                      <div class="form-group row">
+                          <label class="col-sm-3 form-control-label">Choose the number of days you want to trace back (default: 30 days)</label>
+                          <div class="col-sm-9">
+                            <select name="release_days" class="form-control mb-3">
+                            {% for day in release_days %}
+                                {% if day == cur_selected_days|last %}
+                                <option selected>{{ day }}</option>
+                                {% else %}
+                                <option>{{ day }}</option>
+                                {% endif %}
+                            {% endfor %}
+                            </select>
+                            <small class="help-block-none">Note: depending on the number of days you've chosen, downloading those release files might take amount of time.</small>
+                            <input type="submit">
+                           </div>
+                      </div>
+                    <div class="line"></div>
+                </form>
+            </div>
+
             <div class="col-lg-6">
               <form class="form-horizontal" action="" method="post">
                     {% csrf_token %}
@@ -150,6 +173,8 @@
 
 {% block page_data %}
     <script>
+        release_days = {{ release_days|safe }}
+        cur_selected_days = {{ cur_selected_days|safe }}
         current_release = {{ current_release|safe }}
         cur_selected_release = {{ cur_selected_release|safe }}
         master_selected_release = {{  master_selected_release|safe }}
