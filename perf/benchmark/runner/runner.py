@@ -59,6 +59,32 @@ def run_command_sync(command):
     return op.strip()
 
 
+# kubeclt related helper funcs
+def kubectl_cp(from_file, to_file, container):
+    namespace = os.environ.get("NAMESPACE", "twopods")
+    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {container}".format(
+        namespace=namespace,
+        from_file=from_file,
+        to_file=to_file,
+        container=container)
+    print(cmd, flush=True)
+    run_command_sync(cmd)
+
+
+def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
+    namespace = os.environ.get("NAMESPACE", "twopods")
+    c = ""
+    if container is not None:
+        c = "-c " + container
+    cmd = "kubectl --namespace {namespace} exec {pod} {c} -- {remote_cmd}".format(
+        pod=pod,
+        remote_cmd=remote_cmd,
+        c=c,
+        namespace=namespace)
+    print(cmd, flush=True)
+    runfn(cmd)
+
+
 class Fortio:
     ports = {
         "http": {"direct_port": 8077, "port": 8080},
@@ -119,33 +145,23 @@ class Fortio:
         else:
             sys.exit("invalid mesh %s, must be istio or linkerd" % mesh)
 
-    def nosidecar(self, fortio_cmd):
+    def compute_uri(self, svc, port_type):
         basestr = "http://{svc}:{port}/echo?size={size}"
         if self.mode == "grpc":
             basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_base " + basestr.format(
-            svc=self.server.ip, port=self.ports[self.mode]["direct_port"], size=self.size)
+        return basestr.format(svc=svc, port=self.ports[self.mode][port_type], size=self.size)
+
+    def nosidecar(self, fortio_cmd):
+        return fortio_cmd + "_base " + self.compute_uri(self.server.ip, "direct_port")
 
     def serversidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_serveronly " + basestr.format(
-            svc=self.server.ip, port=self.ports[self.mode]["port"], size=self.size)
+        return fortio_cmd + "_serveronly " + self.compute_uri(self.server.ip, "port")
 
     def clientsidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_clientonly " + basestr.format(
-            svc=self.server.labels["app"], port=self.ports[self.mode]["direct_port"], size=self.size)
+        return fortio_cmd + "_clientonly " + self.compute_uri(self.server.labels["app"], "direct_port")
 
     def bothsidecar(self, fortio_cmd):
-        basestr = "http://{svc}:{port}/echo?size={size}"
-        if self.mode == "grpc":
-            basestr = "-payload-size {size} {svc}:{port}"
-        return fortio_cmd + "_both " + basestr.format(
-            svc=self.server.labels["app"], port=self.ports[self.mode]["port"], size=self.size)
+        return fortio_cmd + "_both " + self.compute_uri(self.server.labels["app"], "port")
 
     def ingress(self, fortio_cmd):
         url = urlparse(self.run_ingress)
@@ -156,16 +172,25 @@ class Fortio:
         return fortio_cmd + "_ingress {url}/echo?size={size}".format(
             url=url.geturl(), size=self.size)
 
-    def run(self, headers, conn, qps, size, duration):
-        size = size or self.size
-        if duration is None:
-            duration = self.duration
+    def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label_suffix):
+        print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
+        if load_gen_type == "fortio":
+            kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd))
 
+        if self.perf_record and len(perf_label_suffix) > 0:
+            run_perf(
+                self.mesh,
+                self.server.name,
+                labels + perf_label_suffix,
+                duration=40)
+
+    def generate_test_labels(self, conn, qps, size):
+        size = size or self.size
         labels = self.run_id
         labels += "_qps_" + str(qps)
         labels += "_c_" + str(conn)
         labels += "_" + str(size)
-        # Mixer label
+
         if self.mesh == "istio":
             labels += "_"
             labels += self.telemetry_mode
@@ -176,6 +201,37 @@ class Fortio:
         if self.extra_labels is not None:
             labels += "_" + self.extra_labels
 
+        return labels
+
+    def generate_headers_cmd(self, headers):
+        headers_cmd = ""
+        if headers is not None:
+            for header_val in headers.split(","):
+                headers_cmd += "-H=" + header_val + " "
+
+        return headers_cmd
+
+    def generate_fortio_cmd(self, headers_cmd, conn, qps, duration, grpc, cacert_arg, labels):
+        if duration is None:
+            duration = self.duration
+
+        fortio_cmd = (
+            "fortio load {headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} "
+            "-httpbufferkb=128 -labels {labels}").format(
+            headers=headers_cmd,
+            conn=conn,
+            qps=qps,
+            duration=duration,
+            r=self.r,
+            grpc=grpc,
+            cacert_arg=cacert_arg,
+            labels=labels)
+
+        return fortio_cmd
+
+    def run(self, headers, conn, qps, size, duration):
+        labels = self.generate_test_labels(conn, qps, size, duration)
+
         grpc = ""
         if self.mode == "grpc":
             grpc = "-grpc -ping"
@@ -184,22 +240,20 @@ class Fortio:
         if self.cacert is not None:
             cacert_arg = "-cacert {cacert_path}".format(cacert_path=self.cacert)
 
-        headers_cmd = ""
-        if headers is not None:
-            for header_val in headers.split(","):
-                headers_cmd += "-H=" + header_val + " "
+        headers_cmd = self.generate_headers_cmd(headers)
+        fortio_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
 
-        fortio_cmd = (
-            "fortio load {headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} -httpbufferkb=128 " +
-            "-labels {labels}").format(
-                headers=headers_cmd,
-                conn=conn,
-                qps=qps,
-                duration=duration,
-                r=self.r,
-                grpc=grpc,
-                cacert_arg=cacert_arg,
-                labels=labels)
+        if self.run_baseline:
+            self.execute_sidecar_mode("baseline", "fortio", fortio_cmd, self.nosidecar, labels, "")
+
+        if self.run_serversidecar:
+            self.execute_sidecar_mode("server sidecar", "fortio", fortio_cmd, self.serversidecar, labels, "_srv_serveronly")
+
+        if self.run_clientsidecar:
+            self.execute_sidecar_mode("client sidecar", "fortio", fortio_cmd, self.clientsidecar, labels, "_srv_clientonly")
+
+        if self.run_bothsidecar:
+            self.execute_sidecar_mode("both sidecar", "fortio", fortio_cmd, self.bothsidecar, labels, "_srv_bothsidecars")
 
         if self.run_ingress:
             print('-------------- Running in ingress mode --------------')
@@ -210,40 +264,6 @@ class Fortio:
                     self.server.name,
                     labels + "_srv_ingress",
                     duration=40)
-
-        if self.run_serversidecar:
-            print('-------------- Running in server sidecar mode --------------')
-            kubectl_exec(self.client.name, self.serversidecar(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_serveronly",
-                    duration=40)
-
-        if self.run_clientsidecar:
-            print('-------------- Running in client sidecar mode --------------')
-            kubectl_exec(self.client.name, self.clientsidecar(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.client.name,
-                    labels + "_srv_clientonly",
-                    duration=40)
-
-        if self.run_bothsidecar:
-            print('-------------- Running in both sidecar mode --------------')
-            kubectl_exec(self.client.name, self.bothsidecar(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_bothsidecars",
-                    duration=40)
-
-        if self.run_baseline:
-            print('-------------- Running in baseline mode --------------')
-            kubectl_exec(self.client.name, self.nosidecar(fortio_cmd))
 
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
@@ -278,43 +298,7 @@ def run_perf(mesh, pod, labels, duration=20):
     run_command_sync(LOCAL_FLAMEPATH + " " + filename + ".perf")
 
 
-def kubectl_cp(from_file, to_file, container):
-    namespace = os.environ.get("NAMESPACE", "twopods")
-    cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {container}".format(
-        namespace=namespace,
-        from_file=from_file,
-        to_file=to_file,
-        container=container)
-    print(cmd, flush=True)
-    run_command_sync(cmd)
-
-
-def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
-    namespace = os.environ.get("NAMESPACE", "twopods")
-    c = ""
-    if container is not None:
-        c = "-c " + container
-    cmd = "kubectl --namespace {namespace} exec {pod} {c} -- {remote_cmd}".format(
-        pod=pod,
-        remote_cmd=remote_cmd,
-        c=c,
-        namespace=namespace)
-    print(cmd, flush=True)
-    runfn(cmd)
-
-
-def rc(command):
-    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-    while True:
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-            break
-        if output:
-            print(output.strip() + "\n")
-    return process.poll()
-
-
-def validate(job_config):
+def validate_job_config(job_config):
     required_fields = {"conn": list, "qps": list, "duration": int}
     for k in required_fields:
         if k not in job_config:
@@ -330,7 +314,7 @@ def validate(job_config):
 def fortio_from_config_file(args):
     with open(args.config_file) as f:
         job_config = yaml.safe_load(f)
-        if not validate(job_config):
+        if not validate_job_config(job_config):
             exit(1)
         # TODO: hard to parse yaml into object directly because of existing constructor from CLI
         fortio = Fortio()
@@ -354,7 +338,7 @@ def fortio_from_config_file(args):
         return fortio
 
 
-def run(args):
+def run_perf_test(args):
     min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
 
     # run with config files
@@ -481,7 +465,7 @@ def define_bool(parser, opt, help_arg, default_val):
 def main(argv):
     args = get_parser().parse_args(argv)
     print(args)
-    return run(args)
+    return run_perf_test(args)
 
 
 if __name__ == "__main__":
