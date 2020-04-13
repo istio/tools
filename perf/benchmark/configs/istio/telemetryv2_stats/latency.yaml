@@ -1,6 +1,7 @@
 # Data: latency
 # Filter: metadata-exchange and stats filters
 # VM mode: nullvm
+load_gen_type: "fortio"
 telemetry_mode: "v2-stats-nullvm"
 conn:
     - 2

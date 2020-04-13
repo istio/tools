@@ -210,13 +210,13 @@ DEFAULT_CR_PATH="${ROOT}/istio-install/istioctl_profiles/default.yaml"
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs/istio"
 
-read_perf_test_conf "${CONFIG_DIR}/run_perf_test.conf"
+read_perf_test_conf "${WD}/configs/run_perf_test.conf"
 
 for dir in "${CONFIG_DIR}"/*; do
     # get the last directory name after splitting dir path by '/', which is the configuration dir name
     config_name="$(basename "${dir}")"
     # skip the test config that is disabled to run
-    if (( !"${config_name}" )); then
+    if ! ${!config_name:-false}; then
         continue
     fi
 
