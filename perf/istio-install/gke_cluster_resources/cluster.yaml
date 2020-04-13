@@ -46,7 +46,7 @@ spec:
     horizontalPodAutoscaling:
       disabled: false
     istioConfig:
-      disabled: true # {"type":"boolean","x-kustomize":{"setter":{"name":"addon.istio.disabled","value": true}}}
+      disabled: true
       #  TODO: This section is under rest JSON doc but not applicable in CRD definition
   ipAllocationPolocy:
     useIpAliases: true

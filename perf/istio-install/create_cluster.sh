@@ -151,6 +151,13 @@ if [[ -n "${USE_SUBNET:-}" ]];then
 fi
 set -u
 
+INSTALL_WITH_ANTHOSCLI=""
+set +u
+if [[ -n "${ANTHOSCLI}" ]];then
+  INSTALL_WITH_ANTHOSCLI="True"
+fi
+set -u
+
 ADDONS="HorizontalPodAutoscaling"
 # shellcheck disable=SC2236
 set +u
@@ -189,12 +196,38 @@ function install_with_anthoscli() {
 
   anthoscli apply -f gke_cluster_resources
 }
+
+function install_with_gcloudcontainer() {
+    gc beta container \
+    --project "${PROJECT_ID}" \
+    clusters create "${CLUSTER_NAME}" \
+    --no-enable-basic-auth --cluster-version "${GKE_VERSION}" \
+    --issue-client-certificate \
+    --machine-type "${MACHINE_TYPE}" --image-type "${IMAGE}" --disk-type "pd-standard" --disk-size "${DISK_SIZE}" \
+    --scopes "${SCOPES}" \
+    --num-nodes "${MIN_NODES}" --enable-autoscaling --min-nodes "${MIN_NODES}" --max-nodes "${MAX_NODES}" --max-pods-per-node "${MAXPODS_PER_NODE}" \
+    --enable-stackdriver-kubernetes \
+    --enable-ip-alias \
+    --metadata disable-legacy-endpoints=true \
+    "${NETWORK_SUBNET}" \
+    --default-max-pods-per-node "${MAXPODS_PER_NODE}" \
+    --addons "${ADDONS}" \
+    --enable-network-policy \
+    --workload-metadata-from-node=EXPOSED \
+    --enable-autoupgrade --enable-autorepair \
+#   shellcheck disable=SC2086
+#   shellcheck disable=SC2046
+    --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
+}
+
 # shellcheck disable=SC2086
 # shellcheck disable=SC2046
 if [[ "$(gcloud beta container --project "${PROJECT_ID}" clusters list --filter=name="${CLUSTER_NAME}" --format='csv[no-heading](name)')" ]]; then
   echo "Cluster with this name already created, skipping creation and rerunning init"
-else
+elif [[ -n "${INSTALL_WITH_ANTHOSCLI}" ]];then
   install_with_anthoscli
+else
+  install_with_gcloudcontainer
 fi
 
 NETWORK_NAME=$(basename "$(gcloud container clusters describe "${CLUSTER_NAME}" --project "${PROJECT_ID}" --zone="${ZONE}" \
