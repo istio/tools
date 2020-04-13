@@ -41,6 +41,7 @@ export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
 export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 export NAMESPACE=${NAMESPACE:-'twopods-istio'}
 export PROMETHEUS_NAMESPACE=${PROMETHEUS_NAMESPACE:-'istio-system'}
+export TRIALRUN=${TRIALRUN:-False}
 
 function setup_metrics() {
   # shellcheck disable=SC2155
@@ -84,6 +85,9 @@ function get_benchmark_data() {
 }
 
 function exit_handling() {
+  if [[ "${TRIALRUN}" == "True" ]]; then
+     return
+  fi
   # copy raw data from fortio client pod
   kubectl --namespace "${NAMESPACE}" cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
   gsutil -q cp -r /tmp/rawdata "gs://${GCS_BUCKET}/${OUTPUT_DIR}/rawdata"
@@ -231,6 +235,10 @@ for dir in "${CONFIG_DIR}"/*; do
        source prerun.sh
     fi
 
+    # TRIALRUN as safe check for presubmit
+    if [[ "${TRIALRUN}" == "True" ]]; then
+       continue
+    fi
     # collect config dump after prerun.sh and before test run, to verify test setup is correct
     collect_config_dump "${config_name}"
 
@@ -257,6 +265,10 @@ for dir in "${CONFIG_DIR}"/*; do
 
     popd
 done
+
+if [[ "${TRIALRUN}" == "True" ]]; then
+   get_benchmark_data "${WD}/configs/trialrun.yaml"
+fi
 
 #echo "collect flame graph ..."
 #collect_flame_graph
