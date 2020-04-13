@@ -113,7 +113,8 @@ class Fortio:
             bothsidecar=True,
             ingress=None,
             mesh="istio",
-            cacert=None):
+            cacert=None,
+            load_gen_type="fortio"):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
         self.headers = headers
         self.conn = conn
@@ -137,6 +138,7 @@ class Fortio:
         self.run_bothsidecar = bothsidecar
         self.run_ingress = ingress
         self.cacert = cacert
+        self.load_gen_type = load_gen_type
 
         if mesh == "linkerd":
             self.mesh = "linkerd"
@@ -244,16 +246,16 @@ class Fortio:
         fortio_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
 
         if self.run_baseline:
-            self.execute_sidecar_mode("baseline", "fortio", fortio_cmd, self.nosidecar, labels, "")
+            self.execute_sidecar_mode("baseline", self.load_gen_type, fortio_cmd, self.nosidecar, labels, "")
 
         if self.run_serversidecar:
-            self.execute_sidecar_mode("server sidecar", "fortio", fortio_cmd, self.serversidecar, labels, "_srv_serveronly")
+            self.execute_sidecar_mode("server sidecar", self.load_gen_type, fortio_cmd, self.serversidecar, labels, "_srv_serveronly")
 
         if self.run_clientsidecar:
-            self.execute_sidecar_mode("client sidecar", "fortio", fortio_cmd, self.clientsidecar, labels, "_srv_clientonly")
+            self.execute_sidecar_mode("client sidecar", self.load_gen_type, fortio_cmd, self.clientsidecar, labels, "_srv_clientonly")
 
         if self.run_bothsidecar:
-            self.execute_sidecar_mode("both sidecar", "fortio", fortio_cmd, self.bothsidecar, labels, "_srv_bothsidecars")
+            self.execute_sidecar_mode("both sidecar", self.load_gen_type, fortio_cmd, self.bothsidecar, labels, "_srv_bothsidecars")
 
         if self.run_ingress:
             print('-------------- Running in ingress mode --------------')
@@ -322,6 +324,7 @@ def fortio_from_config_file(args):
         fortio.conn = job_config.get('conn', 16)
         fortio.qps = job_config.get('qps', 1000)
         fortio.duration = job_config.get('duration', 240)
+        fortio.load_gen_type = job_config.get("load_gen_type", "fortio")
         fortio.telemetry_mode = job_config.get('telemetry_mode', 'mixer')
         fortio.metrics = job_config.get('metrics', 'p90')
         fortio.size = job_config.get('size', 1024)
@@ -361,7 +364,8 @@ def run_perf_test(args):
             mode=args.mode,
             mesh=args.mesh,
             telemetry_mode=args.telemetry_mode,
-            cacert=args.cacert)
+            cacert=args.cacert,
+            load_gen_type=args.load_gen_type)
 
     if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
@@ -441,6 +445,11 @@ def get_parser():
         "--cacert",
         help="path to the cacert for the fortio client inside the container",
         default=None)
+    parser.add_argument(
+        "--load_gen_type",
+        help="fortio or nighthawk",
+        default="fortio",
+    )
 
     define_bool(parser, "baseline", "run baseline for all", False)
     define_bool(parser, "serversidecar",
