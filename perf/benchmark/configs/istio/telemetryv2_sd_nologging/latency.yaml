@@ -1,6 +1,7 @@
 # Data: latency
 # Filter: metadata-exchange and stackdriver filters with logging off
 # VM mode: nullvm
+load_gen_type: "fortio"
 telemetry_mode: "v2-sd-nologging-nullvm"
 conn:
     - 2
