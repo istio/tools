@@ -216,7 +216,7 @@ for dir in "${CONFIG_DIR}"/*; do
     # get the last directory name after splitting dir path by '/', which is the configuration dir name
     config_name="$(basename "${dir}")"
     # skip the test config that is disabled to run
-    if (( !"${config_name}" )); then
+    if ! ${!config_name:-false}; then
         continue
     fi
 
