@@ -190,7 +190,7 @@ export ISTIO_INJECT="true"
 ./setup_test.sh
 popd
 dt=$(date +'%Y%m%d')
-export OUTPUT_DIR="${GIT_BRANCH}.${dt}.${GIT_SHA}"
+export OUTPUT_DIR="benchmark_data-${GIT_BRANCH}.${dt}.${GIT_SHA}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
 

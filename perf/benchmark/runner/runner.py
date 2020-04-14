@@ -232,7 +232,7 @@ class Fortio:
         return fortio_cmd
 
     def run(self, headers, conn, qps, size, duration):
-        labels = self.generate_test_labels(conn, qps, size, duration)
+        labels = self.generate_test_labels(conn, qps, size)
 
         grpc = ""
         if self.mode == "grpc":
