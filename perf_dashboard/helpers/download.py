@@ -76,7 +76,6 @@ def download_benchmark_csv(days):
                             master_release_names.pop(0)
                             print(e)
 
-    delete_outdated_files(cur_release_names + master_release_names)
     cur_release_dates = [[]] * len(cur_release_names)
     for i in range(len(cur_release_names)):
         cur_release = cur_release_names[i]
