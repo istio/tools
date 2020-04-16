@@ -252,9 +252,9 @@ class Fortio:
         headers_cmd = self.generate_headers_cmd(headers)
         fortio_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
 
-        def run_profiling_in_background(exec_cmd, podname, filename_prefix, profiling_command):
-            filename = "{filename_prefix}-{podname}".format(
-                filename_prefix=filename_prefix, podname=podname)
+        def run_profiling_in_background(exec_cmd, podname, filename_prefix, profiling_command, labels):
+            filename = "{filename_prefix}-{labels}-{podname}".format(
+                filename_prefix=filename_prefix, labels=labels, podname=podname)
             profiler_cmd = "{exec_cmd} \"{profiling_command} > {filename}.profile\"".format(
                 profiling_command=profiling_command,
                 exec_cmd=exec_cmd,
@@ -301,20 +301,10 @@ class Fortio:
                 profiling_command = self.custom_profiling_command.format(
                     duration=self.duration, sidecar_pid=sidecar_pid)
                 threads.append(Thread(target=run_profiling_in_background, args=[
-                    exec_cmd_on_pod, pod, self.custom_profiling_name, profiling_command]))
+                    exec_cmd_on_pod, pod, self.custom_profiling_name, profiling_command, labels]))
 
         for thread in threads:
             thread.start()
-
-        if self.run_ingress:
-            print('-------------- Running in ingress mode --------------')
-            kubectl_exec(self.client.name, self.ingress(fortio_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_ingress",
-                    duration=40)
 
         if self.run_baseline:
             self.execute_sidecar_mode("baseline", self.load_gen_type, fortio_cmd, self.nosidecar, labels, "")
