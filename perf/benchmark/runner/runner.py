@@ -147,6 +147,11 @@ class Fortio:
         self.cacert = cacert
         self.load_gen_type = load_gen_type
 
+        if self.perf_record != False:
+            if not self.custom_profiling_command is None:
+                sys.exit("--perf and --custom_profiling_command are mutually exclusive")
+            self.custom_profiling_command = "perf record -F 99 -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n"
+
         if mesh == "linkerd":
             self.mesh = "linkerd"
         elif mesh == "istio":
@@ -185,13 +190,6 @@ class Fortio:
         print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
         if load_gen_type == "fortio":
             kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd))
-
-        if self.perf_record and len(perf_label_suffix) > 0:
-            run_perf(
-                self.mesh,
-                self.server.name,
-                labels + perf_label_suffix,
-                duration=40)
 
     def generate_test_labels(self, conn, qps, size):
         size = size or self.size
@@ -238,7 +236,7 @@ class Fortio:
 
         return fortio_cmd
 
-    def run_profiling_in_background(self, exec_cmd, podname, filename_prefix, profiling_command, labels):
+    def run_profiler(self, exec_cmd, podname, filename_prefix, profiling_command, labels):
         filename = "{filename_prefix}-{labels}-{podname}".format(
             filename_prefix=filename_prefix, labels=labels, podname=podname)
         profiler_cmd = "{exec_cmd} \"{profiling_command} > {filename}.profile\"".format(
@@ -260,6 +258,39 @@ class Fortio:
         # Lastly copy the resulting flamegraph out of the container
         kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
                     "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+
+    def maybe_start_profiling_threads(self, labels, perf_label):
+        threads = []
+
+        if self.custom_profiling_command:
+            # We run any custom profiling command on both pods, as one runs on each node we're interested in.
+            for pod in [self.client.name, self.server.name]:
+                exec_cmd_on_pod = "kubectl exec -n {namespace} {podname} -c perf -it -- bash -c ".format(
+                    namespace=os.environ.get("NAMESPACE", "twopods"),
+                    podname=pod
+                )
+
+                # Wait for node_exporter to run, which indicates the profiling initialization container has finished initializing.
+                # once the init probe is supported, move this to a http probe instead in fortio.yaml
+                ready_cmd = "{exec_cmd} \"pgrep 'node_exporter'\"".format(exec_cmd=exec_cmd_on_pod)
+                ne_pid = getoutput(ready_cmd).strip()
+                attempts = 1
+                while ne_pid == "" and attempts < 60:
+                    sleep(1)
+                    ne_pid = getoutput(ready_cmd).strip()
+                    print(".")
+                    attempts = attempts + 1
+
+                # Find side car process id's in case the profiling command needs it.
+                sidecar_ppid = getoutput("{exec_cmd} \"pgrep -f 'pilot-agent proxy sidecar'\"".format(exec_cmd=exec_cmd_on_pod)).strip()
+                sidecar_pid = getoutput("{exec_cmd} \"pgrep -P {sidecar_ppid}\"".format(exec_cmd=exec_cmd_on_pod, sidecar_ppid=sidecar_ppid)).strip()
+                profiling_command = self.custom_profiling_command.format(
+                    duration=self.duration, sidecar_pid=sidecar_pid)
+                threads.append(Thread(target=self.run_profiler, args=[
+                    exec_cmd_on_pod, pod, self.custom_profiling_name, profiling_command, labels + perf_label]))
+
+        return threads
+
 
     def run(self, headers, conn, qps, size, duration):
         labels = self.generate_test_labels(conn, qps, size)
@@ -300,33 +331,7 @@ class Fortio:
         if self.run_ingress:
             perf_label = "_srv_ingress"
 
-        threads = []
-
-        if self.custom_profiling_command:
-            # We run any custom profiling command on both pods, as one runs on each node we're interested in.
-            for pod in [self.client.name, self.server.name]:
-                exec_cmd_on_pod = "kubectl exec -n {namespace} {podname} -c perf -it -- bash -c ".format(
-                    namespace=os.environ.get("NAMESPACE", "twopods"),
-                    podname=pod
-                )
-                
-                # Wait for node_exporter to run, which indicates the profiling initialization container has finished initializing.
-                # once the init probe is supported, move this to a http probe instead in fortio.yaml
-                ne_pid = ""
-                attempts = 0
-                while ne_pid == "" and attempts < 60:
-                    ne_pid = getoutput("{exec_cmd} \"pgrep 'node_exporter'\"".format(exec_cmd=exec_cmd_on_pod)).strip()
-                    attempts = attempts + 1
-                    print(".")
-                    sleep(1)
-
-                # Find side car process id's in case the profiling command needs it.
-                sidecar_ppid = getoutput("{exec_cmd} \"pgrep -f 'pilot-agent proxy sidecar'\"".format(exec_cmd=exec_cmd_on_pod)).strip()
-                sidecar_pid = getoutput("{exec_cmd} \"pgrep -P {sidecar_ppid}\"".format(exec_cmd=exec_cmd_on_pod, sidecar_ppid=sidecar_ppid)).strip()
-                profiling_command = self.custom_profiling_command.format(
-                    duration=self.duration, sidecar_pid=sidecar_pid)
-                threads.append(Thread(target=self.run_profiling_in_background, args=[
-                    exec_cmd_on_pod, pod, self.custom_profiling_name, profiling_command, labels + perf_label]))
+        threads = self.maybe_start_profiling_threads(labels, perf_label)
 
         for thread in threads:
             thread.start()
@@ -334,13 +339,6 @@ class Fortio:
         if self.run_ingress:
             print('-------------- Running in ingress mode --------------')
             kubectl_exec(self.client.name, self.ingress(fortio_cmd))
-
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + perf_label,
-                    duration=40)
         else:
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, fortio_cmd, sidecar_mode_func, labels, perf_label)
 
@@ -349,37 +347,6 @@ class Fortio:
                 for thread in threads:
                     thread.join()
             print("background profiler thread finished - flamegraphs are available in flame/flameoutput")
-
-PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
-FLAMESH = "flame.sh"
-PERFSH = "get_perfdata.sh"
-PERFWD = "/etc/istio/proxy/"
-
-WD = os.getcwd()
-LOCAL_FLAMEDIR = os.path.join(WD, "../flame/")
-LOCAL_FLAMEPATH = LOCAL_FLAMEDIR + FLAMESH
-LOCAL_PERFPATH = LOCAL_FLAMEDIR + PERFSH
-LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
-
-
-def run_perf(mesh, pod, labels, duration=20):
-    filename = labels + "_perf.data"
-    filepath = PERFWD + filename
-    perfpath = PERFWD + PERFSH
-
-    # copy executable over
-    kubectl_cp(LOCAL_PERFPATH, pod + ":" + perfpath, mesh + "-proxy")
-
-    kubectl_exec(
-        pod,
-        "{perf_cmd} {filename} {duration}".format(
-            perf_cmd=perfpath,
-            filename=filename,
-            duration=duration),
-        container=mesh + "-proxy")
-
-    kubectl_cp(pod + ":" + filepath + ".perf", LOCAL_FLAMEOUTPUT + filename + ".perf", mesh + "-proxy")
-    run_command_sync(LOCAL_FLAMEPATH + " " + filename + ".perf")
 
 
 def validate_job_config(job_config):
@@ -512,7 +479,7 @@ def get_parser():
     parser.add_argument(
         "--custom_profiling_command",
         help="Run custom profiling commands on the nodes for the client and server, and produce a flamegraph based on their outputs. E.g. --custom_profiling_command=\"/usr/share/bcc/tools/profile -df 40\"",
-        default=False)
+        default=None)
     parser.add_argument(
         "--custom_profiling_name",
         help="Name to be added to the flamegraph resulting from --custom_profiling_command",
