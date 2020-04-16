@@ -94,11 +94,12 @@ spec:
         sidecar.istio.io/inject: "{{ $.V.inject }}"
         linkerd.io/inject: "{{ $.V.injectL }}"
 {{- if eq $.V.injectL "enabled" }}
-        config.linkerd.io/skip-outbound-ports: "8077" 
+        config.linkerd.io/skip-outbound-ports: "8077"
         config.linkerd.io/skip-inbound-ports: "8077"
 {{- end }}
         # exclude inbound ports of the uncaptured container
         traffic.sidecar.istio.io/excludeInboundPorts: "8076,8077,8078"
+        traffic.sidecar.istio.io/excludeOutboundPorts: "80,8076,8077,8078"
         sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
         sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
       labels:
