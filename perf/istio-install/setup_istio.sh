@@ -172,7 +172,7 @@ function install_istio() {
         mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
       fi
       cp "${DN}/bin/istioctl" "${DIRNAME}"
-      cp "${DN}/manifests" "${DIRNAME}"
+      cp -r "${DN}/manifests" "${DIRNAME}"
       rm -rf "${DN}"
   fi
 
