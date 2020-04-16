@@ -37,6 +37,9 @@ mkdir -p "/lib/modules/${KERNEL_VERSION}"
 ln -sf "${SOURCES_DIR}" "/lib/modules/${KERNEL_VERSION}/source"
 ln -sf "${SOURCES_DIR}" "/lib/modules/${KERNEL_VERSION}/build"
 
+sysctl kernel.perf_event_paranoid=-1
+sysctl kernel.kptr_restrict=0
+
 # fire up the node exporter process, listening at the passed in address:port
 node_exporter --web.listen-address $1
 

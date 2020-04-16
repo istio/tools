@@ -238,6 +238,29 @@ class Fortio:
 
         return fortio_cmd
 
+    def run_profiling_in_background(self, exec_cmd, podname, filename_prefix, profiling_command, labels):
+        filename = "{filename_prefix}-{labels}-{podname}".format(
+            filename_prefix=filename_prefix, labels=labels, podname=podname)
+        profiler_cmd = "{exec_cmd} \"{profiling_command} > {filename}.profile\"".format(
+            profiling_command=profiling_command,
+            exec_cmd=exec_cmd,
+            filename=filename
+        )
+        # Run the profile collection tool, and wait for it to finish.
+        process = subprocess.Popen(shlex.split(profiler_cmd))
+        process.wait()
+        # Next we feed the profiling data to the flamegraphing script.
+        flamegraph_cmd = "{exec_cmd} \"./FlameGraph/flamegraph.pl --title='{profiling_command} Flame Graph'  < {filename}.profile > {filename}.svg\"".format(
+            exec_cmd=exec_cmd,
+            profiling_command=profiling_command,
+            filename=filename
+        )
+        process = subprocess.Popen(shlex.split(flamegraph_cmd))
+        process.wait()
+        # Lastly copy the resulting flamegraph out of the container
+        kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
+                    "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+
     def run(self, headers, conn, qps, size, duration):
         labels = self.generate_test_labels(conn, qps, size)
 
@@ -251,29 +274,31 @@ class Fortio:
 
         headers_cmd = self.generate_headers_cmd(headers)
         fortio_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
+        perf_label = ""
+        sidecar_mode = ""
+        sidecar_mode_func = None
 
-        def run_profiling_in_background(exec_cmd, podname, filename_prefix, profiling_command, labels):
-            filename = "{filename_prefix}-{labels}-{podname}".format(
-                filename_prefix=filename_prefix, labels=labels, podname=podname)
-            profiler_cmd = "{exec_cmd} \"{profiling_command} > {filename}.profile\"".format(
-                profiling_command=profiling_command,
-                exec_cmd=exec_cmd,
-                filename=filename
-            )
-            # Run the profile collection tool, and wait for it to finish.
-            process = subprocess.Popen(shlex.split(profiler_cmd))
-            process.wait()
-            # Next we feed the profiling data to the flamegraphing script.
-            flamegraph_cmd = "{exec_cmd} \"./FlameGraph/flamegraph.pl --title='{profiling_command} Flame Graph'  < {filename}.profile > {filename}.svg\"".format(
-                exec_cmd=exec_cmd,
-                profiling_command=profiling_command,
-                filename=filename
-            )
-            process = subprocess.Popen(shlex.split(flamegraph_cmd))
-            process.wait()
-            # Lastly copy the resulting flamegraph out of the container
-            kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
-                       "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+        if self.run_baseline:
+            sidecar_mode = "baseline"
+            sidecar_mode_func = self.nosidecar
+
+        if self.run_serversidecar:
+            perf_label = "_srv_serveronly"
+            sidecar_mode = "server sidecar"
+            sidecar_mode_func = self.serversidecar
+
+        if self.run_clientsidecar:
+            perf_label = "_srv_clientonly"
+            sidecar_mode = "client sidecar"
+            sidecar_mode_func = self.clientsidecar
+
+        if self.run_bothsidecar:
+            perf_label = "_srv_bothsidecars"
+            sidecar_mode = "both sidecar"
+            sidecar_mode_func = self.bothsidecar
+
+        if self.run_ingress:
+            perf_label = "_srv_ingress"
 
         threads = []
 
@@ -300,33 +325,24 @@ class Fortio:
                 sidecar_pid = getoutput("{exec_cmd} \"pgrep -P {sidecar_ppid}\"".format(exec_cmd=exec_cmd_on_pod, sidecar_ppid=sidecar_ppid)).strip()
                 profiling_command = self.custom_profiling_command.format(
                     duration=self.duration, sidecar_pid=sidecar_pid)
-                threads.append(Thread(target=run_profiling_in_background, args=[
-                    exec_cmd_on_pod, pod, self.custom_profiling_name, profiling_command, labels]))
+                threads.append(Thread(target=self.run_profiling_in_background, args=[
+                    exec_cmd_on_pod, pod, self.custom_profiling_name, profiling_command, labels + perf_label]))
 
         for thread in threads:
             thread.start()
 
-        if self.run_baseline:
-            self.execute_sidecar_mode("baseline", self.load_gen_type, fortio_cmd, self.nosidecar, labels, "")
-
-        if self.run_serversidecar:
-            self.execute_sidecar_mode("server sidecar", self.load_gen_type, fortio_cmd, self.serversidecar, labels, "_srv_serveronly")
-
-        if self.run_clientsidecar:
-            self.execute_sidecar_mode("client sidecar", self.load_gen_type, fortio_cmd, self.clientsidecar, labels, "_srv_clientonly")
-
-        if self.run_bothsidecar:
-            self.execute_sidecar_mode("both sidecar", self.load_gen_type, fortio_cmd, self.bothsidecar, labels, "_srv_bothsidecars")
-
         if self.run_ingress:
             print('-------------- Running in ingress mode --------------')
             kubectl_exec(self.client.name, self.ingress(fortio_cmd))
+
             if self.perf_record:
                 run_perf(
                     self.mesh,
                     self.server.name,
-                    labels + "_srv_ingress",
+                    labels + perf_label,
                     duration=40)
+        else:
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, fortio_cmd, sidecar_mode_func, labels, perf_label)
 
         if len(threads) > 0:
             if self.custom_profiling_command:
