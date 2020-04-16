@@ -142,7 +142,7 @@ function install_istio_with_helm() {
 function install_istio_with_istioctl() {
   local CR_PATH="${WD}/istioctl_profiles/${CR_FILENAME}"
   pushd "${ISTIOCTL_PATH}"
-  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  ./istioctl --charts manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
   popd
 }
 
