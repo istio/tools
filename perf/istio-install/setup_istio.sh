@@ -142,7 +142,7 @@ function install_istio_with_helm() {
 function install_istio_with_istioctl() {
   local CR_PATH="${WD}/istioctl_profiles/${CR_FILENAME}"
   pushd "${ISTIOCTL_PATH}"
-  ./istioctl install --charts ../manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  ./istioctl install --charts ./manifests apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
   popd
 }
 
@@ -170,9 +170,9 @@ function install_istio() {
       tar -xzf "${outfile}" -C "${DN}" --strip-components 1
       if [[ -z "${INSTALL_WITH_ISTIOCTL}" ]]; then
         mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
-        mv "${DN}/bin/istioctl" "${DIRNAME}/${release}"
       fi
       cp "${DN}/bin/istioctl" "${DIRNAME}"
+      cp "${DN}/manifests" "${DIRNAME}"
       rm -rf "${DN}"
   fi
 
