@@ -41,5 +41,5 @@ sysctl kernel.perf_event_paranoid=-1
 sysctl kernel.kptr_restrict=0
 
 # fire up the node exporter process, listening at the passed in address:port
-node_exporter --web.listen-address $1
+node_exporter --web.listen-address "$1"
 
