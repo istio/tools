@@ -32,7 +32,7 @@ from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 NAMESPACE = os.environ.get("NAMESPACE", "twopods")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
-NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:latest"
+NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4"
 
 
 def pod_info(filterstr="", namespace=os.environ.get("NAMESPACE", "twopods"), multi_ok=True):
