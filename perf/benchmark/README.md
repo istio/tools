@@ -168,7 +168,7 @@ weakening security. Resulting flamegraphs will be written to `flame/flameoutput`
   - "stackcount-bpfcc c:*alloc* -df -D {duration} -p {sidecar_pid}" profile calls to `*alloc*`
 - It's also possible to run machine-wide profiling, for example:
   - "profile-bpfcc -df {duration}" for obtaining a machine-wide on-cpu flamegraph.
-  - See http://www.brendangregg.com/FlameGraphs/ for more examples and information.
+  - See [here](http://www.brendangregg.com/FlameGraphs/) for more examples and information.
 - Enabling `profilingMode` in `values.yaml` will also bring up and expose Prometheus's `node_exporter` at the configured port (default: 9100),
   accessible over http via `/metrics.
 

@@ -28,7 +28,6 @@ be replaced by `runner.py` with the process id of the Envoy sidecar.
 It is valid to omit `{sidecar_pid}` in `--custom_profiling_command`.
 This may be useful for machine-wide profiling or arbitrary processes.
 
-
 ```bash
 runner/runner.py --conn 20 --qps 10000 --duration 100 --custom_profiling_command="profile-bpfcc -df {duration} -p {sidecar_pid}" --custom_profiling_name="bcc-oncputime-sidecar"
 
@@ -40,4 +39,3 @@ runner/runner.py --conn 20 --qps 10000 --duration 100 --serversidecar --custom_p
 
 runner/runner.py --conn 20 --qps 10000 --duration 100 --serversidecar --custom_profiling_command="perf record -F 99 -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" --custom_profiling_name="perf-oncputime-sidecar"
 ```
-
