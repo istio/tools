@@ -271,7 +271,7 @@ class Fortio:
         process.wait()
         # Lastly copy the resulting flamegraph out of the container
         kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
-                    "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+                   "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
 
     def maybe_start_profiling_threads(self, labels, perf_label):
         threads = []
