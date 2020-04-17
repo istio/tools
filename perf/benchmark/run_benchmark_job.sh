@@ -80,7 +80,11 @@ function get_benchmark_data() {
   pushd "${WD}/runner"
   CONFIG_FILE="${1}"
   pipenv run python3 runner.py --config_file "${CONFIG_FILE}"
-  collect_metrics
+  
+  if [[ "${TRIALRUN}" == "False" ]]; then
+    collect_metrics
+  fi
+
   popd
 }
 
