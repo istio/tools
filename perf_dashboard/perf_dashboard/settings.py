@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'benchmarks',
+    'analyze_perf_issues',
     'artifacts',
     'regression_pattern',
     'graph_plotting',
