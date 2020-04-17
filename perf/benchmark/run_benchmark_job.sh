@@ -226,7 +226,7 @@ for dir in "${CONFIG_DIR}"/*; do
        extra_overlay="-f ${dir}/installation.yaml"
     fi
     pushd "${ROOT}/istio-install/tmp"
-      ./istioctl manifest apply -f "${DEFAULT_CR_PATH}" "${extra_overlay}" --force --wait
+      ./istioctl install --charts ./manifests -f "${DEFAULT_CR_PATH}" "${extra_overlay}" --force --wait
     popd
 
     # custom pre run
