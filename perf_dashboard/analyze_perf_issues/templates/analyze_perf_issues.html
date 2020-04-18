@@ -32,16 +32,44 @@
 {% endblock sidebar_active %}
 
 {% block current_active %}
-<li class="breadcrumb-item active">Artifacts</li>
+<li class="breadcrumb-item active">Analyze Perf & File an Issue</li>
 {% endblock current_active %}
 
 {% block page_content %}
+<section class="dashboard-header section-padding">
+    <div class="container-fluid">
+      <div class="row d-flex align-items-md-stretch">
+        <!-- List-->
+        <div class="col-lg-12 col-md-3">
+          <div class="card">
+            <div class="card-header">
+              <h2>Analyze Istio Performance</h2>
+            </div>
+            <div class="card-body">
+                <p>For analyzing Istio performance, please refer to Analyzing Istio Performance Wiki Page.</a></p>
+              <ul>
+                  <li><a href="https://github.com/istio/istio/wiki/Analyzing-Istio-Performance#control-plane" target="_blank">Control Plane</a></li>
+                  <li><a href="https://github.com/istio/istio/wiki/Analyzing-Istio-Performance#data-plane" target="_blank">Data Plane</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+          <div class="col-lg-12 col-md-3">
+          <div class="card">
+            <div class="card-header">
+              <h2>File an Istio Performance Issue</h2>
+            </div>
+            <div class="card-body">
+                <p>Please go to Github <a href="https://github.com/istio/istio/issues" target="_blank">istio/istio issues section </a> to file an Istio Performance Issue.</p>
+            </div>
+          </div>
+          </div>
+      </div>
+    </div>
+</section>
+
+
 {% endblock page_content %}
 
 {% block page_data %}
-    <script>
-        current_release = {{ current_release|safe }}
-        cur_release_bundle = {{ cur_release_bundle|safe }}
-        master_release_bundle = {{ master_release_bundle|safe }}
-    </script>
 {% endblock page_data %}
