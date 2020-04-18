@@ -68,6 +68,7 @@ def testall(svc: int, se: int):
     prom = check_metrics.setup_promethus()
     print('finished promethus setup', prom.url)
     setup_pilot_loadtest(svc, se)
+    start = time.time()
     # ensure version is converged.
     wait_till_converge(prom)
     print('version converged in %s seconds ' % (time.time() - start))

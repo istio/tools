@@ -1,0 +1,11 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "perf-dashboard.fullname" . }}
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: {{ .Values.ipName }}
+    networking.gke.io/managed-certificates: {{ include "perf-dashboard.fullname" . }}
+spec:
+  backend:
+    serviceName: {{ include "perf-dashboard.fullname" . }}
+    servicePort: {{ .Values.port }}

@@ -113,6 +113,7 @@ Required fields to specified via CLI or config file:
 ```bash
 optional arguments:
   -h, --help            show this help message and exit
+  --headers HEADERS     a list of `header:value` should be separated by comma, e.g. --headers="foo:bar,foo1:bar1,foo2:bar2"
   --conn CONN           number of connections, comma separated list
   --qps QPS             qps, comma separated list
   --duration DURATION   duration in seconds of the extract
@@ -271,30 +272,20 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 
 ## Visualize Results
 
-The `graph.py` script uses the output CSV file from `fortio.py` to generate a [Bokeh](https://bokeh.pydata.org/en/1.2.0/) interactive graph. The output format is `.html`, from which you can save a PNG image.
+Please upload your generated .csv file to the [graph plotting](http://perf.dashboard.istio.io/graph_plotting/) section of our performance dashboard to visualize your graph.
 
-```bash
-python ./runner/graph.py <PATH_TO_CSV> <METRIC>
-```
+## Add new config to benchmark pipeline
 
-Options:
+Currently we are running benchmark test towards different configs as [prow job](https://prow.istio.io/job-history/istio-prow/logs/daily-performance-benchmark)
 
-```bash
-python ./runner/graph.py --help
-usage: Service Mesh Performance Graph Generator [-h] [--xaxis XAXIS]
-                                                [--mesh MESH]
-                                                csv metric
+To add a new config to this pipeline, we need to add a new directory under [configs folder](https://github.com/istio/tools/tree/master/perf/benchmark/configs/istio), where we can define config parameters structured as below:
 
-positional arguments:
-  csv            csv file
-  metric         y-axis: one of: p50, p90, p99, mem, cpu
+- installation.yaml: install Istio with this IstioOperator overlay file on top of istioctl built-in default profile and [perf testing default overlay](https://github.com/istio/tools/tree/master/perf/istio-install/istioctl_profiles/default.yaml)
+- cpu_mem.yaml: if provided, run cpu, memory test with this config
+- latency.yaml: if provided, run latency test with this config
+- prerun.sh: prerun hook we want to run before test
+- postrun.sh: postrun hook we want to run after test
 
-optional arguments:
-  -h, --help     show this help message and exit
-  --xaxis XAXIS  one of: connections, qps
-  --mesh MESH    which service mesh tool: istio, linkerd
-```
-
-### Example Output
+## Example Output
 
 ![screenshot](screenshots/bokeh-screenshot.png)

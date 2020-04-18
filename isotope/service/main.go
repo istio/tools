@@ -22,7 +22,7 @@ import (
 	"path"
 	"runtime"
 
-	"fortio.org/fortio/log"
+	"istio.io/pkg/log"
 
 	"istio.io/tools/isotope/convert/pkg/consts"
 	"istio.io/tools/isotope/service/pkg/srv"

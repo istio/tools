@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"fortio.org/fortio/log"
+	"istio.io/pkg/log"
 
 	"istio.io/tools/isotope/convert/pkg/consts"
 	"istio.io/tools/isotope/convert/pkg/graph/size"

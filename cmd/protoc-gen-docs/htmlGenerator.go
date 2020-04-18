@@ -20,7 +20,6 @@ import (
 	"os"
 	"path"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"unicode"
@@ -85,20 +84,16 @@ func newHTMLGenerator(model *protomodel.Model, mode outputMode, genWarnings bool
 }
 
 func (g *htmlGenerator) getFileContents(file *protomodel.FileDescriptor,
-	messages map[string]*protomodel.MessageDescriptor,
-	enums map[string]*protomodel.EnumDescriptor,
-	services map[string]*protomodel.ServiceDescriptor) {
+	messages *[]*protomodel.MessageDescriptor,
+	enums *[]*protomodel.EnumDescriptor,
+	services *[]*protomodel.ServiceDescriptor) {
+
+	*messages = append(*messages, file.AllMessages...)
+	*enums = append(*enums, file.AllEnums...)
+	*services = append(*services, file.Services...)
+
 	for _, m := range file.AllMessages {
-		messages[g.relativeName(m)] = m
 		g.includeUnsituatedDependencies(messages, enums, m)
-	}
-
-	for _, e := range file.AllEnums {
-		enums[g.relativeName(e)] = e
-	}
-
-	for _, s := range file.Services {
-		services[g.relativeName(s)] = s
 	}
 }
 
@@ -114,11 +109,11 @@ func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*protomodel.FileDes
 	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
 			g.currentFrontMatterProvider = file
-			messages := make(map[string]*protomodel.MessageDescriptor)
-			enums := make(map[string]*protomodel.EnumDescriptor)
-			services := make(map[string]*protomodel.ServiceDescriptor)
+			messages := []*protomodel.MessageDescriptor{}
+			enums := []*protomodel.EnumDescriptor{}
+			services := []*protomodel.ServiceDescriptor{}
 
-			g.getFileContents(file, messages, enums, services)
+			g.getFileContents(file, &messages, &enums, &services)
 			var filename = path.Base(file.GetName())
 			var extension = path.Ext(filename)
 			var name = filename[0 : len(filename)-len(extension)]
@@ -137,13 +132,13 @@ func (g *htmlGenerator) generatePerPackageOutput(filesToGen map[*protomodel.File
 	// This will be all the types in the fileToGen input files, along with any
 	// dependent types which are located in packages that don't have
 	// a known location on the web.
-	messages := make(map[string]*protomodel.MessageDescriptor)
-	enums := make(map[string]*protomodel.EnumDescriptor)
-	services := make(map[string]*protomodel.ServiceDescriptor)
+	messages := []*protomodel.MessageDescriptor{}
+	enums := []*protomodel.EnumDescriptor{}
+	services := []*protomodel.ServiceDescriptor{}
 
 	for _, file := range pkg.Files {
 		if _, ok := filesToGen[file]; ok {
-			g.getFileContents(file, messages, enums, services)
+			g.getFileContents(file, &messages, &enums, &services)
 		}
 	}
 
@@ -193,8 +188,17 @@ func (g *htmlGenerator) descLocation(desc protomodel.CoreDesc) string {
 	return ""
 }
 
-func (g *htmlGenerator) includeUnsituatedDependencies(messages map[string]*protomodel.MessageDescriptor,
-	enums map[string]*protomodel.EnumDescriptor,
+func (g *htmlGenerator) hasName(descs []*protomodel.MessageDescriptor, name string) bool {
+	for _, desc := range descs {
+		if g.relativeName(desc) == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *htmlGenerator) includeUnsituatedDependencies(messages *[]*protomodel.MessageDescriptor,
+	enums *[]*protomodel.EnumDescriptor,
 	msg *protomodel.MessageDescriptor) {
 	for _, field := range msg.Fields {
 		switch f := field.FieldType.(type) {
@@ -202,42 +206,29 @@ func (g *htmlGenerator) includeUnsituatedDependencies(messages map[string]*proto
 			// A package without a known documentation location is included in the output.
 			if g.descLocation(field.FieldType) == "" {
 				name := g.relativeName(f)
-				if _, ok := messages[name]; !ok {
-					messages[name] = f
+				if !g.hasName(*messages, name) {
+					*messages = append(*messages, f)
 					g.includeUnsituatedDependencies(messages, enums, msg)
 				}
 			}
 		case *protomodel.EnumDescriptor:
 			if g.descLocation(field.FieldType) == "" {
-				enums[g.relativeName(f)] = f
+				*enums = append(*enums, f)
 			}
 		}
 	}
 }
 
 // Generate a package documentation file or a collection of cross-linked files.
-func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor, messages map[string]*protomodel.MessageDescriptor,
-	enums map[string]*protomodel.EnumDescriptor, services map[string]*protomodel.ServiceDescriptor) plugin.CodeGeneratorResponse_File {
+func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor, messages []*protomodel.MessageDescriptor,
+	enums []*protomodel.EnumDescriptor, services []*protomodel.ServiceDescriptor) plugin.CodeGeneratorResponse_File {
 	g.buffer.Reset()
 
 	var typeList []string
 	var serviceList []string
 
-	for name, enum := range enums {
-		if enum.IsHidden() {
-			continue
-		}
-
-		absName := g.absoluteName(enum)
-		known := wellKnownTypes[absName]
-		if known != "" {
-			continue
-		}
-
-		typeList = append(typeList, name)
-	}
-
-	for name, msg := range messages {
+	messagesMap := map[string]*protomodel.MessageDescriptor{}
+	for _, msg := range messages {
 		// Don't generate virtual messages for maps.
 		if msg.GetOptions().GetMapEntry() {
 			continue
@@ -253,18 +244,38 @@ func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor
 			continue
 		}
 
+		name := g.relativeName(msg)
 		typeList = append(typeList, name)
+		messagesMap[name] = msg
 	}
-	sort.Strings(typeList)
 
-	for name, svc := range services {
+	enumMap := map[string]*protomodel.EnumDescriptor{}
+	for _, enum := range enums {
+		if enum.IsHidden() {
+			continue
+		}
+
+		absName := g.absoluteName(enum)
+		known := wellKnownTypes[absName]
+		if known != "" {
+			continue
+		}
+
+		name := g.relativeName(enum)
+		typeList = append(typeList, name)
+		enumMap[name] = enum
+	}
+
+	servicesMap := map[string]*protomodel.ServiceDescriptor{}
+	for _, svc := range services {
 		if svc.IsHidden() {
 			continue
 		}
 
+		name := g.relativeName(svc)
 		serviceList = append(serviceList, name)
+		servicesMap[name] = svc
 	}
-	sort.Strings(serviceList)
 
 	numKinds := 0
 	if len(typeList) > 0 {
@@ -285,7 +296,7 @@ func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor
 		}
 
 		for _, name := range serviceList {
-			service := services[name]
+			service := servicesMap[name]
 			g.generateService(service)
 		}
 	}
@@ -296,9 +307,9 @@ func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor
 		}
 
 		for _, name := range typeList {
-			if e, ok := enums[name]; ok {
+			if e, ok := enumMap[name]; ok {
 				g.generateEnum(e)
-			} else if m, ok := messages[name]; ok {
+			} else if m, ok := messagesMap[name]; ok {
 				g.generateMessage(m)
 			}
 		}
@@ -507,10 +518,7 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 
 				g.emit("</td>")
 				g.emit("<td>")
-				// oneof fields are always required.
-				if field.OneofIndex != nil {
-					g.emit("Yes")
-				} else if field.Options != nil {
+				if field.Options != nil {
 					fb := getFieldBehavior(field.Options)
 					var required bool
 					for _, e := range fb {

@@ -25,6 +25,25 @@ master_selected_release = []
 cpu_cur_selected_release = []
 cpu_master_selected_release = []
 current_release = [os.getenv('CUR_RELEASE')]
+release_days = ['30', '60', '90']
+cur_selected_days = []
+
+
+def get_traceback_days(request):
+    if request.method == "POST" and 'release_days' in request.POST:
+        cur_selected_days.append(request.POST['release_days'])
+
+    days = 30
+    if len(cur_selected_days) > 1:
+        cur_selected_days.pop(0)
+    if len(cur_selected_days) > 0:
+        days = int(cur_selected_days[0])
+
+    return days
+
+
+def benchmarks_overview(request):
+    return render(request, "benchmarks_overview.html")
 
 
 # Create your views here.
@@ -36,7 +55,9 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
+        days = get_traceback_days(request)
+
+        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(days)
 
         if request.method == "POST" and 'current_release_name' in request.POST:
             cur_selected_release.append(request.POST['current_release_name'])
@@ -67,64 +88,60 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         if len(master_selected_release) > 0:
             df = pd.read_csv(perf_data_path + master_selected_release[0] + ".csv")
 
-        latency_mixer_base_p50_master = get_latency_vs_conn_y_series(df, '_mixer_base', 'p50')
-        latency_mixer_serveronly_p50_master = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p50')
         latency_mixer_both_p50_master = get_latency_vs_conn_y_series(df, '_mixer_both', 'p50')
-        latency_none_serveronly_p50_master = get_latency_vs_conn_y_series(df, '_none_serveronly', 'p50')
-        latency_none_both_p50_master = get_latency_vs_conn_y_series(df, '_none_both', 'p50')
+        latency_none_mtls_base_p50_master = get_latency_vs_conn_y_series(df, '_none_mtls_base', 'p50')
+        latency_none_mtls_both_p50_master = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p50')
         latency_none_plaintext_both_p50_master = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p50')
-        latency_v2_serveronly_p50_master = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p50')
-        latency_v2_both_p50_master = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p50')
+        latency_v2_stats_nullvm_both_p50_master = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p50')
+        latency_v2_sd_nologging_nullvm_both_p50_master = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p50')
+        latency_v2_sd_full_nullvm_both_p50_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p50')
 
-        latency_mixer_base_p90_master = get_latency_vs_conn_y_series(df, '_mixer_base', 'p90')
-        latency_mixer_serveronly_p90_master = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p90')
         latency_mixer_both_p90_master = get_latency_vs_conn_y_series(df, '_mixer_both', 'p90')
-        latency_none_serveronly_p90_master = get_latency_vs_conn_y_series(df, '_none_serveronly', 'p90')
-        latency_none_both_p90_master = get_latency_vs_conn_y_series(df, '_none_both', 'p90')
+        latency_none_mtls_base_p90_master = get_latency_vs_conn_y_series(df, '_none_mtls_base', 'p90')
+        latency_none_mtls_both_p90_master = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p90')
         latency_none_plaintext_both_p90_master = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p90')
-        latency_v2_serveronly_p90_master = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p90')
-        latency_v2_both_p90_master = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p90')
+        latency_v2_stats_nullvm_both_p90_master = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p90')
+        latency_v2_sd_nologging_nullvm_both_p90_master = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p90')
+        latency_v2_sd_full_nullvm_both_p90_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p90')
 
-        latency_mixer_base_p99_master = get_latency_vs_conn_y_series(df, '_mixer_base', 'p99')
-        latency_mixer_serveronly_p99_master = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p99')
         latency_mixer_both_p99_master = get_latency_vs_conn_y_series(df, '_mixer_both', 'p99')
-        latency_none_serveronly_p99_master = get_latency_vs_conn_y_series(df, '_none_serveronly', 'p99')
-        latency_none_both_p99_master = get_latency_vs_conn_y_series(df, '_none_both', 'p99')
+        latency_none_mtls_base_p99_master = get_latency_vs_conn_y_series(df, '_none_mtls_base', 'p99')
+        latency_none_mtls_both_p99_master = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p99')
         latency_none_plaintext_both_p99_master = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p99')
-        latency_v2_serveronly_p99_master = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p99')
-        latency_v2_both_p99_master = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p99')
+        latency_v2_stats_nullvm_both_p99_master = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p99')
+        latency_v2_sd_nologging_nullvm_both_p99_master = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
+        latency_v2_sd_full_nullvm_both_p99_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
-        other_context = {'current_release': current_release,
+        other_context = {'release_days': release_days,
+                         'cur_selected_days': cur_selected_days,
+                         'current_release': current_release,
                          'cur_selected_release': cur_selected_release,
                          'master_selected_release':  master_selected_release,
                          'cur_release_names': cur_release_names,
                          'master_release_names': master_release_names,
                          }
 
-        master_context = {'latency_mixer_base_p50_master': latency_mixer_base_p50_master,
-                          'latency_mixer_serveronly_p50_master': latency_mixer_serveronly_p50_master,
-                          'latency_mixer_both_p50_master': latency_mixer_both_p50_master,
-                          'latency_none_serveronly_p50_master': latency_none_serveronly_p50_master,
-                          'latency_none_both_p50_master': latency_none_both_p50_master,
+        master_context = {'latency_mixer_both_p50_master': latency_mixer_both_p50_master,
+                          'latency_none_mtls_base_p50_master': latency_none_mtls_base_p50_master,
+                          'latency_none_mtls_both_p50_master': latency_none_mtls_both_p50_master,
                           'latency_none_plaintext_both_p50_master': latency_none_plaintext_both_p50_master,
-                          'latency_v2_serveronly_p50_master': latency_v2_serveronly_p50_master,
-                          'latency_v2_both_p50_master': latency_v2_both_p50_master,
-                          'latency_mixer_base_p90_master': latency_mixer_base_p90_master,
-                          'latency_mixer_serveronly_p90_master': latency_mixer_serveronly_p90_master,
+                          'latency_v2_stats_nullvm_both_p50_master': latency_v2_stats_nullvm_both_p50_master,
+                          'latency_v2_sd_nologging_nullvm_both_p50_master': latency_v2_sd_nologging_nullvm_both_p50_master,
+                          'latency_v2_sd_full_nullvm_both_p50_master': latency_v2_sd_full_nullvm_both_p50_master,
                           'latency_mixer_both_p90_master': latency_mixer_both_p90_master,
-                          'latency_none_serveronly_p90_master': latency_none_serveronly_p90_master,
-                          'latency_none_both_p90_master': latency_none_both_p90_master,
+                          'latency_none_mtls_base_p90_master': latency_none_mtls_base_p90_master,
+                          'latency_none_mtls_both_p90_master': latency_none_mtls_both_p90_master,
                           'latency_none_plaintext_both_p90_master': latency_none_plaintext_both_p90_master,
-                          'latency_v2_serveronly_p90_master': latency_v2_serveronly_p90_master,
-                          'latency_v2_both_p90_master': latency_v2_both_p90_master,
-                          'latency_mixer_base_p99_master': latency_mixer_base_p99_master,
-                          'latency_mixer_serveronly_p99_master': latency_mixer_serveronly_p99_master,
+                          'latency_v2_stats_nullvm_both_p90_master': latency_v2_stats_nullvm_both_p90_master,
+                          'latency_v2_sd_nologging_nullvm_both_p90_master': latency_v2_sd_nologging_nullvm_both_p90_master,
+                          'latency_v2_sd_full_nullvm_both_p90_master': latency_v2_sd_full_nullvm_both_p90_master,
                           'latency_mixer_both_p99_master': latency_mixer_both_p99_master,
-                          'latency_none_serveronly_p99_master': latency_none_serveronly_p99_master,
-                          'latency_none_both_p99_master': latency_none_both_p99_master,
+                          'latency_none_mtls_base_p99_master': latency_none_mtls_base_p99_master,
+                          'latency_none_mtls_both_p99_master': latency_none_mtls_both_p99_master,
                           'latency_none_plaintext_both_p99_master': latency_none_plaintext_both_p99_master,
-                          'latency_v2_serveronly_p99_master': latency_v2_serveronly_p99_master,
-                          'latency_v2_both_p99_master': latency_v2_both_p99_master,
+                          'latency_v2_stats_nullvm_both_p99_master': latency_v2_stats_nullvm_both_p99_master,
+                          'latency_v2_sd_nologging_nullvm_both_p99_master': latency_v2_sd_nologging_nullvm_both_p99_master,
+                          'latency_v2_sd_full_nullvm_both_p99_master': latency_v2_sd_full_nullvm_both_p99_master,
                           }
 
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
@@ -140,7 +157,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
+
+        days = get_traceback_days(request)
+
+        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(days)
 
         if request.method == "POST" and 'current_release_name' in request.POST:
             cur_selected_release.append(request.POST['current_release_name'])
@@ -171,64 +191,60 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         if len(master_selected_release) > 0:
             df = pd.read_csv(perf_data_path + master_selected_release[0] + ".csv")
 
-        latency_mixer_base_p50_master = get_latency_vs_qps_y_series(df, '_mixer_base', 'p50')
-        latency_mixer_serveronly_p50_master = get_latency_vs_qps_y_series(df, '_mixer_serveronly', 'p50')
         latency_mixer_both_p50_master = get_latency_vs_qps_y_series(df, '_mixer_both', 'p50')
-        latency_none_serveronly_p50_master = get_latency_vs_qps_y_series(df, '_none_serveronly', 'p50')
-        latency_none_both_p50_master = get_latency_vs_qps_y_series(df, '_none_both', 'p50')
+        latency_none_mtls_base_p50_master = get_latency_vs_qps_y_series(df, '_none_mtls_base', 'p50')
+        latency_none_mtls_both_p50_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p50')
         latency_none_plaintext_both_p50_master = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p50')
-        latency_v2_serveronly_p50_master = get_latency_vs_qps_y_series(df, 'nullvm_serveronly', 'p50')
-        latency_v2_both_p50_master = get_latency_vs_qps_y_series(df, 'nullvm_both', 'p50')
+        latency_v2_stats_nullvm_both_p50_master = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p50')
+        latency_v2_sd_nologging_nullvm_both_p50_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p50')
+        latency_v2_sd_full_nullvm_both_p50_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p50')
 
-        latency_mixer_base_p90_master = get_latency_vs_qps_y_series(df, '_mixer_base', 'p90')
-        latency_mixer_serveronly_p90_master = get_latency_vs_qps_y_series(df, '_mixer_serveronly', 'p90')
         latency_mixer_both_p90_master = get_latency_vs_qps_y_series(df, '_mixer_both', 'p90')
-        latency_none_serveronly_p90_master = get_latency_vs_qps_y_series(df, '_none_serveronly', 'p90')
-        latency_none_both_p90_master = get_latency_vs_qps_y_series(df, '_none_both', 'p90')
+        latency_none_mtls_base_p90_master = get_latency_vs_qps_y_series(df, '_none_mtls_base', 'p90')
+        latency_none_mtls_both_p90_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p90')
         latency_none_plaintext_both_p90_master = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p90')
-        latency_v2_serveronly_p90_master = get_latency_vs_qps_y_series(df, 'nullvm_serveronly', 'p90')
-        latency_v2_both_p90_master = get_latency_vs_qps_y_series(df, 'nullvm_both', 'p90')
+        latency_v2_stats_nullvm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p90')
+        latency_v2_sd_nologging_nullvm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p90')
+        latency_v2_sd_full_nullvm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p90')
 
-        latency_mixer_base_p99_master = get_latency_vs_qps_y_series(df, '_mixer_base', 'p99')
-        latency_mixer_serveronly_p99_master = get_latency_vs_qps_y_series(df, '_mixer_serveronly', 'p99')
         latency_mixer_both_p99_master = get_latency_vs_qps_y_series(df, '_mixer_both', 'p99')
-        latency_none_serveronly_p99_master = get_latency_vs_qps_y_series(df, '_none_serveronly', 'p99')
-        latency_none_both_p99_master = get_latency_vs_qps_y_series(df, '_none_both', 'p99')
+        latency_none_mtls_base_p99_master = get_latency_vs_qps_y_series(df, '_none_mtls_base', 'p99')
+        latency_none_mtls_both_p99_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p99')
         latency_none_plaintext_both_p99_master = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p99')
-        latency_v2_serveronly_p99_master = get_latency_vs_qps_y_series(df, 'nullvm_serveronly', 'p99')
-        latency_v2_both_p99_master = get_latency_vs_qps_y_series(df, 'nullvm_both', 'p99')
+        latency_v2_stats_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p99')
+        latency_v2_sd_nologging_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
+        latency_v2_sd_full_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
-        other_context = {'current_release': current_release,
+        other_context = {'release_days': release_days,
+                         'cur_selected_days': cur_selected_days,
+                         'current_release': current_release,
                          'cur_selected_release': cur_selected_release,
                          'master_selected_release':  master_selected_release,
                          'cur_release_names': cur_release_names,
                          'master_release_names': master_release_names,
                          }
 
-        master_context = {'latency_mixer_base_p50_master': latency_mixer_base_p50_master,
-                          'latency_mixer_serveronly_p50_master': latency_mixer_serveronly_p50_master,
-                          'latency_mixer_both_p50_master': latency_mixer_both_p50_master,
-                          'latency_none_serveronly_p50_master': latency_none_serveronly_p50_master,
-                          'latency_none_both_p50_master': latency_none_both_p50_master,
+        master_context = {'latency_mixer_both_p50_master': latency_mixer_both_p50_master,
+                          'latency_none_mtls_base_p50_master': latency_none_mtls_base_p50_master,
+                          'latency_none_mtls_both_p50_master': latency_none_mtls_both_p50_master,
                           'latency_none_plaintext_both_p50_master': latency_none_plaintext_both_p50_master,
-                          'latency_v2_serveronly_p50_master': latency_v2_serveronly_p50_master,
-                          'latency_v2_both_p50_master': latency_v2_both_p50_master,
-                          'latency_mixer_base_p90_master': latency_mixer_base_p90_master,
-                          'latency_mixer_serveronly_p90_master': latency_mixer_serveronly_p90_master,
+                          'latency_v2_stats_nullvm_both_p50_master': latency_v2_stats_nullvm_both_p50_master,
+                          'latency_v2_sd_nologging_nullvm_both_p50_master': latency_v2_sd_nologging_nullvm_both_p50_master,
+                          'latency_v2_sd_full_nullvm_both_p50_master': latency_v2_sd_full_nullvm_both_p50_master,
                           'latency_mixer_both_p90_master': latency_mixer_both_p90_master,
-                          'latency_none_serveronly_p90_master': latency_none_serveronly_p90_master,
-                          'latency_none_both_p90_master': latency_none_both_p90_master,
+                          'latency_none_mtls_base_p90_master': latency_none_mtls_base_p90_master,
+                          'latency_none_mtls_both_p90_master': latency_none_mtls_both_p90_master,
                           'latency_none_plaintext_both_p90_master': latency_none_plaintext_both_p90_master,
-                          'latency_v2_serveronly_p90_master': latency_v2_serveronly_p90_master,
-                          'latency_v2_both_p90_master': latency_v2_both_p90_master,
-                          'latency_mixer_base_p99_master': latency_mixer_base_p99_master,
-                          'latency_mixer_serveronly_p99_master': latency_mixer_serveronly_p99_master,
+                          'latency_v2_stats_nullvm_both_p90_master': latency_v2_stats_nullvm_both_p90_master,
+                          'latency_v2_sd_nologging_nullvm_both_p90_master': latency_v2_sd_nologging_nullvm_both_p90_master,
+                          'latency_v2_sd_full_nullvm_both_p90_master': latency_v2_sd_full_nullvm_both_p90_master,
                           'latency_mixer_both_p99_master': latency_mixer_both_p99_master,
-                          'latency_none_serveronly_p99_master': latency_none_serveronly_p99_master,
-                          'latency_none_both_p99_master': latency_none_both_p99_master,
+                          'latency_none_mtls_base_p99_master': latency_none_mtls_base_p99_master,
+                          'latency_none_mtls_both_p99_master': latency_none_mtls_both_p99_master,
                           'latency_none_plaintext_both_p99_master': latency_none_plaintext_both_p99_master,
-                          'latency_v2_serveronly_p99_master': latency_v2_serveronly_p99_master,
-                          'latency_v2_both_p99_master': latency_v2_both_p99_master,
+                          'latency_v2_stats_nullvm_both_p99_master': latency_v2_stats_nullvm_both_p99_master,
+                          'latency_v2_sd_nologging_nullvm_both_p99_master': latency_v2_sd_nologging_nullvm_both_p99_master,
+                          'latency_v2_sd_full_nullvm_both_p99_master': latency_v2_sd_full_nullvm_both_p99_master,
                           }
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
 
@@ -243,7 +259,9 @@ def cpu_memory(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(20)
+        days = get_traceback_days(request)
+
+        cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(days)
 
         if request.method == "POST" and 'current_release_name' in request.POST:
             cpu_cur_selected_release.append(request.POST['current_release_name'])
@@ -274,200 +292,182 @@ def cpu_memory(request, uploaded_csv_url=None):
         if len(cpu_master_selected_release) > 0:
             df = pd.read_csv(perf_data_path + cpu_master_selected_release[0] + ".csv")
 
-        cpu_mixer_base_master = get_cpu_y_series(df, '_mixer_base')
-        cpu_mixer_serveronly_master = get_cpu_y_series(df, '_mixer_serveronly')
         cpu_mixer_both_master = get_cpu_y_series(df, '_mixer_both')
-        cpu_none_serveronly_master = get_cpu_y_series(df, '_none_serveronly')
-        cpu_none_both_master = get_cpu_y_series(df, '_none_both')
+        cpu_none_mtls_base_master = get_cpu_y_series(df, '_none_mtls_base')
+        cpu_none_mtls_both_master = get_cpu_y_series(df, '_none_mtls_both')
         cpu_none_plaintext_both_master = get_cpu_y_series(df, '_none_plaintext_both')
-        cpu_v2_serveronly_master = get_cpu_y_series(df, 'nullvm_serveronly')
-        cpu_v2_both_master = get_cpu_y_series(df, 'nullvm_both')
+        cpu_v2_stats_nullvm_both_master = get_cpu_y_series(df, '_v2-stats-nullvm_both')
+        cpu_v2_sd_nologging_nullvm_both_master = get_cpu_y_series(df, '_v2-sd-nologging-nullvm_both')
+        cpu_v2_sd_full_nullvm_both_master = get_cpu_y_series(df, '_v2-sd-full-nullvm_both')
 
-        mem_mixer_base_master = get_mem_y_series(df, '_mixer_base')
-        mem_mixer_serveronly_master = get_mem_y_series(df, '_mixer_serveronly')
         mem_mixer_both_master = get_mem_y_series(df, '_mixer_both')
-        mem_none_serveronly_master = get_mem_y_series(df, '_none_serveronly')
-        mem_none_both_master = get_mem_y_series(df, '_none_both')
+        mem_none_mtls_base_master = get_mem_y_series(df, '_none_mtls_base')
+        mem_none_mtls_both_master = get_mem_y_series(df, '_none_mtls_both')
         mem_none_plaintext_both_master = get_mem_y_series(df, '_none_plaintext_both')
-        mem_v2_serveronly_master = get_mem_y_series(df, 'nullvm_serveronly')
-        mem_v2_both_master = get_mem_y_series(df, 'nullvm_both')
+        mem_v2_stats_nullvm_both_master = get_mem_y_series(df, '_v2-stats-nullvm_both')
+        mem_v2_sd_nologging_nullvm_both_master = get_mem_y_series(df, '_v2-sd-nologging-nullvm_both')
+        mem_v2_sd_full_nullvm_both_master = get_mem_y_series(df, '_v2-sd-full-nullvm_both')
 
-        other_context = {'current_release': current_release,
+        other_context = {'release_days': release_days,
+                         'cur_selected_days': cur_selected_days,
+                         'current_release': current_release,
                          'cpu_cur_selected_release': cpu_cur_selected_release,
                          'cpu_master_selected_release': cpu_master_selected_release,
                          'cur_release_names': cur_release_names,
                          'master_release_names': master_release_names,
                          }
 
-        master_context = {'cpu_mixer_base_master': cpu_mixer_base_master,
-                          'cpu_mixer_serveronly_master': cpu_mixer_serveronly_master,
-                          'cpu_mixer_both_master': cpu_mixer_both_master,
-                          'cpu_none_serveronly_master': cpu_none_serveronly_master,
-                          'cpu_none_both_master': cpu_none_both_master,
+        master_context = {'cpu_mixer_both_master': cpu_mixer_both_master,
+                          'cpu_none_mtls_base_master': cpu_none_mtls_base_master,
+                          'cpu_none_mtls_both_master': cpu_none_mtls_both_master,
                           'cpu_none_plaintext_both_master': cpu_none_plaintext_both_master,
-                          'cpu_v2_serveronly_master': cpu_v2_serveronly_master,
-                          'cpu_v2_both_master': cpu_v2_both_master,
-                          'mem_mixer_base_master': mem_mixer_base_master,
-                          'mem_mixer_serveronly_master': mem_mixer_serveronly_master,
+                          'cpu_v2_stats_nullvm_both_master': cpu_v2_stats_nullvm_both_master,
+                          'cpu_v2_sd_nologging_nullvm_both_master': cpu_v2_sd_nologging_nullvm_both_master,
+                          'cpu_v2_sd_full_nullvm_both_master': cpu_v2_sd_full_nullvm_both_master,
                           'mem_mixer_both_master': mem_mixer_both_master,
-                          'mem_none_serveronly_master': mem_none_serveronly_master,
-                          'mem_none_both_master': mem_none_both_master,
+                          'mem_none_mtls_base_master': mem_none_mtls_base_master,
+                          'mem_none_mtls_both_master': mem_none_mtls_both_master,
                           'mem_none_plaintext_both_master': mem_none_plaintext_both_master,
-                          'mem_v2_serveronly_master': mem_v2_serveronly_master,
-                          'mem_v2_both_master': mem_v2_both_master,
+                          'mem_v2_stats_nullvm_both_master': mem_v2_stats_nullvm_both_master,
+                          'mem_v2_sd_nologging_nullvm_both_master': mem_v2_sd_nologging_nullvm_both_master,
+                          'mem_v2_sd_full_nullvm_both_master': mem_v2_sd_full_nullvm_both_master
                           }
-        context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
 
+        context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
         return render(request, "cpu_memory.html", context=context)
 
 
 def get_lantency_vs_conn_context(df):
-    latency_mixer_base_p50 = get_latency_vs_conn_y_series(df, '_mixer_base', 'p50')
-    latency_mixer_serveronly_p50 = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p50')
     latency_mixer_both_p50 = get_latency_vs_conn_y_series(df, '_mixer_both', 'p50')
-    latency_none_serveronly_p50 = get_latency_vs_conn_y_series(df, '_none_serveronly', 'p50')
-    latency_none_both_p50 = get_latency_vs_conn_y_series(df, '_none_both', 'p50')
+    latency_none_mtls_base_p50 = get_latency_vs_conn_y_series(df, '_none_mtls_base', 'p50')
+    latency_none_mtls_both_p50 = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p50')
     latency_none_plaintext_both_p50 = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p50')
-    latency_v2_serveronly_p50 = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p50')
-    latency_v2_both_p50 = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p50')
+    latency_v2_stats_nullvm_both_p50 = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p50')
+    latency_v2_sd_nologging_nullvm_both_p50 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p50')
+    latency_v2_sd_full_nullvm_both_p50 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p50')
 
-    latency_mixer_base_p90 = get_latency_vs_conn_y_series(df, '_mixer_base', 'p90')
-    latency_mixer_serveronly_p90 = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p90')
     latency_mixer_both_p90 = get_latency_vs_conn_y_series(df, '_mixer_both', 'p90')
-    latency_none_serveronly_p90 = get_latency_vs_conn_y_series(df, '_none_serveronly', 'p90')
-    latency_none_both_p90 = get_latency_vs_conn_y_series(df, '_none_both', 'p90')
+    latency_none_mtls_base_p90 = get_latency_vs_conn_y_series(df, '_none_mtls_base', 'p90')
+    latency_none_mtls_both_p90 = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p90')
     latency_none_plaintext_both_p90 = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p90')
-    latency_v2_serveronly_p90 = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p90')
-    latency_v2_both_p90 = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p90')
+    latency_v2_stats_nullvm_both_p90 = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p90')
+    latency_v2_sd_nologging_nullvm_both_p90 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p90')
+    latency_v2_sd_full_nullvm_both_p90 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p90')
 
-    latency_mixer_base_p99 = get_latency_vs_conn_y_series(df, '_mixer_base', 'p99')
-    latency_mixer_serveronly_p99 = get_latency_vs_conn_y_series(df, '_mixer_serveronly', 'p99')
     latency_mixer_both_p99 = get_latency_vs_conn_y_series(df, '_mixer_both', 'p99')
-    latency_none_serveronly_p99 = get_latency_vs_conn_y_series(df, '_none_serveronly', 'p99')
-    latency_none_both_p99 = get_latency_vs_conn_y_series(df, '_none_both', 'p99')
+    latency_none_mtls_base_p99 = get_latency_vs_conn_y_series(df, '_none_mtls_base', 'p99')
+    latency_none_mtls_both_p99 = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p99')
     latency_none_plaintext_both_p99 = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p99')
-    latency_v2_serveronly_p99 = get_latency_vs_conn_y_series(df, 'nullvm_serveronly', 'p99')
-    latency_v2_both_p99 = get_latency_vs_conn_y_series(df, 'nullvm_both', 'p99')
+    latency_v2_stats_nullvm_both_p99 = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p99')
+    latency_v2_sd_nologging_nullvm_both_p99 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
+    latency_v2_sd_full_nullvm_both_p99 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
-    context = {'latency_mixer_base_p50': latency_mixer_base_p50,
-               'latency_mixer_serveronly_p50': latency_mixer_serveronly_p50,
-               'latency_mixer_both_p50': latency_mixer_both_p50,
-               'latency_none_serveronly_p50': latency_none_serveronly_p50,
-               'latency_none_both_p50': latency_none_both_p50,
+    context = {'latency_mixer_both_p50': latency_mixer_both_p50,
+               'latency_none_mtls_base_p50': latency_none_mtls_base_p50,
+               'latency_none_mtls_both_p50': latency_none_mtls_both_p50,
                'latency_none_plaintext_both_p50': latency_none_plaintext_both_p50,
-               'latency_v2_serveronly_p50': latency_v2_serveronly_p50,
-               'latency_v2_both_p50': latency_v2_both_p50,
-               'latency_mixer_base_p90': latency_mixer_base_p90,
-               'latency_mixer_serveronly_p90': latency_mixer_serveronly_p90,
+               'latency_v2_stats_nullvm_both_p50': latency_v2_stats_nullvm_both_p50,
+               'latency_v2_sd_nologging_nullvm_both_p50': latency_v2_sd_nologging_nullvm_both_p50,
+               'latency_v2_sd_full_nullvm_both_p50': latency_v2_sd_full_nullvm_both_p50,
                'latency_mixer_both_p90': latency_mixer_both_p90,
-               'latency_none_serveronly_p90': latency_none_serveronly_p90,
-               'latency_none_both_p90': latency_none_both_p90,
+               'latency_none_mtls_base_p90': latency_none_mtls_base_p90,
+               'latency_none_mtls_both_p90': latency_none_mtls_both_p90,
                'latency_none_plaintext_both_p90': latency_none_plaintext_both_p90,
-               'latency_v2_serveronly_p90': latency_v2_serveronly_p90,
-               'latency_v2_both_p90': latency_v2_both_p90,
-               'latency_mixer_base_p99': latency_mixer_base_p99,
-               'latency_mixer_serveronly_p99': latency_mixer_serveronly_p99,
+               'latency_v2_stats_nullvm_both_p90': latency_v2_stats_nullvm_both_p90,
+               'latency_v2_sd_nologging_nullvm_both_p90': latency_v2_sd_nologging_nullvm_both_p90,
+               'latency_v2_sd_full_nullvm_both_p90': latency_v2_sd_full_nullvm_both_p90,
                'latency_mixer_both_p99': latency_mixer_both_p99,
-               'latency_none_serveronly_p99': latency_none_serveronly_p99,
-               'latency_none_both_p99': latency_none_both_p99,
+               'latency_none_mtls_base_p99': latency_none_mtls_base_p99,
+               'latency_none_mtls_both_p99': latency_none_mtls_both_p99,
                'latency_none_plaintext_both_p99': latency_none_plaintext_both_p99,
-               'latency_v2_serveronly_p99': latency_v2_serveronly_p99,
-               'latency_v2_both_p99': latency_v2_both_p99,
+               'latency_v2_stats_nullvm_both_p99': latency_v2_stats_nullvm_both_p99,
+               'latency_v2_sd_nologging_nullvm_both_p99': latency_v2_sd_nologging_nullvm_both_p99,
+               'latency_v2_sd_full_nullvm_both_p99': latency_v2_sd_full_nullvm_both_p99,
                }
     return context
 
 
 def get_lantency_vs_qps_context(df):
-    latency_mixer_base_p50 = get_latency_vs_qps_y_series(df, '_mixer_base', 'p50')
-    latency_mixer_serveronly_p50 = get_latency_vs_qps_y_series(df, '_mixer_serveronly', 'p50')
     latency_mixer_both_p50 = get_latency_vs_qps_y_series(df, '_mixer_both', 'p50')
-    latency_none_serveronly_p50 = get_latency_vs_qps_y_series(df, '_none_serveronly', 'p50')
-    latency_none_both_p50 = get_latency_vs_qps_y_series(df, '_none_both', 'p50')
+    latency_none_mtls_base_p50 = get_latency_vs_qps_y_series(df, '_none_mtls_base', 'p50')
+    latency_none_mtls_both_p50 = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p50')
     latency_none_plaintext_both_p50 = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p50')
-    latency_v2_serveronly_p50 = get_latency_vs_qps_y_series(df, 'nullvm_serveronly', 'p50')
-    latency_v2_both_p50 = get_latency_vs_qps_y_series(df, 'nullvm_both', 'p50')
+    latency_v2_stats_nullvm_both_p50 = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p50')
+    latency_v2_sd_nologging_nullvm_both_p50 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p50')
+    latency_v2_sd_full_nullvm_both_p50 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p50')
 
-    latency_mixer_base_p90 = get_latency_vs_qps_y_series(df, '_mixer_base', 'p90')
-    latency_mixer_serveronly_p90 = get_latency_vs_qps_y_series(df, '_mixer_serveronly', 'p90')
     latency_mixer_both_p90 = get_latency_vs_qps_y_series(df, '_mixer_both', 'p90')
-    latency_none_serveronly_p90 = get_latency_vs_qps_y_series(df, '_none_serveronly', 'p90')
-    latency_none_both_p90 = get_latency_vs_qps_y_series(df, '_none_both', 'p90')
+    latency_none_mtls_base_p90 = get_latency_vs_qps_y_series(df, '_none_mtls_base', 'p90')
+    latency_none_mtls_both_p90 = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p90')
     latency_none_plaintext_both_p90 = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p90')
-    latency_v2_serveronly_p90 = get_latency_vs_qps_y_series(df, 'nullvm_serveronly', 'p90')
-    latency_v2_both_p90 = get_latency_vs_qps_y_series(df, 'nullvm_both', 'p90')
+    latency_v2_stats_nullvm_both_p90 = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p90')
+    latency_v2_sd_nologging_nullvm_both_p90 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p90')
+    latency_v2_sd_full_nullvm_both_p90 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p90')
 
-    latency_mixer_base_p99 = get_latency_vs_qps_y_series(df, '_mixer_base', 'p99')
-    latency_mixer_serveronly_p99 = get_latency_vs_qps_y_series(df, '_mixer_serveronly', 'p99')
     latency_mixer_both_p99 = get_latency_vs_qps_y_series(df, '_mixer_both', 'p99')
-    latency_none_serveronly_p99 = get_latency_vs_qps_y_series(df, '_none_serveronly', 'p99')
-    latency_none_both_p99 = get_latency_vs_qps_y_series(df, '_none_both', 'p99')
+    latency_none_mtls_base_p99 = get_latency_vs_qps_y_series(df, '_none_mtls_base', 'p99')
+    latency_none_mtls_both_p99 = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p99')
     latency_none_plaintext_both_p99 = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p99')
-    latency_v2_serveronly_p99 = get_latency_vs_qps_y_series(df, 'nullvm_serveronly', 'p99')
-    latency_v2_both_p99 = get_latency_vs_qps_y_series(df, 'nullvm_both', 'p99')
+    latency_v2_stats_nullvm_both_p99 = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p99')
+    latency_v2_sd_nologging_nullvm_both_p99 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
+    latency_v2_sd_full_nullvm_both_p99 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
-    context = {'latency_mixer_base_p50': latency_mixer_base_p50,
-               'latency_mixer_serveronly_p50': latency_mixer_serveronly_p50,
-               'latency_mixer_both_p50': latency_mixer_both_p50,
-               'latency_none_serveronly_p50': latency_none_serveronly_p50,
-               'latency_none_both_p50': latency_none_both_p50,
+    context = {'latency_mixer_both_p50': latency_mixer_both_p50,
+               'latency_none_mtls_base_p50': latency_none_mtls_base_p50,
+               'latency_none_mtls_both_p50': latency_none_mtls_both_p50,
                'latency_none_plaintext_both_p50': latency_none_plaintext_both_p50,
-               'latency_v2_serveronly_p50': latency_v2_serveronly_p50,
-               'latency_v2_both_p50': latency_v2_both_p50,
-               'latency_mixer_base_p90': latency_mixer_base_p90,
-               'latency_mixer_serveronly_p90': latency_mixer_serveronly_p90,
+               'latency_v2_stats_nullvm_both_p50': latency_v2_stats_nullvm_both_p50,
+               'latency_v2_sd_nologging_nullvm_both_p50': latency_v2_sd_nologging_nullvm_both_p50,
+               'latency_v2_sd_full_nullvm_both_p50': latency_v2_sd_full_nullvm_both_p50,
                'latency_mixer_both_p90': latency_mixer_both_p90,
-               'latency_none_serveronly_p90': latency_none_serveronly_p90,
-               'latency_none_both_p90': latency_none_both_p90,
+               'latency_none_mtls_base_p90': latency_none_mtls_base_p90,
+               'latency_none_mtls_both_p90': latency_none_mtls_both_p90,
                'latency_none_plaintext_both_p90': latency_none_plaintext_both_p90,
-               'latency_v2_serveronly_p90': latency_v2_serveronly_p90,
-               'latency_v2_both_p90': latency_v2_both_p90,
-               'latency_mixer_base_p99': latency_mixer_base_p99,
-               'latency_mixer_serveronly_p99': latency_mixer_serveronly_p99,
+               'latency_v2_stats_nullvm_both_p90': latency_v2_stats_nullvm_both_p90,
+               'latency_v2_sd_nologging_nullvm_both_p90': latency_v2_sd_nologging_nullvm_both_p90,
+               'latency_v2_sd_full_nullvm_both_p90': latency_v2_sd_full_nullvm_both_p90,
                'latency_mixer_both_p99': latency_mixer_both_p99,
-               'latency_none_serveronly_p99': latency_none_serveronly_p99,
-               'latency_none_both_p99': latency_none_both_p99,
+               'latency_none_mtls_base_p99': latency_none_mtls_base_p99,
+               'latency_none_mtls_both_p99': latency_none_mtls_both_p99,
                'latency_none_plaintext_both_p99': latency_none_plaintext_both_p99,
-               'latency_v2_serveronly_p99': latency_v2_serveronly_p99,
-               'latency_v2_both_p99': latency_v2_both_p99,
+               'latency_v2_stats_nullvm_both_p99': latency_v2_stats_nullvm_both_p99,
+               'latency_v2_sd_nologging_nullvm_both_p99': latency_v2_sd_nologging_nullvm_both_p99,
+               'latency_v2_sd_full_nullvm_both_p99': latency_v2_sd_full_nullvm_both_p99,
                }
     return context
 
 
 def get_cpu_mem_context(df):
-    cpu_mixer_base = get_cpu_y_series(df, '_mixer_base')
-    cpu_mixer_serveronly = get_cpu_y_series(df, '_mixer_serveronly')
     cpu_mixer_both = get_cpu_y_series(df, '_mixer_both')
-    cpu_none_serveronly = get_cpu_y_series(df, '_none_serveronly')
-    cpu_none_both = get_cpu_y_series(df, '_none_both')
+    cpu_none_mtls_base = get_cpu_y_series(df, '_none_mtls_base')
+    cpu_none_mtls_both = get_cpu_y_series(df, '_none_mtls_both')
     cpu_none_plaintext_both = get_cpu_y_series(df, '_none_plaintext_both')
-    cpu_v2_serveronly = get_cpu_y_series(df, 'nullvm_serveronly')
-    cpu_v2_both = get_cpu_y_series(df, 'nullvm_both')
+    cpu_v2_stats_nullvm_both = get_cpu_y_series(df, '_v2-stats-nullvm_both')
+    cpu_v2_sd_nologging_nullvm_both = get_cpu_y_series(df, '_v2-sd-nologging-nullvm_both')
+    cpu_v2_sd_full_nullvm_both = get_cpu_y_series(df, '_v2-sd-full-nullvm_both')
 
-    mem_mixer_base = get_mem_y_series(df, '_mixer_base')
-    mem_mixer_serveronly = get_mem_y_series(df, '_mixer_serveronly')
     mem_mixer_both = get_mem_y_series(df, '_mixer_both')
-    mem_none_serveronly = get_mem_y_series(df, '_none_serveronly')
-    mem_none_both = get_mem_y_series(df, '_none_both')
+    mem_none_mtls_base = get_mem_y_series(df, '_none_mtls_base')
+    mem_none_mtls_both = get_mem_y_series(df, '_none_mtls_both')
     mem_none_plaintext_both = get_mem_y_series(df, '_none_plaintext_both')
-    mem_v2_serveronly = get_mem_y_series(df, 'nullvm_serveronly')
-    mem_v2_both = get_mem_y_series(df, 'nullvm_both')
+    mem_v2_stats_nullvm_both = get_mem_y_series(df, '_v2-stats-nullvm_both')
+    mem_v2_sd_nologging_nullvm_both = get_mem_y_series(df, '_v2-sd-nologging-nullvm_both')
+    mem_v2_sd_full_nullvm_both = get_mem_y_series(df, '_v2-sd-full-nullvm_both')
 
-    context = {'cpu_mixer_base': cpu_mixer_base,
-               'cpu_mixer_serveronly': cpu_mixer_serveronly,
-               'cpu_mixer_both': cpu_mixer_both,
-               'cpu_none_serveronly': cpu_none_serveronly,
-               'cpu_none_both': cpu_none_both,
+    context = {'cpu_mixer_both': cpu_mixer_both,
+               'cpu_none_mtls_base': cpu_none_mtls_base,
+               'cpu_none_mtls_both': cpu_none_mtls_both,
                'cpu_none_plaintext_both': cpu_none_plaintext_both,
-               'cpu_v2_serveronly': cpu_v2_serveronly,
-               'cpu_v2_both': cpu_v2_both,
-               'mem_mixer_base': mem_mixer_base,
-               'mem_mixer_serveronly': mem_mixer_serveronly,
+               'cpu_v2_stats_nullvm_both': cpu_v2_stats_nullvm_both,
+               'cpu_v2_sd_nologging_nullvm_both': cpu_v2_sd_nologging_nullvm_both,
+               'cpu_v2_sd_full_nullvm_both': cpu_v2_sd_full_nullvm_both,
                'mem_mixer_both': mem_mixer_both,
-               'mem_none_serveronly': mem_none_serveronly,
-               'mem_none_both': mem_none_both,
+               'mem_none_mtls_base': mem_none_mtls_base,
+               'mem_none_mtls_both': mem_none_mtls_both,
                'mem_none_plaintext_both': mem_none_plaintext_both,
-               'mem_v2_serveronly': mem_v2_serveronly,
-               'mem_v2_both': mem_v2_both,
+               'mem_v2_stats_nullvm_both': mem_v2_stats_nullvm_both,
+               'mem_v2_sd_nologging_nullvm_both': mem_v2_sd_nologging_nullvm_both,
+               'mem_v2_sd_full_nullvm_both': mem_v2_sd_full_nullvm_both,
                }
     return context
 
@@ -481,10 +481,12 @@ def micro_benchmarks(request):
 
 
 # Helpers
-def get_latency_vs_conn_y_series(df, mixer_mode, quantiles):
+def get_latency_vs_conn_y_series(df, telemetry_mode, quantiles):
     y_series_data = []
+    if "mixer" in telemetry_mode:
+        return []
     for thread in [2, 4, 8, 16, 32, 64]:
-        data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@telemetry_mode)')
         if not data[quantiles].head().empty:
             y_series_data.append(data[quantiles].head(1).values[0]/1000)
         else:
@@ -492,10 +494,12 @@ def get_latency_vs_conn_y_series(df, mixer_mode, quantiles):
     return y_series_data
 
 
-def get_latency_vs_qps_y_series(df, mixer_mode, quantiles):
+def get_latency_vs_qps_y_series(df, telemetry_mode, quantiles):
     y_series_data = []
+    if "mixer" in telemetry_mode:
+        return []
     for qps in [10, 100, 500, 1000, 2000, 3000]:
-        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
         if not data[quantiles].head().empty:
             y_series_data.append(data[quantiles].head(1).values[0]/1000)
         else:
@@ -503,11 +507,13 @@ def get_latency_vs_qps_y_series(df, mixer_mode, quantiles):
     return y_series_data
 
 
-def get_cpu_y_series(df, mixer_mode):
+def get_cpu_y_series(df, telemetry_mode):
     y_series_data = []
+    if "mixer" in telemetry_mode:
+        return []
     cpu_metric = 'cpu_mili_avg_fortioserver_deployment_proxy'
     for qps in [10, 100, 500, 1000, 2000, 3000]:
-        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
         if not data[cpu_metric].head().empty:
             y_series_data.append(data[cpu_metric].head(1).values[0])
         else:
@@ -515,11 +521,13 @@ def get_cpu_y_series(df, mixer_mode):
     return y_series_data
 
 
-def get_mem_y_series(df, mixer_mode):
+def get_mem_y_series(df, telemetry_mode):
     y_series_data = []
+    if "mixer" in telemetry_mode:
+        return []
     mem_metric = 'mem_MB_max_fortioserver_deployment_proxy'
     for qps in [10, 100, 500, 1000, 2000, 3000]:
-        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@mixer_mode)')
+        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
         if not data[mem_metric].head().empty:
             y_series_data.append(data[mem_metric].head(1).values[0])
         else:

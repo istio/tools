@@ -1,0 +1,24 @@
+# Data: cpu/mem
+# Config: No mixer and telemetry v2
+load_gen_type: "fortio"
+telemetry_mode: "none"
+conn:
+    - 16
+qps:
+    - 10
+    - 100
+    - 500
+    - 1000
+    - 2000
+    - 3000
+duration: 240
+metrics:
+    - cpu
+    - mem
+perf_record: false
+run_bothsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
+run_baseline: true
+
+extra_labels: "mtls"

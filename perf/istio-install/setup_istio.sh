@@ -42,7 +42,7 @@ function download() {
   local DIRNAME="$1"
   local release="$2"
 
-  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux.tar.gz"
+  local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${release}/istio-${release}-linux-amd64.tar.gz"
   # shellcheck disable=SC2236
   if [[ -n "${RELEASE_URL}" ]];then
     url="${RELEASE_URL}"
@@ -76,7 +76,7 @@ function setup_admin_binding() {
 }
 
 function install_istio_with_helm() {
-    kubectl create ns istio-system || true
+  kubectl create ns istio-system || true
 
   if [[ -z "${DRY_RUN}" ]];then
       # apply CRD files for istio kinds
@@ -142,14 +142,19 @@ function install_istio_with_helm() {
 function install_istio_with_istioctl() {
   local CR_PATH="${WD}/istioctl_profiles/${CR_FILENAME}"
   pushd "${ISTIOCTL_PATH}"
-  ./istioctl manifest apply -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
+  ./istioctl install --charts ./manifests -f "${CR_PATH}" --set "${SET_OVERLAY}" "${EXTRA_ARGS}"
   popd
 }
 
 function install_istio() {
   local DIRNAME="${1:?"output dir"}"
   local release="${2:?"release"}"
-
+  # shellcheck disable=SC2155
+  local release_ver=$(echo "$release" | cut -f1 -d "-")
+  # shellcheck disable=SC2072
+  if [[ "${release_ver}" > "1.5" ]];then
+    export INSTALL_WITH_ISTIOCTL=true
+  fi
   # shellcheck disable=SC2155
   # shellcheck disable=SC2086
   local outfile="$(download ${DIRNAME} ${release})"
@@ -163,14 +168,21 @@ function install_istio() {
   if [[ ! -d "${DIRNAME}/${release}" ]];then
       DN=$(mktemp -d)
       tar -xzf "${outfile}" -C "${DN}" --strip-components 1
-      mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
+      if [[ -z "${INSTALL_WITH_ISTIOCTL}" ]]; then
+        mv "${DN}/install/kubernetes/helm" "${DIRNAME}/${release}"
+        mv "${DN}/bin/istioctl" "${DIRNAME}/${release}"
+      fi
       cp "${DN}/bin/istioctl" "${DIRNAME}"
-      mv "${DN}/bin/istioctl" "${DIRNAME}/${release}"
+      cp -r "${DN}/manifests" "${DIRNAME}"
       rm -rf "${DN}"
   fi
 
-  export ISTIOCTL_PATH="${DIRNAME}/${release}"
+  export ISTIOCTL_PATH="${DIRNAME}"
 
+  if [[ -n "${SKIP_INSTALLATION}" ]];then
+    echo "skip installation step"
+    return
+  fi
   if [[ -z "${INSTALL_WITH_ISTIOCTL}" ]]; then
     echo "start installing istio using helm"
     install_istio_with_helm

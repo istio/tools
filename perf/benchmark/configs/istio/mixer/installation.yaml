@@ -1,0 +1,13 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  components:
+    telemetry:
+      enabled: true
+  values:
+    telemetry:
+      enabled: true
+      v2:
+        enabled: false
+      v1:
+        enabled: true

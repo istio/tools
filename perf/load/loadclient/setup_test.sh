@@ -30,9 +30,7 @@ HTTPS=${HTTPS:-"false"}
 # LOADCLIENT_EXTRA_HELM_FLAGS=${LOADCLIENT_EXTRA_HELM_FLAGS:-""}
 
 if [[ -z "${GATEWAY_URL}" ]];then
-SYSTEM_GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
-INGRESS_GATEWAY_URL=$(kubectl -n istio-ingress get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
-GATEWAY_URL=${SYSTEM_GATEWAY_URL:-$INGRESS_GATEWAY_URL}
+GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
 fi
 
 SERVICEHOST="${NAMEPREFIX}0.local"
@@ -52,9 +50,7 @@ function run_test() {
 
   if [[ -z "${DELETE}" ]];then
     kubectl create ns "${NAMESPACE}" || true
-    kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite
-    kubectl label namespace "${NAMESPACE}" istio-env=istio-control --overwrite
-    sleep 5
+    kubectl label namespace "${NAMESPACE}" "${INJECTION_LABEL:-istio-injection=enabled}" --overwrite
     kubectl -n "${NAMESPACE}" apply -f "${YAML}"
   else
     kubectl -n "${NAMESPACE}" delete -f "${YAML}"

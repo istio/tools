@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"time"
 
-	"fortio.org/fortio/log"
+	"istio.io/pkg/log"
 
 	"istio.io/tools/isotope/convert/pkg/graph/svc"
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
@@ -40,7 +40,7 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	respond := func(status int) {
 		writer.WriteHeader(status)
 		if _, err := writer.Write(h.responsePayload); err != nil {
-			log.Errf("%s", err)
+			log.Errorf("%s", err)
 		}
 
 		stopTime := time.Now()
@@ -52,7 +52,7 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		forwardableHeader := extractForwardableHeader(request.Header)
 		err := execute(step, forwardableHeader, h.ServiceTypes)
 		if err != nil {
-			log.Errf("%s", err)
+			log.Errorf("%s", err)
 			respond(http.StatusInternalServerError)
 			return
 		}

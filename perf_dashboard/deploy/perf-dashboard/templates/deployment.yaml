@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "perf-dashboard.fullname" . }}
+  labels:
+    app: {{ include "perf-dashboard.name" . }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "perf-dashboard.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "perf-dashboard.name" . }}
+    spec:
+      containers:
+      - name: {{ include "perf-dashboard.name" . }}
+        image: {{ .Values.image }}:{{ .Values.version }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.port }}
+        env:
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.port }}
+            httpHeaders:
+            - name: Host
+              value: {{ .Values.domain }}
+          initialDelaySeconds: 10
+          periodSeconds: 6
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.port }}
+            httpHeaders:
+            - name: Host
+              value: {{ .Values.domain }}
+          initialDelaySeconds: 20
+          periodSeconds: 12
+          timeoutSeconds: 10
+          failureThreshold: 6
