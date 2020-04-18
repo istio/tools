@@ -17,6 +17,7 @@ from __future__ import print_function
 import collections
 import os
 import json
+import socket
 import argparse
 import subprocess
 import shlex
@@ -37,7 +38,7 @@ POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4"
 
 
-def pod_info(filterstr="", namespace=os.environ.get("NAMESPACE", "twopods"), multi_ok=True):
+def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
         namespace=namespace, filterstr=filterstr)
     op = getoutput(cmd)
@@ -67,9 +68,8 @@ def run_command_sync(command):
 
 # kubeclt related helper funcs
 def kubectl_cp(from_file, to_file, container):
-    namespace = os.environ.get("NAMESPACE", "twopods")
     cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {container}".format(
-        namespace=namespace,
+        namespace=NAMESPACE,
         from_file=from_file,
         to_file=to_file,
         container=container)
@@ -78,7 +78,6 @@ def kubectl_cp(from_file, to_file, container):
 
 
 def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
-    namespace = os.environ.get("NAMESPACE", "twopods")
     c = ""
     if container is not None:
         c = "-c " + container
@@ -86,7 +85,7 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
         pod=pod,
         remote_cmd=remote_cmd,
         c=c,
-        namespace=namespace)
+        namespace=NAMESPACE)
     print(cmd, flush=True)
     runfn(cmd)
 
@@ -130,7 +129,7 @@ class Fortio:
         self.size = size
         self.duration = duration
         self.mode = mode
-        self.ns = os.environ.get("NAMESPACE", "twopods")
+        self.ns = NAMESPACE
         # bucket resolution in seconds
         self.r = "0.00005"
         self.telemetry_mode = telemetry_mode
@@ -464,6 +463,11 @@ def fortio_from_config_file(args):
         return fortio
 
 
+def can_connect_to_nighthawk_service():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        return sock.connect_ex(('127.0.0.1', NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)) == 0
+
+
 def run_perf_test(args):
     min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
 
@@ -497,10 +501,30 @@ def run_perf_test(args):
             min_duration=min_duration))
         exit(1)
 
-    for conn in fortio.conn:
-        for qps in fortio.qps:
-            fortio.run(headers=fortio.headers, conn=conn, qps=qps,
-                       duration=fortio.duration, size=fortio.size)
+        # Create a port_forward for accessing nighthawk_service.
+        if not can_connect_to_nighthawk_service():
+            popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
+                ns=NAMESPACE,
+                port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
+            process = subprocess.Popen(shlex.split(
+                popen_cmd), stdout=subprocess.PIPE)
+            max_tries = 10
+            while max_tries > 0 and not can_connect_to_nighthawk_service():
+                time.sleep(0.5)
+                max_tries = max_tries - 1
+
+        if not can_connect_to_nighthawk_service():
+            print("Failure connecting to nighthawk_service")
+            sys.exit(-1)
+        else:
+            print("Able to connect to nighthawk_service, proceeding")
+    try:
+        for conn in fortio.conn:
+            for qps in fortio.qps:
+                fortio.run(headers=fortio.headers, conn=conn, qps=qps,
+                           duration=fortio.duration, size=fortio.size)
+    finally:
+        process.kill()
 
 
 def run_nighthawk(pod, remote_cmd, labels):
