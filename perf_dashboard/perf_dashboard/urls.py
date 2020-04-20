@@ -30,6 +30,8 @@ Including another URLconf
 from django.contrib import admin
 from django.conf.urls import include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.conf import settings
+from django.conf.urls.static import static
 
 from . import views
 
@@ -37,8 +39,11 @@ urlpatterns = [
     url(r'^$', views.index, name="index_page"),
     url(r'^admin/', admin.site.urls),
     url(r'^artifacts/', include('artifacts.urls')),
-    url(r'^regression_alerts/', include('regression_alerts.urls')),
+    url(r'^regression/', include('regression_pattern.urls')),
     url(r'^benchmarks/', include('benchmarks.urls')),
+    url(r'^graph_plotting/', include('graph_plotting.urls')),
+    url(r'^history/', include('history.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

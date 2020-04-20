@@ -27,35 +27,66 @@ WD=$(dirname "$0")
 WD=$(cd "$WD"; pwd)
 ROOT=$(dirname "$WD")
 
-# Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh, the default settings is to test upgrade from
-# 1.3.0 to 1.3.4 using helm chart
+# Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh
 # These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade jobs
 export SOURCE_HUB=${SOURCE_HUB:-"docker.io/istio"}
-export SOURCE_TAG=${SOURCE_TAG:-"1.3.0"}
-export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://github.com/istio/istio/releases/download/${SOURCE_TAG}"}
 export TARGET_HUB=${TARGET_HUB:-"docker.io/istio"}
+export SOURCE_TAG=${SOURCE_TAG:-"1.3.0"}
 export TARGET_TAG=${TARGET_TAG:-"1.3.4"}
-export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://github.com/istio/istio/releases/download/${TARGET_TAG}"}
+export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
+export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"helm"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
+export SOURCE_LINUX_TAR_SUFFIX=${SOURCE_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
+export TARGET_LINUX_TAR_SUFFIX=${TARGET_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
+
+function get_git_sha() {
+  local url_path=${1}
+  local tag=${2}
+
+  GIT_SHA=
+  LINUX_TAR_SUFFIX=
+
+  if [[ "${tag}" =~ "latest" ]];then
+    release_version=$(echo "${tag}" | cut -d'_' -f1)
+    # shellcheck disable=SC2072
+    if [[ ${release_version} < "1.6" ]]; then
+       LINUX_TAR_SUFFIX="linux.tar.gz"
+    fi
+    GIT_SHA=$(curl "${url_path}/${release_version}-dev")
+  elif [ "${tag}" == "master" ];then
+    GIT_SHA=$(curl "${url_path}/latest")
+  fi
+}
+
+get_git_sha "${SOURCE_RELEASE_PATH}" "${SOURCE_TAG}"
+if [[ -n "${GIT_SHA}" ]]; then
+  SOURCE_TAG="${GIT_SHA}"
+fi
+if [[ -n "${LINUX_TAR_SUFFIX}" ]]; then
+  SOURCE_LINUX_TAR_SUFFIX="${LINUX_TAR_SUFFIX}"
+fi
+
+get_git_sha "${TARGET_RELEASE_PATH}" "${TARGET_TAG}"
+if [[ -n "${GIT_SHA}" ]]; then
+  TARGET_TAG="${GIT_SHA}"
+fi
+if [[ -n "${LINUX_TAR_SUFFIX}" ]]; then
+  TARGET_LINUX_TAR_SUFFIX="${LINUX_TAR_SUFFIX}"
+fi
 
 # Download and unpack istio release artifacts.
 function download_untar_istio_release() {
   local url_path=${1}
   local tag=${2}
-  local dir=${3:-.}
+  local suffix=${3}
+  local dir=${4:-.}
+
   # Download artifacts
-  LINUX_DIST_URL="${url_path}/istio-${tag}-linux.tar.gz"
-
-  if [ "${tag}" == "master" ];then
-    GIT_SHA=$(curl "https://storage.googleapis.com/istio-build/dev/latest")
-    tag="${GIT_SHA}"
-    LINUX_DIST_URL="https://storage.googleapis.com/istio-build/dev/${tag}/istio-${tag}-linux.tar.gz"
-  fi
-
+  LINUX_DIST_URL="${url_path}/${tag}/istio-${tag}-${suffix}"
   wget -q "${LINUX_DIST_URL}" -P "${dir}"
-  tar -xzf "${dir}/istio-${tag}-linux.tar.gz" -C "${dir}"
+  tar -xzf "${dir}/istio-${tag}-${suffix}" -C "${dir}"
 }
 
 # shellcheck disable=SC1090
@@ -66,8 +97,8 @@ UPGRADE_TEST_LOCAL="${UPGRADE_TEST_LOCAL:-""}"
 echo "Testing upgrade and downgrade between ${SOURCE_HUB}/${SOURCE_TAG} and ${TARGET_HUB}/${TARGET_TAG}"
 
 # Download release artifacts.
-download_untar_istio_release "${SOURCE_RELEASE_PATH}" "${SOURCE_TAG}" "${FROM_PATH}"
-download_untar_istio_release "${TARGET_RELEASE_PATH}" "${TARGET_TAG}" "${TO_PATH}"
+download_untar_istio_release "${SOURCE_RELEASE_PATH}" "${SOURCE_TAG}" "${SOURCE_LINUX_TAR_SUFFIX}" "${FROM_PATH}"
+download_untar_istio_release "${TARGET_RELEASE_PATH}" "${TARGET_TAG}" "${TARGET_LINUX_TAR_SUFFIX}" "${TO_PATH}"
 
 # Check https://github.com/istio/test-infra/blob/master/boskos/resources.yaml
 # for existing resources types

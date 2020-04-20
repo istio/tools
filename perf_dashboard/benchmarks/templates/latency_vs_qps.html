@@ -7,6 +7,7 @@
     <li><a href="#dropDown" aria-expanded="true" data-toggle="collapse">
     <i class="fa fa-area-chart"></i>Benchmarks</a>
     <ul id="dropDown" class="list-unstyled">
+        <li><a href="{% url 'benchmarks_overview' %}"><i class="fa fa-asterisk"></i>Configs & Measurements</a></li>
         <li><a href="{% url 'cpu_memory' %}"><i class="fa fa-asterisk"></i>CPU & Memory Usage</a></li>
         <li><a href="#dropDownLatency" aria-expanded="true" data-toggle="collapse">
             <i class="fa fa-asterisk"></i>Latency Quantiles</a>
@@ -18,12 +19,14 @@
         <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
-    <i class="fa fa-bullhorn"></i>Regression Alerts</a>
+    <i class="fa fa-bullhorn"></i>Regression Pattern</a>
     <ul id="alertDropDown" class="collapse list-unstyled">
-        <li><a href="{% url 'cur_alert' %}"><i class="fa fa-asterisk"></i>Current Release Alert</a></li>
-        <li><a href="{% url 'master_alert' %}"><i class="fa fa-asterisk"></i>Master Alert</a></li>
+        <li><a href="{% url 'cur_pattern' %}"><i class="fa fa-asterisk"></i>Current Release</a></li>
+        <li><a href="{% url 'master_pattern' %}"><i class="fa fa-asterisk"></i>Master</a></li>
     </ul>
+    <li><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+    <li><a href="{% url 'history' %}"> <i class="fa fa-file-archive-o"></i>History</a></li>
 </ul>
 {% endblock sidebar_active %}
 
@@ -40,6 +43,28 @@
             <h1 class="h3 display">Latency vs. QPS</h1>
         </header>
         <div class="row">
+            <div class="col-lg-12">
+                <form class="form-horizontal" action="" method="post">
+                    {% csrf_token %}
+                      <div class="form-group row">
+                          <label class="col-sm-3 form-control-label">Choose the number of days you want to trace back (default is 30 days)</label>
+                          <div class="col-sm-9">
+                            <select name="release_days" class="form-control mb-3">
+                            {% for day in release_days %}
+                                {% if day == cur_selected_days|last %}
+                                <option selected>{{ day }}</option>
+                                {% else %}
+                                <option>{{ day }}</option>
+                                {% endif %}
+                            {% endfor %}
+                            </select>
+                            <small class="help-block-none">Note: Depend on the number of days you've chosen, downloading those release files might take amount of time.</small>
+                            <input type="submit">
+                           </div>
+                      </div>
+                    <div class="line"></div>
+                </form>
+            </div>
             <div class="col-lg-6">
               <form class="form-horizontal" action="" method="post">
                     {% csrf_token %}
@@ -147,68 +172,66 @@
 
 {% block page_data %}
     <script>
-        current_release = {{ current_release|safe }};
-        cur_selected_release = {{ cur_selected_release|safe }};
-        master_selected_release = {{  master_selected_release|safe }};
-        cur_release_names = {{ cur_release_names|safe }};
-        master_release_names = {{ master_release_names|safe }};
-        latency_mixer_base_p50 = {{ latency_mixer_base_p50|safe }};
-        latency_mixer_serveronly_p50 = {{ latency_mixer_serveronly_p50|safe }};
-        latency_mixer_both_p50 = {{ latency_mixer_both_p50|safe }};
-        latency_none_serveronly_p50 = {{ latency_none_serveronly_p50|safe }};
-        latency_none_both_p50 = {{ latency_none_both_p50|safe }};
-        latency_none_plaintext_both_p50 = {{ latency_none_plaintext_both_p50|safe }};
-        latency_v2_serveronly_p50 = {{ latency_v2_serveronly_p50|safe }};
-        latency_v2_both_p50 = {{ latency_v2_both_p50|safe }};
+        release_days = {{ release_days|safe }}
+        cur_selected_days = {{ cur_selected_days|safe }}
+        current_release = {{ current_release|safe }}
+        cur_selected_release = {{ cur_selected_release|safe }}
+        master_selected_release = {{  master_selected_release|safe }}
+        cur_release_names = {{ cur_release_names|safe }}
+        master_release_names = {{ master_release_names|safe }}
 
-        latency_mixer_base_p90 = {{ latency_mixer_base_p90|safe }};
-        latency_mixer_serveronly_p90 = {{ latency_mixer_serveronly_p90|safe }};
-        latency_mixer_both_p90 = {{ latency_mixer_both_p90|safe }};
-        latency_none_serveronly_p90 = {{ latency_none_serveronly_p90|safe }};
-        latency_none_both_p90 = {{ latency_none_both_p90|safe }};
-        latency_none_plaintext_both_p90 = {{ latency_none_plaintext_both_p90|safe }};
-        latency_v2_serveronly_p90 = {{ latency_v2_serveronly_p90|safe }};
-        latency_v2_both_p90 = {{ latency_v2_both_p90|safe }};
+        latency_mixer_both_p50 = {{ latency_mixer_both_p50|safe }}
+        latency_none_mtls_base_p50 = {{ latency_none_mtls_base_p50|safe }}
+        latency_none_mtls_both_p50 = {{ latency_none_mtls_both_p50|safe }}
+        latency_none_plaintext_both_p50 = {{ latency_none_plaintext_both_p50|safe }}
+        latency_v2_stats_nullvm_both_p50 = {{ latency_v2_stats_nullvm_both_p50|safe }}
+        latency_v2_sd_nologging_nullvm_both_p50 = {{ latency_v2_sd_nologging_nullvm_both_p50|safe }}
+        latency_v2_sd_full_nullvm_both_p50 = {{ latency_v2_sd_full_nullvm_both_p50|safe }}
 
-        latency_mixer_base_p99 = {{ latency_mixer_base_p99|safe }};
-        latency_mixer_serveronly_p99 = {{ latency_mixer_serveronly_p99|safe }};
-        latency_mixer_both_p99 = {{ latency_mixer_both_p99|safe }};
-        latency_none_serveronly_p99 = {{ latency_none_serveronly_p99|safe }};
-        latency_none_both_p99 = {{ latency_none_both_p99|safe }};
-        latency_none_plaintext_both_p99 = {{ latency_none_plaintext_both_p99|safe }};
-        latency_v2_serveronly_p99 = {{ latency_v2_serveronly_p99|safe }};
-        latency_v2_both_p99 = {{ latency_v2_both_p99|safe }};
+        latency_mixer_both_p90 = {{ latency_mixer_both_p90|safe }}
+        latency_none_mtls_base_p90 = {{ latency_none_mtls_base_p90|safe }}
+        latency_none_mtls_both_p90 = {{ latency_none_mtls_both_p90|safe }}
+        latency_none_plaintext_both_p90 = {{ latency_none_plaintext_both_p90|safe }}
+        latency_v2_stats_nullvm_both_p90 = {{ latency_v2_stats_nullvm_both_p90|safe }}
+        latency_v2_sd_nologging_nullvm_both_p90 = {{ latency_v2_sd_nologging_nullvm_both_p90|safe }}
+        latency_v2_sd_full_nullvm_both_p90 = {{ latency_v2_sd_full_nullvm_both_p90|safe }}
 
-        latency_mixer_base_p50_master = {{ latency_mixer_base_p50_master|safe }};
-        latency_mixer_serveronly_p50_master = {{ latency_mixer_serveronly_p50_master|safe }};
-        latency_mixer_both_p50_master = {{ latency_mixer_both_p50_master|safe }};
-        latency_none_serveronly_p50_master = {{ latency_none_serveronly_p50_master|safe }};
-        latency_none_both_p50_master = {{ latency_none_both_p50_master|safe }};
-        latency_none_plaintext_both_p50_master = {{ latency_none_plaintext_both_p50_master|safe }};
-        latency_v2_serveronly_p50_master = {{ latency_v2_serveronly_p50_master|safe }};
-        latency_v2_both_p50_master = {{ latency_v2_both_p50_master|safe }};
+        latency_mixer_both_p99 = {{ latency_mixer_both_p99|safe }}
+        latency_none_mtls_base_p99 = {{ latency_none_mtls_base_p99|safe }}
+        latency_none_mtls_both_p99 = {{ latency_none_mtls_both_p99|safe }}
+        latency_none_plaintext_both_p99 = {{ latency_none_plaintext_both_p99|safe }}
+        latency_v2_stats_nullvm_both_p99 = {{ latency_v2_stats_nullvm_both_p99|safe }}
+        latency_v2_sd_nologging_nullvm_both_p99 = {{ latency_v2_sd_nologging_nullvm_both_p99|safe }}
+        latency_v2_sd_full_nullvm_both_p99 = {{ latency_v2_sd_full_nullvm_both_p99|safe }}
 
-        latency_mixer_base_p90_master = {{ latency_mixer_base_p90_master|safe }};
-        latency_mixer_serveronly_p90_master = {{ latency_mixer_serveronly_p90_master|safe }};
-        latency_mixer_both_p90_master = {{ latency_mixer_both_p90_master|safe }};
-        latency_none_serveronly_p90_master = {{ latency_none_serveronly_p90_master|safe }};
-        latency_none_both_p90_master = {{ latency_none_both_p90_master|safe }};
-        latency_none_plaintext_both_p90_master = {{ latency_none_plaintext_both_p90_master|safe }};
-        latency_v2_serveronly_p90_master = {{ latency_v2_serveronly_p90_master|safe }};
-        latency_v2_both_p90_master = {{ latency_v2_both_p90_master|safe }};
+        latency_mixer_both_p50_master = {{ latency_mixer_both_p50_master|safe }}
+        latency_none_mtls_base_p50_master = {{ latency_none_mtls_base_p50_master|safe }}
+        latency_none_mtls_both_p50_master = {{ latency_none_mtls_both_p50_master|safe }}
+        latency_none_plaintext_both_p50_master = {{ latency_none_plaintext_both_p50_master|safe }}
+        latency_v2_stats_nullvm_both_p50_master = {{ latency_v2_stats_nullvm_both_p50_master|safe }}
+        latency_v2_sd_nologging_nullvm_both_p50_master = {{ latency_v2_sd_nologging_nullvm_both_p50_master|safe }}
+        latency_v2_sd_full_nullvm_both_p50_master = {{ latency_v2_sd_full_nullvm_both_p50_master|safe }}
 
-        latency_mixer_base_p99_master = {{ latency_mixer_base_p99_master|safe }};
-        latency_mixer_serveronly_p99_master = {{ latency_mixer_serveronly_p99_master|safe }};
-        latency_mixer_both_p99_master = {{ latency_mixer_both_p99_master|safe }};
-        latency_none_serveronly_p99_master = {{ latency_none_serveronly_p99_master|safe }};
-        latency_none_both_p99_master = {{ latency_none_both_p99_master|safe }};
-        latency_none_plaintext_both_p99_master = {{ latency_none_plaintext_both_p99_master|safe }};
-        latency_v2_serveronly_p99_master = {{ latency_v2_serveronly_p99_master|safe }};
-        latency_v2_both_p99_master = {{ latency_v2_both_p99_master|safe }};
+        latency_mixer_both_p90_master = {{ latency_mixer_both_p90_master|safe }}
+        latency_none_mtls_base_p90_master = {{ latency_none_mtls_base_p90_master|safe }}
+        latency_none_mtls_both_p90_master = {{ latency_none_mtls_both_p90_master|safe }}
+        latency_none_plaintext_both_p90_master = {{ latency_none_plaintext_both_p90_master|safe }}
+        latency_v2_stats_nullvm_both_p90_master = {{ latency_v2_stats_nullvm_both_p90_master|safe }}
+        latency_v2_sd_nologging_nullvm_both_p90_master = {{ latency_v2_sd_nologging_nullvm_both_p90_master|safe }}
+        latency_v2_sd_full_nullvm_both_p90_master = {{ latency_v2_sd_full_nullvm_both_p90_master|safe }}
+
+        latency_mixer_both_p99_master = {{ latency_mixer_both_p99_master|safe }}
+        latency_none_mtls_base_p99_master = {{ latency_none_mtls_base_p99_master|safe }}
+        latency_none_mtls_both_p99_master = {{ latency_none_mtls_both_p99_master|safe }}
+        latency_none_plaintext_both_p99_master = {{ latency_none_plaintext_both_p99_master|safe }}
+        latency_v2_stats_nullvm_both_p99_master = {{ latency_v2_stats_nullvm_both_p99_master|safe }}
+        latency_v2_sd_nologging_nullvm_both_p99_master = {{ latency_v2_sd_nologging_nullvm_both_p99_master|safe }}
+        latency_v2_sd_full_nullvm_both_p99_master = {{ latency_v2_sd_full_nullvm_both_p99_master|safe }}
     </script>
 {% endblock page_data %}
 
 {% block charts_js %}
+    <script src="{% static 'js/utils.js' %}"></script>
     <script src="{% static 'js/latency_common_func.js' %}"></script>
     <script src="{% static 'js/latency_qps.js' %}"></script>
 {% endblock charts_js %}

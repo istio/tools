@@ -244,7 +244,8 @@ installIstioAtVersionUsingIstioctl(){
   writeMsg "istioctl install istio using version ${2} from ${3}."
   istioctl_path="${3}"/bin
   find "${istioctl_path}" -maxdepth 1 -type f
-  if "${2}" >= "1.4.0"; then
+  # shellcheck disable=SC2072
+  if [[ "${2}" > "1.4" ]]; then
       "${istioctl_path}"/istioctl manifest apply --skip-confirmation
   else
       "${istioctl_path}"/istioctl x manifest apply --yes
@@ -254,9 +255,10 @@ installIstioAtVersionUsingIstioctl(){
 upgradeIstioAtVersionUsingIstioctl(){
   writeMsg "istioctl upgrade istio using version ${2} from ${3}."
   istioctl_path="${3}"/bin
-  if "${TO_TAG}" >= "1.5.0"; then
+  # shellcheck disable=SC2072
+  if [[ "${TO_TAG}" > "1.5" ]]; then
     "${istioctl_path}"/istioctl upgrade --skip-confirmation
-  elif "${TO_TAG}" >= "1.4.0"; then
+  elif [[ "${TO_TAG}" > "1.4" ]]; then
     "${istioctl_path}"/istioctl x upgrade --skip-confirmation
   fi
 }

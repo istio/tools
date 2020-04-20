@@ -1,20 +1,20 @@
 # Note: this image must be built from the root of the repository for access to
 # the vendor folder.
 
-FROM golang:1.12.7 AS builder
+FROM golang:1.13.8 AS builder
 
-WORKDIR /go/src/istio.io/tools
+RUN mkdir /build
 
-COPY . .
+COPY . /build/
 
-WORKDIR /go/src/istio.io/tools/isotope/service
+WORKDIR /build
 
-RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux \
-    go build -a -installsuffix cgo -o ./main ./main.go
+RUN GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build -o isotope_service ./service
 
 FROM scratch
-COPY --from=builder \
-    /go/src/istio.io/tools/isotope/service/main /usr/local/bin/isotope_service
+
+COPY --from=builder /build/isotope_service /usr/local/bin/isotope_service
 
 EXPOSE 8080
+
 ENTRYPOINT ["/usr/local/bin/isotope_service"]

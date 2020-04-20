@@ -27,6 +27,8 @@ NAMESPACE="${NAMESPACE:-twopods}"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
+SERVER_REPLICA="${SERVER_REPLICA:-1}"
+CLIENT_REPLICA="${CLIENT_REPLICA:-1}"
 ISTIO_INJECT="${ISTIO_INJECT:-false}"
 LINKERD_INJECT="${LINKERD_INJECT:-disabled}"
 INTERCEPTION_MODE="${INTERCEPTION_MODE:-REDIRECT}"
@@ -50,19 +52,22 @@ function run_test() {
       --set namespace="${NAMESPACE}" \
       --set excludeOutboundIPRanges=$(pod_ip_range)\
       --set includeOutboundIPRanges=$(svc_ip_range) \
-      --set client.inject="${ISTIO_INJECT}" \
+      --set server.replica="${SERVER_REPLICA}" \
+      --set client.replica="${CLIENT_REPLICA}" \
       --set server.inject="${ISTIO_INJECT}"  \
-      --set client.injectL="${LINKERD_INJECT}" \
+      --set client.inject="${ISTIO_INJECT}" \
       --set server.injectL="${LINKERD_INJECT}" \
+      --set client.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
+      --set fortioImage="gcr.io/istio-testing/fortio:v1.3.1-1" \
           . > "${TMPDIR}/${NAMESPACE}.yaml"
   echo "Wrote file ${TMPDIR}/${NAMESPACE}.yaml"
 
   # remove stdio rules
-  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/${NAMESPACE}.yaml"
-  kubectl rollout status deployment fortioclient -n "${NAMESPACE}" --timeout=1m
-  kubectl rollout status deployment fortioserver -n "${NAMESPACE}" --timeout=1m
+  kubectl apply -n "${NAMESPACE}" -f "${TMPDIR}/${NAMESPACE}.yaml" || true
+  kubectl rollout status deployment fortioclient -n "${NAMESPACE}" --timeout=5m
+  kubectl rollout status deployment fortioserver -n "${NAMESPACE}" --timeout=5m
   echo "${TMPDIR}/${NAMESPACE}.yaml"
 }
 

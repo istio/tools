@@ -7,13 +7,14 @@ var cpuOptions = {
             scaleLabel: {
                 display: true,
                 labelString: "max CPUs, server proxy (millicores)"
-            }
+            },
         }],
         xAxes: [{
+            type:"linear",
             scaleLabel: {
                 display: true,
                 labelString: "QPS"
-            }
+            },
         }]
     }
 };
@@ -24,9 +25,10 @@ var memOptions = {
             scaleLabel: {
                 display: true,
                 labelString: "max memory usage, server proxy (MB)"
-            }
+            },
         }],
         xAxes: [{
+            type: "linear",
             scaleLabel: {
                 display: true,
                 labelString: "QPS"
@@ -37,236 +39,196 @@ var memOptions = {
 
 new Chart(document.getElementById("cpu-qps-release"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
                 label: "baseline",
                 backgroundColor: "rgba(236, 66, 53, 0.2)",
                 borderColor: "rgba(236, 66, 53, 1)",
-                data: cpu_mixer_base,
+                data: cpu_none_mtls_base,
                 fill: false
             }, {
-                label: "serveronly",
-                backgroundColor: "rgba(259, 188, 5, 0.2)",
-                borderColor: "rgba(259, 188, 5, 1)",
-                data: cpu_mixer_serveronly,
-                fill: false
-            }, {
-                label: "both",
-                backgroundColor: "rgba(66, 133, 246, 0.2)",
-                borderColor: "rgba(66, 133, 246, 1)",
-                data: cpu_mixer_both,
-                fill: false
-            }, {
-                label: "none-serveronly",
-                backgroundColor: "rgba(52, 168, 85, 0.2)",
-                borderColor: "rgba(52, 168, 85, 1)",
-                data: cpu_none_serveronly,
-                fill: false
-            }, {
-                label: "none-both",
+                label: "none-mtls_both",
                 backgroundColor: "rgba(0, 0, 0, 0.2)",
                 borderColor: "rgba(0, 0, 0, 1)",
-                data: cpu_none_both,
+                data: cpu_none_mtls_both,
                 fill: false
             },{
-                label: "none-plaintext-both",
+                label: "none-plaintext_both",
                 backgroundColor: "rgba(52, 235, 219, 0.2)",
                 borderColor: "rgba(52, 235, 219, 1)",
                 data: cpu_none_plaintext_both,
                 fill: false
             }, {
-                label: "v2-serveronly",
-                backgroundColor: "rgba(168, 50, 168, 0.2)",
-                borderColor: "rgba(168, 50, 168, 1)",
-                data: cpu_v2_serveronly,
-                fill: false
-            }, {
-                label: "v2-both",
+                label: "v2-stats-nullvm_both",
                 backgroundColor: "rgba(252, 123, 3, 0.2)",
                 borderColor: "rgba(252, 123, 3, 1)",
-                data: cpu_v2_both,
-                fill: false
-            }
-        ]
-    },
-    options: cpuOptions
-});
-
-new Chart(document.getElementById("cpu-qps-master"), {
-    type: 'line',
-    data: {
-        labels: qpsNum,
-        datasets: [
-            {
-                label: "baseline",
-                backgroundColor: "rgba(236, 66, 53, 0.2)",
-                borderColor: "rgba(236, 66, 53, 1)",
-                data: cpu_mixer_base_master,
+                data: cpu_v2_stats_nullvm_both,
                 fill: false
             }, {
-                label: "serveronly",
-                backgroundColor: "rgba(259, 188, 5, 0.2)",
-                borderColor: "rgba(259, 188, 5, 1)",
-                data: cpu_mixer_serveronly_master,
-                fill: false
-            }, {
-                label: "both",
-                backgroundColor: "rgba(66, 133, 246, 0.2)",
-                borderColor: "rgba(66, 133, 246, 1)",
-                data: cpu_mixer_both_master,
-                fill: false
-            }, {
-                label: "none-serveronly",
+                label: "v2-sd-nologging-nullvm_both",
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
-                data: cpu_none_serveronly_master,
+                data: cpu_v2_sd_nologging_nullvm_both,
+                hidden: true,
                 fill: false
             }, {
-                label: "none-both",
-                backgroundColor: "rgba(0, 0, 0, 0.2)",
-                borderColor: "rgba(0, 0, 0, 1)",
-                data: cpu_none_both_master,
-                fill: false
-            }, {
-                label: "none-plaintext-both",
-                backgroundColor: "rgba(52, 235, 219, 0.2)",
-                borderColor: "rgba(52, 235, 219, 1)",
-                data: cpu_none_plaintext_both_master,
-                fill: false
-            }, {
-                label: "v2-serveronly",
+                label: "v2-sd-full-nullvm_both",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
-                data: cpu_v2_serveronly_master,
-                fill: false
-            }, {
-                label: "v2-both",
-                backgroundColor: "rgba(252, 123, 3, 0.2)",
-                borderColor: "rgba(252, 123, 3, 1)",
-                data: cpu_v2_both_master,
+                data: cpu_v2_sd_full_nullvm_both,
+                hidden: true,
                 fill: false
             }
         ]
-    },
+    }),
     options: cpuOptions
 });
 
 new Chart(document.getElementById("mem-qps-release"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
                 label: "baseline",
                 backgroundColor: "rgba(236, 66, 53, 0.2)",
                 borderColor: "rgba(236, 66, 53, 1)",
-                data: mem_mixer_base,
+                data: mem_none_mtls_base,
                 fill: false
             }, {
-                label: "serveronly",
-                backgroundColor: "rgba(259, 188, 5, 0.2)",
-                borderColor: "rgba(259, 188, 5, 1)",
-                data: mem_mixer_serveronly,
-                fill: false
-            }, {
-                label: "both",
-                backgroundColor: "rgba(66, 133, 246, 0.2)",
-                borderColor: "rgba(66, 133, 246, 1)",
-                data: mem_mixer_both,
-                fill: false
-            }, {
-                label: "none-serveronly",
-                backgroundColor: "rgba(52, 168, 85, 0.2)",
-                borderColor: "rgba(52, 168, 85, 1)",
-                data: mem_none_serveronly,
-                fill: false
-            }, {
-                label: "none-both",
+                label: "none-mtls_both",
                 backgroundColor: "rgba(0, 0, 0, 0.2)",
                 borderColor: "rgba(0, 0, 0, 1)",
-                data: mem_none_both,
+                data: mem_none_mtls_both,
                 fill: false
             }, {
-                label: "none-plaintext-both",
+                label: "none-plaintext_both",
                 backgroundColor: "rgba(52, 235, 219, 0.2)",
                 borderColor: "rgba(52, 235, 219, 1)",
                 data: mem_none_plaintext_both,
                 fill: false
             }, {
-                label: "v2-serveronly",
-                backgroundColor: "rgba(168, 50, 168, 0.2)",
-                borderColor: "rgba(168, 50, 168, 1)",
-                data: mem_v2_serveronly,
-                fill: false
-            }, {
-                label: "v2-both",
+                label: "v2-stats-nullvm_both",
                 backgroundColor: "rgba(252, 123, 3, 0.2)",
                 borderColor: "rgba(252, 123, 3, 1)",
-                data: mem_v2_both,
+                data: mem_v2_stats_nullvm_both,
+                fill: false
+            }, {
+                label: "v2-sd-nologging-nullvm_both",
+                backgroundColor: "rgba(52, 168, 85, 0.2)",
+                borderColor: "rgba(52, 168, 85, 1)",
+                data: mem_v2_sd_nologging_nullvm_both,
+                hidden: true,
+                fill: false
+            }, {
+                label: "v2-sd-full-nullvm_both",
+                backgroundColor: "rgba(168, 50, 168, 0.2)",
+                borderColor: "rgba(168, 50, 168, 1)",
+                data: mem_v2_sd_full_nullvm_both,
+                hidden: true,
                 fill: false
             }
         ]
-    },
+    }),
     options: memOptions
 });
 
-new Chart(document.getElementById("mem-qps-master"), {
+new Chart(document.getElementById("cpu-qps-master"), {
     type: 'line',
-    data: {
+    data: convertData({
         labels: qpsNum,
         datasets: [
             {
                 label: "baseline",
                 backgroundColor: "rgba(236, 66, 53, 0.2)",
                 borderColor: "rgba(236, 66, 53, 1)",
-                data: mem_mixer_base_master,
+                data: cpu_none_mtls_base_master,
                 fill: false
             }, {
-                label: "serveronly",
-                backgroundColor: "rgba(259, 188, 5, 0.2)",
-                borderColor: "rgba(259, 188, 5, 1)",
-                data: mem_mixer_serveronly_master,
-                fill: false
-            }, {
-                label: "both",
-                backgroundColor: "rgba(66, 133, 246, 0.2)",
-                borderColor: "rgba(66, 133, 246, 1)",
-                data: mem_mixer_both_master,
-                fill: false
-            }, {
-                label: "none-serveronly",
-                backgroundColor: "rgba(52, 168, 85, 0.2)",
-                borderColor: "rgba(52, 168, 85, 1)",
-                data: mem_none_serveronly_master,
-                fill: false
-            }, {
-                label: "none-both",
+                label: "none-mtls_both",
                 backgroundColor: "rgba(0, 0, 0, 0.2)",
                 borderColor: "rgba(0, 0, 0, 1)",
-                data: mem_none_both_master,
+                data: cpu_none_mtls_both_master,
                 fill: false
             }, {
-                label: "none-plaintext-both",
+                label: "none-plaintext_both",
+                backgroundColor: "rgba(52, 235, 219, 0.2)",
+                borderColor: "rgba(52, 235, 219, 1)",
+                data: cpu_none_plaintext_both_master,
+                fill: false
+            }, {
+                label: "v2-stats-nullvm_both",
+                backgroundColor: "rgba(252, 123, 3, 0.2)",
+                borderColor: "rgba(252, 123, 3, 1)",
+                data: cpu_v2_stats_nullvm_both_master,
+                fill: false
+            }, {
+                label: "v2-sd-nologging-nullvm_both",
+                backgroundColor: "rgba(52, 168, 85, 0.2)",
+                borderColor: "rgba(52, 168, 85, 1)",
+                data: cpu_v2_sd_nologging_nullvm_both_master,
+                hidden: true,
+                fill: false
+            }, {
+                label: "v2-sd-full-nullvm_both",
+                backgroundColor: "rgba(168, 50, 168, 0.2)",
+                borderColor: "rgba(168, 50, 168, 1)",
+                data: cpu_v2_sd_full_nullvm_both_master,
+                hidden: true,
+                fill: false
+            }
+        ]
+    }),
+    options: cpuOptions
+});
+
+new Chart(document.getElementById("mem-qps-master"), {
+    type: 'line',
+    data: convertData({
+        labels: qpsNum,
+        datasets: [
+            {
+                label: "baseline",
+                backgroundColor: "rgba(236, 66, 53, 0.2)",
+                borderColor: "rgba(236, 66, 53, 1)",
+                data: mem_none_mtls_base_master,
+                fill: false
+            }, {
+                label: "none-mtls_both",
+                backgroundColor: "rgba(0, 0, 0, 0.2)",
+                borderColor: "rgba(0, 0, 0, 1)",
+                data: mem_none_mtls_both_master,
+                fill: false
+            }, {
+                label: "none-plaintext_both",
                 backgroundColor: "rgba(52, 235, 219, 0.2)",
                 borderColor: "rgba(52, 235, 219, 1)",
                 data: mem_none_plaintext_both_master,
                 fill: false
             }, {
-                label: "v2-serveronly",
-                backgroundColor: "rgba(168, 50, 168, 0.2)",
-                borderColor: "rgba(168, 50, 168, 1)",
-                data: mem_v2_serveronly_master,
-                fill: false
-            }, {
-                label: "v2-both",
+                label: "v2-stats-nullvm_both",
                 backgroundColor: "rgba(252, 123, 3, 0.2)",
                 borderColor: "rgba(252, 123, 3, 1)",
-                data: mem_v2_both_master,
+                data: mem_v2_stats_nullvm_both_master,
+                fill: false
+            }, {
+                label: "v2-sd-nologging-nullvm_both",
+                backgroundColor: "rgba(52, 168, 85, 0.2)",
+                borderColor: "rgba(52, 168, 85, 1)",
+                data: mem_v2_sd_nologging_nullvm_both_master,
+                hidden: true,
+                fill: false
+            }, {
+                label: "v2-sd-full-nullvm_both",
+                backgroundColor: "rgba(168, 50, 168, 0.2)",
+                borderColor: "rgba(168, 50, 168, 1)",
+                data: mem_v2_sd_full_nullvm_both_master,
+                hidden: true,
                 fill: false
             }
         ]
-    },
+    }),
     options: memOptions
 });

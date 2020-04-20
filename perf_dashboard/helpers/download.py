@@ -21,7 +21,6 @@ import datetime
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
 current_release = os.getenv('CUR_RELEASE')
-today = datetime.date.today()
 
 
 def download_benchmark_csv(days):
@@ -42,6 +41,7 @@ def download_benchmark_csv(days):
     cur_dateset = set()
     master_dateset = set()
     for link in soup.find_all('a'):
+        today = datetime.date.today()
         href_str = link.get('href')
         if href_str == "/gcs/istio-build/":
             continue
@@ -76,7 +76,6 @@ def download_benchmark_csv(days):
                             master_release_names.pop(0)
                             print(e)
 
-    delete_outdated_files(cur_release_names + master_release_names)
     cur_release_dates = [[]] * len(cur_release_names)
     for i in range(len(cur_release_names)):
         cur_release = cur_release_names[i]

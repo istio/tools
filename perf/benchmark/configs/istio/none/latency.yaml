@@ -1,0 +1,26 @@
+# Data: latency
+# Config: No mixer and telemetry v2
+load_gen_type: "fortio"
+telemetry_mode: "none"
+conn:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+    - 64
+qps:
+    - 1000
+duration: 240
+size: 1024
+metrics:
+    - p50
+    - p90
+    - p99
+perf_record: false
+run_bothsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
+run_baseline: true
+
+extra_labels: "mtls"

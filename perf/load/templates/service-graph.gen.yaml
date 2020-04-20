@@ -1,12 +1,4 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    istio-injection: enabled
-  name: {{ .Values.Namespace }}
-spec: {}
----
-apiVersion: v1
 data:
   service-graph: |
     services:

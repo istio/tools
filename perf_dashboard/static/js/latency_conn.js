@@ -12,6 +12,7 @@ var options = {
             }
         }],
         xAxes: [{
+            type: "linear",
             scaleLabel: {
                 display: true,
                 labelString: "Connections"

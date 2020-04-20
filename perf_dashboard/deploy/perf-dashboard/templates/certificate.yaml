@@ -1,0 +1,7 @@
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata:
+  name: {{ include "perf-dashboard.fullname" . }}
+spec:
+  domains:
+  - {{ .Values.domain }}

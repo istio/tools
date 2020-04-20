@@ -25,13 +25,13 @@
 # Binary tools
 ################
 
-FROM golang:1.13.7 as binary_tools_context
+FROM golang:1.14.2 as binary_tools_context
 
 # Istio tools SHA that we use for this image
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in
-ENV COUNTERFEITER_VERSION=v6.2.2
+ENV COUNTERFEITER_VERSION=v6.2.3
 ENV FORTIO_VERSION=v1.3.1
 ENV GCR_AUTH_VERSION=1.5.0
 ENV GO_BINDATA_VERSION=v3.1.2
@@ -40,12 +40,15 @@ ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOGO_PROTOBUF_VERSION=v1.3.0
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV GOLANG_PROTOBUF_VERSION=v1.3.1
-ENV GOLANGCI_LINT_VERSION=v1.23.1
+ENV GOLANGCI_LINT_VERSION=v1.24.0
 ENV HADOLINT_VERSION=v1.17.2
-ENV HELM_VERSION=v2.16.1
+ENV HELM2_VERSION=v2.16.1
+ENV HELM3_VERSION=v3.1.2
 ENV HUGO_VERSION=0.61.0
+ENV JB_VERSION=v0.3.1
+ENV JSONNET_VERSION=v0.15.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
-ENV K8S_CODE_GENERATOR_VERSION=1.16.2
+ENV K8S_CODE_GENERATOR_VERSION=1.18.1
 ENV KIND_VERSION=v0.7.0
 ENV KUBECTL_VERSION=1.15.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
@@ -87,41 +90,55 @@ ADD https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERS
 RUN unzip /tmp/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 
+# Install gobin. We use gobin to build all of our tools such that their
+# dependencies remain independent of each other
+RUN GO111MODULE=off go get github.com/myitcv/gobin
+RUN mv /tmp/go/bin/gobin /usr/local/go/bin
+
 # Build and install a bunch of Go tools
-RUN go get -ldflags="-s -w" github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
-RUN go get -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
-RUN go get -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
-RUN go get -ldflags="-s -w" github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
-RUN go get -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
-RUN go get -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN go get -ldflags="-s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
-RUN go get -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
-RUN go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
-RUN go get -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
-RUN go get -ldflags="-s -w" github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
-RUN go get -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
-RUN go get -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
-RUN go get -ldflags="-s -w" github.com/fortio/fortio@${FORTIO_VERSION}
-RUN go get -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
+RUN gobin github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN gobin github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
+RUN gobin github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
+RUN gobin github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
+RUN gobin github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
+RUN gobin github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
+RUN gobin github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
+RUN gobin github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
+RUN gobin golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
+RUN gobin github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN gobin github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN gobin github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
+RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN gobin github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
+RUN gobin github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@${JB_VERSION}
+RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
+RUN gobin github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN gobin sigs.k8s.io/kind@${KIND_VERSION}
+RUN gobin github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
+RUN gobin github.com/fortio/fortio@${FORTIO_VERSION}
+RUN gobin github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 
 # Install latest version of Istio-owned tools in this release
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
-RUN go get -ldflags="-s -w" istio.io/test-infra/toolbox/githubctl
-RUN go get -ldflags="-s -w" istio.io/test-infra/boskos/cmd/mason_client
+RUN gobin istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/test-infra/toolbox/githubctl
 
-# Install k8s code generation tools
+# TODO(sdake/clarktm) sort out why this results in a building test-infra container
+RUN rm -rf /tmp/go/pkg/mod/cache/download/k8s.io
+
+# Install istio/test-infra tools
+RUN gobin istio.io/test-infra/boskos/cmd/mason_client
+RUN gobin k8s.io/test-infra/robots/pr-creator
+
+# gobin does not seem to be compatible with this pesky code-generator repo
+# Install the code generator tools, and hopefully only these tools, this way
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/lister-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
@@ -150,10 +167,17 @@ ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${H
 RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C /tmp
 RUN mv /tmp/hugo ${OUTDIR}/usr/bin
 
-# Helm
-ADD https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz /tmp
-RUN tar -xf /tmp/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp
-RUN mv /tmp/linux-amd64/helm ${OUTDIR}/usr/bin
+# Helm version 2
+ADD https://storage.googleapis.com/kubernetes-helm/helm-${HELM2_VERSION}-linux-amd64.tar.gz /tmp
+RUN mkdir /tmp/helm2
+RUN tar -xf /tmp/helm-${HELM2_VERSION}-linux-amd64.tar.gz -C /tmp/helm2
+RUN mv /tmp/helm2/linux-amd64/helm ${OUTDIR}/usr/bin
+
+# Helm version 3
+ADD https://get.helm.sh/helm-${HELM3_VERSION}-linux-amd64.tar.gz /tmp
+RUN mkdir /tmp/helm3
+RUN tar -xf /tmp/helm-${HELM3_VERSION}-linux-amd64.tar.gz -C /tmp/helm3
+RUN mv /tmp/helm3/linux-amd64/helm ${OUTDIR}/usr/bin/helm3
 
 # yq doesn't support go modules, so install the binary instead
 ADD https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 /tmp
@@ -175,11 +199,6 @@ RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
 WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
-
-# Install pr-creator
-RUN git clone --depth=1 https://github.com/kubernetes/test-infra.git /tmp/test-infra/
-WORKDIR /tmp/test-infra
-RUN GO111MODULE=on go build -ldflags="-s -w" -o ${OUTDIR}/usr/bin ./robots/pr-creator/
 
 # TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
 # commands, maybe we just need the gcloud binary out of all this?
@@ -205,6 +224,7 @@ ENV BABEL_CORE_VERSION=v7.7.4
 ENV BABEL_POLYFILL_VERSION=v7.7.0
 ENV BABEL_PRESET_ENV=v7.7.4
 ENV BABEL_PRESET_MINIFY_VERSION=v0.5.1
+ENV LINKINATOR_VERSION=v2.0.5
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
 ENV NODEJS_VERSION=12.8.0
 ENV SASS_LINT_VERSION=v1.13.1
@@ -231,7 +251,8 @@ RUN npm install --production --global \
     svgo@"${SVGO_VERSION}" \
     @babel/core@"${BABEL_CORE_VERSION}" \
     @babel/cli@"${BABEL_CLI_VERSION}" \
-    @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}"
+    @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}" \
+    linkinator@"${LINKINATOR_VERSION}"
 
 RUN npm install --production --save-dev \
     babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
@@ -322,8 +343,8 @@ RUN pip3 install /tmp/mako-0.1-cp37-cp37m-linux_x86_64.whl
 
 FROM ubuntu:bionic as base_os_context
 
-ENV DOCKER_VERSION=5:19.03.2~3-0~ubuntu-bionic
-ENV CONTAINERD_VERSION=1.2.6-3
+ENV DOCKER_VERSION=5:19.03.8~3-0~ubuntu-bionic
+ENV CONTAINERD_VERSION=1.2.13-1
 
 ENV OUTDIR=/out
 
@@ -386,6 +407,13 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
 # Prepare final output image
 FROM scratch as build_tools
+
+# Version from build arguments
+ARG VERSION
+
+# Labels used by Docker
+LABEL "io.istio.repo"="https://github.com/istio/tools"
+LABEL "io.istio.version"="${VERSION}"
 
 # General
 ENV HOME=/home
@@ -503,8 +531,15 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 
 FROM ubuntu:xenial
 
+# Version from build arguments
+ARG VERSION
+
+# Labels used by Docker
+LABEL "io.istio.repo"="https://github.com/istio/tools"
+LABEL "io.istio.version"="${VERSION}"
+
 # Docker
-ENV DOCKER_VERSION=5:19.03.2~3-0~ubuntu-xenial
+ENV DOCKER_VERSION=5:19.03.6~3-0~ubuntu-xenial
 ENV CONTAINERD_VERSION=1.2.6-3
 
 # General

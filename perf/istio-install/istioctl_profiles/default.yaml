@@ -2,10 +2,8 @@ apiVersion: operator.istio.io/v1alpha1
 kind: IstioOperator
 spec:
   components:
-    sidecarInjector:
-      enabled: true
     galley:
-      enabled: true
+      enabled: false
     ingressGateways:
     - name: istio-ingressgateway
       enabled: true
@@ -38,7 +36,7 @@ spec:
     nodeAgent:
       enabled: false
     telemetry:
-      enabled: true
+      enabled: false
       k8s:
         hpaSpec:
           maxReplicas: 15
@@ -97,8 +95,6 @@ spec:
         enabled: true
       podDNSSearchNamespaces:
         - global
-        - '{{ valueOrDefault .DeploymentMeta.Namespace "default" }}.global'
-      #      TODO: sds not working with istioctl yet.
       proxy:
         enableCoreDump: true
         resources:

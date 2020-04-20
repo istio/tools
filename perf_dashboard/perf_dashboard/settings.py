@@ -25,6 +25,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from socket import gethostname, gethostbyname
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -39,7 +40,12 @@ SECRET_KEY = '0-k61x@nbmohu87^f!gql9ug1c*5(8k@ujeeme%cx4x=d@*=-f'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'perf.dashboard.qualistio.org']
+ALLOWED_HOSTS = [
+    'localhost',
+    'perf.dashboard.istio.io',
+    gethostname(),
+    os.getenv('NODE_IP', gethostbyname(gethostname())),
+]
 
 
 # Application definition
@@ -53,7 +59,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'benchmarks',
     'artifacts',
-    'regression_alerts',
+    'regression_pattern',
+    'graph_plotting',
+    'history',
 ]
 
 MIDDLEWARE = [
@@ -138,3 +146,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
