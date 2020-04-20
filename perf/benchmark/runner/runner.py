@@ -407,7 +407,7 @@ class Fortio:
             perf_label = "_srv_ingress"
 
         threads = self.maybe_start_profiling_threads(labels, perf_label)
-    
+
         if self.run_ingress:
             print('-------------- Running in ingress mode --------------')
             kubectl_exec(self.client.name, self.ingress(load_gen_cmd))
