@@ -448,13 +448,15 @@ RUN chmod u+sx /usr/bin/su-exec
 
 COPY bashrc /home/.bashrc
 
+# mountpoints are mandatory for any houst mounts.
+# mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
     mkdir -p /gobin && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
+    mkdir -p /config/.kube && \
     mkdir -p /config-copy && \
-    mkdir -p /home/.kube && \
     mkdir -p /home/.helm && \
     mkdir -p /home/.gsutil
 
@@ -468,7 +470,7 @@ RUN chmod 777 /go && \
     chmod 777 /config && \
     chmod 777 /config/.docker && \
     chmod 777 /config/.config/gcloud && \
-    chmod 777 /home/.kube && \
+    chmod 777 /config/.kube && \
     chmod 777 /home/.helm && \
     chmod 777 /home/.gsutil
 
@@ -631,11 +633,14 @@ RUN chmod u+sx /usr/bin/su-exec
 
 COPY bashrc /home/.bashrc
 
+# mountpoints are mandatory for any houst mounts.
+# mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
     mkdir -p /gobin && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
+    mkdir -p /config/.kube && \
     mkdir -p /config-copy
 
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
