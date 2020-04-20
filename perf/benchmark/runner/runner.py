@@ -301,6 +301,8 @@ class Fortio:
                     duration=self.duration, sidecar_pid=sidecar_pid)
                 threads.append(Thread(target=self.run_profiler, args=[
                     exec_cmd_on_pod, pod, self.custom_profiling_name, profiling_command, labels + perf_label]))
+        for thread in threads:
+            thread.start()
 
         return threads
 
@@ -405,10 +407,7 @@ class Fortio:
             perf_label = "_srv_ingress"
 
         threads = self.maybe_start_profiling_threads(labels, perf_label)
-
-        for thread in threads:
-            thread.start()
-
+    
         if self.run_ingress:
             print('-------------- Running in ingress mode --------------')
             kubectl_exec(self.client.name, self.ingress(load_gen_cmd))
