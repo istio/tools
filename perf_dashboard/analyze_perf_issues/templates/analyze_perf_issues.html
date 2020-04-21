@@ -4,9 +4,9 @@
 {% block sidebar_active %}
 <ul id="side-main-menu" class="side-menu list-unstyled">
     <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
-    <li><a href="#dropDown" aria-expanded="true" data-toggle="collapse">
+    <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
     <i class="fa fa-area-chart"></i>Benchmarks</a>
-    <ul id="dropDown" class="list-unstyled">
+    <ul id="dropDown" class="collapse list-unstyled">
         <li><a href="{% url 'benchmarks_overview' %}"><i class="fa fa-asterisk"></i>Configs & Measurements</a></li>
         <li><a href="{% url 'cpu_memory' %}"><i class="fa fa-asterisk"></i>CPU & Memory Usage</a></li>
         <li><a href="#dropDownLatency" aria-expanded="false" data-toggle="collapse">
@@ -15,7 +15,7 @@
                 <li><a href="{% url 'latency_conn' %}"><i class="fa fa-chevron-right"></i>Latency vs. Connection</a></li>
                 <li><a href="{% url 'latency_qps' %}"><i class="fa fa-chevron-right"></i>Latency vs. QPS</a></li>
             </ul>
-        <li class="active"><a href="{% url 'flame_graph' %}"><i class="fa fa-asterisk"></i>Flame Graph</a></li>
+        <li><a href="{% url 'flame_graph' %}"><i class="fa fa-asterisk"></i>Flame Graph</a></li>
         <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
@@ -27,35 +27,49 @@
     <li><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
     <li><a href="{% url 'history' %}"> <i class="fa fa-file-archive-o"></i>History</a></li>
-    <li><a href="{% url 'analyze_issues' %}"> <i class="fa fa-file-archive-o"></i>Analyze Perf & Issues</a></li>
+    <li class="active"><a href="{% url 'analyze_issues' %}"> <i class="fa fa-file-archive-o"></i>Analyze Perf & Issues</a></li>
 </ul>
 {% endblock sidebar_active %}
 
 {% block current_active %}
-<li class="breadcrumb-item">Benchmarks</li>
-<li class="breadcrumb-item active">Flame Graph</li>
+<li class="breadcrumb-item active">Analyze Perf & File an Issue</li>
 {% endblock current_active %}
 
 {% block page_content %}
- <section class="charts">
+<section class="dashboard-header section-padding">
     <div class="container-fluid">
-        <!-- Page Header-->
-        <header>
-            <h1 class="h3 display">Flame Graph</h1>
-        </header>
-        <div class="row">
-            <div class="col-lg-12">
-              <div class="card">
-                <div class="card-header d-flex align-items-center">
-                    <img src="{% static '/img/flame.svg' %}" alt="flame graph"> <!--todo: flame graph is not clickable -->
-                </div>
-              </div>
+      <div class="row d-flex align-items-md-stretch">
+        <!-- List-->
+        <div class="col-lg-12 col-md-3">
+          <div class="card">
+            <div class="card-header">
+              <h2>Analyze Istio Performance</h2>
             </div>
+            <div class="card-body">
+                <p>For analyzing Istio performance, please refer to Analyzing Istio Performance Wiki Page.</a></p>
+              <ul>
+                  <li><a href="https://github.com/istio/istio/wiki/Analyzing-Istio-Performance#control-plane" target="_blank">Control Plane</a></li>
+                  <li><a href="https://github.com/istio/istio/wiki/Analyzing-Istio-Performance#data-plane" target="_blank">Data Plane</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
+          <div class="col-lg-12 col-md-3">
+          <div class="card">
+            <div class="card-header">
+              <h2>File an Istio Performance Issue</h2>
+            </div>
+            <div class="card-body">
+                <p>Please go to Github <a href="https://github.com/istio/istio/issues" target="_blank">istio/istio issues section </a> to file an Istio Performance Issue.</p>
+            </div>
+          </div>
+          </div>
+      </div>
     </div>
 </section>
+
+
 {% endblock page_content %}
 
-{% block charts_js %}
-    <script src="{% static 'js/latency.js' %}"></script>
-{% endblock charts_js %}
+{% block page_data %}
+{% endblock page_data %}
