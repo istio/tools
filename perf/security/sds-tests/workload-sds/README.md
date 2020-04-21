@@ -4,12 +4,13 @@ This is a certificate rotation test that uses SDS with Istiod.
 The certificate rotation is tested through creating a number of
 httpbin and sleep workloads (the number of workloads is an input parameter of the script),
 which request for certificates at a customizable interval (e.g., every 1 minute),
-thereby creating the certificate rotation load. 
+thereby creating the certificate rotation load.
 
 This test creates two namespaces with equal number of workloads.
 One namespace has a name prefix "static" and the other has a name prefix "dynamic".
 Workloads in the latter are periodically redeployed to test SDS workflow is properly recreated.
-There is a DestinationRule set for 
+There is a DestinationRule that requires a new connection for each request, which is to test mTLS
+handshake using rotated key and cert.
 
 ## To run the SDS test that goes to Citadel
 
