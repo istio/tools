@@ -1,0 +1,14 @@
+apiVersion: v1
+name: workload-sds
+version: 1.0
+description: Helm chart for workload sds tests
+keywords:
+  - istio
+  - citadel
+  - sds
+  - performance
+  - qualification
+sources:
+  - http://github.com/istio/istio
+engine: gotpl
+icon: https://istio.io/favicons/android-192x192.png
