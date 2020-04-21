@@ -173,7 +173,7 @@ mkdir -p "${WD}/tmp/${CLUSTER_NAME}"
 "${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
 
 # set config use kpt then create cluster with anthoscli
-function install_with_anthoscli() {
+function install_with_anthoscli {
   if [[ $(command -v anthoscli) == "" ]];then
     gcloud components install anthoscli
   fi
@@ -197,8 +197,8 @@ function install_with_anthoscli() {
   anthoscli apply -f gke_cluster_resources
 }
 
-function install_with_gcloudcontainer() {
-    gc beta container \
+function install_with_gcloudcontainer {
+  gc beta container \
     --project "${PROJECT_ID}" \
     clusters create "${CLUSTER_NAME}" \
     --no-enable-basic-auth --cluster-version "${GKE_VERSION}" \
@@ -215,9 +215,7 @@ function install_with_gcloudcontainer() {
     --enable-network-policy \
     --workload-metadata-from-node=EXPOSED \
     --enable-autoupgrade --enable-autorepair \
-#   shellcheck disable=SC2086
-#   shellcheck disable=SC2046
-    --labels csm=1,test-date=$(date +%Y-%m-%d),version=${ISTIO_VERSION},operator=user_${USER}
+    --labels csm=1,test-date="$(date +%Y-%m-%d)",version="${ISTIO_VERSION}",operator=user_"${USER}"
 }
 
 # shellcheck disable=SC2086
