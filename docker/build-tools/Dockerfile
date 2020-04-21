@@ -448,7 +448,7 @@ RUN chmod u+sx /usr/bin/su-exec
 
 COPY bashrc /home/.bashrc
 
-# mountpoints are mandatory for any houst mounts.
+# mountpoints are mandatory for any host mounts.
 # mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
@@ -633,7 +633,7 @@ RUN chmod u+sx /usr/bin/su-exec
 
 COPY bashrc /home/.bashrc
 
-# mountpoints are mandatory for any houst mounts.
+# mountpoints are mandatory for any host mounts.
 # mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
@@ -652,7 +652,10 @@ RUN chmod 777 /go && \
     chmod 777 /gobin && \
     chmod 777 /config && \
     chmod 777 /config/.docker && \
-    chmod 777 /config/.config/gcloud
+    chmod 777 /config/.config/gcloud && \
+    chmod 777 /config/.kube && \
+    chmod 777 /home/.helm && \
+    chmod 777 /home/.gsutil
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
