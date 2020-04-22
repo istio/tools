@@ -641,7 +641,9 @@ RUN mkdir -p /go && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
     mkdir -p /config/.kube && \
-    mkdir -p /config-copy
+    mkdir -p /config-copy && \
+    mkdir -p /home/.helm && \
+    mkdir -p /home/.gsutil
 
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
 # They are created as root 755.  As a result they are not writeable, which fails in
