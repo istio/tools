@@ -20,10 +20,11 @@ spec:
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         ports:
         - containerPort: {{ .Values.port }}
-        {{- with .Values.env }}
         env:
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         readinessProbe:
           httpGet:
             path: /
