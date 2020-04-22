@@ -12,8 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from django.http import HttpResponse
 from django.shortcuts import render
 
 
 def index(request):
     return render(request, 'index.html')
+
+
+def healthz(request):
+    return HttpResponse("OK", status=200)
