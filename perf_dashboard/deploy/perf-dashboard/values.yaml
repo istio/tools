@@ -9,6 +9,14 @@ fullnameOverride: ""
 ipName: perf-dashboard
 domain: perf.dashboard.istio.io
 
+env:
+- name: SECURE_SSL_REDIRECT
+  value: "True"
+- name: NODE_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+
 image: gcr.io/istio-testing/perf-dashboard
 version: latest
 imagePullPolicy: Always
