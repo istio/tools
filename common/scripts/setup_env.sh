@@ -59,7 +59,7 @@ fi
 
 # Build image to use
 if [[ "${IMAGE_VERSION:-}" == "" ]]; then
-  export IMAGE_VERSION=master-2020-04-16T19-28-05
+  export IMAGE_VERSION=master-2020-04-22T02-05-07
 fi
 if [[ "${IMAGE_NAME:-}" == "" ]]; then
   export IMAGE_NAME=build-tools
@@ -77,8 +77,6 @@ export TARGET_OUT_LINUX="${TARGET_OUT_LINUX:-$(pwd)/out/linux_amd64}"
 
 export CONTAINER_TARGET_OUT="${CONTAINER_TARGET_OUT:-/work/out/${TARGET_OS}_${TARGET_ARCH}}"
 export CONTAINER_TARGET_OUT_LINUX="${CONTAINER_TARGET_OUT_LINUX:-/work/out/linux_amd64}"
-
-export KUBECONFIG="/home/.kube/config"
 
 export IMG="${IMG:-gcr.io/istio-testing/${IMAGE_NAME}:${IMAGE_VERSION}}"
 
