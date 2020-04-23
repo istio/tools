@@ -27,7 +27,7 @@ WD=$(dirname "$0")
 WD=$(cd "$WD"; pwd)
 ROOT=$(dirname "$WD")
 
-# Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh
+# Set up inputs needed by /istio/tools/upgrade/test_crossgrade.sh
 # These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade jobs
 export SOURCE_HUB=${SOURCE_HUB:-"docker.io/istio"}
 export TARGET_HUB=${TARGET_HUB:-"docker.io/istio"}
