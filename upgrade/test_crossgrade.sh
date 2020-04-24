@@ -257,6 +257,7 @@ upgradeIstioAtVersionUsingIstioctl(){
   istioctl_path="${3}"/bin
   # shellcheck disable=SC2072
   if [[ "${TO_TAG}" > "1.5" ]]; then
+    make gen-charts
     "${istioctl_path}"/istioctl upgrade --skip-confirmation
   elif [[ "${TO_TAG}" > "1.4" ]]; then
     "${istioctl_path}"/istioctl x upgrade --skip-confirmation
