@@ -18,13 +18,51 @@ set -ex
 NUM=${NUM:?"specify the number of httpbin and sleep workloads"}
 CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
 
+# specify the Istio release version, e.g., release-1.1-20190208-09-16
+release_version=$1
+# specify the Istio release type, daily, release, pre-release
+release_type=$2
+
+# shellcheck disable=SC1091	
+source ../../utils/get_release.sh
+
+function download_istio() {
+    echo "Download istioctl from release version ${release_version}, release type ${release_type}"
+    # shellcheck disable=SC2086
+    wd=$(dirname $0)/tmp
+    if [[ ! -d "${wd}" ]]; then	
+        # shellcheck disable=SC2086	
+        mkdir $wd
+    fi
+    get_release_url "$release_type" "$release_version"
+    # shellcheck disable=SC2154	
+    if [[ -z "$release_url" ]]; then	
+        return 1	
+    fi
+    curl -JLo "$wd/istio-${release_version}.tar.gz" "${release_url}"	
+    # shellcheck disable=SC2086	
+    tar xfz ${wd}/istio-${release_version}.tar.gz -C $wd
+    export PATH=$PWD/tmp/istio-${release_version}/bin:$PATH
+}
+
+if [[ -n $release_version ]] && [[ -n $release_type ]]; then 
+    download_istio
+    return_code=$?
+    if [ "$return_code" -eq 1 ]; then
+        echo "failed in downloading istio, exit"
+        exit
+    fi
+fi
+
 if ! istioctl version; then 
+    echo "istioctl is not installed or invalid istioctl version"
     exit
 fi
 
 timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
 staticns=static-${timestamp}
 dynamicns=dynamic-${timestamp}
+# redeploy workloads in dynamic namespace every 180 seconds
 dynamicworkloadlife=180
 
 kubectl create ns "${staticns}" --cluster "${CLUSTER}"
@@ -46,7 +84,7 @@ helm -n "${dynamicns}" template \
           . > auto-rotate.yaml
 kubectl apply -n "${dynamicns}" -f auto-rotate.yaml --cluster "${CLUSTER}"
 
-# echo "Wait 60 seconds for the deployment to be ready ..."
-# sleep 60
+# echo "Wait 10 seconds for the deployment to be ready ..."
+sleep 10
 
 rm auto-rotate.yaml

@@ -47,3 +47,8 @@ Note: the number of workloads can be ran depends on the size of your cluster.
     ```
 
 The log in sleep container shows number of requests sent to httpbin and number of successful responses.
+
+To download a specific version of istioctl and deploy the test worloads using that istioctl binary.
+    ```bash
+    NUM=100 CLUSTER=gke_istio-security-testing_us-central1-a_istio-testing ./setup_test.sh 1.5.1 pre-release
+    ```
