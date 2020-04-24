@@ -257,7 +257,9 @@ upgradeIstioAtVersionUsingIstioctl(){
   istioctl_path="${3}"/bin
   # shellcheck disable=SC2072
   if [[ "${TO_TAG}" > "1.5" ]]; then
-    "${istioctl_path}"/istioctl upgrade --skip-confirmation
+    # The following is a workaround for the test failure due to that the charts is
+    # no longer bundled in the release (https://github.com/istio/istio/issues/23172).
+    "${istioctl_path}"/istioctl manifest apply --skip-confirmation --charts "${3}"/manifests
   elif [[ "${TO_TAG}" > "1.4" ]]; then
     "${istioctl_path}"/istioctl x upgrade --skip-confirmation
   fi
@@ -493,6 +495,8 @@ waitForPodsReady "${ISTIO_NAMESPACE}"
 sleep 60
 
 restartDataPlane echosrv-deployment-v1
+# echosrv-deployment-v2 is for mTLS traffic
+restartDataPlane echosrv-deployment-v2
 # No way to tell when rolling restart completes because it's async. Make sure this is long enough to cover all the
 # pods in the deployment at the minReadySeconds setting (should be > num pods x minReadySeconds + few extra seconds).
 sleep 140
@@ -501,6 +505,8 @@ sleep 140
 writeMsg "Starting rollback - first, rolling back data plane to ${FROM_PATH}"
 resetConfigMap istio-sidecar-injector "${TMP_DIR}"/sidecar-injector-configmap.yaml
 restartDataPlane echosrv-deployment-v1
+# echosrv-deployment-v2 is for mTLS traffic
+restartDataPlane echosrv-deployment-v2
 sleep 140
 
 istioInstallOptions
