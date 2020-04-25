@@ -75,8 +75,6 @@ spec:
             cpu: 4800m
             memory: 2G
   values:
-    certmanager:
-      email: mjog@google.com
     gateways:
       istio-ingressgateway:
         secretVolumes:

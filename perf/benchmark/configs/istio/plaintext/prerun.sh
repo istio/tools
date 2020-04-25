@@ -15,11 +15,11 @@
 # limitations under the License.
 
 echo "Saving current mTLS config first"
-kubectl -n "${NAMESPACE}"  get dr -oyaml > "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
-kubectl -n "${NAMESPACE}"  get policy -oyaml > "${LOCAL_OUTPUT_DIR}/authn-policy.yaml"
+kubectl -n "${NAMESPACE}"  get dr -oyaml > "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml" || true
+kubectl -n "${NAMESPACE}"  get policy -oyaml > "${LOCAL_OUTPUT_DIR}/authn-policy.yaml" || true
 echo "Deleting Authn Policy and DestinationRule"
-kubectl -n "${NAMESPACE}" delete dr --all
-kubectl -n "${NAMESPACE}" delete policy --all
+kubectl -n "${NAMESPACE}" delete dr --all || true
+kubectl -n "${NAMESPACE}" delete policy --all || true
 echo "Configure plaintext..."
 cat <<EOF | kubectl apply -f -
 apiVersion: "authentication.istio.io/v1alpha1"
