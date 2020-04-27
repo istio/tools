@@ -13,6 +13,9 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
+# If enabled, strict mTLS will be set for the namespace
+mtls: true
+
 prometheus_scrape: false
 
 # time between config changes
