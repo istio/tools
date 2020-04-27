@@ -1,0 +1,9 @@
+{{- if .Values.mtls }}
+apiVersion: "security.istio.io/v1beta1"
+kind: "PeerAuthentication"
+metadata:
+  name: "default"
+spec:
+  mtls:
+    mode: STRICT
+{{- end }}
