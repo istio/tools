@@ -12,13 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.apps import AppConfig
 
 
-def index(request):
-    return render(request, 'index.html')
-
-
-def healthz(request):
-    return HttpResponse("OK", status=200)
+class AnalyzePerfIssuesConfig(AppConfig):
+    name = 'analyze_perf_issues'

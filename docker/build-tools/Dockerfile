@@ -60,7 +60,7 @@ ENV PROTOTOOL_VERSION=7df3b957ffe3d09dc57fe4e1eb96694614db8c7a
 ENV SHELLCHECK_VERSION=v0.7.0
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.95
-ENV YQ_VERSION=2.4.0
+ENV YQ_VERSION=3.3.0
 ENV GCLOUD_VERSION=265.0.0
 
 ENV GO111MODULE=on
@@ -448,13 +448,15 @@ RUN chmod u+sx /usr/bin/su-exec
 
 COPY bashrc /home/.bashrc
 
+# mountpoints are mandatory for any host mounts.
+# mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
     mkdir -p /gobin && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
+    mkdir -p /config/.kube && \
     mkdir -p /config-copy && \
-    mkdir -p /home/.kube && \
     mkdir -p /home/.helm && \
     mkdir -p /home/.gsutil
 
@@ -468,7 +470,7 @@ RUN chmod 777 /go && \
     chmod 777 /config && \
     chmod 777 /config/.docker && \
     chmod 777 /config/.config/gcloud && \
-    chmod 777 /home/.kube && \
+    chmod 777 /config/.kube && \
     chmod 777 /home/.helm && \
     chmod 777 /home/.gsutil
 
@@ -631,12 +633,17 @@ RUN chmod u+sx /usr/bin/su-exec
 
 COPY bashrc /home/.bashrc
 
+# mountpoints are mandatory for any host mounts.
+# mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
     mkdir -p /gobin && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
-    mkdir -p /config-copy
+    mkdir -p /config/.kube && \
+    mkdir -p /config-copy && \
+    mkdir -p /home/.helm && \
+    mkdir -p /home/.gsutil
 
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
 # They are created as root 755.  As a result they are not writeable, which fails in
@@ -647,7 +654,10 @@ RUN chmod 777 /go && \
     chmod 777 /gobin && \
     chmod 777 /config && \
     chmod 777 /config/.docker && \
-    chmod 777 /config/.config/gcloud
+    chmod 777 /config/.config/gcloud && \
+    chmod 777 /config/.kube && \
+    chmod 777 /home/.helm && \
+    chmod 777 /home/.gsutil
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*

@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Copyright Istio Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.shortcuts import render
+import pandas as pd
+from helpers import download
+import os
 
-set -xe
-NAMESPACE=${NAMESPACE:?"specify the namespace to delete"}
-CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
+current_release = [os.getenv('CUR_RELEASE')]
 
-# shellcheck disable=SC2086
-kubectl delete ns ${NAMESPACE} --cluster ${CLUSTER}
 
-# If you need to delete the Istio deployment, run the following command also.
-# kubectl delete ns istio-system --cluster ${CLUSTER}
+# Create your views here.
+def analyze_issues(request):
+    return render(request, "analyze_perf_issues.html")

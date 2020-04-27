@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Copyright Istio Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -xe
-NAMESPACE=${NAMESPACE:?"specify the namespace to delete"}
-CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
+from django.contrib import admin
 
-# shellcheck disable=SC2086
-kubectl delete ns ${NAMESPACE} --cluster ${CLUSTER}
-
-# If you need to delete the Istio deployment, run the following command also.
-# kubectl delete ns istio-system --cluster ${CLUSTER}
+# Register your models here.

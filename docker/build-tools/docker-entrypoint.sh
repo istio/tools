@@ -23,7 +23,7 @@ shopt -s dotglob
 # Make a copy of the hosts's config secrets
 su-exec 0:0 cp -aR /config/* /config-copy/
 
-# Set the ownershp of the host's config secrets to that of the ontainer
+# Set the ownershp of the host's config secrets to that of the container
 su-exec 0:0 chown -R "${uid}":"${gid}" /config-copy
 
 # Permit only the UID:GID to read the copy of the host's config secrets
@@ -50,7 +50,7 @@ fi
 # Set ownership of /home to UID:GID
 su-exec 0:0 chown "${uid}":"${gid}" /home
 
-# Copy the config secrets without chaning permissions nor ownership for
+# Copy the config secrets without changing permissions nor ownership for
 # consumption by tooolchains
 cp -aR /config-copy/* /home/
 
