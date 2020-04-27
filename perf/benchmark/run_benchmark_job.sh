@@ -208,7 +208,6 @@ echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GC
 # enable flame graph
 # enable_perf_record
 
-DEFAULT_CR_PATH="${ROOT}/istio-install/istioctl_profiles/default.yaml"
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs/istio"
 
