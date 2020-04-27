@@ -524,10 +524,11 @@ def run_perf_test(args):
         for conn in fortio.conn:
             for qps in fortio.qps:
                 fortio.run(headers=fortio.headers, conn=conn, qps=qps,
-                        duration=fortio.duration, size=fortio.size)
+                           duration=fortio.duration, size=fortio.size)
     finally:
         if not port_forward_process is None:
             port_forward_process.kill()
+
 
 def run_nighthawk(pod, remote_cmd, labels):
     # Use a local docker instance of Nighthawk to control nighthawk_service running in the pod
