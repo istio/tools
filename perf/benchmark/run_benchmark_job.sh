@@ -90,7 +90,7 @@ function get_benchmark_data() {
 
 function exit_handling() {
   if [[ "${TRIALRUN}" == "True" ]]; then
-     return
+     exit 0
   fi
   # copy raw data from fortio client pod
   kubectl --namespace "${NAMESPACE}" cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
@@ -228,7 +228,7 @@ for dir in "${CONFIG_DIR}"/*; do
        extra_overlay="-f ${dir}/installation.yaml"
     fi
     pushd "${ROOT}/istio-install/tmp"
-      ./istioctl install --charts ./manifests -f "${DEFAULT_CR_PATH}" "${extra_overlay}" --force --wait
+      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml "${extra_overlay}"
     popd
 
     # custom pre run
