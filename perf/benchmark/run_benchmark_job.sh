@@ -165,7 +165,6 @@ source "${ROOT}/../bin/setup_cluster.sh"
 setup_e2e_cluster
 
 # setup release info
-RELEASE_TYPE="dev"
 BRANCH="latest"
 if [ "${GIT_BRANCH}" != "master" ];then
   BRANCH_NUM=$(echo "$GIT_BRANCH" | cut -f2 -d-)
@@ -173,15 +172,14 @@ if [ "${GIT_BRANCH}" != "master" ];then
 fi
 
 # different branch tag resides in dev release directory like /latest, /1.4-dev, /1.5-dev etc.
-TAG=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
-echo "Setup istio release: $TAG"
+INSTALL_VERSION=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
+echo "Setup istio release: ${INSTALL_VERSION}"
 # TAG is of the form like "1.5-alpha.sha"
 # shellcheck disable=SC2155
 export GIT_SHA=$(echo "$TAG" | cut -f3 -d.)
 
 pushd "${ROOT}/istio-install"
-   export INSTALL_WITH_ISTIOCTL="true"
-   ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
+   DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml
 popd
 
 # install dependencies
