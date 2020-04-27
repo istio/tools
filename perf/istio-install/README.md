@@ -2,7 +2,7 @@
 
 This folder provides tools to setup a cluster with Istio for performance testing.
 
-# GCP Cluster Setup
+## GCP Cluster Setup
 
 Required environment:
 
@@ -32,7 +32,7 @@ The script will create files to be used later in the setup, as config maps:
 - `${CLUSTER_NAME}/kube.yaml` - credentials for accessing k8s
 - `${CLUSTER_NAME}/configmap*` - configmaps with GCP-specific configurations
 
-# Setup Istio
+## Setup Istio
 
 The `setup_istio.sh` scripts is a helper to install Istio with specific configurations for performance testing. The script
 provides a few ways to specify which version to install:
@@ -49,6 +49,6 @@ In addition to setting up the core Istio, the prometheus operator and gateways f
 
 Arguments to the script will be passed to `istioctl during install`. For example, to install the latest version with the default config file:
 
-```
+```shell
 TAG=latest ./setup_istio.sh -f istioctl_profiles/default.yaml
 ```

@@ -97,7 +97,6 @@ function install_extras() {
     MAXRETRIES=0
     until $CMD || [ $MAXRETRIES -eq 60 ]
     do
-      $CMD
       MAXRETRIES=$((MAXRETRIES + 1))
       sleep 5
     done
