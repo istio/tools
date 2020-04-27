@@ -217,6 +217,9 @@ func main() {
 		} else {
 			failLint := false
 
+			fmt.Printf("Found licenses: %v reciprocal, %v unrestricted, %v restricted, %v unrecognized, and %v unlicensed. %v are whitelisted.\n",
+				len(reciprocalLicenses), len(unrestrictedLicenses), len(restrictedLicenses), len(unrecognizedLicenses), len(unlicensedModules), len(cfg.whitelistedModules))
+
 			if len(unrecognizedLicenses) > 0 {
 				failLint = true
 				fmt.Printf("ERROR: Some modules have unrecognized licenses:\n")
@@ -238,6 +241,16 @@ func main() {
 				for _, m := range unlicensedModules {
 					fmt.Printf("  %s\n", m.moduleName)
 				}
+				fmt.Printf("\n")
+			}
+
+			if len(restrictedLicenses) > 0 {
+				failLint = true
+				fmt.Printf("ERROR: Some modules have a restricted license:\n")
+				for _, m := range restrictedLicenses {
+					fmt.Printf("  %s\n", m.module.moduleName)
+				}
+				fmt.Printf("\n")
 			}
 
 			if failLint {
