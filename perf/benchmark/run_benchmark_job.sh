@@ -226,7 +226,7 @@ for dir in "${CONFIG_DIR}"/*; do
     if [[ -e "./installation.yaml" ]]; then
        extra_overlay="-f ${dir}/installation.yaml"
     fi
-    pushd "${ROOT}/istio-install/tmp"
+    pushd "${ROOT}/istio-install"
       DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml "${extra_overlay}"
     popd
 
