@@ -193,7 +193,7 @@ export ISTIO_INJECT="true"
 popd
 dt=$(date +'%Y%m%d')
 # Current output dir should be like: 20191025_1.5-alpha.f19fb40b777e357b605e85c04fb871578592ad1e
-export OUTPUT_DIR="${dt}_${TAG}"
+export OUTPUT_DIR="${dt}_${INSTALL_VERSION}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
 
