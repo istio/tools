@@ -500,31 +500,34 @@ def run_perf_test(args):
             min_duration=min_duration))
         exit(1)
 
-        # Create a port_forward for accessing nighthawk_service.
-        if not can_connect_to_nighthawk_service():
-            popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
-                ns=NAMESPACE,
-                port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
-            process = subprocess.Popen(shlex.split(
-                popen_cmd), stdout=subprocess.PIPE)
-            max_tries = 10
-            while max_tries > 0 and not can_connect_to_nighthawk_service():
-                time.sleep(0.5)
-                max_tries = max_tries - 1
+    port_forward_process = None
 
-        if not can_connect_to_nighthawk_service():
-            print("Failure connecting to nighthawk_service")
-            sys.exit(-1)
-        else:
-            print("Able to connect to nighthawk_service, proceeding")
+    # Create a port_forward for accessing nighthawk_service.
+    if not can_connect_to_nighthawk_service():
+        popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
+            ns=NAMESPACE,
+            port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
+        port_forward_process = subprocess.Popen(shlex.split(
+            popen_cmd), stdout=subprocess.PIPE)
+        max_tries = 10
+        while max_tries > 0 and not can_connect_to_nighthawk_service():
+            time.sleep(0.5)
+            max_tries = max_tries - 1
+
+    if not can_connect_to_nighthawk_service():
+        print("Failure connecting to nighthawk_service")
+        sys.exit(-1)
+    else:
+        print("Able to connect to nighthawk_service, proceeding")
+
     try:
         for conn in fortio.conn:
             for qps in fortio.qps:
                 fortio.run(headers=fortio.headers, conn=conn, qps=qps,
-                           duration=fortio.duration, size=fortio.size)
+                        duration=fortio.duration, size=fortio.size)
     finally:
-        process.kill()
-
+        if not port_forward_process is None:
+            port_forward_process.kill()
 
 def run_nighthawk(pod, remote_cmd, labels):
     # Use a local docker instance of Nighthawk to control nighthawk_service running in the pod
@@ -615,7 +618,7 @@ def get_parser():
         default=False)
     parser.add_argument(
         "--custom_profiling_command",
-        help="Run custom profiling commands on the nodes for the client and server, and produce a flamegraph based on their outputs. E.g. --custom_profiling_command=\"/usr/share/bcc/tools/profile -df 40\"",
+        help="Run custom profiling commands on the nodes for the client and server, and produce a flamegraph based on their outputs. E.g. --custom_profiling_command=\"profile-bpfcc -df {duration} -p {sidecar_pid}\"",
         default=None)
     parser.add_argument(
         "--custom_profiling_name",
