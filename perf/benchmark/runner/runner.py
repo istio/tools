@@ -252,7 +252,6 @@ class Fortio:
             "--output-format json",
             "--prefetch-connections",
             "--open-loop",
-            "--jitter-uniform 0.0001s",
             "--experimental-h1-connection-reuse-strategy lru",
             "--experimental-h2-use-multiple-connections",
             "--label Nighthawk",
