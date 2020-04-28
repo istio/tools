@@ -357,6 +357,7 @@ class Fortio:
                     labels + "_srv_ingress",
                     duration=40)
 
+
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
 FLAMESH = "flame.sh"
 PERFSH = "get_perfdata.sh"
