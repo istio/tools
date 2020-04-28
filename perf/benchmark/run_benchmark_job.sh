@@ -90,7 +90,7 @@ function get_benchmark_data() {
 
 function exit_handling() {
   if [[ "${TRIALRUN}" == "True" ]]; then
-     return
+     exit 0
   fi
   # copy raw data from fortio client pod
   kubectl --namespace "${NAMESPACE}" cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
@@ -165,7 +165,6 @@ source "${ROOT}/../bin/setup_cluster.sh"
 setup_e2e_cluster
 
 # setup release info
-RELEASE_TYPE="dev"
 BRANCH="latest"
 if [ "${GIT_BRANCH}" != "master" ];then
   BRANCH_NUM=$(echo "$GIT_BRANCH" | cut -f2 -d-)
@@ -173,15 +172,14 @@ if [ "${GIT_BRANCH}" != "master" ];then
 fi
 
 # different branch tag resides in dev release directory like /latest, /1.4-dev, /1.5-dev etc.
-TAG=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
-echo "Setup istio release: $TAG"
+INSTALL_VERSION=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
+echo "Setup istio release: ${INSTALL_VERSION}"
 # TAG is of the form like "1.5-alpha.sha"
 # shellcheck disable=SC2155
 export GIT_SHA=$(echo "$TAG" | cut -f3 -d.)
 
 pushd "${ROOT}/istio-install"
-   export INSTALL_WITH_ISTIOCTL="true"
-   ./setup_istio_release.sh "${TAG}" "${RELEASE_TYPE}"
+   DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml
 popd
 
 # install dependencies
@@ -195,7 +193,7 @@ export ISTIO_INJECT="true"
 popd
 dt=$(date +'%Y%m%d')
 # Current output dir should be like: 20191025_1.5-alpha.f19fb40b777e357b605e85c04fb871578592ad1e
-export OUTPUT_DIR="${dt}_${TAG}"
+export OUTPUT_DIR="${dt}_${INSTALL_VERSION}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
 
@@ -210,7 +208,6 @@ echo "Start running perf benchmark test, data would be saved to GCS bucket: ${GC
 # enable flame graph
 # enable_perf_record
 
-DEFAULT_CR_PATH="${ROOT}/istio-install/istioctl_profiles/default.yaml"
 # For adding or modifying configurations, refer to perf/benchmark/README.md
 CONFIG_DIR="${WD}/configs/istio"
 
@@ -229,8 +226,8 @@ for dir in "${CONFIG_DIR}"/*; do
     if [[ -e "./installation.yaml" ]]; then
        extra_overlay="-f ${dir}/installation.yaml"
     fi
-    pushd "${ROOT}/istio-install/tmp"
-      ./istioctl install --charts ./manifests -f "${DEFAULT_CR_PATH}" "${extra_overlay}" --force --wait
+    pushd "${ROOT}/istio-install"
+      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml "${extra_overlay}"
     popd
 
     # custom pre run

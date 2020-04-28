@@ -1,12 +1,11 @@
-apiVersion: authentication.istio.io/v1alpha1
-kind: Policy
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
 metadata:
-  name: "default"
+  name: default
   namespace: {{ $.Values.namespace }}
 spec:
-  peers:
-  - mtls:
-      mode: PERMISSIVE
+  mtls:
+    mode: PERMISSIVE
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule

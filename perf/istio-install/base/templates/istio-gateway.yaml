@@ -4,6 +4,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
   name: istio-gateway
+  namespace: istio-system
 spec:
   selector:
     istio: ingressgateway
@@ -37,6 +38,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: grafana
+  namespace: istio-system
 spec:
   hosts:
   {{- if not (eq $.Values.domain "local") }}
@@ -48,7 +50,7 @@ spec:
   http:
   - route:
     - destination:
-        host: grafana.{{ .Values.telemetryNamespace }}.svc.cluster.local
+        host: grafana.istio-system.svc.cluster.local
         port:
           number: 3000
 ---
@@ -56,6 +58,7 @@ apiVersion: "networking.istio.io/v1alpha3"
 kind: "DestinationRule"
 metadata:
   name: "grafana"
+  namespace: istio-system
 spec:
   host: grafana.istio-system.svc.cluster.local
   trafficPolicy:
@@ -66,6 +69,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: kiali
+  namespace: istio-system
 spec:
   hosts:
   {{- if not (eq $.Values.domain "local") }}
@@ -77,7 +81,7 @@ spec:
   http:
   - route:
     - destination:
-        host: kiali.{{ .Values.telemetryNamespace }}.svc.cluster.local
+        host: kiali.istio-system.svc.cluster.local
         port:
           number: 20001
 ---
@@ -85,6 +89,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: prom
+  namespace: istio-system
 spec:
   hosts:
   {{- if not (eq $.Values.domain "local") }}
@@ -104,6 +109,7 @@ apiVersion: "networking.istio.io/v1alpha3"
 kind: "DestinationRule"
 metadata:
   name: "prom"
+  namespace: istio-system
 spec:
   host: istio-prometheus.istio-prometheus.svc.cluster.local
   trafficPolicy:
@@ -114,6 +120,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: tracing
+  namespace: istio-system
 spec:
   hosts:
   {{- if not (eq $.Values.domain "local") }}
@@ -133,6 +140,7 @@ apiVersion: "networking.istio.io/v1alpha3"
 kind: "DestinationRule"
 metadata:
   name: "tracing"
+  namespace: istio-system
 spec:
   host: tracing.istio-system.svc.cluster.local
   trafficPolicy:
@@ -163,46 +171,4 @@ spec:
       - prom.{{ .Values.domain }}
       - grafana.{{ .Values.domain }}
       - kiali.{{ .Values.domain }}
----
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: Certificate
-metadata:
-  name: test-certs
-  namespace: istio-system
-spec:
-  secretName: istio-ingressgateway-certs-fortiotls
-  issuerRef:
-    name: letsencrypt
-    kind: ClusterIssuer
-  commonName: fortiotls.{{ .Values.domain }}
-  dnsNames:
-  - fortiotls.{{ .Values.domain }}
-  acme:
-    config:
-    - http01:
-        ingressClass: istio
-      domains:
-      - fortiotls.{{ .Values.domain }}
----
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: Certificate
-metadata:
-  name: fortionoistio
-  namespace: istio-system
-spec:
-  secretName: istio-ingressgateway-certs-fortionoistio
-  issuerRef:
-    name: letsencrypt
-    kind: ClusterIssuer
-  commonName: fortionoistio.{{ .Values.domain }}
-  dnsNames:
-  - fortionoistio.{{ .Values.domain }}
-  - fortionoistio1.{{ .Values.domain }}
-  acme:
-    config:
-    - http01:
-        ingressClass: istio
-      domains:
-      - fortionoistio.{{ .Values.domain }}
-      - fortionoistio1.{{ .Values.domain }}
 {{- end }}

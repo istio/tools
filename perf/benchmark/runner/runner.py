@@ -313,10 +313,8 @@ class Fortio:
             "--output-format json",
             "--prefetch-connections",
             "--open-loop",
-            "--jitter-uniform 0.0001s",
             "--experimental-h1-connection-reuse-strategy lru",
             "--experimental-h2-use-multiple-connections",
-            "--nighthawk-service 127.0.0.1:{port_forward}",
             "--label Nighthawk",
             "--connections {conn}",
             "--rps {qps}",
@@ -463,6 +461,8 @@ def fortio_from_config_file(args):
 
 
 def can_connect_to_nighthawk_service():
+    # TODO(oschaaf): re-instate going through the gRPC service.
+    return True
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         return sock.connect_ex(('127.0.0.1', NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)) == 0
 
@@ -531,12 +531,12 @@ def run_perf_test(args):
 
 
 def run_nighthawk(pod, remote_cmd, labels):
-    # Use a local docker instance of Nighthawk to control nighthawk_service running in the pod
-    # and run transforms on the output we get.
-    docker_cmd = "docker run --rm --network=host {docker_image} {remote_cmd}".format(
-        docker_image=NIGHTHAWK_DOCKER_IMAGE, remote_cmd=remote_cmd)
-    print(docker_cmd, flush=True)
-    process = subprocess.Popen(shlex.split(docker_cmd), stdout=subprocess.PIPE)
+    kube_cmd = "kubectl --namespace {namespace} exec {pod} -c captured -- {remote_cmd}".format(
+        pod=pod,
+        remote_cmd=remote_cmd,
+        namespace=NAMESPACE)
+    print("nighthawk commandline: " + kube_cmd)
+    process = subprocess.Popen(shlex.split(kube_cmd), stdout=subprocess.PIPE)
     (output, err) = process.communicate()
     exit_code = process.wait()
 
