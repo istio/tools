@@ -326,26 +326,28 @@ class Fortio:
         if self.run_baseline:
             sidecar_mode = "baseline"
             sidecar_mode_func = self.nosidecar
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
 
         if self.run_serversidecar:
             perf_label = "_srv_serveronly"
             sidecar_mode = "server sidecar"
             sidecar_mode_func = self.serversidecar
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
 
         if self.run_clientsidecar:
             perf_label = "_srv_clientonly"
             sidecar_mode = "client sidecar"
             sidecar_mode_func = self.clientsidecar
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
 
         if self.run_bothsidecar:
             perf_label = "_srv_bothsidecars"
             sidecar_mode = "both sidecar"
             sidecar_mode_func = self.bothsidecar
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
 
         if self.run_ingress:
             perf_label = "_srv_ingress"
-
-        if self.run_ingress:
             print('-------------- Running in ingress mode --------------')
             kubectl_exec(self.client.name, self.ingress(load_gen_cmd))
             if self.perf_record:
@@ -354,9 +356,6 @@ class Fortio:
                     self.server.name,
                     labels + "_srv_ingress",
                     duration=40)
-        else:
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
-
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
 FLAMESH = "flame.sh"
