@@ -1,3 +1,13 @@
+{{- if .Values.prometheus.deploy }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ssd
+parameters:
+  type: pd-ssd
+provisioner: kubernetes.io/gce-pd
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
 ---
 # Source: prometheus-operator/templates/prometheus.yaml
 apiVersion: monitoring.coreos.com/v1
@@ -5,52 +15,15 @@ kind: Prometheus
 metadata:
   name: prometheus
   namespace: istio-prometheus
-  labels:
 spec:
-  image: "docker.io/prom/prometheus:v2.12.0"
-  version: v2.12.0
+  image: "docker.io/prom/prometheus:v2.17.2"
+  version: v2.17.2
   retention: 72h
   scrapeInterval: 15s
   serviceAccountName: prometheus
-  serviceMonitorSelector:
-    any: true
-  serviceMonitorNamespaceSelector:
-    any: true
-  secrets: [ istio.prometheus ]
   enableAdminAPI: false
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                  - amd64
-                  - ppc64le
-                  - s390x
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 2
-          preference:
-            matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                  - amd64
-        - weight: 2
-          preference:
-            matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                  - ppc64le
-        - weight: 2
-          preference:
-            matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                  - s390x
+  serviceMonitorNamespaceSelector: {}
+  serviceMonitorSelector: {}
   podMetadata:
     labels:
       app: prometheus
@@ -65,7 +38,6 @@ spec:
     runAsUser: 1000
   storage:
     volumeClaimTemplate:
-      selector: {}
       spec:
         accessModes:
           - ReadWriteOnce
@@ -73,7 +45,6 @@ spec:
           requests:
             storage: 500Gi
         storageClassName: ssd
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -147,3 +118,4 @@ metadata:
   namespace: istio-prometheus
   labels:
     app: prometheus
+{{- end}}
