@@ -15,61 +15,75 @@
 package main
 
 import (
-	"os/exec"
-	"strings"
+	"fmt"
+	"io/ioutil"
+
+	"gopkg.in/src-d/go-license-detector.v2/licensedb"
+	"gopkg.in/src-d/go-license-detector.v2/licensedb/filer"
 )
 
 // analysisResult describes a license.
 type analysisResult struct {
 	licenseName          string
-	exactMatch           bool
-	confidence           string
+	confidence           float32
 	similarLicense       string
-	similarityConfidence string
+	similarityConfidence float32
 }
 
-func analyzeLicense(path string) (analysisResult, error) {
-	// run external licensee tool to analyze a specific license
-	b, err := exec.Command("licensee", "detect", "--confidence=97", path).Output()
-	if err != nil {
-		return analysisResult{}, err
+// filerImpl implements filer.Filer to return the license text directly
+// from the github.RepositoryLicense structure.
+type filerImpl struct {
+	License string
+}
+
+func (f *filerImpl) ReadFile(name string) ([]byte, error) {
+	return ioutil.ReadFile(name)
+}
+
+func (f *filerImpl) ReadDir(dir string) ([]filer.File, error) {
+	// We only support root
+	if dir != "" {
+		return nil, nil
 	}
-	out := string(b)
-	lines := strings.Split(out, "\n")
 
-	// extract core analysis result
-	licenseName := getValue(lines, "License:")
-	confidence := getValue(lines, "  Confidence:")
-	similarLicense := ""
-	similarityConfidence := ""
+	return []filer.File{{Name: f.License}}, nil
+}
 
-	if licenseName == "NOASSERTION" {
-		// For NOASSERTION, it means we are below the match threshold. Still grab the closest match and confidence value.
-		licenseName = ""
-		confidence = ""
-		for _, l := range lines {
-			if strings.Contains(l, " similarity:") {
-				fs := strings.Fields(l)
-				similarLicense = fs[0]
-				similarityConfidence = fs[2]
-			}
+func (f *filerImpl) Close() {}
+
+func analyzeLicense(path string) (analysisResult, error) {
+	res, err := licensedb.Detect(&filerImpl{License: path})
+	if err == licensedb.ErrNoLicenseFound {
+		return analysisResult{}, nil
+	}
+	if err != nil {
+		return analysisResult{}, fmt.Errorf("failed to detect license %v: %v", path, err)
+	}
+	// Find the highest matching license
+	var confidence float32
+	licenseName := ""
+	for id, v := range res {
+		if v > confidence {
+			confidence = v
+			licenseName = id
 		}
+	}
+
+	similarLicense := ""
+	var similarityConfidence float32 = 0.0
+
+	if confidence < 0.85 {
+		// Not enough confidence
+		similarLicense = licenseName
+		similarityConfidence = confidence
+		licenseName = ""
+		confidence = 0.0
 	}
 
 	return analysisResult{
 		licenseName:          licenseName,
 		confidence:           confidence,
-		exactMatch:           strings.Contains(out, "Licensee::Matchers::Exact"),
 		similarLicense:       similarLicense,
 		similarityConfidence: similarityConfidence,
 	}, nil
-}
-
-func getValue(lines []string, match string) string {
-	for _, l := range lines {
-		if strings.Contains(l, match) {
-			return strings.TrimSpace(strings.TrimPrefix(l, match))
-		}
-	}
-	return ""
 }

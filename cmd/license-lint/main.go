@@ -56,7 +56,7 @@ func main() {
 	if csv {
 		// produce a csv report
 
-		fmt.Printf("Module Name,Module Path,Whitelisted,License Path,License Name,Confidence,Exact Match,Similar To,Similarity Confidence,State\n")
+		fmt.Printf("Module Name,Module Path,Whitelisted,License Path,License Name,Confidence,Similar To,Similarity Confidence,State\n")
 		for _, module := range modules {
 			fmt.Printf("%s,%s,%v", module.moduleName, module.path, cfg.whitelistedModules[module.moduleName])
 			for _, l := range module.licenses {
@@ -70,7 +70,7 @@ func main() {
 					state = "restricted"
 				}
 
-				fmt.Printf(",%s,%s,%s,%v,%s,%s,%s", l.path, l.analysis.licenseName, l.analysis.confidence, l.analysis.exactMatch, l.analysis.similarLicense,
+				fmt.Printf(",%s,%s,%f,%s,%f,%s", l.path, l.analysis.licenseName, l.analysis.confidence, l.analysis.similarLicense,
 					l.analysis.similarityConfidence, state)
 			}
 			fmt.Printf("\n")
@@ -145,7 +145,7 @@ func main() {
 				fmt.Printf("  <none>\n")
 			} else {
 				for _, l := range unrestrictedLicenses {
-					fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
+					fmt.Printf("  %s: %s, %f confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
 				}
 			}
 			fmt.Printf("\n")
@@ -155,7 +155,7 @@ func main() {
 				fmt.Printf("  <none>\n")
 			} else {
 				for _, l := range reciprocalLicenses {
-					fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
+					fmt.Printf("  %s: %s, %f confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
 				}
 			}
 			fmt.Printf("\n")
@@ -165,7 +165,7 @@ func main() {
 				fmt.Printf("  <none>\n")
 			} else {
 				for _, l := range restrictedLicenses {
-					fmt.Printf("  %s: %s, %s confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
+					fmt.Printf("  %s: %s, %f confidence\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence)
 				}
 			}
 			fmt.Printf("\n")
@@ -176,9 +176,9 @@ func main() {
 			} else {
 				for _, l := range unrecognizedLicenses {
 					if l.analysis.licenseName != "" {
-						fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
+						fmt.Printf("  %s: similar to %s, %f confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
 					} else if l.analysis.similarLicense != "" {
-						fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.similarLicense, l.analysis.similarityConfidence, l.path)
+						fmt.Printf("  %s: similar to %s, %f confidence, path '%s'\n", l.module.moduleName, l.analysis.similarLicense, l.analysis.similarityConfidence, l.path)
 					} else {
 						fmt.Printf("  %s: path '%s'\n", l.module.moduleName, l.path)
 					}
@@ -217,14 +217,17 @@ func main() {
 		} else {
 			failLint := false
 
+			fmt.Printf("Found licenses: %v reciprocal, %v unrestricted, %v restricted, %v unrecognized, and %v unlicensed. %v are whitelisted.\n",
+				len(reciprocalLicenses), len(unrestrictedLicenses), len(restrictedLicenses), len(unrecognizedLicenses), len(unlicensedModules), len(cfg.whitelistedModules))
+
 			if len(unrecognizedLicenses) > 0 {
 				failLint = true
 				fmt.Printf("ERROR: Some modules have unrecognized licenses:\n")
 				for _, l := range unrecognizedLicenses {
 					if l.analysis.licenseName != "" {
-						fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
+						fmt.Printf("  %s: similar to %s, %f confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
 					} else if l.analysis.similarLicense != "" {
-						fmt.Printf("  %s: similar to %s, %s confidence, path '%s'\n", l.module.moduleName, l.analysis.similarLicense, l.analysis.similarityConfidence, l.path)
+						fmt.Printf("  %s: similar to %s, %f confidence, path '%s'\n", l.module.moduleName, l.analysis.similarLicense, l.analysis.similarityConfidence, l.path)
 					} else {
 						fmt.Printf("  %s: path '%s'\n", l.module.moduleName, l.path)
 					}
@@ -238,6 +241,16 @@ func main() {
 				for _, m := range unlicensedModules {
 					fmt.Printf("  %s\n", m.moduleName)
 				}
+				fmt.Printf("\n")
+			}
+
+			if len(restrictedLicenses) > 0 {
+				failLint = true
+				fmt.Printf("ERROR: Some modules have a restricted license:\n")
+				for _, m := range restrictedLicenses {
+					fmt.Printf("  %s\n", m.module.moduleName)
+				}
+				fmt.Printf("\n")
 			}
 
 			if failLint {
