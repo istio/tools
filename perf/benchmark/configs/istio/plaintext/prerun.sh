@@ -22,15 +22,17 @@ kubectl -n "${NAMESPACE}" delete dr --all || true
 kubectl -n "${NAMESPACE}" delete policy --all || true
 echo "Configure plaintext..."
 cat <<EOF | kubectl apply -f -
-apiVersion: "authentication.istio.io/v1alpha1"
-kind: "Policy"
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
 metadata:
-  name: "default"
+  name: default
   namespace: "${NAMESPACE}"
-spec: {}
+spec:
+  mtls:
+    mode: DISABLE
 EOF
   # Explicitly disable mTLS by DestinationRule to avoid potential auto mTLS effect.
-  cat <<EOF | kubectl apply -f -
+cat <<EOF | kubectl apply -f -
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
