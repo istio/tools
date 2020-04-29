@@ -24,6 +24,7 @@ WD=$(cd "${WD}"; pwd)
 cd "${WD}"
 
 NAMESPACE="${NAMESPACE:-twopods}"
+LOAD_GEN_TYPE="${LOAD_GEN_TYPE:-fortio}"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"}
 TMPDIR=${TMPDIR:-${WD}/tmp}
 RBAC_ENABLED="false"
@@ -50,6 +51,7 @@ function run_test() {
   helm -n "${NAMESPACE}" template \
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set namespace="${NAMESPACE}" \
+      --set loadGenType="${LOAD_GEN_TYPE}" \
       --set excludeOutboundIPRanges=$(pod_ip_range)\
       --set includeOutboundIPRanges=$(svc_ip_range) \
       --set server.replica="${SERVER_REPLICA}" \

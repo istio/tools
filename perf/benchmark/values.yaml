@@ -15,7 +15,7 @@ appresources1:
 
 fortioImage: fortio/fortio:latest
 curlImage: tutum/curl:trusty
-nighthawkImage: envoyproxy/nighthawk-dev:latest
+nighthawkImage: envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4
 domain: local
 gateway: fortio-gateway
 rbac:
@@ -46,3 +46,4 @@ cert: false
 interceptionMode: REDIRECT
 
 namespace: ""
+loadGenType: ""
