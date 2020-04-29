@@ -43,16 +43,20 @@ export NAMESPACE=${NAMESPACE:-'twopods-istio'}
 export PROMETHEUS_NAMESPACE=${PROMETHEUS_NAMESPACE:-'istio-system'}
 export TRIALRUN=${TRIALRUN:-False}
 
+CLEANUP_PIDS=()
+
 function setup_metrics() {
   # shellcheck disable=SC2155
   INGRESS_IP="$(kubectl get services -n "${NAMESPACE}" fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}")"
   export FORTIO_CLIENT_URL=http://${INGRESS_IP}:8080
   if [[ -z "$INGRESS_IP" ]];then
     kubectl -n "${NAMESPACE}" port-forward svc/fortioclient 8080:8080 &
+    CLEANUP_PIDS+=("$!")
     export FORTIO_CLIENT_URL=http://localhost:8080
   fi
   export PROMETHEUS_URL=http://localhost:9090
   kubectl -n "${PROMETHEUS_NAMESPACE}" port-forward svc/prometheus 9090:9090 &>/dev/null &
+  CLEANUP_PIDS+=("$!")
 }
 
 function collect_metrics() {
@@ -89,6 +93,9 @@ function get_benchmark_data() {
 }
 
 function exit_handling() {
+  for pid in "${CLEANUP_PIDS[@]}"; do
+    kill "${pid}"
+  done
   if [[ "${TRIALRUN}" == "True" ]]; then
      exit 0
   fi
