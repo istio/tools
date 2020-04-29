@@ -378,14 +378,12 @@ class Fortio:
 
         cacert_arg = ""
         if self.cacert is not None:
-            cacert_arg = "-cacert {cacert_path}".format(
-                cacert_path=self.cacert)
+            cacert_arg = "-cacert {cacert_path}".format(cacert_path=self.cacert)
 
         headers_cmd = self.generate_headers_cmd(headers)
 
         if self.load_gen_type == "fortio":
-            load_gen_cmd = self.generate_fortio_cmd(
-                headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
+            load_gen_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
         elif self.load_gen_type == "nighthawk":
             # TODO(oschaaf): Figure out how to best determine the right concurrency for Nighthawk.
             # Results seem to get very noisy as the number of workers increases, are the clients
