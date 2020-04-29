@@ -272,11 +272,10 @@ class Fortio:
 
         # Lastly copy the resulting flamegraph out of the container
         kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
-                "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+                   "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
 
         if ok == False:
             print("warning - profiling and or flamegraph generation may have failed")
-
 
     def maybe_start_profiling_threads(self, labels, perf_label):
         threads = []
@@ -291,7 +290,8 @@ class Fortio:
 
                 # Wait for node_exporter to run, which indicates the profiling initialization container has finished initializing.
                 # once the init probe is supported, move this to a http probe instead in fortio.yaml
-                ready_cmd = "{exec_cmd} \"pgrep 'node_exporter'\"".format(exec_cmd=exec_cmd_on_pod)
+                ready_cmd = "{exec_cmd} \"pgrep 'node_exporter'\"".format(
+                    exec_cmd=exec_cmd_on_pod)
                 ne_pid = getoutput(ready_cmd).strip()
                 attempts = 1
                 while ne_pid == "" and attempts < 60:
@@ -300,8 +300,10 @@ class Fortio:
                     attempts = attempts + 1
 
                 # Find side car process id's in case the profiling command needs it.
-                sidecar_ppid = getoutput("{exec_cmd} \"pgrep -f 'pilot-agent proxy sidecar'\"".format(exec_cmd=exec_cmd_on_pod)).strip()
-                sidecar_pid = getoutput("{exec_cmd} \"pgrep -P {sidecar_ppid}\"".format(exec_cmd=exec_cmd_on_pod, sidecar_ppid=sidecar_ppid)).strip()
+                sidecar_ppid = getoutput(
+                    "{exec_cmd} \"pgrep -f 'pilot-agent proxy sidecar'\"".format(exec_cmd=exec_cmd_on_pod)).strip()
+                sidecar_pid = getoutput("{exec_cmd} \"pgrep -P {sidecar_ppid}\"".format(
+                    exec_cmd=exec_cmd_on_pod, sidecar_ppid=sidecar_ppid)).strip()
                 profiling_command = self.custom_profiling_command.format(
                     duration=self.duration, sidecar_pid=sidecar_pid)
                 threads.append(Thread(target=self.run_profiler, args=[
@@ -357,14 +359,15 @@ class Fortio:
     def create_execution_delegate(self, perf_label, sidecar_mode, sidecar_mode_func, load_gen_cmd, labels):
         def execution_delegate():
             threads = self.maybe_start_profiling_threads(labels, perf_label)
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            self.execute_sidecar_mode(
+                sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
             if len(threads) > 0:
                 if self.custom_profiling_command:
                     for thread in threads:
                         thread.join()
-                print("background profiler thread finished - flamegraphs are available in flame/flameoutput")
+                print(
+                    "background profiler thread finished - flamegraphs are available in flame/flameoutput")
         return execution_delegate
-
 
     def run(self, headers, conn, qps, size, duration):
         labels = self.generate_test_labels(conn, qps, size)
@@ -375,12 +378,14 @@ class Fortio:
 
         cacert_arg = ""
         if self.cacert is not None:
-            cacert_arg = "-cacert {cacert_path}".format(cacert_path=self.cacert)
+            cacert_arg = "-cacert {cacert_path}".format(
+                cacert_path=self.cacert)
 
         headers_cmd = self.generate_headers_cmd(headers)
 
         if self.load_gen_type == "fortio":
-            load_gen_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
+            load_gen_cmd = self.generate_fortio_cmd(
+                headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
         elif self.load_gen_type == "nighthawk":
             # TODO(oschaaf): Figure out how to best determine the right concurrency for Nighthawk.
             # Results seem to get very noisy as the number of workers increases, are the clients
@@ -393,27 +398,34 @@ class Fortio:
             # See the comment above, we restrict execution to a single nighthawk worker for
             # now to avoid noise.
             workers = 1
-            load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, duration, labels)
+            load_gen_cmd = self.generate_nighthawk_cmd(
+                workers, conn, qps, duration, labels)
 
         executions = []
 
         if self.run_baseline:
-            executions.append(self.create_execution_delegate("", "baseline", self.nosidecar, load_gen_cmd, labels))
+            executions.append(self.create_execution_delegate(
+                "", "baseline", self.nosidecar, load_gen_cmd, labels))
 
         if self.run_serversidecar:
-            executions.append(self.create_execution_delegate("_srv_serveronly", "server sidecar", self.serversidecar, load_gen_cmd, labels))
+            executions.append(self.create_execution_delegate(
+                "_srv_serveronly", "server sidecar", self.serversidecar, load_gen_cmd, labels))
 
         if self.run_clientsidecar:
-            executions.append(self.create_execution_delegate("_srv_clientonly", "client sidecar", self.clientsidecar, load_gen_cmd, labels))
+            executions.append(self.create_execution_delegate(
+                "_srv_clientonly", "client sidecar", self.clientsidecar, load_gen_cmd, labels))
 
         if self.run_bothsidecar:
-            executions.append(self.create_execution_delegate("_srv_bothsidecars", "both sidecar", self.bothsidecar, load_gen_cmd, labels))
+            executions.append(self.create_execution_delegate(
+                "_srv_bothsidecars", "both sidecar", self.bothsidecar, load_gen_cmd, labels))
 
         if self.run_ingress:
-            executions.append(self.create_execution_delegate("_srv_ingress", "ingress", self.ingress, load_gen_cmd, labels))
+            executions.append(self.create_execution_delegate(
+                "_srv_ingress", "ingress", self.ingress, load_gen_cmd, labels))
 
         for execution in executions:
             execution()
+
 
 def validate_job_config(job_config):
     required_fields = {"conn": list, "qps": list, "duration": int}
@@ -515,7 +527,6 @@ def run_perf_test(args):
         sys.exit(-1)
     else:
         print("Able to connect to nighthawk_service, proceeding")
-
     try:
         for conn in fortio.conn:
             for qps in fortio.qps:
