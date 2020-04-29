@@ -73,7 +73,6 @@ def kubectl_cp(from_file, to_file, container):
         from_file=from_file,
         to_file=to_file,
         container=container)
-    print(cmd, flush=True)
     run_command_sync(cmd)
 
 
@@ -188,13 +187,13 @@ class Fortio:
     def bothsidecar(self, load_gen_cmd, sidecar_mode):
         return load_gen_cmd + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "port")
 
-    def ingress(self, load_gen_cmd):
+    def ingress(self, load_gen_cmd, sidecar_mode):
         url = urlparse(self.run_ingress)
         # If scheme is not defined fallback to http
         if url.scheme == "":
             url = urlparse("http://{svc}".format(svc=self.run_ingress))
 
-        return load_gen_cmd + "_ingress {url}/echo?size={size}".format(
+        return load_gen_cmd + sidecar_mode + " {url}/echo?size={size}".format(
             url=url.geturl(), size=self.size)
 
     def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label_suffix):
@@ -257,9 +256,11 @@ class Fortio:
             exec_cmd=exec_cmd,
             filename=filename
         )
+        ok = True
         # Run the profile collection tool, and wait for it to finish.
         process = subprocess.Popen(shlex.split(profiler_cmd))
-        process.wait()
+        ok = ok and process.wait() == 0
+
         # Next we feed the profiling data to the flamegraphing script.
         flamegraph_cmd = "{exec_cmd} \"./FlameGraph/flamegraph.pl --title='{profiling_command} Flame Graph'  < {filename}.profile > {filename}.svg\"".format(
             exec_cmd=exec_cmd,
@@ -267,10 +268,15 @@ class Fortio:
             filename=filename
         )
         process = subprocess.Popen(shlex.split(flamegraph_cmd))
-        process.wait()
+        ok = ok and process.wait() == 0
+
         # Lastly copy the resulting flamegraph out of the container
         kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
-                   "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+                "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+
+        if ok == False:
+            print("warning - profiling and or flamegraph generation may have failed")
+
 
     def maybe_start_profiling_threads(self, labels, perf_label):
         threads = []
@@ -291,7 +297,6 @@ class Fortio:
                 while ne_pid == "" and attempts < 60:
                     sleep(1)
                     ne_pid = getoutput(ready_cmd).strip()
-                    print(".")
                     attempts = attempts + 1
 
                 # Find side car process id's in case the profiling command needs it.
@@ -349,6 +354,18 @@ class Fortio:
 
         return nighthawk_cmd
 
+    def create_execution_delegate(self, perf_label, sidecar_mode, sidecar_mode_func, load_gen_cmd, labels):
+        def execution_delegate():
+            threads = self.maybe_start_profiling_threads(labels, perf_label)
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            if len(threads) > 0:
+                if self.custom_profiling_command:
+                    for thread in threads:
+                        thread.join()
+                print("background profiler thread finished - flamegraphs are available in flame/flameoutput")
+        return execution_delegate
+
+
     def run(self, headers, conn, qps, size, duration):
         labels = self.generate_test_labels(conn, qps, size)
 
@@ -378,46 +395,25 @@ class Fortio:
             workers = 1
             load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, duration, labels)
 
-        perf_label = ""
-        sidecar_mode = ""
-        sidecar_mode_func = None
+        executions = []
 
         if self.run_baseline:
-            sidecar_mode = "baseline"
-            sidecar_mode_func = self.nosidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            executions.append(self.create_execution_delegate("", "baseline", self.nosidecar, load_gen_cmd, labels))
 
         if self.run_serversidecar:
-            perf_label = "_srv_serveronly"
-            sidecar_mode = "server sidecar"
-            sidecar_mode_func = self.serversidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            executions.append(self.create_execution_delegate("_srv_serveronly", "server sidecar", self.serversidecar, load_gen_cmd, labels))
 
         if self.run_clientsidecar:
-            perf_label = "_srv_clientonly"
-            sidecar_mode = "client sidecar"
-            sidecar_mode_func = self.clientsidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            executions.append(self.create_execution_delegate("_srv_clientonly", "client sidecar", self.clientsidecar, load_gen_cmd, labels))
 
         if self.run_bothsidecar:
-            perf_label = "_srv_bothsidecars"
-            sidecar_mode = "both sidecar"
-            sidecar_mode_func = self.bothsidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            executions.append(self.create_execution_delegate("_srv_bothsidecars", "both sidecar", self.bothsidecar, load_gen_cmd, labels))
 
         if self.run_ingress:
-            perf_label = "_srv_ingress"
-            print('-------------- Running in ingress mode --------------')
-            kubectl_exec(self.client.name, self.ingress(load_gen_cmd))
+            executions.append(self.create_execution_delegate("_srv_ingress", "ingress", self.ingress, load_gen_cmd, labels))
 
-        threads = self.maybe_start_profiling_threads(labels, perf_label)
-
-        if len(threads) > 0:
-            if self.custom_profiling_command:
-                for thread in threads:
-                    thread.join()
-            print("background profiler thread finished - flamegraphs are available in flame/flameoutput")
-
+        for execution in executions:
+            execution()
 
 def validate_job_config(job_config):
     required_fields = {"conn": list, "qps": list, "duration": int}
