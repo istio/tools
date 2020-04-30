@@ -196,10 +196,15 @@ cd "${WD}/runner"
 pipenv install
 
 # setup istio test
-pushd "${WD}"
-export ISTIO_INJECT="true"
-./setup_test.sh
-popd
+function setup_test() {
+    export LOAD_GEN_TYPE="${1}"
+    pushd "${WD}"
+    export ISTIO_INJECT="true"
+    ./setup_test.sh
+    popd
+}
+
+
 dt=$(date +'%Y%m%d')
 # Current output dir should be like: 20191025_1.5-alpha.f19fb40b777e357b605e85c04fb871578592ad1e
 export OUTPUT_DIR="${dt}_${INSTALL_VERSION}"
@@ -256,10 +261,10 @@ function run_perf_test_with_load_gen() {
 
         # run test and get data
         if [[ -e "./cpu_mem.yaml" ]]; then
-           get_benchmark_data "${dir}/cpu_mem.yaml"
+           get_benchmark_data "${dir}/cpu_mem.yaml" "${LOAD_GEN_TYPE}"
         fi
         if [[ -e "./latency.yaml" ]]; then
-           get_benchmark_data "${dir}/latency.yaml"
+           get_benchmark_data "${dir}/latency.yaml" "${LOAD_GEN_TYPE}"
         fi
 
         # collect clusters info after test run and before cleanup script postrun.sh
@@ -279,12 +284,19 @@ function run_perf_test_with_load_gen() {
     done
 }
 
+# Run perf test with fortio as load generator
+setup_test "fortio"
 run_perf_test_with_load_gen "fortio"
-run_perf_test_with_load_gen "nighthawk"
-
 
 if [[ "${TRIALRUN}" == "True" ]]; then
    get_benchmark_data "${WD}/configs/trialrun.yaml" "fortio"
+fi
+
+# Run perf test with nighthawk as load generator
+setup_test "nighthawk"
+run_perf_test_with_load_gen "nighthawk"
+
+if [[ "${TRIALRUN}" == "True" ]]; then
    get_benchmark_data "${WD}/configs/trialrun.yaml" "nighthawk"
 fi
 
