@@ -76,6 +76,7 @@ spec:
 ---
 {{- end }}
 {{- end }}
+{{- if eq $.Values.loadGenType "nighthawk" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -337,6 +338,7 @@ data: # TODO(oschaaf): can we fold captured/uncaptured pods, and just have captu
     -----END PRIVATE KEY-----
 
 ---
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -414,9 +416,11 @@ spec:
         hostPath:
           path: /usr
 {{- end }}
+      {{- if eq $.Values.loadGenType "nighthawk" }}
       - name: nighthawk-test-server-config
         configMap:
           name: nighthawk-test-server-config
+      {{- end }}
       containers:
       - name: captured
         securityContext:
@@ -424,10 +428,18 @@ spec:
         volumeMounts:
         - name: shared-data
           mountPath: /var/lib/fortio
+        {{- if eq $.Values.loadGenType "nighthawk" }}
         - name: nighthawk-test-server-config
           mountPath: /var/lib/nighthawk 
         image: {{ $.Values.nighthawkImage }}
+        {{- else }}
+        image:  {{ $.Values.fortioImage }}
+        {{- end}}
 {{- if eq $.name "fortioclient" }}
+{{- if eq $.Values.loadGenType "fortio" }}
+        args:
+        - report
+{{- else }}
         args:
         - nighthawk_service
         - --listen
@@ -435,18 +447,21 @@ spec:
         ports:
         - containerPort: 9999
           protocol: TCP
+{{- end }}
 {{- else }}
         ports:
         - containerPort: 8080
           protocol: TCP
         - containerPort: 8079
           protocol: TCP
+        {{- if eq $.Values.loadGenType "nighthawk" }}
         args:
         - nighthawk_test_server
         - -c
         - /var/lib/nighthawk/nighthawk-test-server-captured.yaml
         - --base-id
         - "1"
+        {{- end }}
 {{- end }}
         resources:
 {{- if $.Values.appresources1 }}
@@ -458,8 +473,10 @@ spec:
         volumeMounts:
         - name: shared-data
           mountPath: /var/lib/fortio
+        {{- if eq $.Values.loadGenType "nighthawk" }}
         - name: nighthawk-test-server-config
-          mountPath: /var/lib/nighthawk 
+          mountPath: /var/lib/nighthawk
+        {{- end }}
         image: {{ $.Values.curlImage }}
         args:
         - /bin/sleep
@@ -495,6 +512,7 @@ spec:
         securityContext:
           runAsUser: 1
 {{- if eq $.name "fortioclient" }}
+{{- if eq $.Values.loadGenType "nighthawk" }}
         image: {{ $.Values.fortioImage }}
         volumeMounts:
         - name: shared-data
@@ -512,6 +530,18 @@ spec:
         - -data-dir
         - /var/lib/fortio/
 {{- else }}
+        image: {{ $.Values.fortioImage }}
+        args:
+        - report
+        - -http-port
+        - "8077"
+        - -grpc-port
+        - "8076"
+        - -redirect-port
+        - "8078"
+{{- end }}
+{{- else }}
+{{- if eq $.Values.loadGenType "nighthawk" }}
         image: {{ $.Values.nighthawkImage }}
         ports:
         - containerPort: 8077
@@ -529,6 +559,17 @@ spec:
         - /var/lib/nighthawk/nighthawk-test-server-uncaptured.yaml
         - --base-id
         - "2"
+{{- else }}
+        image: {{ $.Values.fortioImage }}
+        args:
+        - server
+        - -http-port
+        - "8077"
+        - -grpc-port
+        - "8076"
+        - -redirect-port
+        - "8078"
+{{- end }}
 {{- end }}
         resources:
 {{- if $.Values.appresources1 }}
