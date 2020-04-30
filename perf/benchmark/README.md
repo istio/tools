@@ -57,9 +57,13 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
     export NAMESPACE=twopods-istio
     export INTERCEPTION_MODE=REDIRECT
     export ISTIO_INJECT=true
+    export LOAD_GEN_TYPE=nighthawk
     cd ../benchmark
     ./setup_test.sh
     ```
+
+Note: We are currently supporting two types of load generators: nighthawk and fortio. Please specify the LOAD_GEN_TYPE
+environment variable to your desired one.
 
 ## Prepare Python Environment
 
