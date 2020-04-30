@@ -84,6 +84,7 @@ function generate_graph() {
 function get_benchmark_data() {
   pushd "${WD}/runner"
   CONFIG_FILE="${1}"
+  export LOAD_GEN_TYPE="${2}"
   pipenv run python3 runner.py --config_file "${CONFIG_FILE}"
   
   if [[ "${TRIALRUN}" == "False" ]]; then
@@ -221,62 +222,70 @@ CONFIG_DIR="${WD}/configs/istio"
 
 read_perf_test_conf "${WD}/configs/run_perf_test.conf"
 
-for dir in "${CONFIG_DIR}"/*; do
-    # get the last directory name after splitting dir path by '/', which is the configuration dir name
-    config_name="$(basename "${dir}")"
-    # skip the test config that is disabled to run
-    if ! ${!config_name:-false}; then
-        continue
-    fi
+function run_perf_test_with_load_gen() {
+    export LOAD_GEN_TYPE=${1}
+    for dir in "${CONFIG_DIR}"/*; do
+        # get the last directory name after splitting dir path by '/', which is the configuration dir name
+        config_name="$(basename "${dir}")"
+        # skip the test config that is disabled to run
+        if ! ${!config_name:-false}; then
+            continue
+        fi
 
-    pushd "${dir}"
-    # install istio with custom overlay
-    if [[ -e "./installation.yaml" ]]; then
-       extra_overlay="-f ${dir}/installation.yaml"
-    fi
-    pushd "${ROOT}/istio-install"
-      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml "${extra_overlay}"
-    popd
+        pushd "${dir}"
+        # install istio with custom overlay
+        if [[ -e "./installation.yaml" ]]; then
+           extra_overlay="-f ${dir}/installation.yaml"
+        fi
+        pushd "${ROOT}/istio-install"
+          DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml "${extra_overlay}"
+        popd
 
-    # custom pre run
-    if [[ -e "./prerun.sh" ]]; then
-       # shellcheck disable=SC1091
-       source prerun.sh
-    fi
+        # custom pre run
+        if [[ -e "./prerun.sh" ]]; then
+           # shellcheck disable=SC1091
+           source prerun.sh
+        fi
 
-    # TRIALRUN as safe check for presubmit
-    if [[ "${TRIALRUN}" == "True" ]]; then
-       continue
-    fi
-    # collect config dump after prerun.sh and before test run, to verify test setup is correct
-    collect_config_dump "${config_name}"
+        # TRIALRUN as safe check for presubmit
+        if [[ "${TRIALRUN}" == "True" ]]; then
+           continue
+        fi
+        # collect config dump after prerun.sh and before test run, to verify test setup is correct
+        collect_config_dump "${config_name}"
 
-    # run test and get data
-    if [[ -e "./cpu_mem.yaml" ]]; then
-       get_benchmark_data "${dir}/cpu_mem.yaml"
-    fi
-    if [[ -e "./latency.yaml" ]]; then
-       get_benchmark_data "${dir}/latency.yaml"
-    fi
+        # run test and get data
+        if [[ -e "./cpu_mem.yaml" ]]; then
+           get_benchmark_data "${dir}/cpu_mem.yaml"
+        fi
+        if [[ -e "./latency.yaml" ]]; then
+           get_benchmark_data "${dir}/latency.yaml"
+        fi
 
-    # collect clusters info after test run and before cleanup script postrun.sh
-    collect_clusters_info "${config_name}"
+        # collect clusters info after test run and before cleanup script postrun.sh
+        collect_clusters_info "${config_name}"
 
-    # custom post run
-    if [[ -e "./postrun.sh" ]]; then
-       # shellcheck disable=SC1091
-       source postrun.sh
-    fi
-    # TODO: can be added to shared_postrun.sh
-    # restart proxy after each group
-    kubectl exec -n "${NAMESPACE}" "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
-    kubectl exec -n "${NAMESPACE}" "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+        # custom post run
+        if [[ -e "./postrun.sh" ]]; then
+           # shellcheck disable=SC1091
+           source postrun.sh
+        fi
+        # TODO: can be added to shared_postrun.sh
+        # restart proxy after each group
+        kubectl exec -n "${NAMESPACE}" "${FORTIO_CLIENT_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
+        kubectl exec -n "${NAMESPACE}" "${FORTIO_SERVER_POD}" -c istio-proxy -- curl http://localhost:15000/quitquitquit -X POST
 
-    popd
-done
+        popd
+    done
+}
+
+run_perf_test_with_load_gen "fortio"
+run_perf_test_with_load_gen "nighthawk"
+
 
 if [[ "${TRIALRUN}" == "True" ]]; then
-   get_benchmark_data "${WD}/configs/trialrun.yaml"
+   get_benchmark_data "${WD}/configs/trialrun.yaml" "fortio"
+   get_benchmark_data "${WD}/configs/trialrun.yaml" "nighthawk"
 fi
 
 #echo "collect flame graph ..."
