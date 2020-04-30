@@ -165,17 +165,18 @@ class Fortio:
         else:
             sys.exit("invalid load generator %s, must be fortio or nighthawk", self.load_gen_type)
 
-    def nosidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + sidecar_mode + " " + self.compute_uri(self.server.ip, "direct_port")
+    # Baseline is no sidecar mode
+    def baseline(self, load_gen_cmd, sidecar_mode):
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "direct_port")
 
     def serversidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + sidecar_mode + " " + self.compute_uri(self.server.ip, "port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "port")
 
     def clientsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "direct_port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "direct_port")
 
     def bothsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "port")
 
     def ingress(self, load_gen_cmd):
         url = urlparse(self.run_ingress)
@@ -189,9 +190,9 @@ class Fortio:
     def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label_suffix):
         print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
         if load_gen_type == "fortio":
-            kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd, perf_label_suffix))
+            kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode))
         elif load_gen_type == "nighthawk":
-            run_nighthawk(self.client.name, sidecar_mode_func(load_gen_cmd, perf_label_suffix), labels + perf_label_suffix)
+            run_nighthawk(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode), labels + "_" + sidecar_mode)
 
         if self.perf_record and len(perf_label_suffix) > 0:
             run_perf(
@@ -324,24 +325,24 @@ class Fortio:
 
         if self.run_baseline:
             sidecar_mode = "baseline"
-            sidecar_mode_func = self.nosidecar
+            sidecar_mode_func = self.baseline
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
 
         if self.run_serversidecar:
             perf_label = "_srv_serveronly"
-            sidecar_mode = "server sidecar"
+            sidecar_mode = "serveronly"
             sidecar_mode_func = self.serversidecar
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
 
         if self.run_clientsidecar:
             perf_label = "_srv_clientonly"
-            sidecar_mode = "client sidecar"
+            sidecar_mode = "clientonly"
             sidecar_mode_func = self.clientsidecar
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
 
         if self.run_bothsidecar:
             perf_label = "_srv_bothsidecars"
-            sidecar_mode = "both sidecar"
+            sidecar_mode = "both"
             sidecar_mode_func = self.bothsidecar
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
 
