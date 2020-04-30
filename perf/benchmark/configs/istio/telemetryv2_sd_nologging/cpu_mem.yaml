@@ -1,7 +1,7 @@
 # Data: cpu/mem
 # Filter: metadata-exchange and stackdriver filters with logging off
 # VM mode: nullvm
-load_gen_type: "fortio"
+load_gen_type: ${LOAD_GEN_TYPE}
 telemetry_mode: "v2-sd-nologging-nullvm"
 conn:
     - 16

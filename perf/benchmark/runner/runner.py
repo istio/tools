@@ -471,30 +471,32 @@ def run_perf_test(args):
 
     port_forward_process = None
 
-    # Create a port_forward for accessing nighthawk_service.
-    if not can_connect_to_nighthawk_service():
-        popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
-            ns=NAMESPACE,
-            port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
-        port_forward_process = subprocess.Popen(shlex.split(
-            popen_cmd), stdout=subprocess.PIPE)
-        max_tries = 10
-        while max_tries > 0 and not can_connect_to_nighthawk_service():
-            time.sleep(0.5)
-            max_tries = max_tries - 1
+    if args.load_gen_type == "nighthawk":
+        # Create a port_forward for accessing nighthawk_service.
+        if not can_connect_to_nighthawk_service():
+            popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
+                ns=NAMESPACE,
+                port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
+            port_forward_process = subprocess.Popen(shlex.split(
+                popen_cmd), stdout=subprocess.PIPE)
+            max_tries = 10
+            while max_tries > 0 and not can_connect_to_nighthawk_service():
+                time.sleep(0.5)
+                max_tries = max_tries - 1
 
-    if not can_connect_to_nighthawk_service():
-        print("Failure connecting to nighthawk_service")
-        sys.exit(-1)
-    else:
-        print("Able to connect to nighthawk_service, proceeding")
+        if not can_connect_to_nighthawk_service():
+            print("Failure connecting to nighthawk_service")
+            sys.exit(-1)
+        else:
+            print("Able to connect to nighthawk_service, proceeding")
+
     try:
         for conn in fortio.conn:
             for qps in fortio.qps:
                 fortio.run(headers=fortio.headers, conn=conn, qps=qps,
                            duration=fortio.duration, size=fortio.size)
     finally:
-        if not port_forward_process is None:
+        if port_forward_process is not None:
             port_forward_process.kill()
 
 
