@@ -19,21 +19,10 @@ set -x
 # optionally enable ipv6 docker
 export DOCKER_IN_DOCKER_IPV6_ENABLED=${DOCKER_IN_DOCKER_IPV6_ENABLED:-false}
 if [[ "${DOCKER_IN_DOCKER_IPV6_ENABLED}" == "true" ]]; then
-  echo "wrapper.sh] [SETUP] Enabling IPv6 in Docker config ..."
-  # configure the daemon with ipv6
-  mkdir -p /etc/docker/
-  cat <<EOF >/etc/docker/daemon.json
-{
-  "ipv6": true,
-  "fixed-cidr-v6": "fc00:db8:1::/64"
-}
-EOF
   # enable ipv6
   sysctl net.ipv6.conf.all.disable_ipv6=0
   sysctl net.ipv6.conf.all.forwarding=1
-  # enable ipv6 iptables
-  modprobe -v ip6table_nat
-  echo "wrapper.sh] [SETUP] Done enabling IPv6 in Docker config."
+  echo "Done enabling IPv6 in Docker config."
 fi
 
 # Start docker daemon and wait for dockerd to start
