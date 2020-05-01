@@ -128,7 +128,7 @@ if [[ -z "${FROM_HUB}" || -z "${FROM_TAG}" || -z "${FROM_PATH}" || -z "${TO_HUB}
 fi
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrade" || "${TEST_SCENARIO}" == "downgrade" ]];then
-    echo "The test scenario is ${TEST_SCENARIO}."
+    echo "The current test scenario is ${TEST_SCENARIO}."
 else
     echo "Error: invalid test scenario: ${TEST_SCENARIO}."
     exit 1
@@ -483,7 +483,7 @@ waitForIngress
 waitForPodsReady "${ISTIO_NAMESPACE}"
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
-  # Make a copy of the "from" sidecar injector ConfigMap so we can restore the sidecar independently later.
+  # Make a copy of the "from" sidecar injector ConfigMap so that we can restore the sidecar independently later.
   echo_and_run kubectl get ConfigMap -n "${ISTIO_NAMESPACE}" istio-sidecar-injector -o yaml > ${TMP_DIR}/sidecar-injector-configmap.yaml
 fi
 

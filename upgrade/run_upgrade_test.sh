@@ -44,8 +44,8 @@ export TARGET_LINUX_TAR_SUFFIX=${TARGET_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
 # the default test scenario of upgrade followed by downgrade.
 # TEST_SCENARIO can also be configured to "upgrade" or "downgrade", which corresponds to
 # the upgrade-only test scenario and the downgrade-only test scenario, respectively.
-# When the test scenario is "downgrade",SOURCE_HUB and SOURCE_TAG specifies the version
-# to downgrade from whereas TARGET_HUB and TARGET_TAG specifies the version
+# When the test scenario is "downgrade",SOURCE_HUB and SOURCE_TAG specify the version
+# to downgrade from whereas TARGET_HUB and TARGET_TAG specify the version
 # to downgrade to.
 export TEST_SCENARIO=${TEST_SCENARIO:-"upgrade-downgrade"}
 

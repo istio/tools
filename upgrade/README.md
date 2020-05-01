@@ -15,16 +15,17 @@ Enter the directory containing the tests.
     cd ROOT-OF-REPO/upgrade
     ```
 
-You may choose three types of test scenarios by configuring
-the TEST_SCENARIO variable. In the following example commands,
+You may choose three types of test scenarios (i.e., *upgrade-downgrade*, *upgrade*, and *downgrade*)
+by configuring the TEST_SCENARIO variable. In the following example commands,
 *SOURCE_TAG* specifies the
 version of Istio to be upgraded/downgraded and *TARGET_TAG* specifies the
-version of Istio to which the test will upgrade/downgrade.
+version of Istio the test will be upgraded/downgraded to.
+
 Note that you may need to configure the variables in the commands based
 on your test cases.
 
 * When TEST_SCENARIO is configured as *upgrade-downgrade*,
-during testing, Istio will be upgraded and then downgraded.
+Istio will be upgraded and then downgraded.
 This is the default test flow. The following is an example command
 to configure this test scenario:
 
@@ -33,7 +34,7 @@ to configure this test scenario:
     ```
 
 * When TEST_SCENARIO is configured as *upgrade*,
-during testing, Istio will be upgraded. The following is an example command
+Istio will be upgraded. The following is an example command
 to configure this test scenario:
 
     ```bash
@@ -41,7 +42,7 @@ to configure this test scenario:
     ```
 
 * When TEST_SCENARIO is configured as *downgrade*,
-during testing, Istio will be downgraded. The following is an example command
+Istio will be downgraded. The following is an example command
 to configure this test scenario:
 
     ```bash
