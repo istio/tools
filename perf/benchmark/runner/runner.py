@@ -36,7 +36,7 @@ NAMESPACE = os.environ.get("NAMESPACE", "twopods")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4"
-
+SCRIPT_START = time.strftime("%Y-%m-%d-%H%M%S")
 
 def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
@@ -249,9 +249,9 @@ class Fortio:
 
         return fortio_cmd
 
-    def run_profiler(self, exec_cmd, podname, filename_prefix, profiling_command, labels):
-        filename = "{filename_prefix}-{labels}-{podname}".format(
-            filename_prefix=filename_prefix, labels=labels, podname=podname)
+    def run_profiler(self, exec_cmd, podname, profile_name, profiling_command, labels):
+        filename = "{datetime}_{labels}-{profile_name}-{podname}".format(
+            datetime=SCRIPT_START, profile_name=profile_name, labels=labels, podname=podname)
         profiler_cmd = "{exec_cmd} \"{profiling_command} > {filename}.profile\"".format(
             profiling_command=profiling_command,
             exec_cmd=exec_cmd,
@@ -271,7 +271,7 @@ class Fortio:
         process = subprocess.Popen(shlex.split(flamegraph_cmd))
         ok = ok and process.wait() == 0
 
-        # Lastly copy the resulting flamegraph out of the container
+        # Lastly copy the resulting flamegraph out of the container into flame/flameoutput/
         kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
                    "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
 
@@ -568,7 +568,7 @@ def run_nighthawk(pod, remote_cmd, labels):
             # - initiation time to completion (spanning the complete lifetime of a request/reply, including queue/connect time)
             # - per worker output may sometimes help interpret plots that don't have a nice knee-shaped shape.
             kubectl_cp("{dest}.fortio.json".format(
-                dest=dest), "{pod}:/var/lib/fortio/{datetime}_nighthawk_{labels}.json".format(pod=pod, labels=labels, datetime=time.strftime("%Y-%m-%d-%H%M%S")), "shell")
+                dest=dest), "{pod}:/var/lib/fortio/{datetime}_{labels}.json".format(pod=pod, labels=labels, datetime=SCRIPT_START), "shell")
     else:
         print("nighthawk remote execution error: %s" % exit_code)
         if output:
