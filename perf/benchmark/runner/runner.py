@@ -193,9 +193,12 @@ class Fortio:
         # If scheme is not defined fallback to http
         if url.scheme == "":
             url = urlparse("http://{svc}".format(svc=self.run_ingress))
-
-        return load_gen_cmd + sidecar_mode + " {url}/echo?size={size}".format(
-            url=url.geturl(), size=self.size)
+        if self.load_gen_type == "fortio":
+            return load_gen_cmd + sidecar_mode + " {url}/echo?size={size}".format(url=url.geturl(), size=self.size)
+        elif self.load_gen_type == "nighthawk":
+            return load_gen_cmd + sidecar_mode + " {url}/".format(url=url.geturl())
+        else:
+            sys.exit("invalid load generator %s, must be fortio or nighthawk", self.load_gen_type)
 
     def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label_suffix):
         print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
