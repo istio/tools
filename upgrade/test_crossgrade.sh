@@ -127,6 +127,13 @@ if [[ -z "${FROM_HUB}" || -z "${FROM_TAG}" || -z "${FROM_PATH}" || -z "${TO_HUB}
     exit 1
 fi
 
+if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrade" || "${TEST_SCENARIO}" == "downgrade" ]];then
+    echo "The current test scenario is ${TEST_SCENARIO}."
+else
+    echo "Error: invalid test scenario: ${TEST_SCENARIO}."
+    exit 1
+fi
+
 echo "Testing crossgrade from ${FROM_HUB}:${FROM_TAG} at ${FROM_PATH} to ${TO_HUB}:${TO_TAG} at ${TO_PATH} in namespace ${ISTIO_NAMESPACE}, auth=${AUTH_ENABLE}, cleanup=${SKIP_CLEANUP}"
 
 TMP_DIR=/tmp/istio_upgrade_test
@@ -475,8 +482,10 @@ istioInstallOptions
 waitForIngress
 waitForPodsReady "${ISTIO_NAMESPACE}"
 
-# Make a copy of the "from" sidecar injector ConfigMap so we can restore the sidecar independently later.
-echo_and_run kubectl get ConfigMap -n "${ISTIO_NAMESPACE}" istio-sidecar-injector -o yaml > ${TMP_DIR}/sidecar-injector-configmap.yaml
+if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
+  # Make a copy of the "from" sidecar injector ConfigMap so that we can restore the sidecar independently later.
+  echo_and_run kubectl get ConfigMap -n "${ISTIO_NAMESPACE}" istio-sidecar-injector -o yaml > ${TMP_DIR}/sidecar-injector-configmap.yaml
+fi
 
 installTest
 waitForPodsReady "${TEST_NAMESPACE}"
@@ -489,28 +498,32 @@ sendExternalRequestTraffic "${INGRESS_ADDR}" &
 echo "Waiting for traffic to settle..."
 sleep 20
 
-istioUpgradeOptions
-waitForPodsReady "${ISTIO_NAMESPACE}"
-# In principle it should be possible to restart data plane immediately, but being conservative here.
-sleep 60
+if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrade" || "${TEST_SCENARIO}" == "downgrade" ]];then
+  istioUpgradeOptions
+  waitForPodsReady "${ISTIO_NAMESPACE}"
+  # In principle it should be possible to restart data plane immediately, but being conservative here.
+  sleep 60
 
-restartDataPlane echosrv-deployment-v1
-# echosrv-deployment-v2 is for mTLS traffic
-restartDataPlane echosrv-deployment-v2
-# No way to tell when rolling restart completes because it's async. Make sure this is long enough to cover all the
-# pods in the deployment at the minReadySeconds setting (should be > num pods x minReadySeconds + few extra seconds).
-sleep 140
+  restartDataPlane echosrv-deployment-v1
+  # echosrv-deployment-v2 is for mTLS traffic
+  restartDataPlane echosrv-deployment-v2
+  # No way to tell when rolling restart completes because it's async. Make sure this is long enough to cover all the
+  # pods in the deployment at the minReadySeconds setting (should be > num pods x minReadySeconds + few extra seconds).
+  sleep 140
+fi
 
-# Now do a rollback. In a rollback, we update the data plane first.
-writeMsg "Starting rollback - first, rolling back data plane to ${FROM_PATH}"
-resetConfigMap istio-sidecar-injector "${TMP_DIR}"/sidecar-injector-configmap.yaml
-restartDataPlane echosrv-deployment-v1
-# echosrv-deployment-v2 is for mTLS traffic
-restartDataPlane echosrv-deployment-v2
-sleep 140
+if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
+  # Now do a rollback. In a rollback, we update the data plane first.
+  writeMsg "Starting rollback - first, rolling back data plane to ${FROM_PATH}"
+  resetConfigMap istio-sidecar-injector "${TMP_DIR}"/sidecar-injector-configmap.yaml
+  restartDataPlane echosrv-deployment-v1
+  # echosrv-deployment-v2 is for mTLS traffic
+  restartDataPlane echosrv-deployment-v2
+  sleep 140
 
-istioInstallOptions
-waitForPodsReady "${ISTIO_NAMESPACE}"
+  istioInstallOptions
+  waitForPodsReady "${ISTIO_NAMESPACE}"
+fi
 
 echo "Test ran for ${SECONDS} seconds."
 if (( SECONDS > TRAFFIC_RUNTIME_SEC )); then

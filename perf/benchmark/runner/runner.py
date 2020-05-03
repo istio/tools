@@ -325,6 +325,7 @@ class Fortio:
             "--experimental-h2-use-multiple-connections",
             "--label Nighthawk",
             "--connections {conn}",
+            "--burst-size {conn}",
             "--rps {qps}",
             "--duration {duration}",
             "--request-header \"x-nighthawk-test-server-config: {{response_body_size:{size}}}\""
