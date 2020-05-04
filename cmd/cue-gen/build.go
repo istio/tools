@@ -447,6 +447,15 @@ func convertCrdConfig(c map[string]string, t string, cfg *CrdConfig) {
 			version.Name = v
 		case "schema":
 			sc = v
+		case "preserveUnknownFields":
+			var b bool
+			switch v {
+			case "true":
+				b = true
+			case "false":
+				b = false
+			}
+			src.Spec.PreserveUnknownFields = &b
 		}
 	}
 	if sc != "" {
