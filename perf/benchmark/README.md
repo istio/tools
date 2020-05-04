@@ -166,7 +166,7 @@ weakening security. Resulting flamegraphs will be written to `flame/flameoutput`
 - sample sidecar profiling commands for `--custom_profiling_command`:
   - "profile-bpfcc -df {duration} -p {sidecar_pid}" sidecar on-cpu profile
   - "offcputime-bpfcc -df {duration} -p {sidecar_pid}" sidecar off-cpu profile
-  - "offwaketime-bpfcc -df {duration} -p {sidecar_pid}" sidecar offwaktime profile
+  - "offwaketime-bpfcc -df {duration} -p {sidecar_pid}" sidecar offwaketime profile
   - "wakeuptime-bpfcc -f -p {sidecar_pid} {duration}" sidecar wakeuptime profile
   - "perf record -F 99 -a -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" on-cpu perf-generated profile
   - "stackcount-bpfcc c:*alloc* -df -D {duration} -p {sidecar_pid}" profile calls to `*alloc*`

@@ -16,6 +16,7 @@ from __future__ import print_function
 
 import collections
 import os
+import html
 import json
 import socket
 import argparse
@@ -263,16 +264,17 @@ class Fortio:
         )
         ok = True
         # Run the profile collection tool, and wait for it to finish.
-        process = subprocess.Popen(shlex.split(profiler_cmd))
+        process = subprocess.Popen(shlex.split(profiler_cmd), stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         ok = ok and process.wait() == 0
 
         # Next we feed the profiling data to the flamegraphing script.
+        html_escaped_command = html.escape(profiling_command)
         flamegraph_cmd = "{exec_cmd} \"./FlameGraph/flamegraph.pl --title='{profiling_command} Flame Graph'  < {filename}.profile > {filename}.svg\"".format(
             exec_cmd=exec_cmd,
-            profiling_command=profiling_command,
+            profiling_command=html_escaped_command,
             filename=filename
         )
-        process = subprocess.Popen(shlex.split(flamegraph_cmd))
+        process = subprocess.Popen(shlex.split(flamegraph_cmd), stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         ok = ok and process.wait() == 0
 
         # Lastly copy the resulting flamegraph out of the container into flame/flameoutput/
