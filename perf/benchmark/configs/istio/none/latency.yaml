@@ -1,6 +1,5 @@
 # Data: latency
 # Config: No mixer and telemetry v2
-load_gen_type: "fortio"
 telemetry_mode: "none"
 conn:
     - 2

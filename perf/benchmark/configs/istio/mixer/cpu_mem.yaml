@@ -1,6 +1,5 @@
 # Data: cpu/mem
 # Config: mixer telemetry
-load_gen_type: "fortio"
 telemetry_mode: "mixer"
 conn:
   - 16
