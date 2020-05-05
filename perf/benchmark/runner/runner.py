@@ -289,7 +289,7 @@ set +x
         if process.wait() == 0:
             # Copy the resulting flamegraph out of the container into flame/flameoutput/
             kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
-                    "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+                       "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
             print("Wrote flame/flameoutput/{filename}.svg".format(filename=filename))
         else:
             print("WARNING: Did not obtain a flamegraph. See /tmp/{filename}_*.log".format(filename=filename))
