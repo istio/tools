@@ -41,4 +41,6 @@ runner/runner.py --conn 20 --qps 10000 --duration 100 --serversidecar --custom_p
 
 runner/runner.py --conn 20 --qps 10000 --duration 100 --serversidecar --custom_profiling_command="perf record -F 99 -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" --custom_profiling_name="perf-oncputime-sidecar"
 
+runner/runner.py --conn 20 --qps 10000 --duration 100 --serversidecar --custom_profiling_command="perf record -e page-faults -g -p {sidecar_pid} -F 99 -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" --custom_profiling_name="perf-pagefaults-sidecar"
+
 ```

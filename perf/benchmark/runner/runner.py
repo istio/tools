@@ -123,7 +123,8 @@ class Fortio:
             cacert=None,
             load_gen_type="fortio",
             custom_profiling_command=None,
-            custom_profiling_name="default-profile"):
+            custom_profiling_name="default-profile",
+            devmode=False):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
         self.headers = headers
         self.conn = conn
@@ -150,6 +151,7 @@ class Fortio:
         self.run_ingress = ingress
         self.cacert = cacert
         self.load_gen_type = load_gen_type
+        self.devmode = devmode
 
         if self.perf_record != False:
             if not self.custom_profiling_command is None:
@@ -520,7 +522,8 @@ def run_perf_test(args):
     if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
             min_duration=min_duration))
-        exit(1)
+        if not args.devmode:
+            exit(1)
 
     port_forward_process = None
 
@@ -672,6 +675,11 @@ def get_parser():
         "--load_gen_type",
         help="fortio or nighthawk",
         default="fortio",
+    )
+    parser.add_argument(
+        "--devmode",
+        help="In development mode, very short duration argument values are allowed.",
+        default=False,
     )
 
     define_bool(parser, "baseline", "run baseline for all", False)
