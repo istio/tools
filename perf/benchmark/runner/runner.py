@@ -23,6 +23,7 @@ import argparse
 import subprocess
 import shlex
 import uuid
+import stat
 import sys
 import tempfile
 import time
@@ -257,32 +258,41 @@ class Fortio:
     def run_profiler(self, exec_cmd, podname, profile_name, profiling_command, labels):
         filename = "{datetime}_{labels}-{profile_name}-{podname}".format(
             datetime=SCRIPT_START, profile_name=profile_name, labels=labels, podname=podname)
-        profiler_cmd = "{exec_cmd} \"{profiling_command} > {filename}.profile\"".format(
+        profiler_cmd = "{profiling_command} > {filename}.profile".format(
             profiling_command=profiling_command,
-            exec_cmd=exec_cmd,
             filename=filename
         )
-        ok = True
-        # Run the profile collection tool, and wait for it to finish.
-        process = subprocess.Popen(shlex.split(profiler_cmd), stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        ok = ok and process.wait() == 0
-
-        # Next we feed the profiling data to the flamegraphing script.
         html_escaped_command = html.escape(profiling_command)
-        flamegraph_cmd = "{exec_cmd} \"./FlameGraph/flamegraph.pl --title='{profiling_command} Flame Graph'  < {filename}.profile > {filename}.svg\"".format(
-            exec_cmd=exec_cmd,
+        flamegraph_cmd = "./FlameGraph/flamegraph.pl --title='{profiling_command} Flame Graph'  < {filename}.profile > {filename}.svg".format(
             profiling_command=html_escaped_command,
             filename=filename
         )
-        process = subprocess.Popen(shlex.split(flamegraph_cmd), stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        ok = ok and process.wait() == 0
 
-        # Lastly copy the resulting flamegraph out of the container into flame/flameoutput/
-        kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
-                   "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+        # We build a small bash script which will run the profiler & produce a flame graph
+        # We the copy this script into the container, and run it
+        with tempfile.NamedTemporaryFile(dir='/tmp', delete=True) as tmpfile:
+            dest = tmpfile.name + ".sh"
+            with open(dest, 'w') as f:
+                s = """#!/bin/bash
+set -euo pipefail
+set +x
+({profiler_cmd}) >& /tmp/{filename}_profiler_cmd.log
+({flamegraph_cmd}) >& /tmp/{filename}_flamegraph_cmd.log
+                """.format(profiler_cmd=profiler_cmd, flamegraph_cmd=flamegraph_cmd, filename=filename)
+                f.write(s)
+            st = os.stat(dest)
+            os.chmod(dest, st.st_mode | stat.S_IEXEC)
+            kubectl_cp(dest, podname + ":" + dest, "perf")
 
-        if ok == False:
-            print("warning - profiling and or flamegraph generation may have failed")
+        process = subprocess.Popen(shlex.split("{exec_cmd} \"{dest}\"".format(exec_cmd=exec_cmd, dest=dest)))
+
+        if process.wait() == 0:
+            # Copy the resulting flamegraph out of the container into flame/flameoutput/
+            kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
+                    "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+            print("Wrote flame/flameoutput/{filename}.svg".format(filename=filename))
+        else:
+            print("WARNING: Did not obtain a flamegraph. See /tmp/{filename}_*.log".format(filename=filename))
 
     def maybe_start_profiling_threads(self, labels, perf_label):
         threads = []
@@ -290,7 +300,7 @@ class Fortio:
         if self.custom_profiling_command:
             # We run any custom profiling command on both pods, as one runs on each node we're interested in.
             for pod in [self.client.name, self.server.name]:
-                exec_cmd_on_pod = "kubectl exec -n {namespace} {podname} -c perf -it -- bash -c ".format(
+                exec_cmd_on_pod = "kubectl exec -n {namespace} {podname} -c perf -- bash -c ".format(
                     namespace=os.environ.get("NAMESPACE", "twopods"),
                     podname=pod
                 )
@@ -373,8 +383,6 @@ class Fortio:
                 if self.custom_profiling_command:
                     for thread in threads:
                         thread.join()
-                print(
-                    "background profiler thread finished - flamegraphs are available in flame/flameoutput")
         return execution_delegate
 
     def run(self, headers, conn, qps, size, duration):

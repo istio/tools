@@ -37,5 +37,8 @@ runner/runner.py --conn 20 --qps 10000 --duration 100 --serversidecar --custom_p
 
 runner/runner.py --conn 20 --qps 10000 --duration 100 --serversidecar --custom_profiling_command="wakeuptime-bpfcc -f -p {sidecar_pid} {duration}" --custom_profiling_name="bcc-wakeuptime-sidecar"
 
+runner/runner.py --conn 20 --qps 10000 --duration 100 --serversidecar --custom_profiling_command="stackcount-bpfcc -p {sidecar_pid} *alloc* -fD {duration}" --custom_profiling_name="bcc-stackcount-alloc"
+
 runner/runner.py --conn 20 --qps 10000 --duration 100 --serversidecar --custom_profiling_command="perf record -F 99 -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" --custom_profiling_name="perf-oncputime-sidecar"
+
 ```

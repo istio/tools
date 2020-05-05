@@ -168,8 +168,8 @@ weakening security. Resulting flamegraphs will be written to `flame/flameoutput`
   - "offcputime-bpfcc -df {duration} -p {sidecar_pid}" sidecar off-cpu profile
   - "offwaketime-bpfcc -df {duration} -p {sidecar_pid}" sidecar offwaketime profile
   - "wakeuptime-bpfcc -f -p {sidecar_pid} {duration}" sidecar wakeuptime profile
-  - "perf record -F 99 -a -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" on-cpu perf-generated profile
-  - "stackcount-bpfcc c:*alloc* -df -D {duration} -p {sidecar_pid}" profile calls to `*alloc*`
+  - "perf record -F 99 -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" on-cpu perf-generated profile
+  - "stackcount-bpfcc -U *alloc* -df -D {duration} -p {sidecar_pid}" profile calls to `*alloc*`
 - It's also possible to run machine-wide profiling, for example:
   - "profile-bpfcc -df {duration}" for obtaining a machine-wide on-cpu flamegraph.
   - See [here](http://www.brendangregg.com/FlameGraphs/) for more examples and information.
