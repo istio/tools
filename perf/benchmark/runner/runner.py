@@ -465,7 +465,7 @@ def fortio_from_config_file(args):
         fortio.conn = job_config.get('conn', 16)
         fortio.qps = job_config.get('qps', 1000)
         fortio.duration = job_config.get('duration', 240)
-        fortio.load_gen_type = job_config.get("load_gen_type", "fortio")
+        fortio.load_gen_type = os.environ.get("LOAD_GEN_TYPE", "fortio")
         fortio.telemetry_mode = job_config.get('telemetry_mode', 'mixer')
         fortio.metrics = job_config.get('metrics', 'p90')
         fortio.size = job_config.get('size', 1024)
@@ -524,30 +524,32 @@ def run_perf_test(args):
 
     port_forward_process = None
 
-    # Create a port_forward for accessing nighthawk_service.
-    if not can_connect_to_nighthawk_service():
-        popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
-            ns=NAMESPACE,
-            port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
-        port_forward_process = subprocess.Popen(shlex.split(
-            popen_cmd), stdout=subprocess.PIPE)
-        max_tries = 10
-        while max_tries > 0 and not can_connect_to_nighthawk_service():
-            time.sleep(0.5)
-            max_tries = max_tries - 1
+    if args.load_gen_type == "nighthawk":
+        # Create a port_forward for accessing nighthawk_service.
+        if not can_connect_to_nighthawk_service():
+            popen_cmd = "kubectl -n \"{ns}\" port-forward svc/fortioclient {port}:9999".format(
+                ns=NAMESPACE,
+                port=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
+            port_forward_process = subprocess.Popen(shlex.split(
+                popen_cmd), stdout=subprocess.PIPE)
+            max_tries = 10
+            while max_tries > 0 and not can_connect_to_nighthawk_service():
+                time.sleep(0.5)
+                max_tries = max_tries - 1
 
-    if not can_connect_to_nighthawk_service():
-        print("Failure connecting to nighthawk_service")
-        sys.exit(-1)
-    else:
-        print("Able to connect to nighthawk_service, proceeding")
+        if not can_connect_to_nighthawk_service():
+            print("Failure connecting to nighthawk_service")
+            sys.exit(-1)
+        else:
+            print("Able to connect to nighthawk_service, proceeding")
+
     try:
         for conn in fortio.conn:
             for qps in fortio.qps:
                 fortio.run(headers=fortio.headers, conn=conn, qps=qps,
                            duration=fortio.duration, size=fortio.size)
     finally:
-        if not port_forward_process is None:
+        if port_forward_process is not None:
             port_forward_process.kill()
 
 
@@ -694,7 +696,6 @@ def define_bool(parser, opt, help_arg, default_val):
 
 def main(argv):
     args = get_parser().parse_args(argv)
-    print(args)
     return run_perf_test(args)
 
 
