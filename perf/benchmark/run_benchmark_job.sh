@@ -118,8 +118,10 @@ function setup_fortio_and_prometheus() {
     kubectl -n "${PROMETHEUS_NAMESPACE}" port-forward svc/prometheus 9090:9090 &>/dev/null &
     CLEANUP_PIDS+=("$!")
 
-    export FORTIO_CLIENT_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioclient | awk '{print $1}')
-    export FORTIO_SERVER_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioserver | awk '{print $1}')
+    FORTIO_CLIENT_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioclient | awk '{print $1}')
+    export FORTIO_CLIENT_POD
+    FORTIO_SERVER_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioserver | awk '{print $1}')
+    export FORTIO_SERVER_POD
 }
 
 setup_fortio_and_prometheus
