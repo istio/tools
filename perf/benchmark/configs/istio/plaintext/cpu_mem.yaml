@@ -1,6 +1,5 @@
 # Data: cpu/mem
 # Config: plaintext
-load_gen_type: "fortio"
 telemetry_mode: "none"
 conn:
     - 16

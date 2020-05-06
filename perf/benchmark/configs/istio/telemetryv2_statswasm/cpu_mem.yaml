@@ -1,7 +1,7 @@
 # Data: cpu/mem
 # Filter: metadata-exchange and stats filters
-# VM mode: nullvm
-telemetry_mode: "v2-stats-nullvm"
+# VM mode: wasm
+telemetry_mode: "v2-stats-wasm"
 conn:
     - 16
 qps:
