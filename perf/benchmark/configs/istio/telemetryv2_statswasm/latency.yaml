@@ -1,6 +1,7 @@
 # Data: latency
-# Config: plaintext
-telemetry_mode: "none"
+# Filter: metadata-exchange and stats filters
+# VM mode: wasm
+telemetry_mode: "v2-stats-wasm"
 conn:
     - 2
     - 4
@@ -16,11 +17,7 @@ metrics:
     - p90
     - p99
 perf_record: false
-# we only care about both sidecar mode, which is the base line for mTLs overhead comparision.
 run_bothsidecar: true
 run_serversidecar: false
 run_clientsidecar: false
 run_baseline: false
-
-extra_labels: "plaintext"
-
