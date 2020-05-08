@@ -104,11 +104,16 @@ mkdir -p "${LOCAL_OUTPUT_DIR}"
 function setup_fortio_and_prometheus() {
     # shellcheck disable=SC2155
     INGRESS_IP="$(kubectl get services -n "${NAMESPACE}" fortioclient -o jsonpath="{.status.loadBalancer.ingress[0].ip}")"
-    export FORTIO_CLIENT_URL=http://${INGRESS_IP}:8080
+    local report_port="8080"
+    if [[ "${LOAD_GEN_TYPE}" == "nighthawk" ]]; then
+        report_port="9076"
+    fi
+
+    export FORTIO_CLIENT_URL=http://${INGRESS_IP}:${report_port}
     if [[ -z "$INGRESS_IP" ]];then
-        kubectl -n "${NAMESPACE}" port-forward svc/fortioclient 8080:8080 &
+        kubectl -n "${NAMESPACE}" port-forward svc/fortioclient ${report_port}:${report_port} &
         CLEANUP_PIDS+=("$!")
-        export FORTIO_CLIENT_URL=http://localhost:8080
+        export FORTIO_CLIENT_URL=http://localhost:${report_port}
     fi
 
     export PROMETHEUS_URL=http://localhost:9090
