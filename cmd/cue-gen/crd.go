@@ -25,6 +25,7 @@ import (
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
+	"k8s.io/utils/pointer"
 )
 
 const (
@@ -60,6 +61,10 @@ func completeCRD(c *apiextv1beta1.CustomResourceDefinition, versionSchemas map[s
 			Type: "object",
 			Properties: map[string]apiextv1beta1.JSONSchemaProps{
 				"spec": *j,
+				"status": {
+					Type:                   "object",
+					XPreserveUnknownFields: pointer.BoolPtr(true),
+				},
 			},
 		}}
 

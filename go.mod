@@ -47,4 +47,5 @@ require (
 	k8s.io/gengo v0.0.0-20190822140433-26a664648505
 	k8s.io/helm v2.12.0+incompatible
 	k8s.io/klog v0.4.0 // indirect
+	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
 )
