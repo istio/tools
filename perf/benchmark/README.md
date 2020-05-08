@@ -157,7 +157,7 @@ optional arguments:
                         filename prefix for the result of any --custom_profiling_command
   --envoy_profiler [heapprofiler|cpuprofiler]
                        yields visualizations using pprof over profiles collected via the built-in profiler
-                       of the side cars. 
+                       of the side cars.
                        NOTE: requires global.proxy.privileged=true,values.global.proxy.enableCoreDump=true
 ```
 

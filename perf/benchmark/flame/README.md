@@ -18,7 +18,7 @@ container to the server and client pods, which both will be running on separate 
 Flame graphs and visualizations are created from data collected using linux `perf_events`
 by the `perf` and [BCC tools](https://github.com/iovisor/bcc), as well as Envoy's built-in profiler.
 
-## Obtaining flame graphs 
+## Obtaining flame graphs
 
 Flame graphs can be produced via `runner.py`, and will be stored in `flame/flameoutput`.
 
@@ -47,7 +47,7 @@ runner/runner.py ... --custom_profiling_command="perf record -e page-faults -g -
 
 ```
 
-## Leveraging Istio's sidecar built-in profiling 
+## Leveraging Istio's sidecar built-in profiling
 
 Istio's sidecar proxy (Envoy) is usually build with `tcmalloc`, and as such traditional memory profiling
 methods may give unsatisfactory results. Fortunately, the proxy provides a built-in means to collect
@@ -63,6 +63,6 @@ After doing so `runner.py` can be run with `--envoy_profiler [heapprofiler|cpupr
 the built-in profilers of the sidecars, obtain the collected profiles, and visualize them via `pprof`.
 The resulting output will end up in `flame/flameoutput` just like in the other flows:
 
-```
+```bash
 runner/runner.py --envoy_profiler cpuprofiler|heapprofiler ...
 ```
