@@ -148,11 +148,25 @@ trap exit_handling EXIT
 
 # Step 8: run Istio performance test
 # Helper functions
+function collect_metrics() {
+  # shellcheck disable=SC2155
+  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
+  pipenv run python3 fortio.py ${FORTIO_CLIENT_URL} --csv_output="$CSV_OUTPUT" --prometheus=${PROMETHEUS_URL} \
+   --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,cpu_mili_max_telemetry_mixer,\
+mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,cpu_mili_max_fortioserver_deployment_proxy,\
+mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy
+
+  gsutil -q cp "${CSV_OUTPUT}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/benchmark.csv"
+}
+
 function run_benchmark_test() {
   pushd "${WD}/runner"
   CONFIG_FILE="${1}"
   pipenv run python3 runner.py --config_file "${CONFIG_FILE}"
 
+  if [[ "${TRIALRUN}" == "False" ]]; then
+    collect_metrics
+  fi
   popd
 }
 
