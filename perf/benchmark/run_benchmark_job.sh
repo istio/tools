@@ -71,9 +71,6 @@ fi
 # Different branch tag resides in dev release directory like /latest, /1.4-dev, /1.5-dev etc.
 INSTALL_VERSION=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
 echo "Setup istio release: ${INSTALL_VERSION}"
-# TAG is of the form like "1.5-alpha.sha"
-# shellcheck disable=SC2155
-export GIT_SHA=$(echo "$INSTALL_VERSION" | cut -f3 -d.)
 
 pushd "${ROOT}/istio-install"
    DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml
