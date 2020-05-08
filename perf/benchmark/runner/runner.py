@@ -266,7 +266,7 @@ class Fortio:
             namespace=os.environ.get("NAMESPACE", "twopods"),
             podname=podname
         )
-        profile_url ="curl -X POST -s http://localhost:15000/{envoy_profiler}?enable".format(envoy_profiler=envoy_profiler)
+        profile_url = "curl -X POST -s http://localhost:15000/{envoy_profiler}?enable".format(envoy_profiler=envoy_profiler)
         script = "{profile_url}=y; sleep {duration}; {profile_url}=n;".format(profile_url=profile_url, duration=self.duration)
         print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
 
@@ -286,7 +286,7 @@ class Fortio:
         script = "rm -r /tmp/envoy; cp -r /var/log/envoy/ /tmp/envoy; cp -r /lib/x86_64-linux-gnu /tmp/envoy/lib; cp /usr/local/bin/envoy /tmp/envoy/lib/envoy"
         print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
         output_name = "tmp.svg"
-        
+
         visualization_arg = ""
         if envoy_profiler == "heapprofiler":
             visualization_arg = "-alloc_space"
@@ -294,7 +294,7 @@ class Fortio:
             exec_cmd=exec_cmd_on_pod, output_name=output_name, visualization_arg=visualization_arg)))
         # Copy the visualization into flame/output.
         kubectl_cp(podname + ":/tmp/envoy/{output_name}".format(output_name=output_name),
-                    "flame/flameoutput/{filename}.svg".format(filename=filename), "istio-proxy")
+                   "flame/flameoutput/{filename}.svg".format(filename=filename), "istio-proxy")
 
     def run_profiler(self, exec_cmd, podname, profile_name, profiling_command, labels):
         filename = "{datetime}_{labels}-{profile_name}-{podname}".format(
