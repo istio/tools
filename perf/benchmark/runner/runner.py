@@ -124,7 +124,8 @@ class Fortio:
             load_gen_type="fortio",
             custom_profiling_command=None,
             custom_profiling_name="default-profile",
-            devmode=False):
+            devmode=False,
+            envoy_profiler=None):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
         self.headers = headers
         self.conn = conn
@@ -152,6 +153,7 @@ class Fortio:
         self.cacert = cacert
         self.load_gen_type = load_gen_type
         self.devmode = devmode
+        self.envoy_profiler = envoy_profiler
 
         if self.perf_record != False:
             if not self.custom_profiling_command is None:
@@ -257,6 +259,43 @@ class Fortio:
 
         return fortio_cmd
 
+    def run_envoy_profiler(self, exec_cmd, podname, profile_name, envoy_profiler, labels):
+        filename = "{datetime}_{labels}-{profile_name}-{podname}".format(
+            datetime=SCRIPT_START, profile_name=profile_name, labels=labels, podname=podname)
+        exec_cmd_on_pod = "kubectl exec -n {namespace} {podname} -c istio-proxy -- bash -c ".format(
+            namespace=os.environ.get("NAMESPACE", "twopods"),
+            podname=podname
+        )
+        profile_url ="curl -X POST -s http://localhost:15000/{envoy_profiler}?enable".format(envoy_profiler=envoy_profiler)
+        script = "{profile_url}=y; sleep {duration}; {profile_url}=n;".format(profile_url=profile_url, duration=self.duration)
+        print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
+
+        # When we get here, the heap profile has been written.
+        # We install pprof & some nessecities for generating the visual into the istio-proxy container the first
+        # time we get here, so we can a the visualization of the process out.
+        script = "test ! -f ~/go/bin/pprof && echo 1"
+        if getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)) == "1":
+            script = "sudo apt-get update && sudo apt-get install -y --no-install-recommends wget git binutils graphviz &&"
+            script = script + " cd /tmp/ &&"
+            script = script + " curl https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz --output go1.14.2.linux-amd64.tar.gz &&"
+            script = script + " sudo tar -C /usr/local -xzf go1.14.2.linux-amd64.tar.gz &&"
+            script = script + " export PATH=$PATH:/usr/local/go/bin &&"
+            script = script + " go get -u github.com/google/pprof"
+            print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
+
+        script = "rm -r /tmp/envoy; cp -r /var/log/envoy/ /tmp/envoy; cp -r /lib/x86_64-linux-gnu /tmp/envoy/lib; cp /usr/local/bin/envoy /tmp/envoy/lib/envoy"
+        print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
+        output_name = "tmp.svg"
+        
+        visualization_arg = ""
+        if envoy_profiler == "heapprofiler":
+            visualization_arg = "-alloc_space"
+        print(getoutput("{exec_cmd} \"cd /tmp/envoy;  PPROF_BINARY_PATH=/tmp/envoy/lib/ ~/go/bin/pprof {visualization_arg} -svg -output '{output_name}' /tmp/envoy/lib/envoy envoy.*\"".format(
+            exec_cmd=exec_cmd_on_pod, output_name=output_name, visualization_arg=visualization_arg)))
+        # Copy the visualization into flame/output.
+        kubectl_cp(podname + ":/tmp/envoy/{output_name}".format(output_name=output_name),
+                    "flame/flameoutput/{filename}.svg".format(filename=filename), "istio-proxy")
+
     def run_profiler(self, exec_cmd, podname, profile_name, profiling_command, labels):
         filename = "{datetime}_{labels}-{profile_name}-{podname}".format(
             datetime=SCRIPT_START, profile_name=profile_name, labels=labels, podname=podname)
@@ -277,7 +316,6 @@ class Fortio:
             with open(dest, 'w') as f:
                 s = """#!/bin/bash
 set -euo pipefail
-set +x
 ({profiler_cmd}) >& /tmp/{filename}_profiler_cmd.log
 ({flamegraph_cmd}) >& /tmp/{filename}_flamegraph_cmd.log
                 """.format(profiler_cmd=profiler_cmd, flamegraph_cmd=flamegraph_cmd, filename=filename)
@@ -298,7 +336,16 @@ set +x
 
     def maybe_start_profiling_threads(self, labels, perf_label):
         threads = []
-
+        if self.envoy_profiler:
+            for pod in [self.client.name, self.server.name]:
+                exec_cmd_on_pod = "kubectl exec -n {namespace} {podname} -c istio-proxy -- bash -c ".format(
+                    namespace=os.environ.get("NAMESPACE", "twopods"),
+                    podname=pod
+                )
+                script = "set -euo pipefail; sudo rm -rf {dir} || true; sudo mkdir -p {dir}; sudo chmod 777 {dir};".format(dir="/var/log/envoy")
+                print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
+                threads.append(Thread(target=self.run_envoy_profiler, args=[
+                    exec_cmd_on_pod, pod, "envoy-" + self.envoy_profiler, self.envoy_profiler, labels + perf_label]))
         if self.custom_profiling_command:
             # We run any custom profiling command on both pods, as one runs on each node we're interested in.
             for pod in [self.client.name, self.server.name]:
@@ -309,13 +356,13 @@ set +x
 
                 # Wait for node_exporter to run, which indicates the profiling initialization container has finished initializing.
                 # once the init probe is supported, move this to a http probe instead in fortio.yaml
-                ready_cmd = "{exec_cmd} \"pgrep 'node_exporter'\"".format(
+                ready_cmd = "{exec_cmd} \"which perf\"".format(
                     exec_cmd=exec_cmd_on_pod)
-                ne_pid = getoutput(ready_cmd).strip()
+                perf_path = getoutput(ready_cmd).strip()
                 attempts = 1
-                while ne_pid == "" and attempts < 60:
+                while perf_path != "/usr/sbin/perf" and attempts < 60:
                     sleep(1)
-                    ne_pid = getoutput(ready_cmd).strip()
+                    perf_path = getoutput(ready_cmd).strip()
                     attempts = attempts + 1
 
                 # Find side car process id's in case the profiling command needs it.
@@ -517,7 +564,8 @@ def run_perf_test(args):
             cacert=args.cacert,
             load_gen_type=args.load_gen_type,
             custom_profiling_command=args.custom_profiling_command,
-            custom_profiling_name=args.custom_profiling_name)
+            custom_profiling_name=args.custom_profiling_name,
+            envoy_profiler=args.envoy_profiler)
 
     if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
@@ -680,6 +728,11 @@ def get_parser():
         "--devmode",
         help="In development mode, very short duration argument values are allowed.",
         default=False,
+    )
+    parser.add_argument(
+        "--envoy_profiler",
+        help="Obtains perf visualization based on Envoy's built-in profiling. Valid values are 'heapprofiler' or 'cpuprofiler'.",
+        default=None,
     )
 
     define_bool(parser, "baseline", "run baseline for all", False)
