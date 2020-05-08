@@ -482,20 +482,20 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:xenial as clang_context
+FROM ubuntu:bionic as clang_context
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     wget \
     ca-certificates \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-ENV LLVM_VERSION=9.0.0
-ENV LLVM_TARGET=x86_64-linux-gnu-ubuntu-16.04
+ENV LLVM_VERSION=10.0.0
+ENV LLVM_TARGET=x86_64-linux-gnu-ubuntu-18.04
 
-ENV LLVM_BASE_URL=http://releases.llvm.org/${LLVM_VERSION}
+ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-${LLVM_TARGET}
 ENV LLVM_URL=${LLVM_BASE_URL}/${LLVM_ARCHIVE}.tar.xz
 ENV LLVM_DIRECTORY=/usr/lib/llvm
@@ -520,8 +520,8 @@ ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN wget ${BAZELISK_URL}
 RUN chmod +x ${BAZELISK_BIN}
@@ -584,8 +584,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-setuptools \
     daemon \
     wget \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
@@ -595,8 +595,8 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
     containerd.io="${CONTAINERD_VERSION}" \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Run dockerd in CI
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
@@ -614,8 +614,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python \
     unzip \
     virtualenv \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
