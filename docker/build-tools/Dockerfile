@@ -500,7 +500,7 @@ ENV LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-${LLVM_TARGET}
 ENV LLVM_URL=${LLVM_BASE_URL}/${LLVM_ARCHIVE}.tar.xz
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
-RUN wget --show-progress ${LLVM_URL}
+RUN wget ${LLVM_URL}
 RUN tar -xJf ${LLVM_ARCHIVE}.tar.xz -C /tmp
 RUN mkdir -p ${LLVM_DIRECTORY}
 RUN mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
