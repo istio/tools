@@ -29,6 +29,7 @@ import (
 	"github.com/kr/pretty"
 
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/utils/pointer"
 )
 
 const (
@@ -448,14 +449,14 @@ func convertCrdConfig(c map[string]string, t string, cfg *CrdConfig) {
 		case "schema":
 			sc = v
 		case "preserveUnknownFields":
-			var b bool
+			var b *bool
 			switch v {
 			case "true":
-				b = true
+				b = pointer.BoolPtr(true)
 			case "false":
-				b = false
+				b = pointer.BoolPtr(false)
 			}
-			src.Spec.PreserveUnknownFields = &b
+			src.Spec.PreserveUnknownFields = b
 		}
 	}
 	if sc != "" {
