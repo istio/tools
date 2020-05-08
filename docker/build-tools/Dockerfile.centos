@@ -25,7 +25,7 @@ RUN ln -s /usr/bin/cmake3 /usr/bin/cmake && \
 RUN echo "/opt/rh/httpd24/root/usr/lib64" > /etc/ld.so.conf.d/httpd24.conf && \
     ldconfig
 
-ENV LLVM_VERSION=9.0.1
+ENV LLVM_VERSION=9.0.0
 ENV LLVM_DISTRO="x86_64-linux-sles11.3"
 ENV LLVM_RELEASE="clang+llvm-${LLVM_VERSION}-${LLVM_DISTRO}"
 RUN curl -fsSL --output ${LLVM_RELEASE}.tar.xz https://releases.llvm.org/${LLVM_VERSION}/${LLVM_RELEASE}.tar.xz && \
