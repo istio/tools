@@ -482,7 +482,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:xenial as clang_context
+FROM ubuntu:bionic as clang_context
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -493,7 +493,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 ENV LLVM_VERSION=10.0.0
-ENV LLVM_TARGET=x86_64-linux-gnu-ubuntu-16.04
+ENV LLVM_TARGET=x86_64-linux-gnu-ubuntu-18.04
 
 ENV LLVM_BASE_URL=http://releases.llvm.org/${LLVM_VERSION}
 ENV LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-${LLVM_TARGET}
