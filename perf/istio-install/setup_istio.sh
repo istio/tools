@@ -64,7 +64,7 @@ function download_release() {
   outfile="${DIRNAME}/${OUT_FILE}"
   if [[ ! -d "${outfile}" ]]; then
     tmp=$(mktemp -d)
-    if [[ "${RELEASE_URL}" == gs:// ]]; then
+    if [[ "${RELEASE_URL}" == gs://* ]]; then
       gsutil cp "${RELEASE_URL}" "${tmp}/out.tar.gz"
       tar xvf "${tmp}/out.tar.gz" -C "${DIRNAME}"
     else
@@ -76,10 +76,14 @@ function download_release() {
   fi
 }
 
+# Set to empty to use the compiled in charts
+FILE_CHARTS="${FILE_CHARTS-true}"
+
 function install_istioctl() {
   release=${1:?release folder}
   shift
-  "${release}/bin/istioctl" manifest apply --skip-confirmation --wait -d "${release}/manifests" "${@}"
+  manifests=${FILE_CHARTS:+-d "${release}/manifests"}
+  "${release}/bin/istioctl" manifest apply --skip-confirmation --wait ${manifests} "${@}"
 }
 
 function install_extras() {
@@ -107,8 +111,9 @@ function install_extras() {
   done
   # Redeploy, this time with the Prometheus resource created
   helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
+  manifests=${FILE_CHARTS:+-d "${release}/manifests"}
   # Also deploy relevant ServiceMonitors
-  "${release}/bin/istioctl" manifest generate --set profile=empty --set addonComponents.prometheusOperator.enabled=true -d "${release}/manifests" | kubectl apply -f -
+  "${release}/bin/istioctl" manifest generate --set profile=empty --set addonComponents.prometheusOperator.enabled=true ${manifests} | kubectl apply -f -
 }
 
 download_release
