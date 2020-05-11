@@ -116,7 +116,7 @@ function deploy_gateways() {
 function deploy_clients() {
     # shellcheck disable=SC2004
     for ((id=1; id<=${NUM}; id++)); do
-        deploy_sleep $id "${testns}" "${CLUSTER}" "${wd}"
+        deploy_sleep $id "${testns}" "${CLUSTER}" "${wd}" "${secure_ingress_port}"
     done
 }
 
@@ -131,6 +131,7 @@ function check_access() {
         do
           # shellcheck disable=SC2153
           resp_code=$(curl -sS  -o /dev/null -w "%{http_code}\n" -HHost:"${host}" --resolve "${host}":"${secure_ingress_port}":"${ingress_host}" --cacert "${wd}"/example.com.crt "${url}")
+          # shellcheck disable=SC2086
           if [ ${resp_code} = 418 ]; then
             echo "${host}: OK"
             break

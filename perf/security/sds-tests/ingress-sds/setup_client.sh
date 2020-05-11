@@ -21,6 +21,7 @@ function deploy_sleep() {
     local ns="${2:?"please specify the namespace"}"
     local cs="${3:?"please specify the cluster"}"
     local wd="${4:?"please specify the cert path"}"
+    local secure_ingress_port="${5:?"please specify the ingress port"}"
     local host="httpbin-${id}.example.com"
     local url="https://httpbin-${id}.example.com:${secure_ingress_port}/status/418"
 

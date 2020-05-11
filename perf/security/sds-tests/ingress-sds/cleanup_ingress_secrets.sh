@@ -20,7 +20,8 @@ NUM=${NUM:?"specify the number of gateway"}
 CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
 
 kubectl -n istio-system delete secret ingress-root
+# shellcheck disable=SC2022
 for s in $(kubectl -n istio-system get secrets -oname | grep "httpbin-credential*")
 do
-  kubectl -n istio-system delete $s
+  kubectl -n istio-system delete "${s}"
 done
