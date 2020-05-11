@@ -50,7 +50,7 @@ To download a specific version of istioctl and deploy the test worloads using th
     ```
 
 To delete the ingress secrets, use util script cleanup_ingress_secrets.sh. The example below deletes
-100 ingress secrets. 
+100 ingress secrets.
 
     ```bash
     NUM=100 CLUSTER=gke_istio-security-testing_us-central1-a_istio-testing ./cleanup_ingress_secrets.sh
