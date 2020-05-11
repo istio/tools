@@ -85,16 +85,16 @@ function prepare_ingress_secret() {
     # shellcheck disable=SC2086
     openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=example Inc./CN=example.com' -keyout ${wd}/example.com.key -out ${wd}/example.com.crt
     # shellcheck disable=SC2086
-    kubectl create -n istio-system secret generic ingress-root --from-file=key=${wd}/example.com.key --from-file=cert=${wd}/example.com.crt
+    kubectl create -n istio-system secret generic ingress-root --from-file=key=${wd}/example.com.key --from-file=cert=${wd}/example.com.crt --cluster "${CLUSTER}"
     # shellcheck disable=SC2004
     for ((id=1; id<=${NUM}; id++)); do
         credential_name="httpbin-credential-${id}"
         # shellcheck disable=SC2086
-        openssl req -out ${wd}/httpbin.example.com.csr -newkey rsa:2048 -nodes -keyout ${wd}/httpbin.example.com.key -subj "/CN=httpbin.example.com/O=httpbin organization"
+        openssl req -out ${wd}/httpbin.example.com.csr -newkey rsa:2048 -nodes -keyout ${wd}/httpbin.example.com.key -subj "/CN=httpbin-${id}.example.com/O=httpbin organization"
         # shellcheck disable=SC2086
         openssl x509 -req -days 365 -CA ${wd}/example.com.crt -CAkey ${wd}/example.com.key -set_serial 0 -in ${wd}/httpbin.example.com.csr -out ${wd}/httpbin.example.com.crt
         # shellcheck disable=SC2086
-        kubectl create -n istio-system secret generic "${credential_name}" --from-file=key=${wd}/httpbin.example.com.key --from-file=cert=${wd}/httpbin.example.com.crt
+        kubectl create -n istio-system secret generic "${credential_name}" --from-file=key=${wd}/httpbin.example.com.key --from-file=cert=${wd}/httpbin.example.com.crt --cluster "${CLUSTER}"
     done
 }
 
@@ -125,9 +125,21 @@ function check_access() {
     for ((id=1; id<=${NUM}; id++)); do
         host="httpbin-${id}.example.com"
         # shellcheck disable=SC2153
-        url="https://httpbin-${id}.example.com:${SECURE_INGRESS_PORT}/status/418"
-        # shellcheck disable=SC2153
-        curl -v -HHost:"${host}" --resolve "${host}":"${SECURE_INGRESS_PORT}":"${INGRESS_HOST}" --cacert "${wd}"/example.com.crt "${url}"
+        url="https://httpbin-${id}.example.com:${secure_ingress_port}/status/418"
+        n=0
+        until [ "$n" -ge 10 ]
+        do
+          # shellcheck disable=SC2153
+          resp_code=$(curl -sS  -o /dev/null -w "%{http_code}\n" -HHost:"${host}" --resolve "${host}":"${secure_ingress_port}":"${ingress_host}" --cacert "${wd}"/example.com.crt "${url}")
+          if [ ${resp_code} = 418 ]; then
+            echo "${host}: OK"
+            break
+          elif [ "$n" = 10 ]; then
+            echo echo "${host} not ready"
+          fi
+          n=$((n+1))
+          sleep .5
+        done
     done
 }
 
@@ -137,3 +149,4 @@ prepare_ingress_secret
 deploy_httpbin
 deploy_gateways
 check_access
+deploy_clients

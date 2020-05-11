@@ -22,43 +22,43 @@ function deploy_sleep() {
     local cs="${3:?"please specify the cluster"}"
     local wd="${4:?"please specify the cert path"}"
     local host="httpbin-${id}.example.com"
-    local url="https://httpbin-${id}.example.com:$SECURE_INGRESS_PORT/status/418"
+    local url="https://httpbin-${id}.example.com:${secure_ingress_port}/status/418"
 
     # shellcheck disable=SC2154
     cat <<-EOF | kubectl apply -n "${ns}" --cluster "${cs}" -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: sleep
+  name: "sleep-${id}"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: sleep
+  name: "sleep-${id}"
   labels:
-    app: sleep
+    app: "sleep-${id}"
 spec:
   ports:
   - port: 80
     name: http
   selector:
-    app: sleep
+    app: "sleep-${id}"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sleep
+  name: "sleep-${id}"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sleep
+      app: "sleep-${id}"
   template:
     metadata:
       labels:
-        app: sleep
+        app: "sleep-${id}"
     spec:
-      serviceAccountName: sleep
+      serviceAccountName: "sleep-${id}"
       containers:
       - name: sleep
         image: istio/kubectl:1.3.0
@@ -66,20 +66,19 @@ spec:
           - bash
           - -c
           - |-
-            sleep 60
             num_curl=0
             num_succeed=0
-
             while true; do
-              resp_code=$(curl -sS  -o /dev/null -w "%{http_code}\n" -HHost:"${host}" --resolve "${host}":"${SECURE_INGRESS_PORT}":"${INGRESS_HOST}" --cacert "${wd}"/example.com.crt "${url}")
-              if [ ${resp_code} = 200 ]; then
+              resp_code=$(curl -sS  -o /dev/null -w "%{http_code}\n" -HHost:"${host}" --resolve "${host}":"${secure_ingress_port}":"${ingress_host}" --cacert "${wd}"/example.com.crt "${url}")
+              if [ ${resp_code} = 418 ]; then
                 num_succeed=$((num_succeed+1))
               else
-                echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") curl failed, response code $resp_code"
+                echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") curl to httpbin-${id}.example.com failed, response code $resp_code"
               fi
               num_curl=$((num_curl+1))
               echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
               sleep .5
             done
+---
 EOF
 }

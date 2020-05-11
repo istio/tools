@@ -27,7 +27,7 @@ function deploy_virtualservice() {
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: httpbin
+  name: "${gateway_name}"
 spec:
   hosts:
   - "${host}"
