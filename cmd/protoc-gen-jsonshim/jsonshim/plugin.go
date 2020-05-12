@@ -106,7 +106,7 @@ func (p *Plugin) Generate(file *generator.FileDescriptor) {
 	p.P(`var (`)
 	p.In()
 	p.P(marshalerName, ` = &`, jsonpbPkg.Use(), `.Marshaler{}`)
-	p.P(unmarshalerName, ` = &`, jsonpbPkg.Use(), `.Unmarshaler{}`)
+	p.P(unmarshalerName, ` = &`, jsonpbPkg.Use(), `.Unmarshaler{AllowUnknownFields: true}`)
 	p.Out()
 	p.P(`)`)
 
