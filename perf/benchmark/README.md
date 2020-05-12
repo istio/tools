@@ -143,6 +143,7 @@ optional arguments:
 ```
 
 Note:
+
 - `runner.py` will run all combinations of the parameters given. However, in order to reduce ambiguity when generating the graph, it would be
  better to change one parameter at a time and fix other parameters
 - if you want to run with `--perf` flag to generate a flame graph, please make sure you have the permission to gather perf data, please refer to step 2 of this [README](https://github.com/istio/tools/tree/master/perf/benchmark/flame#setup-perf-tool)
@@ -275,4 +276,4 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 
 ## Visualize Results
 
-Please upload your generated .csv file to the [graph plotting](http://perf.dashboard.qualistio.org/graph_plotting/) section of our performance dashboard to visualize your graph.
+Please upload your generated .csv file to the [graph plotting](http://perf.dashboard.istio.io/graph_plotting/) section of our performance dashboard to visualize your graph.
