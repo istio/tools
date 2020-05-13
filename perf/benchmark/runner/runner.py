@@ -610,7 +610,6 @@ def run_perf_test(args):
 
 
 def run_nighthawk(pod, remote_cmd, labels):
-    return False
     kube_cmd = "kubectl --namespace {namespace} exec {pod} -c captured -- {remote_cmd}".format(
         pod=pod,
         remote_cmd=remote_cmd,
