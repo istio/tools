@@ -15,9 +15,9 @@
 # limitations under the License.
 
 set -ex
-NUM=${NUM:?"specify the number of gateway"}
+NUM=${NUM:?"specify the number of gateways"}
 CLUSTER=${CLUSTER:?"specify the cluster for running the test"}
-
+kc="kubectl --cluster ${CLUSTER}"
 # specify the Istio release version, e.g., release-1.1-20190208-09-16
 release_version=$1
 # specify the Istio release type, daily, release, pre-release
@@ -85,7 +85,7 @@ function prepare_ingress_secret() {
     # shellcheck disable=SC2086
     openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=example Inc./CN=example.com' -keyout ${wd}/example.com.key -out ${wd}/example.com.crt
     # shellcheck disable=SC2086
-    kubectl create -n istio-system secret generic ingress-root --from-file=key=${wd}/example.com.key --from-file=cert=${wd}/example.com.crt --cluster "${CLUSTER}"
+    ${kc} create -n istio-system secret generic ingress-root --from-file=key=${wd}/example.com.key --from-file=cert=${wd}/example.com.crt
     # shellcheck disable=SC2004
     for ((id=1; id<=${NUM}; id++)); do
         credential_name="httpbin-credential-${id}"
@@ -94,15 +94,19 @@ function prepare_ingress_secret() {
         # shellcheck disable=SC2086
         openssl x509 -req -days 365 -CA ${wd}/example.com.crt -CAkey ${wd}/example.com.key -set_serial 0 -in ${wd}/httpbin.example.com.csr -out ${wd}/httpbin.example.com.crt
         # shellcheck disable=SC2086
-        kubectl create -n istio-system secret generic "${credential_name}" --from-file=key=${wd}/httpbin.example.com.key --from-file=cert=${wd}/httpbin.example.com.crt --cluster "${CLUSTER}"
+        ${kc} create -n istio-system secret generic "${credential_name}" --from-file=key=${wd}/httpbin.example.com.key --from-file=cert=${wd}/httpbin.example.com.crt
     done
 }
 
 timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
 testns=httpbin-${timestamp}
 function deploy_httpbin() {
-    kubectl create ns "${testns}" --cluster "${CLUSTER}"
-    kubectl apply -n "${testns}" --cluster "${CLUSTER}" -f https://raw.githubusercontent.com/istio/istio/release-1.5/samples/httpbin/httpbin.yaml
+    local httpbin_version="master"
+    if [[ -n $release_version ]] && [[ -n $release_type ]]; then
+        httpbin_version=$(echo $release_version | cut -d'.' -f1-2)
+    fi
+    ${kc} create ns "${testns}"
+    ${kc} apply -n "${testns}" -f https://raw.githubusercontent.com/istio/istio/release-"${httpbin_version}"/samples/httpbin/httpbin.yaml
 }
 
 function deploy_gateways() {
@@ -127,7 +131,7 @@ function check_access() {
         # shellcheck disable=SC2153
         url="https://httpbin-${id}.example.com:${secure_ingress_port}/status/418"
         n=0
-        until [ "$n" -ge 10 ]
+        until [ "$n" -ge 20 ]
         do
           # shellcheck disable=SC2153
           resp_code=$(curl -sS  -o /dev/null -w "%{http_code}\n" -HHost:"${host}" --resolve "${host}":"${secure_ingress_port}":"${ingress_host}" --cacert "${wd}"/example.com.crt "${url}")
@@ -135,8 +139,9 @@ function check_access() {
           if [ ${resp_code} = 418 ]; then
             echo "${host}: OK"
             break
-          elif [ "$n" = 10 ]; then
-            echo echo "${host} not ready"
+          elif [ "$n" = 20 ]; then
+            echo echo "${host} not ready, please check the ingress gateway"
+            exit
           fi
           n=$((n+1))
           sleep .5

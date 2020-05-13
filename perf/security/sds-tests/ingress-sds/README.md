@@ -1,7 +1,7 @@
 # Test description
 
 This is a TLS ingress gateway SDS test.
-The test sets up a number of TLS ingress gateway for a group of httpbin services.
+The test sets up a number of TLS ingress gateways for a group of httpbin services.
 The test creates a group of sleep pods, where each sleep sends HTTPS requests to a httpbin
 service periodically. For example, sleep-1 sends HTTPS requests to httpbin-1.example.com,
 and sleep-2 sends HTTPS requests to httpbin-2.example.com. The sleep and httpbin are deployed
@@ -10,7 +10,7 @@ in a test namespace with prefix "httpbin".
 ## To run the SDS test that goes to Citadel
 
 - Create a GKE cluster and set it as the current cluster.
-Here this test is ran on the cluster *istio-testing*
+Here this test is run on the cluster *istio-testing*
 on GCP project *istio-security-testing*.
 You may use `kubectl config current-context` to confirm that your newly created cluster
 is set as the current cluster.
