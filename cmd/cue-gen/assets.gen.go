@@ -101,7 +101,7 @@ all?: {
 
 // directories is a map of directories, relative to the root, for which to
 // process proto files.
-directories <Dir>: [...{
+directories: [string]: [...{
 	// mode indicates which proto files to include in generated output.
 	//   all      include all proto files
 	//   perFile  generate a separate OpenAPI file for each proto file
