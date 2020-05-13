@@ -103,7 +103,7 @@ testns=httpbin-${timestamp}
 function deploy_httpbin() {
     local httpbin_version="master"
     if [[ -n $release_version ]] && [[ -n $release_type ]]; then
-        httpbin_version=$(echo $release_version | cut -d'.' -f1-2)
+        httpbin_version=$(echo "$release_version" | cut -d'.' -f1-2)
     fi
     ${kc} create ns "${testns}"
     ${kc} apply -n "${testns}" -f https://raw.githubusercontent.com/istio/istio/release-"${httpbin_version}"/samples/httpbin/httpbin.yaml
