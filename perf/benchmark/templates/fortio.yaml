@@ -27,6 +27,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ $.name }}
+{{- if $.Values.profilingMode }}
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/scheme: 'http'
+    prometheus.io/port: '{{ $.Values.nodeExporterPort }}'
+{{- end }}
 spec:
   ports:
   - name: http-echo
@@ -41,8 +47,8 @@ spec:
   - name: grpc-pinga
     port: 8076
 {{- if $.Values.profilingMode }}
-  - name: node-exporter
-    port: 9100
+  - name: prometheus-node-exporter
+    port: {{ $.Values.nodeExporterPort }}
     protocol: TCP
 {{- end }}
   - name: nighthawk-service
