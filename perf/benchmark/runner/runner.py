@@ -284,7 +284,7 @@ class Fortio:
             script = script + " go get -u github.com/google/pprof"
             print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
 
-        script = "rm -r /tmp/envoy; cp -r /var/log/envoy/ /tmp/envoy; cp -r /lib/x86_64-linux-gnu /tmp/envoy/lib; cp /usr/local/bin/envoy /tmp/envoy/lib/envoy"
+        script = "rm -r /tmp/envoy; cp -r /var/lib/istio/data/ /tmp/envoy; cp -r /lib/x86_64-linux-gnu /tmp/envoy/lib; cp /usr/local/bin/envoy /tmp/envoy/lib/envoy"
         print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
         output_name = "tmp.svg"
 
@@ -343,7 +343,7 @@ set -euo pipefail
                     namespace=os.environ.get("NAMESPACE", "twopods"),
                     podname=pod
                 )
-                script = "set -euo pipefail; sudo rm -rf {dir} || true; sudo mkdir -p {dir}; sudo chmod 777 {dir};".format(dir="/var/log/envoy")
+                script = "set -euo pipefail; sudo rm -rf {dir}/* || true; sudo mkdir -p {dir}; sudo chmod 777 {dir};".format(dir="/var/lib/istio/data/")
                 print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
                 threads.append(Thread(target=self.run_envoy_profiler, args=[
                     exec_cmd_on_pod, pod, "envoy-" + self.envoy_profiler, self.envoy_profiler, labels + perf_label]))

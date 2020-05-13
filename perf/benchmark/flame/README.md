@@ -56,7 +56,7 @@ file system as well as priviliges to install new packages for the sidecar contai
 command (re)configures istio to satisfy these requirements:
 
 ```bash
-istioctl manifest apply --set "values.global.proxy.privileged=true,values.global.proxy.enableCoreDump=true"
+istioctl manifest apply --set "values.global.proxy.enableCoreDump=true" --set "values.global.proxy.privileged=true"
 ```
 
 After doing so `runner.py` can be run with `--envoy_profiler [heapprofiler|cpuprofiler]`. This will start/stop
