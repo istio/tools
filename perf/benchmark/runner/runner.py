@@ -62,6 +62,7 @@ def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
 def run_command(command):
     process = subprocess.Popen(shlex.split(command))
     process.wait()
+    return process.returncode
 
 
 def run_command_sync(command):
@@ -89,7 +90,7 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
         c=c,
         namespace=NAMESPACE)
     print(cmd, flush=True)
-    runfn(cmd)
+    return runfn(cmd) == 0
 
 
 class Fortio:
@@ -210,9 +211,9 @@ class Fortio:
     def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label_suffix):
         print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
         if load_gen_type == "fortio":
-            kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode))
+            return kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode))
         elif load_gen_type == "nighthawk":
-            run_nighthawk(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode), labels + "_" + sidecar_mode)
+            return run_nighthawk(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode), labels + "_" + sidecar_mode)
 
     def generate_test_labels(self, conn, qps, size):
         size = size or self.size
@@ -426,12 +427,11 @@ set -euo pipefail
     def create_execution_delegate(self, perf_label, sidecar_mode, sidecar_mode_func, load_gen_cmd, labels):
         def execution_delegate():
             threads = self.maybe_start_profiling_threads(labels, perf_label)
-            self.execute_sidecar_mode(
+            ok = self.execute_sidecar_mode(
                 sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
-            if len(threads) > 0:
-                if self.custom_profiling_command:
-                    for thread in threads:
-                        thread.join()
+            for thread in threads:
+                thread.join()
+            return ok
         return execution_delegate
 
     def run(self, headers, conn, qps, size, duration):
@@ -487,7 +487,12 @@ set -euo pipefail
                 "_srv_ingress", "ingress", self.ingress, load_gen_cmd, labels))
 
         for execution in executions:
-            execution()
+            if not execution():
+                print("WARNING: execution failed. Performing a single retry.")
+                # TODO(oschaaf): optionize this, add --max-retries-per-test or some such.
+                if not execution():
+                    print("ERROR: retry failed. Aborting.")
+                    sys.exit(1)
 
 
 def validate_job_config(job_config):
@@ -605,6 +610,7 @@ def run_perf_test(args):
 
 
 def run_nighthawk(pod, remote_cmd, labels):
+    return False
     kube_cmd = "kubectl --namespace {namespace} exec {pod} -c captured -- {remote_cmd}".format(
         pod=pod,
         remote_cmd=remote_cmd,
@@ -636,12 +642,14 @@ def run_nighthawk(pod, remote_cmd, labels):
             # - per worker output may sometimes help interpret plots that don't have a nice knee-shaped shape.
             kubectl_cp("{dest}.fortio.json".format(
                 dest=dest), "{pod}:/var/lib/fortio/{datetime}_{labels}.json".format(pod=pod, labels=labels, datetime=SCRIPT_START), "shell")
+            return True
     else:
         print("nighthawk remote execution error: %s" % exit_code)
         if output:
             print("--> stdout: %s" % output.decode("utf-8"))
         if err:
             print("--> stderr: %s" % err.decode("utf-8"))
+        return False
 
 
 def csv_to_int(s):
