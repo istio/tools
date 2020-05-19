@@ -21,7 +21,7 @@ gid=$(id -g)
 shopt -s dotglob
 
 # Make a copy of the hosts's config secrets
-su-exec 0:0 cp -aR /config/* /config-copy/
+su-exec 0:0 cp -R /config/* /config-copy/
 
 # Set the ownershp of the host's config secrets to that of the container
 su-exec 0:0 chown -R "${uid}":"${gid}" /config-copy
@@ -52,6 +52,6 @@ su-exec 0:0 chown "${uid}":"${gid}" /home
 
 # Copy the config secrets without changing permissions nor ownership for
 # consumption by tooolchains
-cp -aR /config-copy/* /home/
+cp -R /config-copy/* /home/
 
 exec "$@"
