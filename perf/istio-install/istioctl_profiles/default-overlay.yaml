@@ -1,0 +1,117 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  components:
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+      k8s:
+        hpaSpec:
+          maxReplicas: 5
+          minReplicas: 3
+          scaleTargetRef:
+            apiVersion: apps/v1
+            kind: Deployment
+            name: istio-ingressgateway
+        resources:
+          limits:
+            cpu: 6000m
+            memory: 512Mi
+          requests:
+            cpu: 4000m
+            memory: 512Mi
+    egressGateways:
+    - name: istio-egressgateway
+      enabled: true
+      k8s:
+        env:
+        - name: ISTIO_META_REQUESTED_NETWORK_VIEW
+          value: external
+    policy:
+      enabled: false
+    telemetry:
+      enabled: false
+      k8s:
+        hpaSpec:
+          maxReplicas: 15
+          minReplicas: 1
+          metrics:
+            - resource:
+                name: cpu
+                targetAverageUtilization: 80
+              type: Resource
+          scaleTargetRef:
+            apiVersion: apps/v1
+            kind: Deployment
+            name: istio-telemetry
+        resources:
+          limits:
+            cpu: 5800m
+            memory: 5G
+          requests:
+            cpu: 3800m
+            memory: 4G
+    pilot:
+      enabled: true
+      k8s:
+        hpaSpec:
+          maxReplicas: 10
+          minReplicas: 2
+          scaleTargetRef:
+            apiVersion: apps/v1
+            kind: Deployment
+            name: istio-pilot
+        resources:
+          limits:
+            cpu: 5800m
+            memory: 12G
+          requests:
+            cpu: 4800m
+            memory: 2G
+  values:
+    gateways:
+      istio-ingressgateway:
+        secretVolumes:
+        - mountPath: /etc/istio/ingressgateway-certs
+          name: istio-ingressgateway-certs
+          secretName: istio-ingressgateway-certs
+        type: LoadBalancer
+    global:
+      controlPlaneSecurityEnabled: false
+      meshExpansion:
+        enabled: true
+        useILB: true
+      multiCluster:
+        enabled: true
+      podDNSSearchNamespaces:
+        - global
+      proxy:
+        enableCoreDump: true
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            memory: 256Mi
+      sds:
+        enabled: false
+        udsPath: ""
+        token:
+          aud: istio-ca
+    grafana:
+      datasources:
+        datasources.yaml:
+          apiVersion: 1
+          datasources:
+          - access: proxy
+            editable: true
+            isDefault: true
+            jsonData:
+              timeInterval: 5s
+            name: Prometheus
+            orgId: 1
+            type: prometheus
+            url: http://istio-prometheus.istio-prometheus:9090
+      enabled: true
+    tracing:
+      enabled: true

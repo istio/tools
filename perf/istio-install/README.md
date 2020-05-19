@@ -50,5 +50,5 @@ In addition to setting up the core Istio, the prometheus operator and gateways f
 Arguments to the script will be passed to `istioctl during install`. For example, to install the latest version with the default config file:
 
 ```shell
-TAG=latest ./setup_istio.sh -f istioctl_profiles/default.yaml
+TAG=latest ./setup_istio.sh -f istioctl_profiles/default-overlay.yaml
 ```
