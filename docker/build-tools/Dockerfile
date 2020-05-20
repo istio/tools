@@ -385,6 +385,9 @@ RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubunt
 RUN apt-get update
 RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
 
+# Update python3 to point to python3.7
+RUN ln -sf $(which python3.7) /usr/bin/python3
+
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
 RUN rm -fr /usr/share/python
