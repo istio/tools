@@ -192,7 +192,7 @@ function collect_envoy_info() {
   POD_NAME=${2}
   FILE_SUFFIX=${3}
 
-  ENVOY_DUMP_NAME="${POD_NAME}_${CONFIG_NAME}_${FILE_SUFFIX}.yaml"
+  ENVOY_DUMP_NAME="${LOAD_GEN_TYPE}_${POD_NAME}_${CONFIG_NAME}_${FILE_SUFFIX}.yaml"
   kubectl exec -n "${NAMESPACE}" "${POD_NAME}" -c istio-proxy -- curl http://localhost:15000/"${FILE_SUFFIX}" > "${ENVOY_DUMP_NAME}"
   gsutil -q cp -r "${ENVOY_DUMP_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${FILE_SUFFIX}/${ENVOY_DUMP_NAME}"
 }
