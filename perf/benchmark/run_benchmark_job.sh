@@ -73,7 +73,7 @@ INSTALL_VERSION=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}
 echo "Setup istio release: ${INSTALL_VERSION}"
 
 pushd "${ROOT}/istio-install"
-   DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml
+   DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default-overlay.yaml
 popd
 
 # Step 3: setup Istio performance test
@@ -230,7 +230,7 @@ for dir in "${CONFIG_DIR}"/*; do
        extra_overlay="-f ${dir}/installation.yaml"
     fi
     pushd "${ROOT}/istio-install"
-      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml "${extra_overlay}"
+      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default-overlay.yaml "${extra_overlay}"
     popd
 
     # Custom pre-run
