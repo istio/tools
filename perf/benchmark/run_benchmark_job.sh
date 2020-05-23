@@ -95,7 +95,7 @@ pipenv install
 
 # Step 5: setup perf data local output directory
 dt=$(date +'%Y%m%d')
-# Current output dir should be like: 20191025_1.5-alpha.f19fb40b777e357b605e85c04fb871578592ad1e
+# Current output dir should be like: 20200523_nighthawk_master_1.7-alpha.f19fb40b777e357b605e85c04fb871578592ad1e
 export OUTPUT_DIR="${dt}_${LOAD_GEN_TYPE}_${GIT_BRANCH}_${INSTALL_VERSION}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
