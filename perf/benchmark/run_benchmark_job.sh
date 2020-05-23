@@ -207,6 +207,13 @@ function collect_clusters_info() {
   collect_envoy_info "${1}" "${FORTIO_SERVER_POD}" "clusters"
 }
 
+function collect_pod_spec() {
+  POD_NAME=${1}
+  POD_SPEC_NAME="${LOAD_GEN_TYPE}_${POD_NAME}.yaml"
+  kubectl get pods "${POD_NAME}" -n "${NAMESPACE}" -o yaml > "${POD_SPEC_NAME}"
+  gsutil -q cp -r "${POD_SPEC_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/pod_spec/${POD_SPEC_NAME}"
+}
+
 # Start run perf test
 echo "Start to run perf benchmark test, all collected data will be dumped to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
 
@@ -247,6 +254,10 @@ for dir in "${CONFIG_DIR}"/*; do
 
     # Collect config_dump after prerun.sh and before test run, in order to verify test setup is correct
     collect_config_dump "${config_name}"
+
+    # Collect pod spec
+    collect_pod_spec "${FORTIO_CLIENT_POD}"
+    collect_pod_spec "${FORTIO_SERVER_POD}"
 
     # Run test and collect data
     if [[ -e "./cpu_mem.yaml" ]]; then
