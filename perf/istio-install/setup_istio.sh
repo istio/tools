@@ -79,7 +79,7 @@ function download_release() {
 function install_istioctl() {
   release=${1:?release folder}
   shift
-  "${release}/bin/istioctl" manifest apply --skip-confirmation --wait -d "${release}/manifests" "${@}"
+  "${release}/bin/istioctl" manifest apply --skip-confirmation -d "${release}/manifests" "${@}"
 }
 
 function install_extras() {

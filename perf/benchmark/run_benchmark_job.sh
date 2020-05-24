@@ -73,7 +73,7 @@ INSTALL_VERSION=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}
 echo "Setup istio release: ${INSTALL_VERSION}"
 
 pushd "${ROOT}/istio-install"
-   DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml
+   DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default-overlay.yaml
 popd
 
 # Step 3: setup Istio performance test
@@ -95,8 +95,8 @@ pipenv install
 
 # Step 5: setup perf data local output directory
 dt=$(date +'%Y%m%d')
-# Current output dir should be like: 20191025_1.5-alpha.f19fb40b777e357b605e85c04fb871578592ad1e
-export OUTPUT_DIR="${dt}_${INSTALL_VERSION}"
+# Current output dir should be like: 20200523_nighthawk_master_1.7-alpha.f19fb40b777e357b605e85c04fb871578592ad1e
+export OUTPUT_DIR="${dt}_${LOAD_GEN_TYPE}_${GIT_BRANCH}_${INSTALL_VERSION}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
 
@@ -192,7 +192,7 @@ function collect_envoy_info() {
   POD_NAME=${2}
   FILE_SUFFIX=${3}
 
-  ENVOY_DUMP_NAME="${POD_NAME}_${CONFIG_NAME}_${FILE_SUFFIX}.yaml"
+  ENVOY_DUMP_NAME="${LOAD_GEN_TYPE}_${POD_NAME}_${CONFIG_NAME}_${FILE_SUFFIX}.yaml"
   kubectl exec -n "${NAMESPACE}" "${POD_NAME}" -c istio-proxy -- curl http://localhost:15000/"${FILE_SUFFIX}" > "${ENVOY_DUMP_NAME}"
   gsutil -q cp -r "${ENVOY_DUMP_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/${FILE_SUFFIX}/${ENVOY_DUMP_NAME}"
 }
@@ -205,6 +205,13 @@ function collect_config_dump() {
 function collect_clusters_info() {
   collect_envoy_info "${1}" "${FORTIO_CLIENT_POD}" "clusters"
   collect_envoy_info "${1}" "${FORTIO_SERVER_POD}" "clusters"
+}
+
+function collect_pod_spec() {
+  POD_NAME=${1}
+  POD_SPEC_NAME="${LOAD_GEN_TYPE}_${POD_NAME}.yaml"
+  kubectl get pods "${POD_NAME}" -n "${NAMESPACE}" -o yaml > "${POD_SPEC_NAME}"
+  gsutil -q cp -r "${POD_SPEC_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/pod_spec/${POD_SPEC_NAME}"
 }
 
 # Start run perf test
@@ -230,7 +237,7 @@ for dir in "${CONFIG_DIR}"/*; do
        extra_overlay="-f ${dir}/installation.yaml"
     fi
     pushd "${ROOT}/istio-install"
-      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default.yaml "${extra_overlay}"
+      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default-overlay.yaml "${extra_overlay}"
     popd
 
     # Custom pre-run
@@ -247,6 +254,10 @@ for dir in "${CONFIG_DIR}"/*; do
 
     # Collect config_dump after prerun.sh and before test run, in order to verify test setup is correct
     collect_config_dump "${config_name}"
+
+    # Collect pod spec
+    collect_pod_spec "${FORTIO_CLIENT_POD}"
+    collect_pod_spec "${FORTIO_SERVER_POD}"
 
     # Run test and collect data
     if [[ -e "./cpu_mem.yaml" ]]; then

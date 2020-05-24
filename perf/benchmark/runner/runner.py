@@ -381,6 +381,7 @@ set -euo pipefail
         return threads
 
     def generate_nighthawk_cmd(self, cpus, conn, qps, duration, labels):
+        labels = "nighthawk_" + labels
         nighthawk_args = [
             "nighthawk_client",
             "--concurrency {cpus}",
@@ -389,7 +390,6 @@ set -euo pipefail
             "--open-loop",
             "--experimental-h1-connection-reuse-strategy lru",
             "--experimental-h2-use-multiple-connections",
-            "--label Nighthawk",
             "--connections {conn}",
             "--burst-size {conn}",
             "--rps {qps}",

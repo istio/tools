@@ -61,10 +61,10 @@ def convert_data(data):
 
     success = 0
     if '200' in data["RetCodes"]:
-        success = data["RetCodes"]["200"]
+        success = int(data["RetCodes"]["200"])
 
     obj["errorPercent"] = 100 * \
-        (data["Sizes"]["Count"] - success) / data["Sizes"]["Count"]
+        (int(data["Sizes"]["Count"]) - success) / int(data["Sizes"]["Count"])
     obj["Payload"] = int(data['Sizes']['Avg'])
     return obj
 

@@ -1,9 +1,7 @@
-apiVersion: operator.istio.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
   components:
-    galley:
-      enabled: false
     ingressGateways:
     - name: istio-ingressgateway
       enabled: true
@@ -31,21 +29,17 @@ spec:
           value: external
     policy:
       enabled: false
-    citadel:
-      enabled: true
-    nodeAgent:
-      enabled: false
     telemetry:
       enabled: false
       k8s:
         hpaSpec:
           maxReplicas: 15
+          minReplicas: 1
           metrics:
             - resource:
                 name: cpu
                 targetAverageUtilization: 80
               type: Resource
-          minReplicas: 1
           scaleTargetRef:
             apiVersion: apps/v1
             kind: Deployment
@@ -87,8 +81,6 @@ spec:
       meshExpansion:
         enabled: true
         useILB: true
-      mtls:
-        enabled: true
       multiCluster:
         enabled: true
       podDNSSearchNamespaces:
