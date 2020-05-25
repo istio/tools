@@ -31,6 +31,7 @@ func TestNoTagType(t *testing.T) {
 func checkNoTagTypeDeepCopy(value interface{}) bool {
 	type NoTagTypeDeepCopy interface {
 		DeepCopyInto(*generated.NoTagType)
+		DeepCopy() *generated.NoTagType
 	}
 	_, ok := value.(NoTagTypeDeepCopy)
 	return ok
@@ -45,6 +46,7 @@ func TestTagType(t *testing.T) {
 func checkTagTypeDeepCopy(value interface{}) bool {
 	type TagTypeDeepCopy interface {
 		DeepCopyInto(*generated.TagType)
+		DeepCopy() *generated.TagType
 	}
 	_, ok := value.(TagTypeDeepCopy)
 	return ok
@@ -58,6 +60,7 @@ func TestSeparatedTagType(t *testing.T) {
 func checkSeparatedTagTypeDeepCopy(value interface{}) bool {
 	type SeparatedTagTypeDeepCopy interface {
 		DeepCopyInto(*generated.SeparatedTagType)
+		DeepCopy() *generated.SeparatedTagType
 	}
 	_, ok := value.(SeparatedTagTypeDeepCopy)
 	return ok
@@ -70,6 +73,11 @@ func TestTypeWithRepeatedField(t *testing.T) {
 	out := &generated.RepeatedFieldType{}
 	in.DeepCopyInto(out)
 	if !proto.Equal(in, out) {
-		t.Fatalf("Deepcopy of proto is not equal. got: %v, want: %v", *out, *in)
+		t.Fatalf("Deepcopy of proto(DeepCopyInto) is not equal. got: %v, want: %v", *out, *in)
+	}
+
+	out = in.DeepCopy()
+	if !proto.Equal(in, out) {
+		t.Fatalf("Deepcopy of proto(DeepCopy) is not equal. got: %v, want: %v", *out, *in)
 	}
 }
