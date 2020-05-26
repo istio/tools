@@ -321,23 +321,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libc-dev \
     pkg-config \
-    python3.7 \
-    python3-distutils
+    python3 \
+    python3-distutils \
+    python3-pip \
+    python3-setuptools
 
-# installing pip in this manner to get pip3.7 and not pip3.6
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3.7 get-pip.py
-
-ADD https://storage.googleapis.com/istio-build-deps/mako-0.1-cp37-cp37m-linux_x86_64.whl /tmp
 # Install Python stuff
-# hadolint ignore=DL3013
-RUN pip3 install --no-binary :all: autopep8==${AUTOPEP8_VERSION}
-RUN pip3 install yamllint==${YAMLLINT_VERSION}
-RUN pip3 install requests==${REQUESTS_VERSION}
-RUN pip3 install ruamel.yaml==${RUAMELYAML_VERSION}
-RUN pip3 install protobuf==${PYTHON_PROTOBUF_VERSION}
-RUN pip3 install PyYAML==${PYYAML_VERSION}
-# hadolint ignore=DL3013
-RUN pip3 install /tmp/mako-0.1-cp37-cp37m-linux_x86_64.whl
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install --no-binary :all: autopep8==${AUTOPEP8_VERSION}
+RUN python3 -m pip install yamllint==${YAMLLINT_VERSION}
+RUN python3 -m pip install requests==${REQUESTS_VERSION}
+RUN python3 -m pip install ruamel.yaml==${RUAMELYAML_VERSION}
+RUN python3 -m pip install protobuf==${PYTHON_PROTOBUF_VERSION}
+RUN python3 -m pip install PyYAML==${PYYAML_VERSION}
 
 #############
 # Base OS
@@ -372,7 +368,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
     pkg-config \
     python3 \
-    python3.7 \
     python3-setuptools \
     daemon \
     wget \
@@ -384,9 +379,6 @@ RUN apt-key add /tmp/docker-key
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
 RUN apt-get update
 RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
-
-# Update python3 to point to python3.7
-RUN ln -sf /usr/bin/python3.7 /usr/bin/python3
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
