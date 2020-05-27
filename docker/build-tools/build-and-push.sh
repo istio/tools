@@ -48,4 +48,6 @@ if [[ -z "${DRY_RUN:-}" ]]; then
   ${CONTAINER_CLI} push "${HUB}/build-tools:${BRANCH}-latest"
   ${CONTAINER_CLI} push "${HUB}/build-tools-proxy:${VERSION}"
   ${CONTAINER_CLI} push "${HUB}/build-tools-proxy:${BRANCH}-latest"
+  ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${VERSION}"
+  ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${BRANCH}-latest"
 fi
