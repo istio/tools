@@ -10,7 +10,7 @@ proxy:
 
 appresources1:
   requests:
-    cpu: "800m"
+    cpu: "1200m"
     memory: "1000Mi"
 
 fortioImage: fortio/fortio:latest
