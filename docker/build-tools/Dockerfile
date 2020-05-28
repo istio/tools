@@ -314,6 +314,7 @@ ENV REQUESTS_VERSION=2.22.0
 ENV RUAMELYAML_VERSION=0.16.5
 ENV PYTHON_PROTOBUF_VERSION=3.11.2
 ENV PYYAML_VERSION=5.3.1
+ENV JWCRYPTO_VERSION=0.7
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -334,6 +335,7 @@ RUN python3 -m pip install requests==${REQUESTS_VERSION}
 RUN python3 -m pip install ruamel.yaml==${RUAMELYAML_VERSION}
 RUN python3 -m pip install protobuf==${PYTHON_PROTOBUF_VERSION}
 RUN python3 -m pip install PyYAML==${PYYAML_VERSION}
+RUN python3 -m pip install jwcrypto==${JWCRYPTO_VERSION}
 
 #############
 # Base OS
