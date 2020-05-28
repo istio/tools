@@ -311,7 +311,6 @@ FROM ubuntu:bionic as python_context
 ENV AUTOPEP8_VERSION=1.4.4
 ENV YAMLLINT_VERSION=1.17.0
 ENV REQUESTS_VERSION=2.22.0
-ENV RUAMELYAML_VERSION=0.16.5
 ENV PYTHON_PROTOBUF_VERSION=3.11.2
 ENV PYYAML_VERSION=5.3.1
 ENV JWCRYPTO_VERSION=0.7
@@ -332,7 +331,6 @@ RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --no-binary :all: autopep8==${AUTOPEP8_VERSION}
 RUN python3 -m pip install yamllint==${YAMLLINT_VERSION}
 RUN python3 -m pip install requests==${REQUESTS_VERSION}
-RUN python3 -m pip install ruamel.yaml==${RUAMELYAML_VERSION}
 RUN python3 -m pip install protobuf==${PYTHON_PROTOBUF_VERSION}
 RUN python3 -m pip install PyYAML==${PYYAML_VERSION}
 RUN python3 -m pip install jwcrypto==${JWCRYPTO_VERSION}
