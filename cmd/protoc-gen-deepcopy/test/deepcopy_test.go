@@ -22,21 +22,6 @@ import (
 	"istio.io/tools/cmd/protoc-gen-deepcopy/test/generated"
 )
 
-func TestNoTagType(t *testing.T) {
-	if checkNoTagTypeDeepCopy(&generated.NoTagType{}) {
-		t.Fail()
-	}
-}
-
-func checkNoTagTypeDeepCopy(value interface{}) bool {
-	type NoTagTypeDeepCopy interface {
-		DeepCopyInto(*generated.NoTagType)
-		DeepCopy() *generated.NoTagType
-	}
-	_, ok := value.(NoTagTypeDeepCopy)
-	return ok
-}
-
 func TestTagType(t *testing.T) {
 	if !checkTagTypeDeepCopy(&generated.TagType{}) {
 		t.Fail()
@@ -49,20 +34,6 @@ func checkTagTypeDeepCopy(value interface{}) bool {
 		DeepCopy() *generated.TagType
 	}
 	_, ok := value.(TagTypeDeepCopy)
-	return ok
-}
-func TestSeparatedTagType(t *testing.T) {
-	if !checkSeparatedTagTypeDeepCopy(&generated.SeparatedTagType{}) {
-		t.Fail()
-	}
-}
-
-func checkSeparatedTagTypeDeepCopy(value interface{}) bool {
-	type SeparatedTagTypeDeepCopy interface {
-		DeepCopyInto(*generated.SeparatedTagType)
-		DeepCopy() *generated.SeparatedTagType
-	}
-	_, ok := value.(SeparatedTagTypeDeepCopy)
 	return ok
 }
 
