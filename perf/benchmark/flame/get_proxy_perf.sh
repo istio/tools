@@ -14,64 +14,57 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Exit immediately for non zero status
 set -e
+# Check unset variables
+set -u
+# Print commands
+set -x
 
 function usage() {
   echo "usage:
-        ./get_proxy_perf.sh -p <pod_name> -n <pod_namespace> -s <sample_frequency> -t <time>
+        ./get_proxy_perf.sh -p <pod_name> -n <pod_namespace> -d <duration> -f <sample_frequency>
     
     e.g.
-      ./get_proxy_perf.sh -p svc05-0-4-0-67bff5dbbf-grl94 -n service-graph05 -s 177 -t 20
+      ./get_proxy_perf.sh -p svc05-0-4-0-67bff5dbbf-grl94 -n service-graph05 -d 20 -f 99
 
-    -p name of pod.
+    -p name of the pod.
     -n namespace of the given pod.
-    -s sample frequence in Hz.
-    -t time of profiling in second."
+    -d time duration of profiling in second.
+    -f sample frequency in Hz."
   exit 1
 }
 
-POD_NAME=""
-POD_NAMESPACE=""
-SAMPLE_FREQUENCY="177"
-PERF_TIME="20"
-
-while getopts p:n:s:t: arg ; do
+while getopts p:n:d:f: arg ; do
   case "${arg}" in
     p) POD_NAME="${OPTARG}";;
     n) POD_NAMESPACE="${OPTARG}";;
-    t) SAMPLE_FREQUENCY="${OPTARG}";;
-    s) PERF_TIME="${OPTARG}";;
+    d) PERF_DURATION="${OPTARG}";;
+    f) SAMPLE_FREQUENCY="${OPTARG}";;
     *) usage;;
   esac
 done
 
-if [ -z "${POD_NAME}" ]; then
-    echo "pod name must be provided."
-    usage
-    exit 1
-fi
-
-if [ -z "${POD_NAMESPACE}" ]; then
-    echo "pod namespace must be provided."
-    usage
-    exit 1
-fi
+POD_NAME=${POD_NAME:?"pod name must be provided"}
+POD_NAMESPACE=${POD_NAMESPACE:?"pod namespace must be provided"}
+PERF_DURATION=${PERF_DURATION:-"20"}
+SAMPLE_FREQUENCY=${SAMPLE_FREQUENCY:-"99"}
 
 WD=$(dirname "${0}")
 WD=$(cd "${WD}" && pwd)
 
-echo "copy profiling script to proxy..."
+echo "Copy profiling script to proxy..."
 kubectl cp "${WD}"/get_perfdata.sh "${POD_NAME}":/etc/istio/proxy/get_perfdata.sh -n "${POD_NAMESPACE}" -c istio-proxy
 
-echo "start profiling..."
-kubectl exec "${POD_NAME}" -n "${POD_NAMESPACE}" -c istio-proxy -- /etc/istio/proxy/get_perfdata.sh perf.data "${SAMPLE_FREQUENCY}" "${PERF_TIME}"
+echo "Start profiling..."
+kubectl exec "${POD_NAME}" -n "${POD_NAMESPACE}" -c istio-proxy -- /etc/istio/proxy/get_perfdata.sh perf.data "${PERF_DURATION}" "${SAMPLE_FREQUENCY}"
 
 TMP_DIR=$(mktemp -d -t proxy-perf-XXXXXXXXXX)
 trap 'rm -rf "${TMP_DIR}"' EXIT
 TIME="$(date '+%Y-%m-%d-%H-%M-%S')"
-PERF_FILE_NAME="${POD_NAME}"-"${TIME}".perf
-PERF_FILE="${TMP_DIR}"/"${PERF_FILE_NAME}"
+PERF_FILE_NAME="${POD_NAME}_${TIME}.perf"
+PERF_FILE="${TMP_DIR}/${PERF_FILE_NAME}"
 kubectl cp "${POD_NAME}":/etc/istio/proxy/perf.data.perf "${PERF_FILE}" -n "${POD_NAMESPACE}" -c istio-proxy
 
-echo "generating svg file ${PERF_FILE_NAME}"
-"${WD}"/flame.sh "${PERF_FILE}"
+echo "Generating svg file ${PERF_FILE_NAME}"
+"${WD}/flame.sh" "${PERF_FILE}"
