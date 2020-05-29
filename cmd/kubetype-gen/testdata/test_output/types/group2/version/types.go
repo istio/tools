@@ -17,9 +17,9 @@
 package version
 
 import (
+	v1beta1 "istio.io/api/meta/v1beta1"
+	types "istio.io/tools/cmd/kubetype-gen/testdata/test_input/positive/types"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	types "istio.io/tools/cmd/kubetype-gen/tests/test_input/positive/types"
 )
 
 //
@@ -37,6 +37,8 @@ type ComplexGroupVersionKubeType struct {
 	// Spec defines the implementation of this definition.
 	// +optional
 	Spec types.ComplexGroupVersionKubeType `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+
+	Status v1beta1.IstioStatus `json:",inline"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
