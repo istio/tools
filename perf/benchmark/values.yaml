@@ -44,6 +44,8 @@ client: # client overrides
 
 cert: false
 interceptionMode: REDIRECT
-
+profilingMode: true
+perfImage: oschaaf/istio-tools:profiling
+nodeExporterPort: 9100
 namespace: ""
 loadGenType: ""

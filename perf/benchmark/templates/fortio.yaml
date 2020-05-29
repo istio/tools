@@ -27,6 +27,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ $.name }}
+{{- if $.Values.profilingMode }}
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/scheme: 'http'
+    prometheus.io/port: '{{ $.Values.nodeExporterPort }}'
+{{- end }}
 spec:
   ports:
   - name: http-echo
@@ -40,7 +46,11 @@ spec:
     protocol: TCP
   - name: grpc-pinga
     port: 8076
+{{- if $.Values.profilingMode }}
+  - name: prometheus-node-exporter
+    port: {{ $.Values.nodeExporterPort }}
     protocol: TCP
+{{- end }}
   - name: nighthawk-service
     port: 9999
     protocol: TCP
@@ -367,7 +377,7 @@ spec:
         config.linkerd.io/skip-inbound-ports: "8077"
 {{- end }}
         # exclude inbound ports of the uncaptured container
-        traffic.sidecar.istio.io/excludeInboundPorts: "8076,8077,8078,9999"
+        traffic.sidecar.istio.io/excludeInboundPorts: "8076,8077,8078,9999,{{ $.Values.nodeExporterPort }}"
         traffic.sidecar.istio.io/excludeOutboundPorts: "80,8076,8077,8078"
         sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
         sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
@@ -388,9 +398,30 @@ spec:
                 - "fortioclient"
 {{- end }}
             topologyKey: "kubernetes.io/hostname"
+{{- if $.Values.profilingMode }}
+      hostIPC: true
+      hostPID: true   
+{{- end }}
       volumes:
       - name: shared-data
         emptyDir: {}
+{{- if $.Values.profilingMode }}
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: lsb-release
+        hostPath:
+          path: /etc/lsb-release
+      - name: modules-generated
+        hostPath:
+          path: /var/cache/kernel/modules
+      - name: headers-generated
+        hostPath:
+          path: /var/cache/kernel/headers
+      - name: usr-host
+        hostPath:
+          path: /usr
+{{- end }}
       {{- if eq $.Values.loadGenType "nighthawk" }}
       - name: nighthawk-test-server-config
         configMap:
@@ -456,6 +487,33 @@ spec:
         args:
         - /bin/sleep
         - infinity
+{{- if $.Values.profilingMode }}
+      - name: perf
+        image: {{ $.Values.perfImage }}
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+              - SYS_PTRACE
+        command: ["/bin/bash"]
+        args: ["-c", "./setup-node-for-profiling.sh :{{ $.Values.nodeExporterPort }}"]
+        ports:
+        - containerPort: {{ $.Values.nodeExporterPort }}
+          protocol: TCP
+        volumeMounts:
+          - mountPath: /sys
+            name: sys
+          - mountPath: /etc/lsb-release.host
+            name: lsb-release
+          - mountPath: /lib/modules
+            name: modules-generated
+          - mountPath: /usr/src
+            name: headers-generated
+          - mountPath: /usr-host
+            name: usr-host
+{{- end }}
       - name: uncaptured
         securityContext:
           runAsUser: 1

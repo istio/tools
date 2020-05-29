@@ -145,12 +145,41 @@ optional arguments:
   --no_clientsidecar    do not run clientsidecar-only for all
   --bothsidecar         run both clientsidecar and serversidecar
   --no_sidecar          do not run clientsidecar and serversidecar
+  --custom_profiling_command
+                        runs a custom profiling commands on the nodes for the client and server,
+                        and produces a flamegraph based on that.
+                        Example on-cpu profile using bcc tools for the envoy sidecar proxy:
+                        --custom_profiling_command=\"profile-bpfcc -df {duration} -p {sidecar_pid}\"
+                        - runner.py will replace {duration} with whatever was specified for --duration.
+                        - runner.py will replace {sidecar_pid} with the actual process id of the envoy
+                          sidecar process.
+  --custom_profiling_name
+                        filename prefix for the result of any --custom_profiling_command
+  --envoy_profiler [heapprofiler|cpuprofiler]
+                       yields visualizations using pprof over profiles collected via the built-in profiler
+                       of the side cars.
+                       NOTE: requires global.proxy.privileged=true,values.global.proxy.enableCoreDump=true
 ```
 
 Note:
 - `runner.py` will run all combinations of the parameters given. However, in order to reduce ambiguity when generating the graph, it would be
  better to change one parameter at a time and fix other parameters
 - if you want to run with `--perf` flag to generate a flame graph, please make sure you have the permission to gather perf data, please refer to step 2 of this [README](https://github.com/istio/tools/tree/master/perf/benchmark/flame#setup-perf-tool)
+- if you want to run with `--custom_profiling_command`, `profilingMode` must be set to `true` in `values.yaml`. Doing so will set up the client and server pods to run the perf/profiling container. It's worth noting that this container  runs `--priviledged`, and that `hostIPC` and `hostPID` will also be enabled,
+weakening security. Resulting flamegraphs will be written to `flame/flameoutput`.
+- sample sidecar profiling commands for `--custom_profiling_command`:
+  - "profile-bpfcc -df {duration} -p {sidecar_pid}" sidecar on-cpu profile
+  - "offcputime-bpfcc -df {duration} -p {sidecar_pid}" sidecar off-cpu profile
+  - "offwaketime-bpfcc -df {duration} -p {sidecar_pid}" sidecar offwaketime profile
+  - "wakeuptime-bpfcc -f -p {sidecar_pid} {duration}" sidecar wakeuptime profile
+  - "perf record -F 99 -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" on-cpu perf-generated profile
+  - "stackcount-bpfcc -U *alloc* -df -D {duration} -p {sidecar_pid}" profile calls to `*alloc*`
+  - "perf record -e page-faults -g -p {sidecar_pid} -F 99 -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" page faults
+- It's also possible to run machine-wide profiling, for example:
+  - "profile-bpfcc -df {duration}" for obtaining a machine-wide on-cpu flamegraph.
+  - See [here](http://www.brendangregg.com/FlameGraphs/) for more examples and information.
+- Enabling `profilingMode` in `values.yaml` will also bring up and expose Prometheus's `node_exporter` at the configured port (default: 9100),
+  accessible over http via `/metrics.
 
 For example:
 

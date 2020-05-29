@@ -8,61 +8,61 @@
 1. Colors are arbitrary.
 1. Function names are sorted left to right.
 
-This document shows how to gather performance data from within the `istio-proxy` container.
+This document shows how to gather performance data from via the `perf` container.
 
-## Setup Perf tool
+## Setup the perf container
 
-Flame graphs are created from data collected using linux `perf_events` by the `perf` tool.
+Enable `profilingMode` in [values.yaml](../values.yaml). This will end up adding the perf
+container to the server and client pods, which both will be running on separate nodes.
 
-1. Ensure that `perf` is installed within the container.
-   Since `istio-proxy` container does not allow installation of new packages, build a new docker image.
+Flame graphs and visualizations are created from data collected using linux `perf_events`
+by the `perf` and [BCC tools](https://github.com/iovisor/bcc), as well as Envoy's built-in profiler.
 
-    ```plain
-    FROM gcr.io/istio-release/proxyv2:release-1.0-20180810-09-15
-    # Install fpm tool
-    RUN  sudo apt-get update && \
-        sudo apt-get -qqy install linux-tools-generic
-    ```
+## Obtaining flame graphs
 
-    Build image and push docker image and use it in your deployment by adding the following annotation.
+Flame graphs can be produced via `runner.py`, and will be stored in `flame/flameoutput`.
 
-    ```plain
-    "sidecar.istio.io/proxyImag" : <name of your image>
-    ```
+A few sample command line arguments. `{duration}` will be replaced by
+whatever was passed for `--duration` to runner.py. `{sidecar_pid}` will
+be replaced by `runner.py` with the process id of the Envoy sidecar.
 
-    This step will go away once the default debug image contains `perf` and related tools.
+It is valid to omit `{sidecar_pid}` in `--custom_profiling_command`.
+This may be useful for machine-wide profiling or arbitrary processes.
 
-1. Ensure that you can run `perf record`
+```bash
+runner/runner.py ... --custom_profiling_command="profile-bpfcc -df {duration} -p {sidecar_pid}" --custom_profiling_name="bcc-oncputime-sidecar"
 
-    Running `perf record` from container requires the host to permit this activity. This is done by running the following command on the vm host.
-    For example, if you are running on a GKE cluster, you should `ssh` to the node using the command:
+runner/runner.py ... --custom_profiling_command="offcputime-bpfcc -df {duration} -p {sidecar_pid}" --custom_profiling_name="bcc-offcputime-sidecar"
 
-    ```bash
-    gcloud compute ssh gke-perf-test-default-pool-xxxxxx
-    ```
+runner/runner.py ... --custom_profiling_command="offwaketime-bpfcc -df {duration} -p {sidecar_pid}" --custom_profiling_name="bcc-offwaketime-sidecar"
 
-    Then run the following command:
+runner/runner.py ... --custom_profiling_command="wakeuptime-bpfcc -f -p {sidecar_pid} {duration}" --custom_profiling_name="bcc-wakeuptime-sidecar"
 
-    ```bash
-    sudo sysctl kernel.perf_event_paranoid=-1
-    sudo sysctl kernel.kptr_restrict=0
-    ```
+runner/runner.py ... --custom_profiling_command="stackcount-bpfcc -p {sidecar_pid} *alloc* -fD {duration}" --custom_profiling_name="bcc-stackcount-alloc"
 
-    This setting is very permissive so it must be used with care.
+runner/runner.py ... --custom_profiling_command="perf record -F 99 -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n"
+--custom_profiling_name="perf-oncputime-sidecar"
 
-    If running perf still gives error:```You may not have permission to collect stats. Consider tweaking /proc/sys/kernel/perf_event_paranoid:```
-    after running above commands, try ssh into node and run the container with --privileged flag.
+runner/runner.py ... --custom_profiling_command="perf record -e page-faults -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n" --custom_profiling_name="perf-pagefaults-sidecar"
 
-1. Run [`get_proxy_perf.sh`](get_proxy_perf.sh) to get the profiling svg. The following command collects samples at `177Hz` for `20s`. The svg file should be created under `flameoutput` dir
+```
 
-    ```plain
-    ./get_proxy_perf.sh -p svc05-0-7-564865d756-pvjhn -n service-graph05 -s 177 -t 20
-    ...
-    [ perf record: Woken up 1 times to write data ]
-    [ perf record: Captured and wrote 0.061 MB /etc/istio/proxy/perf.data (74 samples) ]
+## Leveraging Istio's sidecar built-in profiling
 
-    Wrote /etc/istio/proxy/perf.data.perf
-    ...
-    generating svg file svc05-0-7-564865d756-pvjhn-2020-01-29-22-34-19.perf
-    ...
-    ```
+Istio's sidecar proxy (Envoy) is usually build with `tcmalloc`, and as such traditional memory profiling
+methods may give unsatisfactory results. Fortunately, the proxy provides a built-in means to collect
+profiling data, and the benchmark tool is able to leverage that. Doing so, however, requires a writeable
+file system as well as priviliges to install new packages for the sidecar containers. The following
+command (re)configures istio to satisfy these requirements:
+
+```bash
+istioctl manifest apply --set "values.global.proxy.enableCoreDump=true" --set "values.global.proxy.privileged=true"
+```
+
+After doing so `runner.py` can be run with `--envoy_profiler [heapprofiler|cpuprofiler]`. This will start/stop
+the built-in profilers of the sidecars, obtain the collected profiles, and visualize them via `pprof`.
+The resulting output will end up in `flame/flameoutput` just like in the other flows:
+
+```bash
+runner/runner.py --envoy_profiler cpuprofiler|heapprofiler ...
+```

@@ -16,17 +16,21 @@ from __future__ import print_function
 
 import collections
 import os
+import html
 import json
 import socket
 import argparse
 import subprocess
 import shlex
 import uuid
+import stat
 import sys
 import tempfile
 import time
 from subprocess import getoutput
 from urllib.parse import urlparse
+from threading import Thread
+from time import sleep
 import yaml
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
@@ -34,6 +38,7 @@ NAMESPACE = os.environ.get("NAMESPACE", "twopods")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4"
+SCRIPT_START = time.strftime("%Y-%m-%d-%H%M%S")
 
 
 def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
@@ -57,6 +62,7 @@ def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
 def run_command(command):
     process = subprocess.Popen(shlex.split(command))
     process.wait()
+    return process.returncode
 
 
 def run_command_sync(command):
@@ -71,7 +77,6 @@ def kubectl_cp(from_file, to_file, container):
         from_file=from_file,
         to_file=to_file,
         container=container)
-    print(cmd, flush=True)
     run_command_sync(cmd)
 
 
@@ -85,7 +90,7 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
         c=c,
         namespace=NAMESPACE)
     print(cmd, flush=True)
-    runfn(cmd)
+    return runfn(cmd) == 0
 
 
 class Fortio:
@@ -117,7 +122,11 @@ class Fortio:
             ingress=None,
             mesh="istio",
             cacert=None,
-            load_gen_type="fortio"):
+            load_gen_type="fortio",
+            custom_profiling_command=None,
+            custom_profiling_name="default-profile",
+            devmode=False,
+            envoy_profiler=None):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
         self.headers = headers
         self.conn = conn
@@ -130,6 +139,8 @@ class Fortio:
         self.r = "0.00005"
         self.telemetry_mode = telemetry_mode
         self.perf_record = perf_record
+        self.custom_profiling_command = custom_profiling_command
+        self.custom_profiling_name = custom_profiling_name
         self.server = pod_info("-lapp=" + server, namespace=self.ns)
         self.client = pod_info("-lapp=" + client, namespace=self.ns)
         self.additional_args = additional_args
@@ -142,6 +153,13 @@ class Fortio:
         self.run_ingress = ingress
         self.cacert = cacert
         self.load_gen_type = load_gen_type
+        self.devmode = devmode
+        self.envoy_profiler = envoy_profiler
+
+        if self.perf_record != False:
+            if not self.custom_profiling_command is None:
+                sys.exit("--perf and --custom_profiling_command are mutually exclusive")
+            self.custom_profiling_command = "perf record -F 99 -g -p {sidecar_pid} -- sleep {duration} && perf script | ~/FlameGraph/stackcollapse-perf.pl | c++filt -n"
 
         if mesh == "linkerd":
             self.mesh = "linkerd"
@@ -178,28 +196,24 @@ class Fortio:
     def bothsidecar(self, load_gen_cmd, sidecar_mode):
         return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "port")
 
-    def ingress(self, load_gen_cmd):
+    def ingress(self, load_gen_cmd, sidecar_mode):
         url = urlparse(self.run_ingress)
         # If scheme is not defined fallback to http
         if url.scheme == "":
             url = urlparse("http://{svc}".format(svc=self.run_ingress))
-
-        return load_gen_cmd + "_ingress {url}/echo?size={size}".format(
-            url=url.geturl(), size=self.size)
+        if self.load_gen_type == "fortio":
+            return load_gen_cmd + sidecar_mode + " {url}/echo?size={size}".format(url=url.geturl(), size=self.size)
+        elif self.load_gen_type == "nighthawk":
+            return load_gen_cmd + sidecar_mode + " {url}/".format(url=url.geturl())
+        else:
+            sys.exit("invalid load generator %s, must be fortio or nighthawk", self.load_gen_type)
 
     def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label_suffix):
         print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
         if load_gen_type == "fortio":
-            kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode))
+            return kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode))
         elif load_gen_type == "nighthawk":
-            run_nighthawk(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode), labels + "_" + sidecar_mode)
-
-        if self.perf_record and len(perf_label_suffix) > 0:
-            run_perf(
-                self.mesh,
-                self.server.name,
-                labels + perf_label_suffix,
-                duration=40)
+            return run_nighthawk(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode), labels + "_" + sidecar_mode)
 
     def generate_test_labels(self, conn, qps, size):
         size = size or self.size
@@ -246,6 +260,126 @@ class Fortio:
 
         return fortio_cmd
 
+    def run_envoy_profiler(self, exec_cmd, podname, profile_name, envoy_profiler, labels):
+        filename = "{datetime}_{labels}-{profile_name}-{podname}".format(
+            datetime=SCRIPT_START, profile_name=profile_name, labels=labels, podname=podname)
+        exec_cmd_on_pod = "kubectl exec -n {namespace} {podname} -c istio-proxy -- bash -c ".format(
+            namespace=os.environ.get("NAMESPACE", "twopods"),
+            podname=podname
+        )
+        profile_url = "curl -X POST -s http://localhost:15000/{envoy_profiler}?enable".format(envoy_profiler=envoy_profiler)
+        script = "{profile_url}=y; sleep {duration}; {profile_url}=n;".format(profile_url=profile_url, duration=self.duration)
+        print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
+
+        # When we get here, the heap profile has been written.
+        # We install pprof & some nessecities for generating the visual into the istio-proxy container the first
+        # time we get here, so we can a the visualization of the process out.
+        script = "test ! -f ~/go/bin/pprof && echo 1"
+        if getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)) == "1":
+            script = "sudo apt-get update && sudo apt-get install -y --no-install-recommends wget git binutils graphviz &&"
+            script = script + " cd /tmp/ &&"
+            script = script + " curl https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz --output go1.14.2.linux-amd64.tar.gz &&"
+            script = script + " sudo tar -C /usr/local -xzf go1.14.2.linux-amd64.tar.gz &&"
+            script = script + " export PATH=$PATH:/usr/local/go/bin &&"
+            script = script + " go get -u github.com/google/pprof"
+            print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
+
+        script = "rm -r /tmp/envoy; cp -r /var/lib/istio/data/ /tmp/envoy; cp -r /lib/x86_64-linux-gnu /tmp/envoy/lib; cp /usr/local/bin/envoy /tmp/envoy/lib/envoy"
+        print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
+        output_name = "tmp.svg"
+
+        visualization_arg = ""
+        if envoy_profiler == "heapprofiler":
+            visualization_arg = "-alloc_space"
+        print(getoutput("{exec_cmd} \"cd /tmp/envoy;  PPROF_BINARY_PATH=/tmp/envoy/lib/ ~/go/bin/pprof {visualization_arg} -svg -output '{output_name}' /tmp/envoy/lib/envoy envoy.*\"".format(
+            exec_cmd=exec_cmd_on_pod, output_name=output_name, visualization_arg=visualization_arg)))
+        # Copy the visualization into flame/output.
+        kubectl_cp(podname + ":/tmp/envoy/{output_name}".format(output_name=output_name),
+                   "flame/flameoutput/{filename}.svg".format(filename=filename), "istio-proxy")
+
+    def run_profiler(self, exec_cmd, podname, profile_name, profiling_command, labels):
+        filename = "{datetime}_{labels}-{profile_name}-{podname}".format(
+            datetime=SCRIPT_START, profile_name=profile_name, labels=labels, podname=podname)
+        profiler_cmd = "{profiling_command} > {filename}.profile".format(
+            profiling_command=profiling_command,
+            filename=filename
+        )
+        html_escaped_command = html.escape(profiling_command)
+        flamegraph_cmd = "./FlameGraph/flamegraph.pl --title='{profiling_command} Flame Graph'  < {filename}.profile > {filename}.svg".format(
+            profiling_command=html_escaped_command,
+            filename=filename
+        )
+
+        # We build a small bash script which will run the profiler & produce a flame graph
+        # We the copy this script into the container, and run it
+        with tempfile.NamedTemporaryFile(dir='/tmp', delete=True) as tmpfile:
+            dest = tmpfile.name + ".sh"
+            with open(dest, 'w') as f:
+                s = """#!/bin/bash
+set -euo pipefail
+({profiler_cmd}) >& /tmp/{filename}_profiler_cmd.log
+({flamegraph_cmd}) >& /tmp/{filename}_flamegraph_cmd.log
+                """.format(profiler_cmd=profiler_cmd, flamegraph_cmd=flamegraph_cmd, filename=filename)
+                f.write(s)
+            st = os.stat(dest)
+            os.chmod(dest, st.st_mode | stat.S_IEXEC)
+            kubectl_cp(dest, podname + ":" + dest, "perf")
+
+        process = subprocess.Popen(shlex.split("{exec_cmd} \"{dest}\"".format(exec_cmd=exec_cmd, dest=dest)))
+
+        if process.wait() == 0:
+            # Copy the resulting flamegraph out of the container into flame/flameoutput/
+            kubectl_cp(podname + ":{filename}.svg".format(filename=filename),
+                       "flame/flameoutput/{filename}.svg".format(filename=filename), "perf")
+            print("Wrote flame/flameoutput/{filename}.svg".format(filename=filename))
+        else:
+            print("WARNING: Did not obtain a flamegraph. See /tmp/{filename}_*.log".format(filename=filename))
+
+    def maybe_start_profiling_threads(self, labels, perf_label):
+        threads = []
+        if self.envoy_profiler:
+            for pod in [self.client.name, self.server.name]:
+                exec_cmd_on_pod = "kubectl exec -n {namespace} {podname} -c istio-proxy -- bash -c ".format(
+                    namespace=os.environ.get("NAMESPACE", "twopods"),
+                    podname=pod
+                )
+                script = "set -euo pipefail; sudo rm -rf {dir}/* || true; sudo mkdir -p {dir}; sudo chmod 777 {dir};".format(dir="/var/lib/istio/data/")
+                print(getoutput("{exec_cmd} \"{script}\"".format(exec_cmd=exec_cmd_on_pod, script=script)))
+                threads.append(Thread(target=self.run_envoy_profiler, args=[
+                    exec_cmd_on_pod, pod, "envoy-" + self.envoy_profiler, self.envoy_profiler, labels + perf_label]))
+        if self.custom_profiling_command:
+            # We run any custom profiling command on both pods, as one runs on each node we're interested in.
+            for pod in [self.client.name, self.server.name]:
+                exec_cmd_on_pod = "kubectl exec -n {namespace} {podname} -c perf -- bash -c ".format(
+                    namespace=os.environ.get("NAMESPACE", "twopods"),
+                    podname=pod
+                )
+
+                # Wait for node_exporter to run, which indicates the profiling initialization container has finished initializing.
+                # once the init probe is supported, move this to a http probe instead in fortio.yaml
+                ready_cmd = "{exec_cmd} \"which perf\"".format(
+                    exec_cmd=exec_cmd_on_pod)
+                perf_path = getoutput(ready_cmd).strip()
+                attempts = 1
+                while perf_path != "/usr/sbin/perf" and attempts < 60:
+                    sleep(1)
+                    perf_path = getoutput(ready_cmd).strip()
+                    attempts = attempts + 1
+
+                # Find side car process id's in case the profiling command needs it.
+                sidecar_ppid = getoutput(
+                    "{exec_cmd} \"pgrep -f 'pilot-agent proxy sidecar'\"".format(exec_cmd=exec_cmd_on_pod)).strip()
+                sidecar_pid = getoutput("{exec_cmd} \"pgrep -P {sidecar_ppid}\"".format(
+                    exec_cmd=exec_cmd_on_pod, sidecar_ppid=sidecar_ppid)).strip()
+                profiling_command = self.custom_profiling_command.format(
+                    duration=self.duration, sidecar_pid=sidecar_pid)
+                threads.append(Thread(target=self.run_profiler, args=[
+                    exec_cmd_on_pod, pod, self.custom_profiling_name, profiling_command, labels + perf_label]))
+        for thread in threads:
+            thread.start()
+
+        return threads
+
     def generate_nighthawk_cmd(self, cpus, conn, qps, duration, labels):
         labels = "nighthawk_" + labels
         nighthawk_args = [
@@ -290,6 +424,16 @@ class Fortio:
 
         return nighthawk_cmd
 
+    def create_execution_delegate(self, perf_label, sidecar_mode, sidecar_mode_func, load_gen_cmd, labels):
+        def execution_delegate():
+            threads = self.maybe_start_profiling_threads(labels, perf_label)
+            ok = self.execute_sidecar_mode(
+                sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            for thread in threads:
+                thread.join()
+            return ok
+        return execution_delegate
+
     def run(self, headers, conn, qps, size, duration):
         labels = self.generate_test_labels(conn, qps, size)
 
@@ -303,7 +447,6 @@ class Fortio:
 
         headers_cmd = self.generate_headers_cmd(headers)
 
-        load_gen_cmd = ""
         if self.load_gen_type == "fortio":
             load_gen_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, labels)
         elif self.load_gen_type == "nighthawk":
@@ -318,77 +461,38 @@ class Fortio:
             # See the comment above, we restrict execution to a single nighthawk worker for
             # now to avoid noise.
             workers = 1
-            load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, duration, labels)
+            load_gen_cmd = self.generate_nighthawk_cmd(
+                workers, conn, qps, duration, labels)
 
-        perf_label = ""
-        sidecar_mode = ""
-        sidecar_mode_func = None
+        executions = []
 
         if self.run_baseline:
-            sidecar_mode = "baseline"
-            sidecar_mode_func = self.baseline
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            executions.append(self.create_execution_delegate(
+                "", "baseline", self.baseline, load_gen_cmd, labels))
 
         if self.run_serversidecar:
-            perf_label = "_srv_serveronly"
-            sidecar_mode = "serveronly"
-            sidecar_mode_func = self.serversidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            executions.append(self.create_execution_delegate(
+                "_srv_serveronly", "server_sidecar", self.serversidecar, load_gen_cmd, labels))
 
         if self.run_clientsidecar:
-            perf_label = "_srv_clientonly"
-            sidecar_mode = "clientonly"
-            sidecar_mode_func = self.clientsidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            executions.append(self.create_execution_delegate(
+                "_srv_clientonly", "client_sidecar", self.clientsidecar, load_gen_cmd, labels))
 
         if self.run_bothsidecar:
-            perf_label = "_srv_bothsidecars"
-            sidecar_mode = "both"
-            sidecar_mode_func = self.bothsidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            executions.append(self.create_execution_delegate(
+                "_srv_bothsidecars", "both_sidecar", self.bothsidecar, load_gen_cmd, labels))
 
         if self.run_ingress:
-            perf_label = "_srv_ingress"
-            print('-------------- Running in ingress mode --------------')
-            kubectl_exec(self.client.name, self.ingress(load_gen_cmd))
-            if self.perf_record:
-                run_perf(
-                    self.mesh,
-                    self.server.name,
-                    labels + "_srv_ingress",
-                    duration=40)
+            executions.append(self.create_execution_delegate(
+                "_srv_ingress", "ingress", self.ingress, load_gen_cmd, labels))
 
-
-PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
-FLAMESH = "flame.sh"
-PERFSH = "get_perfdata.sh"
-PERFWD = "/etc/istio/proxy/"
-
-WD = os.getcwd()
-LOCAL_FLAMEDIR = os.path.join(WD, "../flame/")
-LOCAL_FLAMEPATH = LOCAL_FLAMEDIR + FLAMESH
-LOCAL_PERFPATH = LOCAL_FLAMEDIR + PERFSH
-LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
-
-
-def run_perf(mesh, pod, labels, duration=20):
-    filename = labels + "_perf.data"
-    filepath = PERFWD + filename
-    perfpath = PERFWD + PERFSH
-
-    # copy executable over
-    kubectl_cp(LOCAL_PERFPATH, pod + ":" + perfpath, mesh + "-proxy")
-
-    kubectl_exec(
-        pod,
-        "{perf_cmd} {filename} {duration}".format(
-            perf_cmd=perfpath,
-            filename=filename,
-            duration=duration),
-        container=mesh + "-proxy")
-
-    kubectl_cp(pod + ":" + filepath + ".perf", LOCAL_FLAMEOUTPUT + filename + ".perf", mesh + "-proxy")
-    run_command_sync(LOCAL_FLAMEPATH + " " + filename + ".perf")
+        for execution in executions:
+            if not execution():
+                print("WARNING: execution failed. Performing a single retry.")
+                # TODO(oschaaf): optionize this, add --max-retries-per-test or some such.
+                if not execution():
+                    print("ERROR: retry failed. Aborting.")
+                    sys.exit(1)
 
 
 def validate_job_config(job_config):
@@ -463,12 +567,16 @@ def run_perf_test(args):
             mesh=args.mesh,
             telemetry_mode=args.telemetry_mode,
             cacert=args.cacert,
-            load_gen_type=args.load_gen_type)
+            load_gen_type=args.load_gen_type,
+            custom_profiling_command=args.custom_profiling_command,
+            custom_profiling_name=args.custom_profiling_name,
+            envoy_profiler=args.envoy_profiler)
 
     if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
             min_duration=min_duration))
-        exit(1)
+        if not args.devmode:
+            exit(1)
 
     port_forward_process = None
 
@@ -532,13 +640,15 @@ def run_nighthawk(pod, remote_cmd, labels):
             # - initiation time to completion (spanning the complete lifetime of a request/reply, including queue/connect time)
             # - per worker output may sometimes help interpret plots that don't have a nice knee-shaped shape.
             kubectl_cp("{dest}.fortio.json".format(
-                dest=dest), "{pod}:/var/lib/fortio/{datetime}_nighthawk_{labels}.json".format(pod=pod, labels=labels, datetime=time.strftime("%Y-%m-%d-%H%M%S")), "shell")
+                dest=dest), "{pod}:/var/lib/fortio/{datetime}_{labels}.json".format(pod=pod, labels=labels, datetime=SCRIPT_START), "shell")
+            return True
     else:
         print("nighthawk remote execution error: %s" % exit_code)
         if output:
             print("--> stdout: %s" % output.decode("utf-8"))
         if err:
             print("--> stderr: %s" % err.decode("utf-8"))
+        return False
 
 
 def csv_to_int(s):
@@ -589,6 +699,14 @@ def get_parser():
         help="also run perf and produce flame graph",
         default=False)
     parser.add_argument(
+        "--custom_profiling_command",
+        help="Run custom profiling commands on the nodes for the client and server, and produce a flamegraph based on their outputs. E.g. --custom_profiling_command=\"profile-bpfcc -df {duration} -p {sidecar_pid}\"",
+        default=None)
+    parser.add_argument(
+        "--custom_profiling_name",
+        help="Name to be added to the flamegraph resulting from --custom_profiling_command",
+        default="default-profile")
+    parser.add_argument(
         "--ingress",
         help="run traffic through ingress, should be a valid URL",
         default=None)
@@ -613,6 +731,16 @@ def get_parser():
         help="fortio or nighthawk",
         default="fortio",
     )
+    parser.add_argument(
+        "--devmode",
+        help="In development mode, very short duration argument values are allowed.",
+        default=False,
+    )
+    parser.add_argument(
+        "--envoy_profiler",
+        help="Obtains perf visualization based on Envoy's built-in profiling. Valid values are 'heapprofiler' or 'cpuprofiler'.",
+        default=None,
+    )
 
     define_bool(parser, "baseline", "run baseline for all", False)
     define_bool(parser, "serversidecar",
@@ -620,7 +748,7 @@ def get_parser():
     define_bool(parser, "clientsidecar",
                 "run clientsidecar-only for all", False)
     define_bool(parser, "bothsidecar",
-                "run both clientsiecar and serversidecar", True)
+                "run both clientsidecar and serversidecar", True)
 
     return parser
 
