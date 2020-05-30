@@ -17,9 +17,10 @@
 package version
 
 import (
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	v1beta1 "istio.io/api/meta/v1beta1"
 	types "istio.io/tools/cmd/kubetype-gen/testdata/test_input/positive/types"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 //
