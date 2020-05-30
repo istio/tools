@@ -73,6 +73,23 @@ Check that you can access the cluster:
 ```bash
 kubectl get nodes
 ```
+To build istio and unit tests in docker container
+```bash
+cd ~/go/src/istio.io/istio
+```
+For istio building
+```bash
+sudo path=$PATH make BUILD_WITH_CONTAINER=0  build
+```
+For istio unit tests
+```bash
+sudo path=$PATH make BUILD_WITH_CONTAINER=0 test
+```
+some times when we want to rebuild it, you may find that istio cannot find the go path,
+one simple approach to solve it is to add go binary file to system bin/
+```
+cp /usr/local/go/bin/go /bin
+```
 
 ## Removing The Container
 
