@@ -276,23 +276,25 @@ ENV FPM_VERSION=1.11.0
 ENV HTMLPROOFER_VERSION=3.12.0
 ENV LICENSEE_VERSION=9.11.0
 ENV MDL_VERSION=0.5.0
-ENV RUBY_VERSION=2.6.5
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends \
+    apt-transport-https \
+    ca-certificates \
+    gnupg2 \
+    software-properties-common \
     build-essential \
+    zlib1g-dev \
     cmake \
-    libssl-dev \
     pkg-config \
-    zlib1g-dev
+    libssl-dev
 
-ADD https://cache.ruby-lang.org/pub/ruby/2.6/ruby-${RUBY_VERSION}.tar.gz /tmp
-WORKDIR /tmp
-RUN tar -xzf ruby-${RUBY_VERSION}.tar.gz
-WORKDIR /tmp/ruby-${RUBY_VERSION}
-RUN ./configure
-RUN make
-RUN make install
+RUN add-apt-repository -y ppa:brightbox/ruby-ng-experimental
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends \
+    ruby2.6 \
+    ruby2.6-dev
 
 # Install istio.io verification tools
 RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
@@ -433,10 +435,17 @@ ENV RUBYOPT="-KU -E utf-8:utf-8"
 COPY --from=base_os_context / /
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
-COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
-COPY --from=ruby_tools_context /usr/local/lib /usr/local/lib
-COPY --from=nodejs_tools_context /usr/local /usr/local
+
+COPY --from=nodejs_tools_context /usr/local/bin /usr/local/bin
+COPY --from=nodejs_tools_context /usr/local/lib/node_modules /usr/local/lib/node_modules
 COPY --from=nodejs_tools_context /node_modules /node_modules
+
+COPY --from=ruby_tools_context /usr/bin /usr/bin
+COPY --from=ruby_tools_context /usr/lib /usr/lib
+COPY --from=ruby_tools_context /etc/alternatives /etc/alternatives
+COPY --from=ruby_tools_context /var/lib/gems /var/lib/gems
+COPY --from=ruby_tools_context /usr/local/bin /usr/local/bin
+
 COPY --from=python_context /usr/local/bin /usr/local/bin
 COPY --from=python_context /usr/local/lib /usr/local/lib
 
