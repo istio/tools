@@ -290,6 +290,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev
 
 RUN add-apt-repository -y ppa:brightbox/ruby-ng-experimental
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ruby2.6 \
     ruby2.6-dev
