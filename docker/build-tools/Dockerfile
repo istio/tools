@@ -278,8 +278,7 @@ ENV LICENSEE_VERSION=9.11.0
 ENV MDL_VERSION=0.5.0
 
 # hadolint ignore=DL3008
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     gnupg2 \
@@ -291,8 +290,7 @@ RUN apt-get install -y --no-install-recommends \
     libssl-dev
 
 RUN add-apt-repository -y ppa:brightbox/ruby-ng-experimental
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ruby2.6 \
     ruby2.6-dev
 
