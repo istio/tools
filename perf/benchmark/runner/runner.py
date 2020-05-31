@@ -30,7 +30,7 @@ from urllib.parse import urlparse
 import yaml
 from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
-NAMESPACE = os.environ.get("NAMESPACE", "twopods")
+NAMESPACE = os.environ.get("NAMESPACE", "twopods-istio")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4"
@@ -363,36 +363,18 @@ class Fortio:
                     frequency=self.frequency)
 
 
-PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
-FLAMESH = "flame.sh"
-PERFSH = "get_perfdata.sh"
-PERFWD = "/etc/istio/proxy/"
-
 WD = os.getcwd()
 LOCAL_FLAMEDIR = os.path.join(WD, "../flame/")
-LOCAL_FLAMEPATH = LOCAL_FLAMEDIR + FLAMESH
-LOCAL_PERFPATH = LOCAL_FLAMEDIR + PERFSH
+PERF_PROXY_FILE = "get_proxy_perf.sh"
+LOCAL_FLAME_PROXY_FILE_PATH = LOCAL_FLAMEDIR + PERF_PROXY_FILE
 LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
 
 
-def run_perf(mesh, pod, labels, duration=40, frequency=99):
-    filename = labels + "_perf.data"
-    filepath = PERFWD + filename
-    perfpath = PERFWD + PERFSH
-
-    # copy executable over
-    kubectl_cp(LOCAL_PERFPATH, pod + ":" + perfpath, mesh + "-proxy")
-
-    kubectl_exec(
-        pod,
-        "{perf_cmd} {filename} {duration}".format(
-            perf_cmd=perfpath,
-            filename=filename,
-            duration=duration),
-        container=mesh + "-proxy")
-
-    kubectl_cp(pod + ":" + filepath + ".perf", LOCAL_FLAMEOUTPUT + filename + ".perf", mesh + "-proxy")
-    run_command_sync(LOCAL_FLAMEPATH + " " + filename + ".perf")
+def run_perf(mesh, pod, labels, duration=20, frequency=99):
+    os.environ["PERF_DATA_FILENAME"] = labels + "_perf.data"
+    print(os.environ["PERF_DATA_FILENAME"])
+    run_command_sync(LOCAL_FLAME_PROXY_FILE_PATH + " -p {pod} -n {namespace} -d {duration} -f {frequency}".format(
+        pod=pod, namespace=NAMESPACE, duration=duration, frequency=frequency))
 
 
 def validate_job_config(job_config):
