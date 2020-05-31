@@ -49,6 +49,7 @@ POD_NAME=${POD_NAME:?"pod name must be provided"}
 POD_NAMESPACE=${POD_NAMESPACE:?"pod namespace must be provided"}
 PERF_DURATION=${PERF_DURATION:-"20"}
 SAMPLE_FREQUENCY=${SAMPLE_FREQUENCY:-"99"}
+PERF_DATA_FILENAME=${PERF_DATA_FILENAME:-"perf.data"}
 
 WD=$(dirname "${0}")
 WD=$(cd "${WD}" && pwd)
@@ -57,14 +58,20 @@ echo "Copy profiling script to proxy..."
 kubectl cp "${WD}"/get_perfdata.sh "${POD_NAME}":/etc/istio/proxy/get_perfdata.sh -n "${POD_NAMESPACE}" -c istio-proxy
 
 echo "Start profiling..."
-kubectl exec "${POD_NAME}" -n "${POD_NAMESPACE}" -c istio-proxy -- /etc/istio/proxy/get_perfdata.sh perf.data "${PERF_DURATION}" "${SAMPLE_FREQUENCY}"
+kubectl exec "${POD_NAME}" -n "${POD_NAMESPACE}" -c istio-proxy -- /etc/istio/proxy/get_perfdata.sh "${PERF_DATA_FILENAME}" "${PERF_DURATION}" "${SAMPLE_FREQUENCY}"
 
 TMP_DIR=$(mktemp -d -t proxy-perf-XXXXXXXXXX)
 trap 'rm -rf "${TMP_DIR}"' EXIT
-TIME="$(date '+%Y-%m-%d-%H-%M-%S')"
-PERF_FILE_NAME="${POD_NAME}_${TIME}.perf"
+
+if [[ "${PERF_DATA_FILENAME}" = "perf.data" ]]; then
+    TIME="$(date '+%Y-%m-%d-%H-%M-%S')"
+    PERF_FILE_NAME="${POD_NAME}_${TIME}.perf"
+else
+    PERF_FILE_NAME="${PERF_DATA_FILENAME}.perf"
+fi
+
 PERF_FILE="${TMP_DIR}/${PERF_FILE_NAME}"
-kubectl cp "${POD_NAME}":/etc/istio/proxy/perf.data.perf "${PERF_FILE}" -n "${POD_NAMESPACE}" -c istio-proxy
+kubectl cp "${POD_NAME}:/etc/istio/proxy/${PERF_DATA_FILENAME}.perf" "${PERF_FILE}" -n "${POD_NAMESPACE}" -c istio-proxy
 
 echo "Generating svg file ${PERF_FILE_NAME}"
 "${WD}/flame.sh" "${PERF_FILE}"
