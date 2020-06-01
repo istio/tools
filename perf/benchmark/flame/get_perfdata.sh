@@ -14,14 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Exit immediately for non zero status
 set -e
+# Check unset variables
+set -u
+# Print commands
+set -x
 
 WD=$(dirname "${0}")
 WD=$(cd "${WD}" && pwd)
 
-FILENAME=${1:?"perffilename"}
-DURATION=${2:?"duration"}
-FREQ=${3:-"99"}
+PERF_FILENAME=${1:?"perf filename is missing"}
+PERF_DURATION=${2:?"perf duration is missing"}
+SAMPLE_FREQUENCY=${3:-"99"}
 
 PID=$(pgrep envoy)
 
@@ -36,7 +41,7 @@ fi
 
 PERF="${PERFDIR}/perf"
 
-"${PERF}" record -o "${WD}/${FILENAME}" -F "${FREQ}" -p "${PID}" -g -- sleep "${DURATION}"
-"${PERF}" script -i "${WD}/${FILENAME}" --demangle > "${WD}/${FILENAME}.perf"
+"${PERF}" record -o "${WD}/${PERF_FILENAME}" -F "${SAMPLE_FREQUENCY}" -p "${PID}" -g -- sleep "${PERF_DURATION}"
+"${PERF}" script -i "${WD}/${PERF_FILENAME}" --demangle > "${WD}/${PERF_FILENAME}.perf"
 
-echo "Wrote ${WD}/${FILENAME}.perf"
+echo "Wrote ${WD}/${PERF_FILENAME}.perf"
