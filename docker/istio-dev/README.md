@@ -104,5 +104,4 @@ cp /usr/local/go/bin/go /bin
 ```bash
 docker stop istio-dev
 docker rm istio-dev
-make clean-dev-shell BUILD_WITH_CONTAINER=0
 ```
