@@ -63,7 +63,7 @@ function get_git_sha() {
        LINUX_TAR_SUFFIX="linux.tar.gz"
     fi
     GIT_SHA=$(curl "${url_path}/${release_version}-dev")
-  elif [ "${tag}" == "master" ];then
+  elif [[ "${tag}" == "master" ]];then
     GIT_SHA=$(curl "${url_path}/latest")
   fi
 }
@@ -110,7 +110,7 @@ download_untar_istio_release "${TARGET_RELEASE_PATH}" "${TARGET_TAG}" "${TARGET_
 
 # Check https://github.com/istio/test-infra/blob/master/boskos/resources.yaml
 # for existing resources types
-if [ "${UPGRADE_TEST_LOCAL}" = "" ]; then
+if [[ "${UPGRADE_TEST_LOCAL}" = "" ]]; then
     export RESOURCE_TYPE="${RESOURCE_TYPE:-gke-e2e-test}"
     export OWNER='upgrade-tests'
     export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
