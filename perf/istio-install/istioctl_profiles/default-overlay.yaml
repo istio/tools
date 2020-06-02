@@ -94,8 +94,6 @@ spec:
           limits:
             memory: 256Mi
       sds:
-        enabled: false
-        udsPath: ""
         token:
           aud: istio-ca
     grafana:
