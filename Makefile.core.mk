@@ -40,3 +40,4 @@ containers-test:
 
 include common/Makefile.common.mk
 include perf/stability/stability.mk
+include docker/istio-dev/istio-dev.mk
