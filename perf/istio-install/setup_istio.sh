@@ -64,7 +64,7 @@ function download_release() {
   outfile="${DIRNAME}/${OUT_FILE}"
   if [[ ! -d "${outfile}" ]]; then
     tmp=$(mktemp -d)
-    if [[ "${RELEASE_URL}" == gs:// ]]; then
+    if [[ "${RELEASE_URL}" == gs://* ]]; then
       gsutil cp "${RELEASE_URL}" "${tmp}/out.tar.gz"
       tar xvf "${tmp}/out.tar.gz" -C "${DIRNAME}"
     else
