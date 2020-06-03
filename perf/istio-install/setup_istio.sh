@@ -76,14 +76,10 @@ function download_release() {
   fi
 }
 
-# Set to empty to use the compiled in charts
-FILE_CHARTS="${FILE_CHARTS-true}"
-
 function install_istioctl() {
   release=${1:?release folder}
   shift
-  manifests=${FILE_CHARTS:+-d "${release}/manifests"}
-  "${release}/bin/istioctl" manifest apply --skip-confirmation --wait ${manifests} "${@}"
+  "${release}/bin/istioctl" manifest apply --skip-confirmation -d "${release}/manifests" "${@}"
 }
 
 function install_extras() {
@@ -111,9 +107,8 @@ function install_extras() {
   done
   # Redeploy, this time with the Prometheus resource created
   helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
-  manifests=${FILE_CHARTS:+-d "${release}/manifests"}
   # Also deploy relevant ServiceMonitors
-  "${release}/bin/istioctl" manifest generate --set profile=empty --set addonComponents.prometheusOperator.enabled=true ${manifests} | kubectl apply -f -
+  "${release}/bin/istioctl" manifest generate --set profile=empty --set addonComponents.prometheusOperator.enabled=true -d "${release}/manifests" | kubectl apply -f -
 }
 
 download_release
