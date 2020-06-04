@@ -31,17 +31,17 @@ bash-completion=1:2.1-4.2ubuntu1.1 \
 build-essential=12.1ubuntu2 \
 ca-certificates=20170717~16.04.2 \
 curl=7.47.0-1ubuntu2.14 \
-git \
+git=1:2.7.4-0ubuntu1.9 \
 iptables=1.6.0-2ubuntu3 \
 jq=1.5+dfsg-1ubuntu0.1 \
 libtool=2.4.6-0.1 \
 lsb-release=9.20160110ubuntu0.2 \
 make=4.1-6 \
 python3=3.5.1-3 \
-sudo \
+sudo=1.8.16-0ubuntu1.9 \
 tmux=2.1-3build1 \
 unzip=6.0-20ubuntu1 \
-vim \
+vim=2:7.4.1689-3ubuntu1.4 \
 wget=1.17.1-1ubuntu1.5 \
 xz-utils=5.1.1alpha+20120614-2ubuntu2 \
 && rm -rf /var/lib/apt/lists/*
@@ -58,8 +58,8 @@ COPY --from=docker /usr/local/bin/docker /usr/local/bin/docker
 RUN echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -c -s) main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
 && curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
 && apt-get update && apt-get -qqy install --no-install-recommends \
-google-cloud-sdk=272.0.0-0 \
-kubectl \
+google-cloud-sdk=294.0.0-0 \
+kubectl=1.18.3-00 \
 && rm -rf /var/lib/apt/lists/*
 
 # Install bash completion files.
