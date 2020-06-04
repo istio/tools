@@ -74,19 +74,19 @@ Check that you can access the cluster:
 kubectl get nodes
 ```
 
-## Build istio and run unit tests in istio-dev container
+## Build Istio and Run Tests in Container
 
 ```bash
 cd ~/go/src/istio.io/istio
 ```
 
-For istio building
+To build Istio:
 
 ```bash
 make build BUILD_WITH_CONTAINER=0
 ```
 
-For istio unit tests
+To run unit tests:
 
 ```bash
 make test BUILD_WITH_CONTAINER=0
