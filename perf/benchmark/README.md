@@ -129,8 +129,8 @@ optional arguments:
   --client CLIENT       where to run the test from
   --server SERVER       pod ip of the server
   --perf PERF           also run perf and produce flame graph
-  --frequency FREQUENCY sampling frequency of generating flame graph  
- --ingress INGRESS     run traffic through ingress, should be a valid URL
+  --frequency FREQUENCY sampling frequency of generating flame graph
+  --ingress INGRESS     run traffic through ingress, should be a valid URL
   --extra_labels EXTRA_LABELS
                         extra labels
   --mode MODE           http or grpc
