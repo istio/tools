@@ -201,8 +201,8 @@ class Fortio:
                 self.mesh,
                 self.server.name,
                 labels + perf_label_suffix,
-                duration=240,
-                frequncey=99)
+                duration=self.duration,
+                frequncey=self.frequency)
 
     def generate_test_labels(self, conn, qps, size):
         size = size or self.size
@@ -359,8 +359,8 @@ class Fortio:
                     self.mesh,
                     self.server.name,
                     labels + "_srv_ingress",
-                    duration=240,
-                    frequency=99)
+                    duration=self.duration,
+                    frequency=self.frequency)
 
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
