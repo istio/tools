@@ -101,6 +101,7 @@ class Fortio:
             conn=None,
             qps=None,
             duration=None,
+            frequency=None,
             size=None,
             mode="http",
             telemetry_mode="mixer",
@@ -124,6 +125,7 @@ class Fortio:
         self.qps = qps
         self.size = size
         self.duration = duration
+        self.frequency = frequency
         self.mode = mode
         self.ns = NAMESPACE
         # bucket resolution in seconds
@@ -199,7 +201,8 @@ class Fortio:
                 self.mesh,
                 self.server.name,
                 labels + perf_label_suffix,
-                duration=40)
+                duration=240,
+                frequncey=99)
 
     def generate_test_labels(self, conn, qps, size):
         size = size or self.size
@@ -356,7 +359,8 @@ class Fortio:
                     self.mesh,
                     self.server.name,
                     labels + "_srv_ingress",
-                    duration=40)
+                    duration=240,
+                    frequency=99)
 
 
 PERFCMD = "/usr/lib/linux-tools/4.4.0-131-generic/perf"
@@ -371,7 +375,7 @@ LOCAL_PERFPATH = LOCAL_FLAMEDIR + PERFSH
 LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
 
 
-def run_perf(mesh, pod, labels, duration=20):
+def run_perf(mesh, pod, labels, duration=240, frequency=99):
     filename = labels + "_perf.data"
     filepath = PERFWD + filename
     perfpath = PERFWD + PERFSH
@@ -562,6 +566,10 @@ def get_parser():
     parser.add_argument(
         "--duration",
         help="duration in seconds of the extract",
+        type=int)
+    parser.add_argument(
+        "--frequency",
+        help="sampling frequency of generating flame graph",
         type=int)
     parser.add_argument(
         "--size",
