@@ -201,7 +201,7 @@ class Fortio:
                 self.mesh,
                 self.server.name,
                 labels + perf_label_suffix,
-                duration=self.duration,
+                duration=40,
                 frequncey=self.frequency)
 
     def generate_test_labels(self, conn, qps, size):
@@ -359,7 +359,7 @@ class Fortio:
                     self.mesh,
                     self.server.name,
                     labels + "_srv_ingress",
-                    duration=self.duration,
+                    duration=40,
                     frequency=self.frequency)
 
 
@@ -375,7 +375,7 @@ LOCAL_PERFPATH = LOCAL_FLAMEDIR + PERFSH
 LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
 
 
-def run_perf(mesh, pod, labels, duration=240, frequency=99):
+def run_perf(mesh, pod, labels, duration=40, frequency=99):
     filename = labels + "_perf.data"
     filepath = PERFWD + filename
     perfpath = PERFWD + PERFSH
