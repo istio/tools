@@ -25,6 +25,7 @@ import uuid
 import sys
 import tempfile
 import time
+import multiprocessing
 from subprocess import getoutput
 from urllib.parse import urlparse
 import yaml
@@ -34,6 +35,7 @@ NAMESPACE = os.environ.get("NAMESPACE", "twopods-istio")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4"
+processes = []
 
 
 def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
@@ -189,18 +191,26 @@ class Fortio:
         return load_gen_cmd + "_ingress {url}/echo?size={size}".format(
             url=url.geturl(), size=self.size)
 
-    def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label_suffix):
+    def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels,
+                             perf_label_suffix):
         print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
         if load_gen_type == "fortio":
-            kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode))
+            p = multiprocessing.Process(target=kubectl_exec,
+                                        args=[self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode)])
+            p.start()
+            processes.append(p)
         elif load_gen_type == "nighthawk":
-            run_nighthawk(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode), labels + "_" + sidecar_mode)
+            p = multiprocessing.Process(target=run_nighthawk,
+                                        args=[self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode),
+                                              labels + "_" + sidecar_mode])
+            p.start()
+            processes.append(p)
 
         if self.perf_record and len(perf_label_suffix) > 0:
             run_perf(
                 self.server.name,
                 labels + perf_label_suffix,
-                duration=40,
+                duration=self.duration,
                 frequency=self.frequency)
 
     def generate_test_labels(self, conn, qps, size):
@@ -280,7 +290,8 @@ class Fortio:
         # watch out when moving it.
         nighthawk_args.append("--label {labels}")
 
-        # As the worker count acts as a multiplier, we divide by qps/conn by the number of cpu's to spread load accross the workers so the sum of the workers will target the global qps/connection levels.
+        # As the worker count acts as a multiplier, we divide by qps/conn by the number of cpu's to spread load across
+        # the workers so the sum of the workers will target the global qps/connection levels.
         nighthawk_cmd = " ".join(nighthawk_args).format(
             conn=round(conn / cpus),
             qps=round(qps / cpus),
@@ -329,25 +340,29 @@ class Fortio:
         if self.run_baseline:
             sidecar_mode = "baseline"
             sidecar_mode_func = self.baseline
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
+                                      sidecar_mode_func, labels, perf_label)
 
         if self.run_serversidecar:
             perf_label = "_srv_serveronly"
             sidecar_mode = "serveronly"
             sidecar_mode_func = self.serversidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
+                                      sidecar_mode_func, labels, perf_label)
 
         if self.run_clientsidecar:
             perf_label = "_srv_clientonly"
             sidecar_mode = "clientonly"
             sidecar_mode_func = self.clientsidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
+                                      sidecar_mode_func, labels, perf_label)
 
         if self.run_bothsidecar:
             perf_label = "_srv_bothsidecars"
             sidecar_mode = "both"
             sidecar_mode_func = self.bothsidecar
-            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label)
+            self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
+                                      sidecar_mode_func, labels, perf_label)
 
         if self.run_ingress:
             perf_label = "_srv_ingress"
@@ -358,8 +373,11 @@ class Fortio:
                     self.mesh,
                     self.server.name,
                     labels + "_srv_ingress",
-                    duration=40,
+                    duration=self.duration,
                     frequency=self.frequency)
+
+        for process in processes:
+            process.join()
 
 
 WD = os.getcwd()
@@ -371,13 +389,17 @@ LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
 
 def run_perf(pod, labels, duration, frequency):
     if duration is None:
-        duration = 40
+        duration = 240
     if frequency is None:
         frequency = 99
     os.environ["PERF_DATA_FILENAME"] = labels + "_perf.data"
     print(os.environ["PERF_DATA_FILENAME"])
-    run_command_sync(LOCAL_FLAME_PROXY_FILE_PATH + " -p {pod} -n {namespace} -d {duration} -f {frequency}".format(
-        pod=pod, namespace=NAMESPACE, duration=duration, frequency=frequency))
+    p = multiprocessing.Process(target=run_command_sync,
+                                args=[LOCAL_FLAME_PROXY_FILE_PATH +
+                                      " -p {pod} -n {namespace} -d {duration} -f {frequency}".format(
+                                          pod=pod, namespace=NAMESPACE, duration=duration, frequency=frequency)])
+    p.start()
+    processes.append(p)
 
 
 def validate_job_config(job_config):
@@ -509,19 +531,25 @@ def run_nighthawk(pod, remote_cmd, labels):
 
             # Send human readable output to the command line.
             os.system(
-                "cat {dest}.json | docker run -i --rm {docker_image} nighthawk_output_transform --output-format human".format(docker_image=NIGHTHAWK_DOCKER_IMAGE, dest=dest))
+                "cat {dest}.json | docker run -i --rm {docker_image} "
+                "nighthawk_output_transform --output-format human".format(docker_image=NIGHTHAWK_DOCKER_IMAGE,
+                                                                          dest=dest))
             # Transform to Fortio's reporting server json format
-            os.system("cat {dest}.json | docker run -i --rm {docker_image} nighthawk_output_transform --output-format fortio > {dest}.fortio.json".format(
-                dest=dest, docker_image=NIGHTHAWK_DOCKER_IMAGE))
+            os.system("cat {dest}.json | docker run -i --rm {docker_image} "
+                      "nighthawk_output_transform --output-format "
+                      "fortio > {dest}.fortio.json".format(dest=dest, docker_image=NIGHTHAWK_DOCKER_IMAGE))
             # Copy to the Fortio report server data directory.
-            # TODO(oschaaf): We output the global aggregated statistics here of request_to_response, which excludes connection set up time.
+            # TODO(oschaaf): We output the global aggregated statistics here of request_to_response,
+            #  which excludes connection set up time.
             # It would be nice to dump a series instead, as we have more details available in the Nighthawk json:
             # - queue/connect time
             # - time spend blocking in closed loop mode
-            # - initiation time to completion (spanning the complete lifetime of a request/reply, including queue/connect time)
+            # - initiation time to completion (spanning the complete lifetime of a request/reply,
+            # including queue/connect time)
             # - per worker output may sometimes help interpret plots that don't have a nice knee-shaped shape.
             kubectl_cp("{dest}.fortio.json".format(
-                dest=dest), "{pod}:/var/lib/fortio/{datetime}_nighthawk_{labels}.json".format(pod=pod, labels=labels, datetime=time.strftime("%Y-%m-%d-%H%M%S")), "shell")
+                dest=dest),
+                "{pod}:/var/lib/fortio/{datetime}_nighthawk_{labels}.json".format(pod=pod, labels=labels, datetime=time.strftime("%Y-%m-%d-%H%M%S")), "shell")
     else:
         print("nighthawk remote execution error: %s" % exit_code)
         if output:
