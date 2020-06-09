@@ -375,6 +375,9 @@ class Fortio:
                     duration=self.duration,
                     frequency=self.frequency)
 
+        for process in processes:
+            process.join()
+
 
 WD = os.getcwd()
 LOCAL_FLAMEDIR = os.path.join(WD, "../flame/")
