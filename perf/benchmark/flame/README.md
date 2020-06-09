@@ -1,4 +1,4 @@
-# Creating cpu flame graphs for Istio / Envoy
+# Creating CPU flame graphs for Istio / Envoy
 
 ![example](example_flame_graph/example_flagmegraph.svg)
 
@@ -53,10 +53,10 @@ Flame graphs are created from data collected using linux `perf_events` by the `p
     If running perf still gives error:```You may not have permission to collect stats. Consider tweaking /proc/sys/kernel/perf_event_paranoid:```
     after running above commands, try ssh into node and run the container with --privileged flag.
 
-1. Run [`get_proxy_perf.sh`](get_proxy_perf.sh) to get the profiling svg. The following command collects samples at `177Hz` for `20s`. The svg file should be created under `flameoutput` dir
+1. Run [`get_proxy_perf.sh`](get_proxy_perf.sh) to get the profiling svg. The following command collects samples at `99Hz` for `20s`. The svg file should be created under `flameoutput` dir
 
     ```plain
-    ./get_proxy_perf.sh -p svc05-0-7-564865d756-pvjhn -n service-graph05 -s 177 -t 20
+    ./get_proxy_perf.sh -p svc05-0-4-0-67bff5dbbf-grl94 -n service-graph05 -d 20 -f 99
     ...
     [ perf record: Woken up 1 times to write data ]
     [ perf record: Captured and wrote 0.061 MB /etc/istio/proxy/perf.data (74 samples) ]

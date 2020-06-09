@@ -191,7 +191,7 @@ withRetriesMaxTime() {
 #   OR checkIfDeleted namespace istio-system
 checkIfDeleted() {
     local resp
-    if [ -n "${3}" ]; then
+    if [[ -n "${3}" ]]; then
         resp=$( kubectl get "${1}" -n "${3}" "${2}" 2>&1 )
     else
         resp=$( kubectl get "${1}" "${2}" 2>&1 )
@@ -212,7 +212,7 @@ deleteWithWait() {
 
 installIstioAtVersionUsingHelm() {
     writeMsg "helm templating then applying new yaml using version ${2} from ${3}."
-    if [ -n "${AUTH_ENABLE}" ]; then
+    if [[ -n "${AUTH_ENABLE}" ]]; then
         echo "Auth is enabled, generating manifest with auth."
         auth_opts="--set global.mtls.enabled=true --set global.controlPlaneSecurityEnabled=true "
     fi
@@ -325,7 +325,7 @@ runFortioLoadCommand() {
 
 waitForExternalRequestTraffic() {
     echo "Waiting for external traffic to complete"
-    while [ ! -f "${EXTERNAL_FORTIO_DONE_FILE}" ]; do
+    while [[ ! -f "${EXTERNAL_FORTIO_DONE_FILE}" ]]; do
         sleep 10
     done
 }
@@ -356,7 +356,7 @@ _waitForIngress() {
     INGRESS_HOST=$(kubectl -n "${ISTIO_NAMESPACE}" get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     INGRESS_PORT=$(kubectl -n "${ISTIO_NAMESPACE}" get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
     INGRESS_ADDR=${INGRESS_HOST}:${INGRESS_PORT}
-    if [ -z "${INGRESS_HOST}" ]; then return 1; fi
+    if [[ -z "${INGRESS_HOST}" ]]; then return 1; fi
 }
 
 waitForIngress() {
@@ -379,7 +379,7 @@ _waitForPodsReady() {
             ready="false"
         fi
     done
-    if [  "${ready}" = "true" ]; then
+    if [[  "${ready}" = "true" ]]; then
         return 0
     fi
 
@@ -557,7 +557,7 @@ else
     echo "=== Errors found in internal traffic is within threshold ==="
 fi
 
-if [ -n "${failed}" ]; then
+if [[ -n "${failed}" ]]; then
     exit 1
 fi
 

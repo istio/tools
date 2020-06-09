@@ -14,7 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Exit immediately for non zero status
 set -e
+# Check unset variables
+set -u
+# Print commands
+set -x
 
 WD=$(dirname "${0}")
 WD=$(cd "${WD}" && pwd)
@@ -34,7 +39,7 @@ if [[ ! -d ${FLAMEDIR} ]]; then
 fi
 
 # Given output of `perf script` produce a flamegraph
-FILE=${1:?"perf script output"}
+FILE=${1:?"get_perfdata script output"}
 FILENAME=$(basename "${FILE}")
 BASE=$(echo "${FILENAME}" | cut -d '.' -f 1)
 SVGNAME="${BASE}.svg"
@@ -42,7 +47,5 @@ SVGNAME="${BASE}.svg"
 mkdir -p "${WD}/flameoutput"
 "${FLAMEDIR}/stackcollapse-perf.pl" "${FILE}" | c++filt -n | "${FLAMEDIR}/flamegraph.pl" --cp > "./flameoutput/${SVGNAME}"
 
-echo "Wrote ${SVGNAME}"
-if [[ -n "${BUCKET}" ]];then
-    gsutil cp "${SVGNAME}" "${BUCKET}"
-fi
+echo "Wrote CPU flame graph for istio-proxy ${SVGNAME}"
+
