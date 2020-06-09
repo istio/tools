@@ -1,0 +1,12 @@
+image:
+  hub: quay.io/prometheus/alertmanager
+  tag: v0.20.0
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+## External URL which can access alertmanager
+baseURL: "http://localhost:9093"
+
+configFileName: alertmanager.yml
+resources: {}

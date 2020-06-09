@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alertmanager-main
+  namespace: istio-prometheus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    alertmanager: main
+  name: alertmanager-main
+  namespace: istio-prometheus
+spec:
+  ports:
+    - name: web
+      port: 9093
+      targetPort: web
+  selector:
+    alertmanager: main
+    app: alertmanager
+  sessionAffinity: ClientIP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: alertmanager
+  name: alertmanager
+  namespace: istio-prometheus
+spec:
+  endpoints:
+    - interval: 30s
+      port: web
+  selector:
+    matchLabels:
+      alertmanager: main
+---

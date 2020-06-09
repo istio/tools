@@ -1,0 +1,22 @@
+apiVersion: v1
+data: {}
+kind: Secret
+metadata:
+  name: alertmanager-main
+  namespace: istio-prometheus
+stringData:
+  alertmanager.yaml: |-
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'test'
+    receivers:
+      - name: 'test'
+        webhook_configs:
+          - url: 'http://127.0.0.1:5001/'
+type: Opaque
+---

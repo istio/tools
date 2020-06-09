@@ -1,0 +1,11 @@
+apiVersion: v1
+name: istio-canary-upgrader
+version: 1.0
+description: Helm chart for istio canary upgrader
+keywords:
+  - istio
+  - performance
+sources:
+  - http://github.com/istio/istio
+engine: gotpl
+icon: https://istio.io/favicons/android-192x192.png

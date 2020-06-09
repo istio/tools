@@ -16,6 +16,15 @@ metadata:
   name: prometheus
   namespace: istio-prometheus
 spec:
+  alerting:
+    alertmanagers:
+      - name: alertmanager-main
+        namespace: istio-prometheus
+        port: web
+  ruleSelector:
+    matchLabels:
+      role: prometheus-example-rules
+      prometheus: example
   image: "docker.io/prom/prometheus:v2.17.2"
   version: v2.17.2
   retention: 72h
