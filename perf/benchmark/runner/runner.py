@@ -25,6 +25,7 @@ import uuid
 import sys
 import tempfile
 import time
+import multiprocessing
 from subprocess import getoutput
 from urllib.parse import urlparse
 import yaml
@@ -34,7 +35,7 @@ NAMESPACE = os.environ.get("NAMESPACE", "twopods-istio")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
 POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4"
-
+processes = []
 
 def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
@@ -192,7 +193,10 @@ class Fortio:
     def execute_sidecar_mode(self, sidecar_mode, load_gen_type, load_gen_cmd, sidecar_mode_func, labels, perf_label_suffix):
         print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
         if load_gen_type == "fortio":
-            kubectl_exec(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode))
+            print("p1 ++++++++++")
+            p = multiprocessing.Process(target=kubectl_exec, args=[self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode)])
+            p.start()
+            processes.append(p)
         elif load_gen_type == "nighthawk":
             run_nighthawk(self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode), labels + "_" + sidecar_mode)
 
@@ -376,8 +380,11 @@ def run_perf(pod, labels, duration, frequency):
         frequency = 99
     os.environ["PERF_DATA_FILENAME"] = labels + "_perf.data"
     print(os.environ["PERF_DATA_FILENAME"])
-    run_command_sync(LOCAL_FLAME_PROXY_FILE_PATH + " -p {pod} -n {namespace} -d {duration} -f {frequency}".format(
-        pod=pod, namespace=NAMESPACE, duration=duration, frequency=frequency))
+    print("p2 ++++++++++")
+    p = multiprocessing.Process(target=run_command_sync, args=[LOCAL_FLAME_PROXY_FILE_PATH + " -p {pod} -n {namespace} -d {duration} -f {frequency}".format(
+        pod=pod, namespace=NAMESPACE, duration=duration, frequency=frequency)])
+    p.start()
+    processes.append(p)
 
 
 def validate_job_config(job_config):
