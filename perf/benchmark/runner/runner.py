@@ -61,8 +61,6 @@ def run_command(command):
 
 def run_command_sync(command):
     op = getoutput(command)
-    print("==============")
-    print(command)
     return op.strip()
 
 
@@ -200,7 +198,6 @@ class Fortio:
 
         if self.perf_record and len(perf_label_suffix) > 0:
             run_perf(
-                self.mesh,
                 self.server.name,
                 labels + perf_label_suffix,
                 duration=40,
@@ -372,7 +369,11 @@ LOCAL_FLAME_PROXY_FILE_PATH = LOCAL_FLAMEDIR + PERF_PROXY_FILE
 LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
 
 
-def run_perf(pod, labels, duration=40, frequency=99):
+def run_perf(pod, labels, duration, frequency):
+    if duration is None:
+        duration = 40
+    if frequency is None:
+        frequency = 99
     os.environ["PERF_DATA_FILENAME"] = labels + "_perf.data"
     print(os.environ["PERF_DATA_FILENAME"])
     run_command_sync(LOCAL_FLAME_PROXY_FILE_PATH + " -p {pod} -n {namespace} -d {duration} -f {frequency}".format(
