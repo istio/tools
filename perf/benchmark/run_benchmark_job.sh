@@ -63,7 +63,7 @@ setup_e2e_cluster
 # Step 2: install Istio
 # Setup release info
 BRANCH="latest"
-if [ "${GIT_BRANCH}" != "master" ];then
+if [[ "${GIT_BRANCH}" != "master" ]];then
   BRANCH_NUM=$(echo "$GIT_BRANCH" | cut -f2 -d-)
   BRANCH="${BRANCH_NUM}-dev"
 fi
@@ -153,6 +153,21 @@ trap exit_handling EXIT
 
 # Step 8: run Istio performance test
 # Helper functions
+function enable_perf_record() {
+  nodes=$(kubectl get nodes -o=jsonpath='{.items[*].metadata.name}')
+
+  for node in $nodes
+  do
+    gcloud compute ssh --command "sudo sysctl kernel.perf_event_paranoid=-1;sudo sysctl kernel.kptr_restrict=0;exit" \
+    --zone us-central1-f bootstrap@"$node"
+  done
+}
+
+function collect_flame_graph() {
+    FLAME_OUTPUT_DIR="${WD}/flame/flameoutput/"
+    gsutil -q cp -r "${FLAME_OUTPUT_DIR}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/flamegraphs"
+}
+
 function collect_metrics() {
   # shellcheck disable=SC2155
   export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
@@ -222,6 +237,8 @@ CONFIG_DIR="${WD}/configs/istio"
 # Read through perf test configuration file to determine which group of test configuration to run or not run
 read_perf_test_conf "${WD}/configs/run_perf_test.conf"
 
+enable_perf_record
+
 for dir in "${CONFIG_DIR}"/*; do
     # Get the last directory name after splitting dir path by '/', which is the configuration dir name
     config_name="$(basename "${dir}")"
@@ -277,6 +294,7 @@ for dir in "${CONFIG_DIR}"/*; do
        source postrun.sh
     fi
 
+    collect_flame_graph
     # TODO: can be added to shared_postrun.sh
 
     # restart proxy after each group
