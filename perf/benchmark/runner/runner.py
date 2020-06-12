@@ -213,6 +213,9 @@ class Fortio:
                 duration=self.duration,
                 frequency=self.frequency)
 
+        for process in processes:
+            process.join()
+
     def generate_test_labels(self, conn, qps, size):
         size = size or self.size
         labels = self.run_id
@@ -333,11 +336,8 @@ class Fortio:
             workers = 1
             load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, duration, labels)
 
-        perf_label = ""
-        sidecar_mode = ""
-        sidecar_mode_func = None
-
         if self.run_baseline:
+            perf_label = "_srv_baseline"
             sidecar_mode = "baseline"
             sidecar_mode_func = self.baseline
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
@@ -367,17 +367,21 @@ class Fortio:
         if self.run_ingress:
             perf_label = "_srv_ingress"
             print('-------------- Running in ingress mode --------------')
-            kubectl_exec(self.client.name, self.ingress(load_gen_cmd))
+            p = multiprocessing.Process(target=kubectl_exec,
+                                        args=[self.client.name, self.ingress(load_gen_cmd)])
+            p.start()
+            processes.append(p)
+
             if self.perf_record:
                 run_perf(
                     self.mesh,
                     self.server.name,
-                    labels + "_srv_ingress",
+                    labels + perf_label,
                     duration=self.duration,
                     frequency=self.frequency)
 
-        for process in processes:
-            process.join()
+            for process in processes:
+                process.join()
 
 
 WD = os.getcwd()
