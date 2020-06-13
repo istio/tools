@@ -156,7 +156,7 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
             duration = min(gd['ActualDuration'] - min_duration,
                            METRICS_SUMMARY_DURATION)
             p = prom.Prom(promUrl, duration, start=prom_start)
-            prom_metrics = p.fetch_cpu_and_mem()
+            prom_metrics = p.fetch_istio_proxy_cpu_and_mem()
             if not prom_metrics:
                 print("... Not found")
                 continue

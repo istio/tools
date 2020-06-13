@@ -96,6 +96,13 @@ class Prom:
             metric_by_deployment_by_container,
             to_mega_bytes)
 
+    def fetch_istio_proxy_cpu_and_mem(self):
+        out = flatten(self.fetch_istio_proxy_cpu_usage(),
+                      "cpu_mili", aggregate=self.aggregate)
+        out.update(flatten(self.fetch_istio_proxy_memory_usage(),
+                           "mem_MB", aggregate=self.aggregate))
+        return out
+
     def fetch_cpu_by_container(self):
         return self.fetch(
             'irate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
