@@ -237,7 +237,7 @@ CONFIG_DIR="${WD}/configs/istio"
 # Read through perf test configuration file to determine which group of test configuration to run or not run
 read_perf_test_conf "${WD}/configs/run_perf_test.conf"
 
-enable_perf_record
+#enable_perf_record
 
 for dir in "${CONFIG_DIR}"/*; do
     # Get the last directory name after splitting dir path by '/', which is the configuration dir name
