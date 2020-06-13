@@ -64,7 +64,7 @@ class Prom:
             self.headers["Host"] = host
         self.aggregate = aggregate
 
-    def fetch(self, query, groupby=None, xform=None):
+    def query_prom(self, query):
         resp = requests.get(self.url + "/api/v1/query_range", {
             "query": query,
             "start": self.start,
@@ -76,6 +76,12 @@ class Prom:
             raise Exception(str(resp.text))
 
         data = resp.json()
+        print("=============")
+        print(data)
+        return data
+
+    def fetch(self, query, groupby=None, xform=None):
+        data = self.query_prom(query)
         return compute_min_max_avg(
             data,
             groupby=groupby,
@@ -83,6 +89,7 @@ class Prom:
             aggregate=self.aggregate)
 
     def fetch_istio_proxy_cpu_usage(self):
+        print("cpu==============")
         return self.fetch(
             'sum(rate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name="istio-proxy"}[1m])) '
             'by (container_name)',
@@ -90,6 +97,7 @@ class Prom:
             to_mili_cpus)
 
     def fetch_istio_proxy_memory_usage(self):
+        print("mem===============")
         return self.fetch(
             'sum(rate(container_memory_usage_bytes{job = "kubernetes-cadvisor", container_name = "istio-proxy"}[1m])) '
             'by(container_name)',
