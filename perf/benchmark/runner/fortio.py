@@ -112,7 +112,7 @@ METRICS_END_SKIP_DURATION = 30
 METRICS_SUMMARY_DURATION = 180
 
 
-def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
+def sync_fortio(url, table, selector=None, promUrl="http://localhost:9090", csv=None, csv_output=""):
     listurl = url + "/fortio/data/"
     listdata = requests.Response()
     try:
@@ -129,6 +129,7 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
     dataurl = url + "/data/"
     data = []
     for fl in convert_data_to_list(listdata.text):
+        print("+++++++++++")
         gd = fetch(dataurl + fl)
         if gd is None:
             continue
@@ -141,6 +142,7 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
                 continue
 
         if promUrl:
+            print("=================")
             sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
             print("Fetching prometheus metrics for", sd, gd["Labels"])
             if gd['errorPercent'] > 10:
@@ -236,10 +238,8 @@ def get_parser():
     parser.add_argument(
         "--csv",
         help="columns in the csv file",
-        default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_telemetry_mixer,"
-                "cpu_mili_max_telemetry_mixer,mem_MB_max_telemetry_mixer,cpu_mili_avg_fortioserver_deployment_proxy,"
-                "cpu_mili_max_fortioserver_deployment_proxy,mem_MB_max_fortioserver_deployment_proxy,cpu_mili_avg_"
-                "ingressgateway_proxy,cpu_mili_max_ingressgateway_proxy,mem_MB_max_ingressgateway_proxy")
+        default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,"
+                "cpu_mili_avg_istio_proxy,mem_MB_avg_istio_proxy")
     parser.add_argument(
         "--csv_output",
         help="output path of csv file")
