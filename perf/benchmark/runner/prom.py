@@ -82,6 +82,20 @@ class Prom:
             xform=xform,
             aggregate=self.aggregate)
 
+    def fetch_istio_proxy_cpu_usage(self):
+        return self.fetch(
+            'sum(rate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name="istio-proxy"}[1m])) '
+            'by (container_name)',
+            metric_by_deployment_by_container,
+            to_mili_cpus)
+
+    def fetch_istio_proxy_memory_usage(self):
+        return self.fetch(
+            'sum(rate(container_memory_usage_bytes{job = "kubernetes-cadvisor", container_name = "istio-proxy"}[1m])) '
+            'by(container_name)',
+            metric_by_deployment_by_container,
+            to_mega_bytes)
+
     def fetch_cpu_by_container(self):
         return self.fetch(
             'irate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
@@ -323,15 +337,13 @@ def flatten(data, metric, aggregate):
 
     return res
 
+
 # convert float bytes to in megabytes
-
-
 def to_mega_bytes(m):
     return int(m / (1024 * 1024))
 
+
 # convert float cpus to int mili cpus
-
-
 def to_mili_cpus(c):
     return int(c * 1000.0)
 
@@ -341,9 +353,8 @@ DEPL_MAP = {
     "fortioclient": "fortio_deployment"
 }
 
+
 # returns deployment_name/container_name
-
-
 def metric_by_deployment_by_container(metric):
     depl = metric_by_deployment(metric)
     if depl is None:
@@ -363,14 +374,12 @@ Watched_Deployments = set(["istio-pilot",
                            "fortioclient",
                            "istio-ingressgateway"])
 
+
 # returns deployment_name
-
-
 def metric_by_deployment(metric):
     depl = metric['pod_name'].rsplit('-', 2)[0]
     if depl not in Watched_Deployments:
         return None
-
     return depl
 
 
