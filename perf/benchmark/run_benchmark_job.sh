@@ -153,16 +153,6 @@ trap exit_handling EXIT
 
 # Step 8: run Istio performance test
 # Helper functions
-function enable_perf_record() {
-  nodes=$(kubectl get nodes -o=jsonpath='{.items[*].metadata.name}')
-
-  for node in $nodes
-  do
-    gcloud compute ssh --command "sudo sysctl kernel.perf_event_paranoid=-1;sudo sysctl kernel.kptr_restrict=0;exit" \
-    --zone us-central1-f bootstrap@"$node"
-  done
-}
-
 function collect_flame_graph() {
     FLAME_OUTPUT_DIR="${WD}/flame/flameoutput/"
     gsutil -q cp -r "${FLAME_OUTPUT_DIR}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/flamegraphs"
@@ -236,8 +226,6 @@ echo "Start to run perf benchmark test, all collected data will be dumped to GCS
 CONFIG_DIR="${WD}/configs/istio"
 # Read through perf test configuration file to determine which group of test configuration to run or not run
 read_perf_test_conf "${WD}/configs/run_perf_test.conf"
-
-#enable_perf_record
 
 for dir in "${CONFIG_DIR}"/*; do
     # Get the last directory name after splitting dir path by '/', which is the configuration dir name
