@@ -42,8 +42,8 @@ status:
 )
 
 // Build CRDs based on the configuration and schema.
-//nolint:staticcheck
-func completeCRD(c *apiextv1beta1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap) {
+//nolint:staticcheck,interfacer
+func completeCRD(c *apiextv1beta1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap, statusSchema *openapi.OrderedMap) {
 
 	for i, version := range c.Spec.Versions {
 
@@ -61,12 +61,30 @@ func completeCRD(c *apiextv1beta1.CustomResourceDefinition, versionSchemas map[s
 			Type: "object",
 			Properties: map[string]apiextv1beta1.JSONSchemaProps{
 				"spec": *j,
-				"status": {
-					Type:                   "object",
-					XPreserveUnknownFields: pointer.BoolPtr(true),
-				},
 			},
 		}}
+
+		// only add status schema validation when status subresource is enabled in the CRD.
+		if c.Spec.Subresources.Status != nil {
+			status := &apiextv1beta1.JSONSchemaProps{}
+			if statusSchema == nil {
+				status = &apiextv1beta1.JSONSchemaProps{
+					Type:                   "object",
+					XPreserveUnknownFields: pointer.BoolPtr(true),
+				}
+			} else {
+				o, err := statusSchema.MarshalJSON()
+				if err != nil {
+					log.Fatal("Cannot marshal OpenAPI schema for the status field")
+				}
+
+				if err = json.Unmarshal(o, status); err != nil {
+					log.Fatal("Cannot unmarshal raw status schema to JSONSchemaProps")
+				}
+			}
+
+			version.Schema.OpenAPIV3Schema.Properties["status"] = *status
+		}
 
 		fmt.Printf("Checking if the schema is structural for %v \n", c.Name)
 		if err = validateStructural(version.Schema.OpenAPIV3Schema); err != nil {

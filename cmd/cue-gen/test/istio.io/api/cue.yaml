@@ -1,0 +1,16 @@
+module: istio.io/api
+
+openapi:
+  selfContained: true
+  fieldFilter: "min.*|max.*"
+
+directories:
+  foo/v1alpha3:
+    - mode: perFile
+  foo/v1beta1:
+    - mode: perFile
+  meta/v1beta1:
+    - mode: perFile
+
+crd:
+  dir: ../../generated/kubernetes/
