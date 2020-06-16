@@ -154,8 +154,8 @@ trap exit_handling EXIT
 # Step 8: run Istio performance test
 # Helper functions
 function collect_flame_graph() {
-    FLAME_OUTPUT_DIR="${WD}/flame/flameoutput/"
-    gsutil -q cp -r "${FLAME_OUTPUT_DIR}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/flamegraphs"
+    FLAME_OUTPUT_DIR="${WD}/flame/flameoutput"
+    gsutil -q cp -r "${FLAME_OUTPUT_DIR}/*.svg" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/flamegraphs"
 }
 
 function collect_metrics() {
