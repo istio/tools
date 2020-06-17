@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: am-webhook
+  namespace: istio-prometheus
+  labels:
+    app: am-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: am-webhook
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: am-webhook
+    spec:
+      containers:
+        - name: am-webhook
+          image: richardwxn/alertmanagerwebhook:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 10m
+              memory: 30Mi
+            requests:
+              cpu: 10m
+              memory: 30Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: am-webhook
+  labels:
+    name: am-webhook
+  namespace: istio-prometheus
+spec:
+  type: NodePort
+  ports:
+    - port: 5001
+      targetPort: 5001
+      protocol: TCP
+      name: http
+  selector:
+    app: am-webhook

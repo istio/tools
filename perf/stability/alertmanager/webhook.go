@@ -25,6 +25,7 @@ import (
 
 func webhook(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+	fmt.Println("handling")
 	data := template.Data{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Fatalf(err.Error())

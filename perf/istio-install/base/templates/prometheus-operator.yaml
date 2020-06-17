@@ -189,8 +189,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   labels:
-    prometheus: example
-    role: alert-rules
+    prometheus: prometheus
+    role: prometheus-example-rules
   name: prometheus-example-rules
   namespace: istio-prometheus
 spec:

@@ -44,9 +44,10 @@ download_release
 install_istioctl
 
 # verify whether canary one exist
-podc=$(kubectl -n istio-system get pods -lapp=istiod | grep -c istiod)
-svcc=$(kubectl -n istio-system get svc -lapp=istiod | grep -c istiod)
-if [[ ${podc} != 2 ]] || [[ ${svcc} != 2 ]]; then
+podc=$(kubectl -n istio-system get pods -l istio.io/rev=${rev} | grep -c istiod)
+svcc=$(kubectl -n istio-system get svc -l istio.io/rev=${rev} | grep -c istiod)
+if [[ ${podc} == 0 ]] || [[ ${svcc} == 0 ]]; then
+  echo "canary deployment not available"
   exit 1
 fi
 allns=$(kubectl get ns -o jsonpath="{.items[*].metadata.name}")

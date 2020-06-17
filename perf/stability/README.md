@@ -4,6 +4,22 @@ This directory providestests that exercise various Istio features to ensure stab
 
 The intent of these tests is to be run continuously for extend periods of time, to ensure features are stable over long periods of time and in real world scenarios, which differentiates them from integration tests.
 
+## Run Release Qualification Test
+
+The long running test would deploy service graphs application with 15 namespaces in the cluster and run continuously. Prometheus/Alertmanager would be installed and managed by Prometheus Operator, Grafana would be installed via sample addon config yaml.
+
+Abnormal metrics breaking SLO and suspicious logs would be recorded in the alertmanager-webhook pod, corresponding notification would be pushed to slack channel #stability-test
+
+If you want to run against a public release(stable or dev), specify the target release tag/version/url, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio).
+
+For example, run with istio 1.5.4
+
+`./long_running.sh 1.5.4`
+
+If for CVE fixes release or other releases from private repos, then you have to manually install Istio first with default prometheus instance disabled and specify the local path to the release bundles to install some extra prometheus configs needed, e.g. 
+
+`LOCAL_ISTIO_PATH=/Users/iamwen/Downloads/istio-1.5.5 ./long_running.sh`
+
 ## Setup Tests
 
 To run the tests, run `make stability`. To delete them, run `make clean-stability`.

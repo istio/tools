@@ -23,6 +23,7 @@ set -eux
 # download latest istio release and install
 export TAG="latest"
 export DNS_DOMAIN="fake-dns.org"
+export LOCAL_ISTIO_PATH="${LOCAL_ISTIO_PATH}"
 ${ROOT}/istio-install/setup_istio.sh
 
 # setup service graph
@@ -39,10 +40,10 @@ popd
 
 export NOT_INJECTED="True"
 # deploy alertmanager related resources
-go run ./alertmanager/webhook.go &>/dev/null &
-./setup_test.sh alertmanager
+NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager
 
+# TODO(richardwxn): this and other stability scenario jobs would be added as phase2 effort.
 # deploy canary upgrader
-kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh
-./setup_test.sh canary-upgrader
+# kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh
+#./setup_test.sh canary-upgrader
 
