@@ -34,7 +34,7 @@ function usage() {
   exit 1
 }
 
-while getopts p:n:d:f: arg ; do
+while getopts p:n:d: arg ; do
   case "${arg}" in
     p) POD_NAME="${OPTARG}";;
     n) POD_NAMESPACE="${OPTARG}";;
@@ -71,6 +71,6 @@ trap 'kill ${PF_PID}' EXIT
 echo "Start profiling..."
 PERF_FILE="${TMP_DIR}/${PPROF_FILENAME}"
 go tool pprof -seconds "${PPROF_DURATION}" -raw -output="${PERF_FILE}" http://127.0.0.1:8080/debug/pprof/profile
-#
+
 echo "Generating svg file ${PPROF_FILENAME}"
 COLLAPSE_SCRIPT="go" "${WD}/flame.sh" "${PERF_FILE}"
