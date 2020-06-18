@@ -142,9 +142,10 @@ func loadConfig(filename string) (c *Config, err error) {
 	}
 
 	if c.Crd == nil {
-		c.Crd = &CrdGen{
-			CrdConfigs: map[string]*CrdConfig{},
-		}
+		c.Crd = &CrdGen{}
+	}
+	if c.Crd.CrdConfigs == nil {
+		c.Crd.CrdConfigs = map[string]*CrdConfig{}
 	}
 
 	if *verbose && *crd {

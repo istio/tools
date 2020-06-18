@@ -1,0 +1,1 @@
+// cue.mod file for testing, so that istio module can be pointed at this test directory.

@@ -132,6 +132,8 @@ var (
 
 	snake = flag.String("snake", "", "comma-separated fields to add a snake case")
 
+	status = flag.String("status", "", "status field schema name to use for CRDs; only accepted when crd flag is true")
+
 	frontMatterMap map[string][]string
 )
 
@@ -415,6 +417,11 @@ func (x *builder) genCRD() {
 		}
 	}
 
+	statusSchema, ok := schemas[*status]
+	if !ok && *status != "" {
+		fmt.Println("Status schema not found, thus not including status schema in CRDs.")
+	}
+
 	for c, v := range x.Config.Crd.CrdConfigs {
 
 		group := c[:strings.LastIndex(c, ".")]
@@ -436,7 +443,7 @@ func (x *builder) genCRD() {
 			versionSchemas[version.Name] = sc
 		}
 
-		completeCRD(v.CustomResourceDefinition, versionSchemas)
+		completeCRD(v.CustomResourceDefinition, versionSchemas, statusSchema)
 	}
 
 	x.writeCRDFiles()

@@ -1,0 +1,36 @@
+// Copyright Istio Authors
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+syntax = "proto3";
+
+package istio.foo.v1beta1;
+
+option go_package = "istio.io/api/foo/v1beta1";
+
+// Bar is a test CRD
+//
+// <!-- crd generation tags
+// +cue-gen:Bar:groupName:foo.istio.io
+// +cue-gen:Bar:version:v1beta1
+// +cue-gen:Bar:annotations:example.com=example
+// +cue-gen:Bar:labels:app=foo
+// +cue-gen:Bar:subresource:status
+// +cue-gen:Bar:scope:Namespaced
+// +cue-gen:Bar:resource:categories=istio-io,foo-istio-io,shortNames=b
+// +cue-gen:Bar:preserveUnknownFields:false
+// -->
+message Bar {
+  uint32 fieldA = 1;
+  string fieldB = 2;
+}
