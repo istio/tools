@@ -28,9 +28,9 @@ function usage() {
     e.g.
       ./get_istiod_pprof.sh -p istiod-67bff5dbbf-grl94 -n istio-system -d 20
 
-    -p name of the pod.
-    -n namespace of the given pod.
-    -d time duration of profiling in second."
+    -p name of the pod; defaults to the first pod with label app=istiod in the given namespace
+    -n namespace of the given pod; default is istio-system
+    -d time duration of profiling in second; default is 20 seconds"
   exit 1
 }
 
@@ -43,8 +43,8 @@ while getopts p:n:d: arg ; do
   esac
 done
 
-POD_NAME=${POD_NAME:?"pod name must be provided"}
-POD_NAMESPACE=${POD_NAMESPACE:?"pod namespace must be provided"}
+POD_NAMESPACE=${POD_NAMESPACE:-"istio-system"}
+POD_NAME=${POD_NAME:-"$(kubectl -n "$POD_NAMESPACE" get pods -l app=istiod -ojsonpath="{.items[0].metadata.name}")"}
 PPROF_DURATION=${PPROF_DURATION:-"20"}
 PPROF_DATA_FILENAME=${PPROF_DATA_FILENAME:-"profile.pprof"}
 
