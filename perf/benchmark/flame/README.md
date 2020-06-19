@@ -74,10 +74,11 @@ Flame graphs are created from data collected by pprof profiles
 1. (Optional) Find the istiod pod you want to profile using kubectl and specify the pod and namesapce in the following command usting the `-p` and `-n` flags.
    By default, the first pod in istio-system with label `app=istiod` will be used.
 
-1. Run [`get_istiod_pprof.sh`](get_istiod_pprof.sh) to generate the flame graph svg. The svg file should be created under `flameoutput` dir
+1. Run [`get_istiod_pprof.sh`](get_istiod_pprof.sh) to generate the flame graph svg. The svg file should be created under `flameoutput` dir.
+   The pod (-p) and namespace (-n) flags are optional. If omitted the first istiod pod in istio-system will be profiled.
 
     ```plain
-    ./get_istiod_pprof.sh
+    ./get_istiod_pprof.sh -p istiod-67bff5dbbf-grl94 -n istio-system -d 20
     Port forwarding debug port...
     ...
     Start profiling...
