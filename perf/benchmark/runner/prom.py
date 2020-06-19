@@ -39,7 +39,6 @@ if os.environ.get("DEBUG", "0") != "0":
 
 class Prom:
     # url: base url for prometheus
-    #
     def __init__(
             self,
             url,
@@ -64,24 +63,37 @@ class Prom:
             self.headers["Host"] = host
         self.aggregate = aggregate
 
-    def query_prom(self, query):
+    def fetch_by_query(self, query):
         resp = requests.get(self.url + "/api/v1/query_range", {
             "query": query,
             "start": self.start,
             "end": self.end,
-            "step": "15"
+            "step": 15
         }, headers=self.headers)
 
         if not resp.ok:
-            raise Exception(str(resp.text))
+            raise Exception(str(resp))
 
-        data = resp.json()
-        print("=============")
-        print(data)
-        return data
+        return resp.json()
+
+    # We query from start_time to end_time and make 15s as the time interval to note down a data point
+    # The function is to calculate the average of all the data points we get
+    def get_average_within_query_time_range(self, data, resource_type):
+        if data["data"]["result"]:
+            data_points_list = data["data"]["result"][0]["values"]
+            data_sum = 0
+            for data_point in data_points_list:
+                data_sum += float(data_point[1])
+            data_avg = float(data_sum / len(data_points_list))
+            print(data_avg)
+            if resource_type == "cpu":
+                return to_mili_cpus(data_avg)
+            else:
+                return to_mega_bytes(data_avg)
+        return -1
 
     def fetch(self, query, groupby=None, xform=None):
-        data = self.query_prom(query)
+        data = self.fetch_by_query(query)
         return compute_min_max_avg(
             data,
             groupby=groupby,
@@ -89,26 +101,27 @@ class Prom:
             aggregate=self.aggregate)
 
     def fetch_istio_proxy_cpu_usage(self):
-        print("cpu==============")
-        return self.fetch(
-            'sum(rate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name="istio-proxy"}[1m])) '
-            'by (container_name)',
-            metric_by_deployment_by_container,
-            to_mili_cpus)
+        cpu_query = 'sum(rate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name="istio-proxy"}[1m])) by (container_name)'
+        data = self.fetch_by_query(cpu_query)
+        avg_cpu = self.get_average_within_query_time_range(data, "cpu")
+        if avg_cpu == -1:
+            return []
+        return avg_cpu
 
     def fetch_istio_proxy_memory_usage(self):
-        print("mem===============")
-        return self.fetch(
-            'sum(rate(container_memory_usage_bytes{job = "kubernetes-cadvisor", container_name = "istio-proxy"}[1m])) '
-            'by(container_name)',
-            metric_by_deployment_by_container,
-            to_mega_bytes)
+        mem_query = 'container_memory_usage_bytes{job = "kubernetes-cadvisor", container_name="istio-proxy"}'
+        data = self.fetch_by_query(mem_query)
+        print(data)
+        avg_mem = self.get_average_within_query_time_range(data, "mem")
+        print(avg_mem)
+        if avg_mem == -1:
+            return []
+        return avg_mem
 
     def fetch_istio_proxy_cpu_and_mem(self):
-        out = flatten(self.fetch_istio_proxy_cpu_usage(),
-                      "cpu_mili", aggregate=self.aggregate)
-        out.update(flatten(self.fetch_istio_proxy_memory_usage(),
-                           "mem_MB", aggregate=self.aggregate))
+        out = {}
+        out["cpu_mili_avg_istio_proxy"] = self.fetch_istio_proxy_cpu_usage()
+        out["mem_Mi_avg_istio_proxy"] = self.fetch_istio_proxy_memory_usage()
         return out
 
     def fetch_cpu_by_container(self):
@@ -127,21 +140,8 @@ class Prom:
         out = flatten(self.fetch_cpu_by_container(),
                       "cpu_mili", aggregate=self.aggregate)
         out.update(flatten(self.fetch_memory_by_container(),
-                           "mem_MB", aggregate=self.aggregate))
+                           "mem_Mi", aggregate=self.aggregate))
         return out
-
-    def fetch_by_query(self, query):
-        resp = requests.get(self.url + "/api/v1/query_range", {
-            "query": query,
-            "start": self.start,
-            "end": self.end,
-            "step": str(self.nseconds)
-        }, headers=self.headers)
-
-        if not resp.ok:
-            raise Exception(str(resp))
-
-        return resp.json()
 
     def fetch_num_requests_by_response_code(self, code):
         data = self.fetch_by_query(
@@ -349,18 +349,17 @@ def flatten(data, metric, aggregate):
             res[metric + "_max_" + grp] = summary[2]
         else:
             res[metric + '_' + grp] = summary
-
     return res
 
 
 # convert float bytes to in megabytes
-def to_mega_bytes(m):
-    return int(m / (1024 * 1024))
+def to_mega_bytes(mem):
+    return float(mem / (1024 * 1024))
 
 
 # convert float cpus to int mili cpus
-def to_mili_cpus(c):
-    return int(c * 1000.0)
+def to_mili_cpus(cpu):
+    return float(cpu * 1000.0)
 
 
 DEPL_MAP = {
