@@ -10,7 +10,7 @@
 
 This document shows how to gather performance data from within the `istio-proxy` container.
 
-## Setup Perf tool
+## Setup Perf tool (Envoy)
 
 Flame graphs are created from data collected using linux `perf_events` by the `perf` tool.
 
@@ -65,4 +65,29 @@ Flame graphs are created from data collected using linux `perf_events` by the `p
     ...
     generating svg file svc05-0-7-564865d756-pvjhn-2020-01-29-22-34-19.perf
     ...
+    ```
+
+## Run pprof tool (istiod)
+
+Flame graphs are created from data collected by pprof profiles
+
+1. (Optional) Find the istiod pod you want to profile using kubectl and specify the pod and namesapce in the following command usting the `-p` and `-n` flags.
+   By default, the first pod in istio-system with label `app=istiod` will be used.
+
+1. Run [`get_istiod_pprof.sh`](get_istiod_pprof.sh) to generate the flame graph svg. The svg file should be created under `flameoutput` dir.
+   The pod (-p) and namespace (-n) flags are optional. If omitted the first istiod pod in istio-system will be profiled.
+
+    ```plain
+    ./get_istiod_pprof.sh -p istiod-67bff5dbbf-grl94 -n istio-system -d 20
+    Port forwarding debug port...
+    ...
+    Start profiling...
+    ...
+    Fetching profile over HTTP from http://127.0.0.1:8080/debug/pprof/profile?seconds=20
+    Please wait... (20s)
+    Handling connection for 8080
+    ...
+    Generating svg file istiod-85f8666f84-t524g_2020-06-18-09-45-39.pprof
+    ...
+    Wrote CPU flame graph istiod-85f8666f84-t524g_2020-06-18-09-45-39.svg
     ```

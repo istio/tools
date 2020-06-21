@@ -44,8 +44,10 @@ FILENAME=$(basename "${FILE}")
 BASE=$(echo "${FILENAME}" | cut -d '.' -f 1)
 SVGNAME="${BASE}.svg"
 
-mkdir -p "${WD}/flameoutput"
-"${FLAMEDIR}/stackcollapse-perf.pl" "${FILE}" | c++filt -n | "${FLAMEDIR}/flamegraph.pl" --cp > "./flameoutput/${SVGNAME}"
+COLLAPSE_SCRIPT="${COLLAPSE_SCRIPT:-"perf"}"
 
-echo "Wrote CPU flame graph for istio-proxy ${SVGNAME}"
+mkdir -p "${WD}/flameoutput"
+"${FLAMEDIR}/stackcollapse-${COLLAPSE_SCRIPT}.pl" "${FILE}" | c++filt -n | "${FLAMEDIR}/flamegraph.pl" --cp > "./flameoutput/${SVGNAME}"
+
+echo "Wrote CPU flame graph ${SVGNAME}"
 
