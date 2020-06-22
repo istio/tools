@@ -86,13 +86,9 @@ sudo pip3 install pandas bokeh
 
 ## Run performance tests
 
-The benchmarking script is located at [runner.py](./runner/runner.py). This script runs a set of [Fortio](http://fortio.org/) performance tests.
+The benchmarking script is located at [runner.py](./runner/runner.py). This script runs a set of [Fortio](http://fortio.org/) or [Nighthawk](https://github.com/envoyproxy/nighthawk) performance tests depending on the kind of LOAD_GEN_TYPE you set before.
 
-The test has three sidecar modes:
-
-1. `both` (default): Client and server sidecars are present
-1. `server-sidecar`: Only server sidecar is present.
-1. `baseline`: Client pod directly calls the server pod, no sidecars are present.
+The different sidecar modes and telemetry configurations of performance tests are described in the [Istio performance dashboard](https://perf.dashboard.istio.io/benchmarks/configs_measurements/) site.
 
 **How to run**:
 
@@ -105,7 +101,7 @@ python runner/runner.py --conn <conn> --qps <qps> --duration <duration> --OPTION
 1. run with config yaml
 
 ```bash
-python runner/runner.py --config_file ./configs/istio/mixer_latency.yaml
+python runner/runner.py --config_file ./configs/istio/mixer/latency.yaml
 ```
 
 Required fields to specified via CLI or config file:
@@ -113,6 +109,8 @@ Required fields to specified via CLI or config file:
 - `conn` = number of concurrent connections
 - `qps` = queries per second for each connection
 - `duration` = number of seconds to run each test for  (the minimum value for duration should be: 92 seconds)
+- `load_gen_type` = the traffic load generator type 
+- `--telemetry_mode` = the telemetry mode you enabled while installing Istio (mixer, none or telemetryv2)
 
 ```bash
 optional arguments:
@@ -121,6 +119,8 @@ optional arguments:
   --conn CONN           number of connections, comma separated list
   --qps QPS             qps, comma separated list
   --duration DURATION   duration in seconds of the extract
+  --load_gen_type LOAD_GEN_TYPE   
+                        traffic load generator type, can be either Fortio or Nighthawk
   --size SIZE           size of the payload
   --mesh MESH           istio or linkerd
   --telemetry_mode TELEMETRY_MODE
@@ -158,33 +158,33 @@ For example:
 ### Example 1
 
 ```bash
-python runner/runner.py --config_file ./configs/istio/mixer_latency.yaml
+python runner/runner.py --config_file ./configs/istio/mixer/latency.yaml
 ```
 
-- This will run with configuration specified in the mixer_latency.yaml
+- This will run with configuration specified in the /mixer/latency.yaml
 - Run with mixerv1 on and measure the latency
 
 ### Example 2
 
 ```bash
-python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidecar
+python runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseline --load_gen_type=fortio --telemetry_mode=v2-nullvm 
 ```
 
-- This will run separate tests for the `both` and `serversidecar` modes
-- Separate tests for 1 to 64 concurrent connections
+- This will run separate tests for the `both` and `baseline` modes with fortio as the load generator and testing telemetry enabled scenario
+- Separate tests for 2 to 64 concurrent connections
 - Each connection will send **1000** QPS
 - Each test will run for **240** seconds
 
 ### Example 3
 
 ```bash
-python runner/runner.py --conn 16,64 --qps 1000,4000 --duration 180 --serversidecar --baseline
+python runner.py --conn 16,64 --qps 1000,4000 --duration 180 --serversidecar --baseline --load_gen_type=nighthawk --telemetry_mode=none
 ```
 
 - 12 tests total, each for **180** seconds, with all combinations of:
 - **16** and **64** connections
 - **1000** and **4000** QPS
-- `both`, `serversidecar`, and `baseline` proxy modes
+- `both`, `serversidecar`, and `baseline` modes
 
 ### Example 4
 
@@ -192,16 +192,16 @@ Example 1 and 2 is to gather the latency results by increasing the number of con
 results, you should increasing the number of QPS, like:
 
 ```bash
-python runner/runner.py --conn 10  --qps 100,500,1000,2000,4000 --duration 240  --serversidecar --baseline
+python runner/runner.py --conn 10  --qps 100,500,1000,2000,4000 --duration 240 --load_gen_type=fortio --telemetry_mode=v2-nullvm
 ```
 
-### Example 5: flame graph
+### Example 5: CPU flame graph
 
 ```bash
-python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --perf=true
+python runner/runner.py --conn 10  --qps 100,500,1000,2000,4000 --duration 240 --load_gen_type=fortio --telemetry_mode=v2-nullvm --perf=true
 ```
 
-This will generate corresponding `xxx_perf.data.perf` file with its `.svg` flame graph in the `perf/benchmark/flame` repo.
+This will generate corresponding `.svg` flame graph in the `perf/benchmark/flame/flameoutput` repo.
 Here is the [sample output](https://github.com/istio/tools/tree/master/perf/benchmark/flame/example_flame_graph/example_output)
 
 ## [Optional] Disable Mixer
