@@ -41,6 +41,7 @@ SECRET_KEY = '0-k61x@nbmohu87^f!gql9ug1c*5(8k@ujeeme%cx4x=d@*=-f'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    '0.0.0.0',
     'localhost',
     'perf.dashboard.istio.io',
     gethostname(),
