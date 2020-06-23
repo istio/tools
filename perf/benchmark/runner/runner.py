@@ -104,8 +104,8 @@ class Fortio:
             qps=None,
             duration=None,
             frequency=None,
+            protocol_mode="http",
             size=None,
-            mode="http",
             telemetry_mode="mixer",
             perf_record=False,
             server="fortioserver",
@@ -128,7 +128,7 @@ class Fortio:
         self.size = size
         self.duration = duration
         self.frequency = frequency
-        self.mode = mode
+        self.protocol_mode = protocol_mode
         self.ns = NAMESPACE
         # bucket resolution in seconds
         self.r = "0.00005"
@@ -155,17 +155,17 @@ class Fortio:
             sys.exit("invalid mesh %s, must be istio or linkerd" % mesh)
 
     def get_protocol_uri_fragment(self):
-        return "https" if self.mode == "grpc" else "http"
+        return "https" if self.protocol_mode == "grpc" else "http"
 
     def compute_uri(self, svc, port_type):
         if self.load_gen_type == "fortio":
             basestr = "http://{svc}:{port}/echo?size={size}"
-            if self.mode == "grpc":
+            if self.protocol_mode == "grpc":
                 basestr = "-payload-size {size} {svc}:{port}"
-            return basestr.format(svc=svc, port=self.ports[self.mode][port_type], size=self.size)
+            return basestr.format(svc=svc, port=self.ports[self.protocol_mode][port_type], size=self.size)
         elif self.load_gen_type == "nighthawk":
             return "{protocol}://{svc}:{port}/".format(
-                svc=svc, port=self.ports[self.mode][port_type], protocol=self.get_protocol_uri_fragment())
+                svc=svc, port=self.ports[self.protocol_mode][port_type], protocol=self.get_protocol_uri_fragment())
         else:
             sys.exit("invalid load generator %s, must be fortio or nighthawk", self.load_gen_type)
 
@@ -283,7 +283,7 @@ class Fortio:
         #  - h2
         #  - with long running connections
         #  - Also transfer request body sized according to "size".
-        if self.mode == "grpc":
+        if self.protocol_mode == "grpc":
             nighthawk_args.append("--h2")
             if self.size:
                 nighthawk_args.append(
@@ -310,7 +310,7 @@ class Fortio:
         labels = self.generate_test_labels(conn, qps, size)
 
         grpc = ""
-        if self.mode == "grpc":
+        if self.protocol_mode == "grpc":
             grpc = "-grpc -ping"
 
         cacert_arg = ""
@@ -441,7 +441,7 @@ def fortio_from_config_file(args):
         fortio.run_baseline = job_config.get('run_baseline', False)
         fortio.run_ingress = job_config.get('run_ingress', False)
         fortio.mesh = job_config.get('mesh', 'istio')
-        fortio.mode = job_config.get('mode', 'http')
+        fortio.protocol_mode = job_config.get('protocol_mode', 'http')
         fortio.extra_labels = job_config.get('extra_labels')
 
         return fortio
@@ -474,7 +474,7 @@ def run_perf_test(args):
             clientsidecar=args.clientsidecar,
             bothsidecar=args.bothsidecar,
             ingress=args.ingress,
-            mode=args.mode,
+            mode=args.protocol_mode,
             mesh=args.mesh,
             telemetry_mode=args.telemetry_mode,
             cacert=args.cacert,
@@ -622,7 +622,7 @@ def get_parser():
         help="extra labels",
         default=None)
     parser.add_argument(
-        "--mode",
+        "--protocol_mode",
         help="http or grpc",
         default="http")
     parser.add_argument(
