@@ -133,7 +133,8 @@ optional arguments:
   --ingress INGRESS     run traffic through ingress, should be a valid URL
   --extra_labels EXTRA_LABELS
                         extra labels
-  --mode MODE           http or grpc
+  --protocol_mode PROTOCOL_MODE           
+                        http or grpc
   --config_file CONFIG_FILE
                         config yaml file
   --cacert CACERT       path to the cacert for the fortio client inside the
