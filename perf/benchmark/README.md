@@ -56,7 +56,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
    Option 2: Install Istio from the istioctl binary:
 
    - To enable telemetryv2 mode (which is enabled by default from Istio 1.5), run:
-        
+  
      ```bash
      istioctl manifest apply
      ```
@@ -141,7 +141,7 @@ optional arguments:
   --conn CONN           number of connections, comma separated list
   --qps QPS             qps, comma separated list
   --duration DURATION   duration in seconds of the extract
-  --load_gen_type LOAD_GEN_TYPE 
+  --load_gen_type LOAD_GEN_TYPE
                         traffic load generator type, can be either Fortio or Nighthawk
   --size SIZE           size of the payload
   --mesh MESH           istio or linkerd
