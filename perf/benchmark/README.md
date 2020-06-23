@@ -27,7 +27,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
     ./create_cluster.sh $CLUSTER_NAME
     ```
 
-1. Install Istio 
+1. Install Istio
 
     Option 1: Install Istio from the setup istio script:
 
@@ -49,29 +49,29 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 
    Wait for all Istio pods to be `Running` and `Ready`:
 
-    ```bash
-    kubectl get pods -n istio-system
-    ```
-    
-    Option 2: Install Istio from the istioctl binary:
+   ```bash
+   kubectl get pods -n istio-system
+   ```
 
-    - To enable telemetryv2 mode (which is enabled by default from Istio 1.5), run:
+   Option 2: Install Istio from the istioctl binary:
 
-    ```bash
-    istioctl manifest apply
-    ```
-   
+   - To enable telemetryv2 mode (which is enabled by default from Istio 1.5), run:
+        
+     ```bash
+     istioctl manifest apply
+     ```
+
    - To enable Mixer mode (which will be deprecated in Istio 1.7), run:
-   
-   ```bash
-   istioctl manifest apply --set values.telemetry.v1.enabled=true --set values.telemetry.v2.enabled=false
-   ```
-   
+
+     ```bash
+     istioctl manifest apply --set values.telemetry.v1.enabled=true --set values.telemetry.v2.enabled=false
+     ```
+
    - To run test `none` mode (no filters), run:
-   
-   ```bash
-   istioctl manifest apply --set values.telemetry.enabled=false
-   ```
+
+     ```bash
+     istioctl manifest apply --set values.telemetry.enabled=false
+     ```
 
 1. Deploy the workloads to measure performance against. The test environment is two [Fortio](http://fortio.org/) pods (one client, one server), set to communicate over HTTP1, using mutual TLS authentication. By default, the client pod will make HTTP requests with a 1KB payload.
 
@@ -131,8 +131,8 @@ Required fields to specified via CLI or config file:
 - `conn` = number of concurrent connections
 - `qps` = queries per second for each connection
 - `duration` = number of seconds to run each test for  (the minimum value for duration should be: 92 seconds)
-- `load_gen_type` = the traffic load generator type 
-- `--telemetry_mode` = the telemetry mode you enabled while installing Istio (mixer, none or telemetryv2)
+- `load_gen_type` = the traffic load generator type
+- `telemetry_mode` = the telemetry mode you enabled while installing Istio (mixer, none or telemetryv2)
 
 ```bash
 optional arguments:
@@ -141,7 +141,7 @@ optional arguments:
   --conn CONN           number of connections, comma separated list
   --qps QPS             qps, comma separated list
   --duration DURATION   duration in seconds of the extract
-  --load_gen_type LOAD_GEN_TYPE   
+  --load_gen_type LOAD_GEN_TYPE 
                         traffic load generator type, can be either Fortio or Nighthawk
   --size SIZE           size of the payload
   --mesh MESH           istio or linkerd
@@ -189,10 +189,10 @@ python runner/runner.py --config_file ./configs/istio/mixer/latency.yaml
 ### Example 2
 
 ```bash
-python runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseline --load_gen_type=fortio --telemetry_mode=v2-nullvm 
+python runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseline --load_gen_type=fortio --telemetry_mode=v2-nullvm
 ```
 
-- This will run separate tests for the `both` and `baseline` modes with fortio as the load generator and testing telemetry enabled scenario
+- This will run separate tests for the `both` and `baseline` modes with fortio as the load generator and testing telemetryv2 enabled scenario
 - Separate tests for 2 to 64 concurrent connections
 - Each connection will send **1000** QPS
 - Each test will run for **240** seconds
@@ -261,6 +261,7 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 
     ```bash
     python ./runner/fortio.py $FORTIO_CLIENT_URL --prometheus=$PROMETHEUS_URL --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,cpu_mili_avg_istio_proxy,mem_Mi_avg_istio_proxy
+    ```
 
     This script will generate two output files (one JSON, one CSV), both containing the same result metrics: Queries Per Second (QPS) attained, latency, and CPU/Memory usage.
 
@@ -271,7 +272,6 @@ WIP...
 Example Output:
 
 ![graphoutput](graphoutput/istio_p90.png)
-
 
 ## Add new config to benchmark pipeline
 
