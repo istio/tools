@@ -76,6 +76,9 @@ def fetch(url):
             d = requests.get(url)
             if d.status_code != 200:
                 return None
+            # Add debugging info for JSON parsing error in perf pipeline (nighthawk)
+            print("fetching data from fortioclient")
+            print(d)
             data = d.json()
         except Exception:
             print("Error while fetching from " + url)
