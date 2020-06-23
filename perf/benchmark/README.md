@@ -226,38 +226,6 @@ python runner/runner.py --conn 10  --qps 100,500,1000,2000,4000 --duration 240 -
 This will generate corresponding `.svg` flame graph in the `perf/benchmark/flame/flameoutput` repo.
 Here is the [sample output](https://github.com/istio/tools/tree/master/perf/benchmark/flame/example_flame_graph/example_output)
 
-## [Optional] Disable Mixer
-
-Calls to Istio's Mixer component (policy and telemetry) adds latency to the sidecar proxy. To disable Istio's mixer and re-run the performance tests:
-
-1. Disable Mixer
-
-    ```bash
-    kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-    python ./update_mesh_config.py disable_mixer /tmp/meshconfig.yaml | kubectl -n istio-system apply -f -
-    ```
-
-1. Run `runner.py`, in any sidecar mode, with the `--mixer_mode=none` flag. If you run this command:
-
-    ```bash
-    python runner/runner.py --conn 1,2,4,8,16,32,64 --qps 1000 --duration 240 --serversidecar --baseline --mixer_mode=none
-    ```
-
-    it will generate the output showing in the `Example Output` section. Which includes both with Mixer and without Mixer test results.
-
-1. Re-enable Mixer:
-
-    ```bash
-    kubectl -n istio-system get cm istio -o yaml > /tmp/meshconfig.yaml
-    python ./update_mesh_config.py enable_mixer /tmp/meshconfig.yaml  | kubectl -n istio-system apply -f -
-    ```
-
-## [Optional] Enable Telemetryv2
-
-```bash
-$ istioctl manifest apply --set values.telemetry.enabled=true,values.telemetry.v1.enabled=false,values.telemetry.v2.enabled=true,values.telemetry.v2.prometheus.enabled=true
-```
-
 ## Gather Result Metrics
 
 Once `runner.py` has completed, extract the results from Fortio and Prometheus.
@@ -285,7 +253,7 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
     Otherwise your Prometheus maybe in a different namespace and differently named.
 
     ```bash
-    kubectl -n istio-prometheus port-forward svc/istio-prometheus 9090:9090 &
+    kubectl -n istio-system port-forward svc/prometheus 9090:9090 &
     export PROMETHEUS_URL=http://localhost:9090
     ```
 
@@ -298,11 +266,16 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 
 ## Visualize Results
 
-Please upload your generated .csv file to the [graph plotting](http://perf.dashboard.istio.io/graph_plotting/) section of our performance dashboard to visualize your graph.
+WIP...
+
+Example Output:
+
+![graphoutput](graphoutput/istio_p90.png)
+
 
 ## Add new config to benchmark pipeline
 
-Currently we are running benchmark test towards different configs as [prow job](https://prow.istio.io/job-history/istio-prow/logs/daily-performance-benchmark)
+Currently we are running benchmark test towards different configs as [prow job](https://prow.istio.io/?job=daily-nighthawk-performance-benchmark)
 
 To add a new config to this pipeline, we need to add a new directory under [configs folder](https://github.com/istio/tools/tree/master/perf/benchmark/configs/istio), where we can define config parameters structured as below:
 
@@ -311,7 +284,3 @@ To add a new config to this pipeline, we need to add a new directory under [conf
 - latency.yaml: if provided, run latency test with this config
 - prerun.sh: prerun hook we want to run before test
 - postrun.sh: postrun hook we want to run after test
-
-## Example Output
-
-![screenshot](screenshots/bokeh-screenshot.png)
