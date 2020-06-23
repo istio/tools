@@ -474,7 +474,7 @@ def run_perf_test(args):
             clientsidecar=args.clientsidecar,
             bothsidecar=args.bothsidecar,
             ingress=args.ingress,
-            mode=args.mode,
+            protocol_mode=args.mode,
             mesh=args.mesh,
             telemetry_mode=args.telemetry_mode,
             cacert=args.cacert,
