@@ -56,7 +56,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
    Option 2: Install Istio from the istioctl binary:
 
    - To enable telemetryv2 mode (which is enabled by default from Istio 1.5), run:
-  
+
      ```bash
      istioctl manifest apply
      ```
