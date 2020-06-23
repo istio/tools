@@ -85,7 +85,6 @@ class Prom:
             for data_point in data_points_list:
                 data_sum += float(data_point[1])
             data_avg = float(data_sum / len(data_points_list))
-            print(data_avg)
             if resource_type == "cpu":
                 return to_mili_cpus(data_avg)
             else:
@@ -111,9 +110,8 @@ class Prom:
     def fetch_istio_proxy_memory_usage(self):
         mem_query = 'container_memory_usage_bytes{job = "kubernetes-cadvisor", container_name="istio-proxy"}'
         data = self.fetch_by_query(mem_query)
-        print(data)
         avg_mem = self.get_average_within_query_time_range(data, "mem")
-        print(avg_mem)
+
         if avg_mem == -1:
             return []
         return avg_mem
