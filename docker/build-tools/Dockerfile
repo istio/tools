@@ -31,7 +31,6 @@ FROM golang:1.14.2 as binary_tools_context
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in
-ENV COUNTERFEITER_VERSION=v6.2.3
 ENV FORTIO_VERSION=v1.3.1
 ENV GCR_AUTH_VERSION=1.5.0
 ENV GO_BINDATA_VERSION=v3.1.2
@@ -103,7 +102,6 @@ RUN gobin github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION
 RUN gobin github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
 RUN gobin github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
 RUN gobin github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
-RUN gobin github.com/maxbrunsfeld/counterfeiter/v6@${COUNTERFEITER_VERSION}
 RUN gobin golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN gobin github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
 RUN gobin github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
