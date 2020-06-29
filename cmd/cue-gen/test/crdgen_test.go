@@ -24,7 +24,8 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/google/go-cmp/cmp"
 
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+
 	kubeyaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -33,38 +34,52 @@ const crdFilePath = "generated/kubernetes/customresourcedefinitions.gen.yaml"
 func TestCRDwithStatus(t *testing.T) {
 	crds := readCRDFile(t)
 
-	for _, c := range crds {
-		// status subresource must be enabled.
-		if c.Spec.Subresources == nil && c.Spec.Subresources.Status == nil {
-			t.Error("status subresource in spec must be enabled.")
-		}
-
-		expected := v1beta1.JSONSchemaProps{
-			Description: "Status is the test status field.",
-			Type:        "object",
-			Properties: map[string]v1beta1.JSONSchemaProps{
-				"analysis": {
-					Type:        "string",
-					Format:      "string",
-					Description: "Analysis message.",
-				},
-				"condition": {
-					Type:        "string",
-					Format:      "string",
-					Description: "Current state.",
-				},
+	expected := apiextv1.JSONSchemaProps{
+		Description: "Status is the test status field.",
+		Type:        "object",
+		Properties: map[string]apiextv1.JSONSchemaProps{
+			"analysis": {
+				Type:        "string",
+				Format:      "string",
+				Description: "Analysis message.",
 			},
-		}
+			"condition": {
+				Type:        "string",
+				Format:      "string",
+				Description: "Current state.",
+			},
+		},
+	}
 
-		got := c.Spec.Validation.OpenAPIV3Schema.Properties["status"]
-		if e := cmp.Equal(expected, got); !e {
-			t.Errorf("status specs are not equal, expected:\n%v\n, but got:\n%v", expected, got)
+	for _, c := range crds {
+
+		for _, v := range c.Spec.Versions {
+			// status subresource must be enabled.
+			if v.Subresources == nil && v.Subresources.Status == nil {
+				t.Error("status subresource in spec must be enabled.")
+			}
+
+			got := v.Schema.OpenAPIV3Schema.Properties["status"]
+			if e := cmp.Equal(expected, got); !e {
+				t.Errorf("status specs are not equal, expected:\n%v\n, but got:\n%v", expected, got)
+			}
 		}
 
 	}
 }
 
-func readCRDFile(t *testing.T) []*v1beta1.CustomResourceDefinition {
+func TestBazPreserveUnknownFields(t *testing.T) {
+	crds := readCRDFile(t)
+
+	for _, c := range crds {
+		if c.Name == "bazs.foo.istio.io" && !c.Spec.PreserveUnknownFields {
+			t.Error("spec of Baz should have preserveUnknownFields set to true")
+		}
+	}
+
+}
+
+func readCRDFile(t *testing.T) []*apiextv1.CustomResourceDefinition {
 	r, err := os.Open(crdFilePath)
 	if err != nil {
 		t.Fatal(err)
@@ -73,7 +88,7 @@ func readCRDFile(t *testing.T) []*v1beta1.CustomResourceDefinition {
 	f := bufio.NewReader(r)
 
 	decoder := kubeyaml.NewYAMLReader(f)
-	crds := make([]*v1beta1.CustomResourceDefinition, 0)
+	crds := make([]*apiextv1.CustomResourceDefinition, 0)
 	for {
 		doc, err := decoder.Read()
 		if err == io.EOF {
@@ -89,7 +104,7 @@ func readCRDFile(t *testing.T) []*v1beta1.CustomResourceDefinition {
 			break
 		}
 
-		crd := v1beta1.CustomResourceDefinition{}
+		crd := apiextv1.CustomResourceDefinition{}
 		if err = yaml.Unmarshal(chunk, &crd); err != nil {
 			t.Fatal(err)
 		}
