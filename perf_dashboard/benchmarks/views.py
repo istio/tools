@@ -97,7 +97,7 @@ def latency_vs_conn(request, uploaded_csv_url=None):
 
         other_context = {'current_release': current_release,
                          'cur_selected_release': cur_selected_release,
-                         'master_selected_release':  master_selected_release,
+                         'master_selected_release': master_selected_release,
                          'cur_release_names': cur_release_names,
                          'master_release_names': master_release_names,
                          }
@@ -195,7 +195,7 @@ def latency_vs_qps(request, uploaded_csv_url=None):
 
         other_context = {'current_release': current_release,
                          'cur_selected_release': cur_selected_release,
-                         'master_selected_release':  master_selected_release,
+                         'master_selected_release': master_selected_release,
                          'cur_release_names': cur_release_names,
                          'master_release_names': master_release_names,
                          }
@@ -460,7 +460,7 @@ def get_latency_vs_conn_y_series(df, telemetry_mode, quantiles):
     for thread in [2, 4, 8, 16, 32, 64]:
         data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@telemetry_mode)')
         if not data[quantiles].head().empty:
-            y_series_data.append(data[quantiles].head(1).values[0]/1000)
+            y_series_data.append(data[quantiles].head(1).values[0] / 1000)
         else:
             y_series_data.append('null')
     return y_series_data
@@ -473,7 +473,7 @@ def get_latency_vs_qps_y_series(df, telemetry_mode, quantiles):
     for qps in [10, 100, 500, 1000, 2000, 3000]:
         data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
         if not data[quantiles].head().empty:
-            y_series_data.append(data[quantiles].head(1).values[0]/1000)
+            y_series_data.append(data[quantiles].head(1).values[0] / 1000)
         else:
             y_series_data.append('null')
     return y_series_data
