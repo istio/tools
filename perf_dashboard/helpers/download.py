@@ -123,5 +123,3 @@ def parse_perf_href_str(benchmark_test_id):
     test_branch = test_parts[2]
     release_name = test_parts[3]
     return test_date, test_load_gen_type, test_branch, release_name
-
-
