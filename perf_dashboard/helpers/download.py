@@ -23,6 +23,7 @@ perf_data_path = cwd + "/perf_data/"
 current_release = os.getenv('CUR_RELEASE')
 
 
+# TODO: add load_gen_type as a param
 def download_benchmark_csv(days):
     if not os.path.exists(perf_data_path):
         os.makedirs(perf_data_path)
@@ -35,61 +36,65 @@ def download_benchmark_csv(days):
     except Exception as e:
         print(e)
         exit(1)
+    cur_href_link = []
     cur_release_names = []
+    cur_release_dates = []
+    master_href_link = []
     master_release_names = []
+    master_release_dates = []
     soup = BeautifulSoup(page, 'html.parser')
-    cur_dateset = set()
-    master_dateset = set()
+    download_dateset = get_download_dateset(days)
+
     for link in soup.find_all('a'):
-        today = datetime.date.today()
         href_str = link.get('href')
         if href_str == "/gcs/istio-build/":
             continue
-        download_prefix = "https://storage.googleapis.com/"
-        for day_interval in list(range(1, days)):
-            prev_date = today - datetime.timedelta(day_interval)
-            release_name = href_str.split("/")[4][15:]
-            filename = release_name + ".csv"
-            d = prev_date.strftime("%Y%m%d")
+        # TODO:
+        #  - add "nighthawk" check later like: or "nighthawk" in href_str
+        #  - maybe only need one href_link list (refactor later when other pages being fixed)
+        if "fortio" in href_str:
+            href_parts = href_str.split("/")
+            # an example benchmark_test_id would be like:
+            # "20200525_fortio_master_1.7-alpha.d0e07f6e430fd99554ccc3aee3be8a730cd8a226"
+            benchmark_test_id = href_parts[4]
+            test_date, test_load_gen_type, test_branch, release_name = parse_perf_href_str(benchmark_test_id)
+            if test_date in download_dateset:
+                download_prefix = "https://storage.googleapis.com/istio-build/perf/"
+                download_filename = "benchmark.csv"
+                download_url = download_prefix + benchmark_test_id + "/" + download_filename
+                dump_to_filepath = perf_data_path + benchmark_test_id + "_" + download_filename
+                if test_branch == "master":
+                    master_href_link.insert(0, href_str)
+                    master_release_names.insert(0, release_name)
+                    master_release_dates.insert(0, test_date)
+                else:
+                    cur_href_link.insert(0, href_str)
+                    cur_release_names.insert(0, release_name)
+                    cur_release_dates.insert(0, test_date)
+                try:
+                    wget.download(download_url, dump_to_filepath)
+                except Exception as e:
+                    if test_branch == "master":
+                        master_release_names.pop(0)
+                        master_release_dates.pop(0)
+                        master_href_link.pop(0)
+                    else:
+                        cur_release_names.pop(0)
+                        cur_release_dates.pop(0)
+                        cur_href_link.pop(0, href_str)
+                    print(e)
+        else:
+            continue
+    return cur_href_link, cur_release_names, cur_release_dates, master_href_link, master_release_names, master_release_dates
 
-            if d is not None and current_release is not None:
-                if d not in cur_dateset and d in release_name and current_release in release_name:
-                    cur_dateset.add(d)
-                    if len(cur_release_names) < days:
-                        cur_release_names.insert(0, release_name)
-                    if not check_exist(filename):
-                        download_url = download_prefix + href_str[5:] + "benchmark.csv"
-                        try:
-                            wget.download(download_url, perf_data_path + release_name + ".csv")
-                        except Exception as e:
-                            cur_release_names.pop(0)
-                            print(e)
-                if d not in master_dateset and d in release_name and "master" in release_name:
-                    master_dateset.add(d)
-                    if len(master_release_names) < days:
-                        master_release_names.insert(0, release_name)
-                    if not check_exist(filename):
-                        download_url = download_prefix + href_str[5:] + "benchmark.csv"
-                        try:
-                            wget.download(download_url, perf_data_path + release_name + ".csv")
-                        except Exception as e:
-                            master_release_names.pop(0)
-                            print(e)
 
-    cur_release_dates = [[]] * len(cur_release_names)
-    for i in range(len(cur_release_names)):
-        cur_release = cur_release_names[i]
-        sub_str = cur_release[len(current_release) + 1:].split("-")[0]
-        cur_release_dates[i] = [0] * 3
-        cur_release_dates[i] = [sub_str[0:4], sub_str[4:6], sub_str[6:8]]
-
-    master_release_dates = [[]] * len(master_release_names)
-    for i in range(len(master_release_names)):
-        master_release = master_release_names[i]
-        sub_str = master_release[len("master") + 1:].split("-")[0]
-        master_release_dates[i] = [0] * 3
-        master_release_dates[i] = [sub_str[0:4], sub_str[4:6], sub_str[6:8]]
-    return cur_release_names, cur_release_dates, master_release_names, master_release_dates
+def get_download_dateset(days):
+    download_dateset = set()
+    today = datetime.date.today()
+    for day_interval in list(range(1, days)):
+        prev_date = (today - datetime.timedelta(day_interval)).strftime("%Y%m%d")
+        download_dateset.add(prev_date)
+    return download_dateset
 
 
 def delete_outdated_files(release_names):
@@ -106,3 +111,17 @@ def check_exist(filename):
         if f == filename:
             return True
     return False
+
+
+def parse_perf_href_str(benchmark_test_id):
+    # TODO:
+    #   - can make this to be env var: LOAD_GEN_TYPE for switching between fortio and nighthawk
+    #   - extract test_parts to a class when pipeline label is stable
+    test_parts = benchmark_test_id.split("_")
+    test_date = test_parts[0]
+    test_load_gen_type = test_parts[1]
+    test_branch = test_parts[2]
+    release_name = test_parts[3]
+    return test_date, test_load_gen_type, test_branch, release_name
+
+

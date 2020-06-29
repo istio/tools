@@ -21,22 +21,23 @@ current_release = [os.getenv('CUR_RELEASE')]
 
 # Create your views here.
 def artifact(request):
-    cur_release_names, cur_release_dates, master_release_names, master_release_dates = download.download_benchmark_csv(60)
-    gcs_prefix = "https://gcsweb.istio.io/gcs/istio-build/perf/benchmark_data-"
-    cur_release_bundle = [[]] * len(cur_release_names)
-    master_release_bundle = [[]] * len(master_release_names)
-    for i in range(len(cur_release_names)):
-        cur_release_bundle[i] = [0] * 2
-        cur_release_bundle[i][0] = cur_release_names[i]
-        cur_release_bundle[i][1] = gcs_prefix + cur_release_names[i]
-
-    for i in range(len(master_release_names)):
-        master_release_bundle[i] = [0] * 2
-        master_release_bundle[i][0] = master_release_names[i]
-        master_release_bundle[i][1] = gcs_prefix + master_release_names[i]
+    cur_href_link, cur_release_names, cur_release_dates, master_href_link, master_release_names, master_release_dates = download.download_benchmark_csv(60)
+    cur_release_bundle = get_artifacts_release_bundle(cur_release_dates, cur_release_names, cur_href_link)
+    master_release_bundle = get_artifacts_release_bundle(master_release_dates, master_release_names, master_href_link)
 
     context = {'current_release': current_release,
                'cur_release_bundle': cur_release_bundle,
                'master_release_bundle': master_release_bundle}
 
     return render(request, "artifact.html", context=context)
+
+
+def get_artifacts_release_bundle(release_dates, release_names, href_link):
+    release_bundle = [[]] * len(release_names)
+    gcs_prefix = "https://gcsweb.istio.io/"
+    for i in range(len(release_names)):
+        release_bundle[i] = [0] * 3
+        release_bundle[i][0] = release_dates[i]
+        release_bundle[i][1] = release_names[i]
+        release_bundle[i][2] = gcs_prefix + href_link[i]
+    return release_bundle
