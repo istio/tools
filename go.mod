@@ -27,9 +27,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.4.0
-	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/hhatto/gorst v0.0.0-20181029133204-ca9f730cac5b // indirect
-	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jdkato/prose v1.1.0 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20180830205328-81db2a75821e // indirect
@@ -44,10 +42,8 @@ require (
 	github.com/spf13/viper v1.4.0
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/xanzy/ssh-agent v0.2.0 // indirect
-	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0 // indirect
 	golang.org/x/tools v0.0.0-20200113154838-30cae5f2fb06
 	gonum.org/v1/netlib v0.0.0-20191031114514-eccb95939662 // indirect
-	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0 // indirect
@@ -60,11 +56,8 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 	istio.io/gogo-genproto v0.0.0-20191009201739-17d570f95998
-	k8s.io/api v0.18.1
 	k8s.io/apiextensions-apiserver v0.18.1
 	k8s.io/apimachinery v0.18.1
-	k8s.io/client-go v0.18.1
 	k8s.io/gengo v0.0.0-20190822140433-26a664648505
-	k8s.io/helm v2.12.0+incompatible
 	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
 )
