@@ -195,10 +195,45 @@ metadata:
   namespace: istio-prometheus
 spec:
   groups:
-    - name: ./example.rules
+    - name: ./workload.rules
       rules:
-        - alert: ExampleAlert
-          expr: vector(1)
+        - alert: HTTP5xxRateHigh
+          annotations:
+            summary: '5xx rate too high'
+            description: 'The HTTP 5xx errors rate unusually high in 5 mins'
+          expr: >
+            sum(irate(istio_requests_total{reporter="destination", response_code=~"5.*"}[5m])) / sum(irate(istio_requests_total{reporter="destination"}[5m])) > 0.05
+          for: 5m
+    - name: ./infra.rules
+      rules:
+        - alert: ContainerCPUUsageHigh
+          expr: (sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container!="POD", namespace!=""}[5m])) BY (namespace, pod, container) * 100) > 80
+          for: 5m
+          annotations:
+            summary: "Container CPU usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
+            description: "Container CPU usage is above 80%\n  VALUE = {{ $value }}\n"
+        - alert: ContainerMemoryUsageHigh
+          expr: (sum(container_memory_usage_bytes{namespace!="kube-system", container!="POD", namespace!=""}) BY (container, pod, namespace)  / (sum(container_spec_memory_limit_bytes{namespace!="kube-system", container!="POD"}) BY (container, pod, namespace) > 0)* 100) > 80
+          for: 5m
+          annotations:
+            summary: "Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
+            description: "Container Memory usage is above 80%\n  VALUE = {{ $value }}\n"
+    - name: ./controlplane.rules
+      rules:
+        - alert: IstiodxdsPushErrorsHigh
+          annotations:
+            summary: 'istiod push errors is too high'
+            description: 'istiod push errors is too high during the last 5m'
+          expr: >
+            sum(irate(pilot_xds_push_errors{app="istiod"}[5m])) / sum(irate(pilot_xds_pushes{app="istiod"}[5m])) > 0.05
+          for: 5m
+        - alert: IstiodxdsRejectHigh
+          annotations:
+            summary: 'istiod rejects rate is too high'
+            description: 'istiod rejects rate is too high during the last 5m'
+          expr: >
+            sum(irate(pilot_total_xds_rejects{app="istiod"}[5m])) / sum(irate(pilot_xds_pushes{app="istiod"}[5m])) > 0.05
+          for: 5m
     - name: "istio.recording-rules"
       interval: 5s
       rules:
@@ -241,38 +276,6 @@ spec:
         - record: "workload:istio_response_bytes_bucket"
           expr: |
             sum without(instance, namespace, pod_name) (istio_response_bytes_bucket)
-
-        - record: "workload:istio_tcp_connections_opened_total"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_tcp_connections_opened_total)
-
-        - record: "workload:istio_tcp_connections_closed_total"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_tcp_connections_opened_total)
-
-        - record: "workload:istio_tcp_sent_bytes_total_count"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_tcp_sent_bytes_total_count)
-
-        - record: "workload:istio_tcp_sent_bytes_total_sum"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_tcp_sent_bytes_total_sum)
-
-        - record: "workload:istio_tcp_sent_bytes_total_bucket"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_tcp_sent_bytes_total_bucket)
-
-        - record: "workload:istio_tcp_received_bytes_total_count"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_tcp_received_bytes_total_count)
-
-        - record: "workload:istio_tcp_received_bytes_total_sum"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_tcp_received_bytes_total_sum)
-
-        - record: "workload:istio_tcp_received_bytes_total_bucket"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_tcp_received_bytes_total_bucket)
     - name: k8s.rules
       rules:
         - expr: |

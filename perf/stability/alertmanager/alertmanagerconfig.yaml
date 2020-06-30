@@ -18,10 +18,9 @@ stringData:
       - name: 'test'
         webhook_configs:
           - url: 'http://am-webhook.istio-prometheus:5001/webhook'
-      - name: 'slack'
         slack_configs:
-          - api_url: "https://hooks.slack.com/services/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"
-            channel: "#stability_test"
+          - api_url: "https://hooks.slack.com/services/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"
+            channel: "#stability-test"
             send_resolved: true
             title: |-
               [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }} for {{ .CommonLabels.job }}

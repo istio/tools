@@ -31,10 +31,8 @@ spec:
   scrapeInterval: 15s
   serviceAccountName: prometheus
   enableAdminAPI: false
-  serviceMonitorNamespaceSelector:
-    any: true
-  serviceMonitorSelector:
-    any: true
+  serviceMonitorNamespaceSelector: {}
+  serviceMonitorSelector: {}
   podMetadata:
     labels:
       app: prometheus
