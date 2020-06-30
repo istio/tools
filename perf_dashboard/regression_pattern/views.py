@@ -27,22 +27,18 @@ current_release = [os.getenv('CUR_RELEASE')]
 def cur_pattern(request):
     cur_release_names, cur_release_dates, _, _ = download.download_benchmark_csv(40)
 
-    mixer_both_p90_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_mixer_both', 'p90')
     none_mtls_base_p90_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_none_mtls_base', 'p90')
     none_mtls_both_p90_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_none_mtls_both', 'p90')
     v2_sd_full_nullvm_both_p90_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_v2-sd-full-nullvm_both', 'p90')
 
-    mixer_both_p99_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_mixer_both', 'p99')
     none_mtls_base_p99_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_none_mtls_base', 'p99')
     none_mtls_both_p99_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_none_mtls_both', 'p99')
     v2_sd_full_nullvm_both_p99_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_v2-sd-full-nullvm_both', 'p99')
 
     context = {'current_release': current_release,
-               'mixer_both_p90_pattern': mixer_both_p90_pattern,
                'none_mtls_base_p90_pattern': none_mtls_base_p90_pattern,
                'none_mtls_both_p90_pattern': none_mtls_both_p90_pattern,
                'v2_sd_full_nullvm_both_p90_pattern': v2_sd_full_nullvm_both_p90_pattern,
-               'mixer_both_p99_pattern': mixer_both_p99_pattern,
                'none_mtls_base_p99_pattern': none_mtls_base_p99_pattern,
                'none_mtls_both_p99_pattern': none_mtls_both_p99_pattern,
                'v2_sd_full_nullvm_both_p99_pattern': v2_sd_full_nullvm_both_p99_pattern,
@@ -54,21 +50,17 @@ def cur_pattern(request):
 def master_pattern(request):
     _, _, master_release_names, master_release_dates = download.download_benchmark_csv(40)
 
-    mixer_both_p90_pattern_master = get_telemetry_mode_y_series(master_release_names, master_release_dates, '_mixer_both', 'p90')
     none_mtls_base_p90_pattern_master = get_telemetry_mode_y_series(master_release_names, master_release_dates, '_none_mtls_base', 'p90')
     none_mtls_both_p90_pattern_master = get_telemetry_mode_y_series(master_release_names, master_release_dates, '_none_mtls_both', 'p90')
     v2_sd_full_nullvm_both_p90_pattern_master = get_telemetry_mode_y_series(master_release_names, master_release_dates, '_v2-sd-full-nullvm_both', 'p90')
 
-    mixer_both_p99_pattern_master = get_telemetry_mode_y_series(master_release_names, master_release_dates, '_mixer_both', 'p99')
     none_mtls_base_p99_pattern_master = get_telemetry_mode_y_series(master_release_names, master_release_dates, '_none_mtls_base', 'p99')
     none_mtls_both_p99_pattern_master = get_telemetry_mode_y_series(master_release_names, master_release_dates, '_none_mtls_both', 'p99')
     v2_sd_full_nullvm_both_p99_pattern_master = get_telemetry_mode_y_series(master_release_names, master_release_dates, '_v2-sd-full-nullvm_both', 'p99')
 
-    context = {'mixer_both_p90_pattern_master': mixer_both_p90_pattern_master,
-               'none_mtls_base_p90_pattern_master': none_mtls_base_p90_pattern_master,
+    context = {'none_mtls_base_p90_pattern_master': none_mtls_base_p90_pattern_master,
                'none_mtls_both_p90_pattern_master': none_mtls_both_p90_pattern_master,
                'v2_sd_full_nullvm_both_p90_pattern_master': v2_sd_full_nullvm_both_p90_pattern_master,
-               'mixer_both_p99_pattern_master': mixer_both_p99_pattern_master,
                'none_mtls_base_p99_pattern_master': none_mtls_base_p99_pattern_master,
                'none_mtls_both_p99_pattern_master': none_mtls_both_p99_pattern_master,
                'v2_sd_full_nullvm_both_p99_pattern_master': v2_sd_full_nullvm_both_p99_pattern_master,

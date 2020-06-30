@@ -27,24 +27,6 @@ new Chart(document.getElementById('latency-config-demo'), {
         labels: connNum,
         datasets: [
             {
-                label: "baseline",
-                backgroundColor: "rgba(236, 66, 53,0.2)",
-                borderColor: "rgba(236, 66, 53,1)",
-                data: latency_mixer_base_p90_master,
-                fill: false
-            }, {
-                label: "serveronly",
-                backgroundColor: "rgba(259, 188, 5,0.2)",
-                borderColor: "rgba(259, 188, 5,1)",
-                data: latency_mixer_serveronly_p90_master,
-                fill: false
-            }, {
-                label: "both",
-                backgroundColor: "rgba(66, 133, 246,0.2)",
-                borderColor: "rgba(66, 133, 246, 1)",
-                data: latency_mixer_both_p90_master,
-                fill: false
-            }, {
                 label: "none-serveronly",
                 backgroundColor: "rgba(52, 168, 85,0.2)",
                 borderColor: "rgba(52, 168, 85,1)",
