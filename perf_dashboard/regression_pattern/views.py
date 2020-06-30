@@ -34,7 +34,7 @@ def cur_pattern(request):
 
     mixer_both_p99_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_mixer_both', 'p99')
     none_mtls_base_p99_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_none_mtls_base', 'p99')
-    none_mtls_both_p99_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_none_mtls_both',  'p99')
+    none_mtls_both_p99_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_none_mtls_both', 'p99')
     v2_sd_full_nullvm_both_p99_pattern = get_telemetry_mode_y_series(cur_release_names, cur_release_dates, '_v2-sd-full-nullvm_both', 'p99')
 
     context = {'current_release': current_release,
@@ -81,7 +81,7 @@ def get_latency_y_data_point(df, telemetry_mode, quantiles):
     y_series_data = []
     data = df.query('ActualQPS == 1000 and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
     if not data[quantiles].head().empty:
-        y_series_data.append(data[quantiles].head(1).values[0]/1000)
+        y_series_data.append(data[quantiles].head(1).values[0] / 1000)
     else:
         y_series_data.append('null')
     return y_series_data
