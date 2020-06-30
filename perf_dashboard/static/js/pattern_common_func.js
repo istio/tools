@@ -45,14 +45,6 @@ window.generateChart = function(chartID, modesData) {
       {
         type: "line",
         showInLegend: true,
-        name: "mixer_both - baseline",
-        markerType: "square",
-        xValueFormatString: "DD MMM, YYYY",
-        color: "rgba(66, 133, 246, 1)",
-        dataPoints: modesData[1]
-      }, {
-        type: "line",
-        showInLegend: true,
         name: "none-mtls_both - baseline",
         markerType: "square",
         xValueFormatString: "DD MMM, YYYY",
