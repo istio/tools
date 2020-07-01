@@ -10,11 +10,11 @@ The long running test would deploy service graphs application with 15 namespaces
 
 Abnormal metrics breaking SLO and suspicious logs would be recorded in the alertmanager-webhook pod, corresponding notification would be pushed to slack channel #stability-test
 
-If you want to run against a public release(stable or dev), specify the target release tag/version/url, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio).
+If you want to run against a public release(stable or dev), specify the target release TAG/VERSION/RELEASE_URL, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio). You can specify the namespace number of the servicegraph workloads by setting NAMESPACE_NUM var.
 
 For example, run with istio 1.5.4
 
-`./long_running.sh 1.5.4`
+`VERSION=1.5.4 NAMESPACE_NUM=15 ./long_running.sh`
 
 If for CVE fixes release or other releases from private repos, then you have to manually install Istio first with default prometheus instance disabled and specify the local path to the release bundles to install some extra prometheus configs needed, e.g. 
 

@@ -21,16 +21,18 @@ ROOT=$(dirname "$WD")
 set -eux
 
 # download latest istio release and install
-export TAG="latest"
+export TAG="${TAG:-}"
+export VERSION="${VERSION:-}"
+export RELEASE_URL="${RELEASE_URL:-}"
 export DNS_DOMAIN="fake-dns.org"
 export LOCAL_ISTIO_PATH="${LOCAL_ISTIO_PATH}"
+export NAMESPACE_NUM="${NAMESPACE_NUM:-5}"
 ${ROOT}/istio-install/setup_istio.sh
 
 # setup service graph
 pushd "${ROOT}/load"
 # shellcheck disable=SC1090
 source "./common.sh"
-NAMESPACE_NUM=2
 START_NUM=0
 export DELETE=""
 export CMD=""
