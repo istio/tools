@@ -40,7 +40,8 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates = download.download_benchmark_csv(60)
+        cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
+        master_release_dates = download.download_benchmark_csv(60)
         cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
         master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
 
@@ -141,7 +142,8 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates = download.download_benchmark_csv(60)
+        cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
+        master_release_dates = download.download_benchmark_csv(60)
         cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
         master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
 
@@ -234,7 +236,8 @@ def cpu_memory(request, uploaded_csv_url=None):
         os.remove(uploaded_csv_path)
         return context
     else:
-        cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates = download.download_benchmark_csv(60)
+        cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
+        master_release_dates = download.download_benchmark_csv(60)
         cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
         master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
 
