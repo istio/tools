@@ -79,17 +79,29 @@ class Prom:
     # We query from start_time to end_time and make 15s as the time interval to note down a data point
     # The function is to calculate the average of all the data points we get
     def get_average_within_query_time_range(self, data, resource_type):
+        val_by_pod_name = {"fortioclient": 0, "fortioserver": 0, "istio-ingressgateway": 0}
         if data["data"]["result"]:
-            data_points_list = data["data"]["result"][0]["values"]
-            data_sum = 0
-            for data_point in data_points_list:
-                data_sum += float(data_point[1])
-            data_avg = float(data_sum / len(data_points_list))
-            if resource_type == "cpu":
-                return to_mili_cpus(data_avg)
-            else:
-                return to_mega_bytes(data_avg)
-        return -1
+            for item in data["data"]["result"]:
+                pod_name = item["metric"]["pod_name"]
+                if "fortioclient" in pod_name:
+                    val_by_pod_name["fortioclient"] = self.calculate_average(item, resource_type)
+                if "fortioserver" in pod_name:
+                    val_by_pod_name["fortioserver"] = self.calculate_average(item, resource_type)
+                if "istio-ingressgateway" in pod_name:
+                    val_by_pod_name["istio-ingressgateway"] = self.calculate_average(item, resource_type)
+        return val_by_pod_name
+
+
+    def calculate_average(self, item, resource_type):
+        data_points_list = item["values"]
+        data_sum = 0
+        for data_point in data_points_list:
+            data_sum += float(data_point[1])
+        data_avg = float(data_sum / len(data_points_list))
+        if resource_type == "cpu":
+            return to_mili_cpus(data_avg)
+        else:
+            return to_mega_bytes(data_avg)
 
     def fetch(self, query, groupby=None, xform=None):
         data = self.fetch_by_query(query)
@@ -99,27 +111,31 @@ class Prom:
             xform=xform,
             aggregate=self.aggregate)
 
-    def fetch_istio_proxy_cpu_usage(self):
-        cpu_query = 'sum(rate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name="istio-proxy"}[1m])) by (container_name)'
+    def fetch_istio_proxy_cpu_usage_by_pod_name(self):
+        cpu_query = 'sum(rate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name="istio-proxy"}[1m])) by (pod_name)'
         data = self.fetch_by_query(cpu_query)
-        avg_cpu = self.get_average_within_query_time_range(data, "cpu")
-        if avg_cpu == -1:
-            return []
-        return avg_cpu
+        avg_cpu_dict = self.get_average_within_query_time_range(data, "cpu")
+        return avg_cpu_dict
 
-    def fetch_istio_proxy_memory_usage(self):
+    def fetch_istio_proxy_memory_usage_by_pod_name(self):
         mem_query = 'container_memory_usage_bytes{job = "kubernetes-cadvisor", container_name="istio-proxy"}'
         data = self.fetch_by_query(mem_query)
-        avg_mem = self.get_average_within_query_time_range(data, "mem")
-
-        if avg_mem == -1:
-            return []
-        return avg_mem
+        avg_mem_dict = self.get_average_within_query_time_range(data, "mem")
+        return avg_mem_dict
 
     def fetch_istio_proxy_cpu_and_mem(self):
         out = {}
-        out["cpu_mili_avg_istio_proxy"] = self.fetch_istio_proxy_cpu_usage()
-        out["mem_Mi_avg_istio_proxy"] = self.fetch_istio_proxy_memory_usage()
+
+        avg_cpu_dict = self.fetch_istio_proxy_cpu_usage_by_pod_name()
+        out["cpu_mili_avg_istio_proxy_fortioclient"] = avg_cpu_dict["fortioclient"]
+        out["cpu_mili_avg_istio_proxy_fortioserver"] = avg_cpu_dict["fortioserver"]
+        out["cpu_mili_avg_istio_proxy_istio-ingressgateway"] = avg_cpu_dict["istio-ingressgateway"]
+
+        avg_mem_dict = self.fetch_istio_proxy_memory_usage_by_pod_name()
+        out["mem_Mi_avg_istio_proxy_fortioclient"] = avg_mem_dict["fortioclient"]
+        out["mem_Mi_avg_istio_proxy_fortioserver"] = avg_mem_dict["fortioserver"]
+        out["mem_Mi_avg_istio_proxy_istio-ingressgateway"] = avg_mem_dict["istio-ingressgateway"]
+
         return out
 
     def fetch_cpu_by_container(self):
