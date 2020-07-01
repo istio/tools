@@ -42,7 +42,7 @@
       <header>
         <h1 class="h3 display"><a href="https://console.cloud.google.com/storage/browser/istio-build/perf?project=istio-testing&folder=true&organizationId=433637338589" target="_blank">
           Istio {{ current_release|first }} Performance Benchmark Artifacts</a></h1>
-        <p style="color:#888;">(CPU/mem/Latency/Flame Graph/Others)</p>
+        <p style="color:#888;">(CPU/Memory/Latency/Flame Graph/Others)</p>
       </header>
       <div class="row">
         <div class="col-lg-10">
@@ -52,6 +52,7 @@
                 <table class="table table-striped">
                   <thead>
                   <tr>
+                    <th>Date</th>
                     <th>Build</th>
                     <th>GCS Link</th>
                   </tr>
@@ -59,8 +60,9 @@
                   <tbody>
                   {% for release in cur_release_bundle %}
                   <tr>
-                    <td>{{ release|first }}</td>
-                    <td><a href={{ release|last }} target="_blank">data</a></td>
+                    <td>{{ release.0}}</td>
+                    <td>{{ release.1 }}</td>
+                    <td><a href={{ release.2 }} target="_blank">data</a></td>
                   </tr>
                   {% endfor %}
                   </tbody>
@@ -76,8 +78,8 @@
       <!-- Page Header-->
       <header>
         <h1 class="h3 display"><a href="https://console.cloud.google.com/storage/browser/istio-build/perf?project=istio-testing&folder=true&organizationId=433637338589" target="_blank">
-          Istio Performance Benchmark Artifacts</a></h1>
-        <p style="color:#888;">(CPU/mem/Latency/Flame Graph/Others)</p>
+          Istio master Performance Benchmark Artifacts</a></h1>
+        <p style="color:#888;">(CPU/Memory/Latency/Flame Graph/Others)</p>
       </header>
       <div class="row">
         <div class="col-lg-10">
@@ -87,6 +89,7 @@
                 <table class="table table-striped">
                   <thead>
                   <tr>
+                    <th>Date</th>
                     <th>Build</th>
                     <th>GCS Link</th>
                   </tr>
@@ -94,8 +97,9 @@
                   <tbody>
                   {% for release in master_release_bundle %}
                   <tr>
-                    <td>{{ release|first }}</td>
-                    <td><a href={{ release|last }} target="_blank">data</a></td>
+                    <td>{{ release.0 }}</td>
+                    <td>{{ release.1 }}</td>
+                    <td><a href={{ release.2 }} target="_blank">data</a></td>
                   </tr>
                   {% endfor %}
                   </tbody>
