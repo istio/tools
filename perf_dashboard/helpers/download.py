@@ -36,10 +36,11 @@ def download_benchmark_csv(days):
     except Exception as e:
         print(e)
         exit(1)
-    cur_href_link = []
+
+    cur_href_links = []
     cur_release_names = []
     cur_release_dates = []
-    master_href_link = []
+    master_href_links = []
     master_release_names = []
     master_release_dates = []
     soup = BeautifulSoup(page, 'html.parser')
@@ -62,30 +63,34 @@ def download_benchmark_csv(days):
                 download_prefix = "https://storage.googleapis.com/istio-build/perf/"
                 download_filename = "benchmark.csv"
                 download_url = download_prefix + benchmark_test_id + "/" + download_filename
+                # TODO: this will make all filename to be empty but without this check will slow down the page rendering
+                # local_filename = benchmark_test_id + "_" + download_filename
+                # if check_exist(local_filename):
+                #     continue
                 dump_to_filepath = perf_data_path + benchmark_test_id + "_" + download_filename
                 if test_branch == "master":
-                    master_href_link.insert(0, href_str)
+                    master_href_links.insert(0, href_str)
                     master_release_names.insert(0, release_name)
                     master_release_dates.insert(0, test_date)
                 else:
-                    cur_href_link.insert(0, href_str)
+                    cur_href_links.insert(0, href_str)
                     cur_release_names.insert(0, release_name)
                     cur_release_dates.insert(0, test_date)
                 try:
                     wget.download(download_url, dump_to_filepath)
                 except Exception as e:
                     if test_branch == "master":
+                        master_href_links.pop(0)
                         master_release_names.pop(0)
                         master_release_dates.pop(0)
-                        master_href_link.pop(0)
                     else:
+                        cur_href_links.pop(0)
                         cur_release_names.pop(0)
                         cur_release_dates.pop(0)
-                        cur_href_link.pop(0, href_str)
                     print(e)
         else:
             continue
-    return cur_href_link, cur_release_names, cur_release_dates, master_href_link, master_release_names, master_release_dates
+    return cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates
 
 
 def get_download_dateset(days):
