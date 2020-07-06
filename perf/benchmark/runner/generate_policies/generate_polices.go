@@ -79,11 +79,13 @@ func createHeader(namespace string, name string, kind string) (string, error) {
     // This could be updated to exporting the data into a file,
     // instead of printing it
     yaml := bytes.Buffer{}
-    yaml.WriteString("apiVersion: security.istio.io/v1beta1\n")
-    yaml.WriteString("kind:" + kind + "\n")
-    yaml.WriteString("metadata:\n")
-    yaml.WriteString(" name:" + name + "\n")
-    yaml.WriteString(" namespace:" + namespace + "\n")
+    header := `apiVersion: security.istio.io/v1beta1
+kind: %s
+metadata:
+  name: %s
+  namespace: %s
+`
+    yaml.WriteString(fmt.Sprintf(header, kind, name, namespace))
     return yaml.String(), nil
 }
 
