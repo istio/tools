@@ -135,6 +135,7 @@ RUN rm -rf /tmp/go/pkg/mod/cache/download/k8s.io
 RUN gobin istio.io/test-infra/boskos/cmd/mason_client
 RUN gobin k8s.io/test-infra/robots/pr-creator
 RUN gobin k8s.io/test-infra/prow/cmd/peribolos
+RUN gobin k8s.io/test-infra/pkg/benchmarkjunit
 
 # gobin does not seem to be compatible with this pesky code-generator repo
 # Install the code generator tools, and hopefully only these tools, this way
