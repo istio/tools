@@ -15,6 +15,7 @@
 from __future__ import print_function
 import json
 import os
+import shlex
 import requests
 from datetime import datetime
 import calendar
@@ -23,12 +24,15 @@ import argparse
 import subprocess
 import tempfile
 import prom
+from subprocess import getoutput
 
 """
     returns data in a single line format
     Labels, StartTime, RequestedQPS, ActualQPS, NumThreads,
     min, max, p50, p75, p90, p99, p999
 """
+
+NAMESPACE = os.environ.get("NAMESPACE", "twopods-istio")
 
 
 def convert_data(data):
@@ -115,63 +119,68 @@ METRICS_END_SKIP_DURATION = 30
 METRICS_SUMMARY_DURATION = 180
 
 
-def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output=""):
-    listurl = url + "/fortio/data/"
-    listdata = requests.Response()
-    try:
-        listdata = requests.get(listurl)
-    except requests.exceptions.RequestException as e:
-        # TODO handling connection refused issue after logging available
-        print(e)
-        sys.exit(1)
+def run_command(command):
+    process = subprocess.Popen(shlex.split(command))
+    process.wait()
+
+
+def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output="", namespace=NAMESPACE):
+    get_fortioclient_pod_cmd = "kubectl -n {namespace} get pods | grep fortioclient".format(namespace=namespace)
+    fortioclient_pod_name = getoutput(get_fortioclient_pod_cmd).split(" ")[0]
+    temp_dir_path = tempfile.gettempdir() + "/fortio_json_data"
+    get_fortio_json_cmd = "kubectl cp -c shell {namespace}/{fortioclient}:/var/lib/fortio {tempdir}"\
+        .format(namespace=namespace, fortioclient=fortioclient_pod_name, tempdir=temp_dir_path)
+    run_command(get_fortio_json_cmd)
+
     fd, datafile = tempfile.mkstemp(suffix=".json")
     out = os.fdopen(fd, "wt")
     stats = []
     cnt = 0
 
-    dataurl = url + "/data/"
     data = []
-    for fl in convert_data_to_list(listdata.text):
-        gd = fetch(dataurl + fl)
-        if gd is None:
-            continue
-        st = gd['StartTime']
-        if selector is not None:
-            if selector.startswith("^"):
-                if not st.startswith(selector[1:]):
+    for filename in os.listdir(temp_dir_path):
+        with open(os.path.join(temp_dir_path, filename), 'r') as f:
+            data_dict = json.load(f)
+            gd = convert_data(data_dict)
+            if gd is None:
+                continue
+            st = gd['StartTime']
+            if selector is not None:
+                if selector.startswith("^"):
+                    if not st.startswith(selector[1:]):
+                        continue
+                elif selector not in gd["Labels"]:
                     continue
-            elif selector not in gd["Labels"]:
-                continue
 
-        if promUrl:
-            sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
-            print("Fetching prometheus metrics for", sd, gd["Labels"])
-            if gd['errorPercent'] > 10:
-                print("... Run resulted in", gd['errorPercent'], "% errors")
-                continue
-            min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
-            if min_duration > gd['ActualDuration']:
-                print("... {} duration={}s is less than minimum {}s".format(
-                    gd["Labels"], gd['ActualDuration'], min_duration))
-                continue
-            prom_start = calendar.timegm(
-                sd.utctimetuple()) + METRICS_START_SKIP_DURATION
-            duration = min(gd['ActualDuration'] - min_duration,
-                           METRICS_SUMMARY_DURATION)
-            p = prom.Prom(promUrl, duration, start=prom_start)
-            prom_metrics = p.fetch_istio_proxy_cpu_and_mem()
-            if not prom_metrics:
-                print("... Not found")
-                continue
-            else:
-                print("")
+            if promUrl:
+                sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
+                print("Fetching prometheus metrics for", sd, gd["Labels"])
+                if gd['errorPercent'] > 10:
+                    print("... Run resulted in", gd['errorPercent'], "% errors")
+                    continue
+                min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
+                if min_duration > gd['ActualDuration']:
+                    print("... {} duration={}s is less than minimum {}s".format(
+                        gd["Labels"], gd['ActualDuration'], min_duration))
+                    continue
+                prom_start = calendar.timegm(
+                    sd.utctimetuple()) + METRICS_START_SKIP_DURATION
+                duration = min(gd['ActualDuration'] - min_duration,
+                               METRICS_SUMMARY_DURATION)
+                p = prom.Prom(promUrl, duration, start=prom_start)
+                prom_metrics = p.fetch_istio_proxy_cpu_and_mem()
+                if not prom_metrics:
+                    print("... Not found")
+                    continue
+                else:
+                    print("")
 
-            gd.update(prom_metrics)
+                gd.update(prom_metrics)
 
-        data.append(gd)
-        out.write(json.dumps(gd) + "\n")
-        stats.append(gd)
-        cnt += 1
+            data.append(gd)
+            out.write(json.dumps(gd) + "\n")
+            stats.append(gd)
+            cnt += 1
 
     out.close()
     print("Wrote {} json records to {}".format(cnt, datafile))
