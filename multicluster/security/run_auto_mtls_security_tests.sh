@@ -103,29 +103,29 @@ waitForPodsInContextReady sample "${CTX_2}" "2/2"
 # Test certificates and auto mTLS from sleep in cluster 1 to httpbin.
 # The presence of the X-Forwarded-Client-Cert header shows that the certificate and auto mTLS are used.
 verifyResponses 5 0 "X-Forwarded-Client-Cert" kubectl exec --context="${CTX_1}" -n sample -c sleep \
-  $(kubectl get --context="${CTX_1}" pod -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get --context="${CTX_1}" pod -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   http://httpbin.sample:8000/headers -s
 
 # Test certificates and auto mTLS from sleep in cluster 2 to httpbin.
 # The presence of the X-Forwarded-Client-Cert header shows that the certificate and auto mTLS are used.
 verifyResponses 5 0 "X-Forwarded-Client-Cert" kubectl exec --context="${CTX_2}" -n sample -c sleep \
-  $(kubectl get --context="${CTX_2}" pod -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get --context="${CTX_2}" pod -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   http://httpbin.sample:8000/headers -s
 
 # Verify cross-cluster load balancing under auto mTLS from cluster 1.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_1}" -it -n sample -c sleep \
-  $(kubectl get pod --context="${CTX_1}" -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_1}" -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.sample:5000/hello
 
 # Verify cross-cluster load balancing under auto mTLS from cluster 2
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_2}" -it -n sample -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.sample:5000/hello
 
 # Clean up the resources created after the tests

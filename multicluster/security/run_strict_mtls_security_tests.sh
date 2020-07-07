@@ -93,15 +93,15 @@ waitForPodsInContextReady sample "${CTX_2}" "2/2"
 # Verify cross-cluster load balancing from cluster 1.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_1}" -it -n sample -c sleep \
-  $(kubectl get pod --context="${CTX_1}" -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_1}" -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.sample:5000/hello
 
 # Verify cross-cluster load balancing from cluster 2
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_2}" -it -n sample -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.sample:5000/hello
 
 # Deploy mTLS strict policy for cluster 1 and 2
@@ -135,7 +135,7 @@ sleep 60
 set +e
 # Confirm that plain-text requests fail as mutual TLS is required for helloworld with the following command.
 verifyResponses 5 0 "command terminated with exit code 56" kubectl exec --context="${CTX_1}" \
-  $(kubectl get --context="${CTX_1}" pod -n sample -l app=sleep -o jsonpath={.items..metadata.name})\
+  "$(kubectl get --context="${CTX_1}" pod -n sample -l app=sleep -o jsonpath={.items..metadata.name})"\
    -n sample -c istio-proxy -- curl -s helloworld.sample:5000/hello
 # Exit immediately for non zero status
 set -e
@@ -180,15 +180,15 @@ sleep 60
 # Under mTLS, verify cross-cluster load balancing from cluster 1.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_1}" -it -n sample -c sleep \
-  $(kubectl get pod --context="${CTX_1}" -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_1}" -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.sample:5000/hello
 
 # Under mTLS, verify cross-cluster load balancing from cluster 2.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_2}" -it -n sample -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.sample:5000/hello
 
 # Verify the httpbin, helloworld, and sleep deployments are ready
@@ -198,15 +198,15 @@ waitForPodsInContextReady sample "${CTX_2}" "2/2"
 # Test certificates and mTLS from sleep in cluster 1 to httpbin.
 # The presence of the X-Forwarded-Client-Cert header shows that the certificate and mutual TLS are used.
 verifyResponses 5 0 "X-Forwarded-Client-Cert" kubectl exec --context="${CTX_1}" -n sample -c sleep \
-  $(kubectl get --context="${CTX_1}" pod -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get --context="${CTX_1}" pod -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   http://httpbin.sample:8000/headers -s
 
 # Test certificates and mTLS from sleep in cluster 2 to httpbin.
 # The presence of the X-Forwarded-Client-Cert header shows that the certificate and mutual TLS are used.
 verifyResponses 5 0 "X-Forwarded-Client-Cert" kubectl exec --context="${CTX_2}" -n sample -c sleep \
-  $(kubectl get --context="${CTX_2}" pod -n sample -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get --context="${CTX_2}" pod -n sample -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   http://httpbin.sample:8000/headers -s
 
 # Clean up the resources created after the tests

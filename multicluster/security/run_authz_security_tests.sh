@@ -112,64 +112,64 @@ waitForPodsInContextReady authz-ns2 "${CTX_2}" "2/2"
 # service in authz-ns1 of both clusters.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_1}" -it -n authz-ns1 -c sleep \
-  $(kubectl get pod --context="${CTX_1}" -n authz-ns1 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_1}" -n authz-ns1 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns1:5000/hello
 
 # Verify sleep in authz-ns1 of cluster 1 can reach the helloworld
 # service in authz-ns2 of both clusters.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_1}" -it -n authz-ns1 -c sleep \
-  $(kubectl get pod --context="${CTX_1}" -n authz-ns1 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_1}" -n authz-ns1 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns2:5000/hello
 
 # Verify sleep in authz-ns2 of cluster 1 can reach the helloworld
 # service in authz-ns1 of both clusters.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_1}" -it -n authz-ns2 -c sleep \
-  $(kubectl get pod --context="${CTX_1}" -n authz-ns2 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_1}" -n authz-ns2 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns1:5000/hello
 
 # Verify sleep in authz-ns2 of cluster 1 can reach the helloworld
 # service in authz-ns2 of both clusters.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_1}" -it -n authz-ns2 -c sleep \
-  $(kubectl get pod --context="${CTX_1}" -n authz-ns2 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_1}" -n authz-ns2 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns2:5000/hello
 
 # Verify sleep in authz-ns1 of cluster 2 can reach the helloworld
 # service in authz-ns1 of both clusters.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_2}" -it -n authz-ns1 -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n authz-ns1 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n authz-ns1 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns1:5000/hello
 
 # Verify sleep in authz-ns1 of cluster 2 can reach the helloworld
 # service in authz-ns2 of both clusters.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_2}" -it -n authz-ns1 -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n authz-ns1 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n authz-ns1 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns2:5000/hello
 
 # Verify sleep in authz-ns2 of cluster 2 can reach the helloworld
 # service in authz-ns1 of both clusters.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_2}" -it -n authz-ns2 -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n authz-ns2 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n authz-ns2 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns1:5000/hello
 
 # Verify sleep in authz-ns2 of cluster 2 can reach the helloworld
 # service in authz-ns2 in both clusters.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_2}" -it -n authz-ns2 -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n authz-ns2 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n authz-ns2 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns2:5000/hello
 
 # Deploy an authorization policy in cluster 1 and 2 to deny traffic to authz-ns2.
@@ -199,22 +199,22 @@ sleep 60
 
 # Verify traffic from sleep in authz-ns1 of cluster 1 to helloworld.authz-ns2 is denied.
 verifyResponses 5 0 "RBAC: access denied" kubectl exec --context="${CTX_1}" -it -n authz-ns1 -c sleep \
-  $(kubectl get pod --context="${CTX_1}" -n authz-ns1 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_1}" -n authz-ns1 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns2:5000/hello
 
 # Verify traffic from sleep in authz-ns1 of cluster 2 to helloworld.authz-ns2 is denied.
 verifyResponses 5 0 "RBAC: access denied" kubectl exec --context="${CTX_2}" -it -n authz-ns1 -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n authz-ns1 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n authz-ns1 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns2:5000/hello
 
 # Verify traffic from sleep in authz-ns2 of cluster 2 is allowed by
 # all helloworld service instances in authz-ns1 of both clusters.
 # The response set should include those from 4 instances in all clusters.
 verifyResponseSet 10 0 4 kubectl exec --context="${CTX_2}" -it -n authz-ns2 -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n authz-ns2 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n authz-ns2 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns1:5000/hello
 
 # Deploy an authorization policy in cluster 1 and 2 to deny traffic to authz-ns1.
@@ -244,14 +244,14 @@ sleep 60
 
 # Verify traffic from sleep in authz-ns2 of cluster 2 to helloworld.authz-ns1 is denied.
 verifyResponses 5 0 "RBAC: access denied" kubectl exec --context="${CTX_2}" -it -n authz-ns2 -c sleep \
-  $(kubectl get pod --context="${CTX_2}" -n authz-ns2 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_2}" -n authz-ns2 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns1:5000/hello
 
 # Verify traffic from sleep in authz-ns1 of cluster 1 to helloworld.authz-ns1 is denied.
 verifyResponses 5 0 "RBAC: access denied" kubectl exec --context="${CTX_1}" -it -n authz-ns1 -c sleep \
-  $(kubectl get pod --context="${CTX_1}" -n authz-ns1 -l \
-  app=sleep -o jsonpath='{.items[0].metadata.name}') -- curl \
+  "$(kubectl get pod --context="${CTX_1}" -n authz-ns1 -l \
+  app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl \
   helloworld.authz-ns1:5000/hello
 
 # Clean up the resources created after the tests
