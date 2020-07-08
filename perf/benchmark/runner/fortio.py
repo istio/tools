@@ -240,7 +240,9 @@ def get_parser():
         "--csv",
         help="columns in the csv file",
         default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,"
-                "cpu_mili_avg_istio_proxy,mem_Mi_avg_istio_proxy")
+                "cpu_mili_avg_istio_proxy_fortioclient,cpu_mili_avg_istio_proxy_fortioserver,"
+                "cpu_mili_avg_istio_proxy_istio-ingressgateway,mem_Mi_avg_istio_proxy_fortioclient,"
+                "mem_Mi_avg_istio_proxy_fortioserver,mem_Mi_avg_istio_proxy_istio-ingressgateway")
     parser.add_argument(
         "--csv_output",
         help="output path of csv file")
