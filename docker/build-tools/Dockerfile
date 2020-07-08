@@ -348,7 +348,7 @@ ENV CONTAINERD_VERSION=1.2.13-1
 ENV OUTDIR=/out
 
 # required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
-# required for general build: make, wget, curl, ssh
+# required for general build: make, wget, curl, ssh, rpm
 # required for ruby: libcurl4-openssl-dev
 # required for python: python3, pkg-config
 # hadolint ignore=DL3008
@@ -372,6 +372,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-setuptools \
     daemon \
     wget \
+    rpm \
     jq
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
