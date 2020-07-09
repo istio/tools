@@ -25,7 +25,7 @@ RUN echo "/opt/rh/httpd24/root/usr/lib64" > /etc/ld.so.conf.d/httpd24.conf && \
     ldconfig
 
 # We need gsutil to push/pull
-ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
+ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-265.0.0-linux-x86_64.tar.gz /tmp
 RUN tar -xzvf "/tmp/google-cloud-sdk-265.0.0-linux-x86_64.tar.gz" -C /usr/local
 
 ENV LLVM_VERSION=9.0.0
