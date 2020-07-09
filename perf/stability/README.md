@@ -8,17 +8,25 @@ The intent of these tests is to be run continuously for extend periods of time, 
 
 The long running test would deploy service graphs application with 15 namespaces in the cluster and run continuously. Prometheus/Alertmanager would be installed and managed by Prometheus Operator, Grafana would be installed via sample addon config yaml.
 
-Abnormal metrics breaking SLO and suspicious logs would be recorded in the alertmanager-webhook pod, corresponding notification would be pushed to slack channel #stability-test
+Abnormal metrics breaking SLO and suspicious logs would be recorded in the alertmanager-webhook pod, corresponding notification would be pushed to slack channel #stability-test(Note: any slack webhook url uploaded to github would be deactivated, contact @richardwxn for latest webhook url to put in the alertmanagerconfig.yaml)
 
 If you want to run against a public release(stable or dev), specify the target release TAG/VERSION/RELEASE_URL, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio). You can specify the namespace number of the servicegraph workloads by setting NAMESPACE_NUM var.
 
-For example, run with istio 1.5.4
+For example
+ 
+run with istio 1.5.4:
 
 `VERSION=1.5.4 NAMESPACE_NUM=15 ./long_running.sh`
 
-If for CVE fixes release or other releases from private repos, then you have to manually install Istio first with default prometheus instance disabled and specify the local path to the release bundles to install some extra prometheus configs needed, e.g. 
+run with istio 1.6.5 prerelease:
+
+`RELEASE_URL=https://storage.googleapis.com/istio-prerelease/prerelease/1.6.5/istio-1.6.5-osx.tar.gz NAMESPACE_NUM=15  ./long_running.sh`
+
+If you already install specific Istio version in the cluster, you can also point to the local release bundles to install grafana, some extra prometheus configs needed, e.g. 
 
 `LOCAL_ISTIO_PATH=/Users/iamwen/Downloads/istio-1.5.5 ./long_running.sh`
+
+Note: This does not support running with asm managed control plane yet.
 
 ## Setup Tests
 
