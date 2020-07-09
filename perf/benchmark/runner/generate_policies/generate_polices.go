@@ -17,6 +17,13 @@ package main
 import (
     "fmt"
     "bytes"
+    "strings"
+    "bufio"
+    "github.com/ghodss/yaml"
+    "encoding/json"
+    "istio.io/istio/pkg/util/protomarshal"
+
+    authzpb "istio.io/api/security/v1beta1"
 )
 
 type ruleOption struct {
@@ -24,92 +31,122 @@ type ruleOption struct {
     g         generator
 }
 
-func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*ruleOption) (string, error) {
-    yaml := bytes.Buffer{}
-    yaml.WriteString("spec:\n")
-    yaml.WriteString(" action: " + action + "\n")
+type MyPolicy struct {
+    ApiVersion string `json:"apiVersion"`
+    Kind       string `json:"kind"`
+    Metadata   MetadataStruct `json:"metadata"`
+}
 
-    if (len(ruleToOccurences) == 0) {
-        yaml.WriteString(" {}")
-    } else {
-        yaml.WriteString(" rules:\n")
+type MetadataStruct struct {
+    Name      string  `json:"name"`
+    Namespace string  `json:"namespace"`
+}
+
+func ToYAML(policy *MyPolicy, spec *authzpb.AuthorizationPolicy) (string, error) {
+    header, err := json.Marshal(policy)
+    if err != nil {
+        return "", err
     }
 
-    for rule, ruleOp := range ruleToOccurences {
-        yaml.WriteString("  " + rule + ":\n")
-        rules, err := ruleOp.g.generate(rule, ruleOp.occurance)
+    headerYaml, err := yaml.JSONToYAML([]byte(header))
+    if err != nil {
+        return "", err
+    }
+
+    authorizationPolicy, err := protomarshal.ToYAML(spec)
+    if err != nil {
+        return "", err
+    }
+
+    rulesYaml := bytes.Buffer{}
+    rulesYaml.WriteString("spec:\n")
+    scanner := bufio.NewScanner(strings.NewReader(authorizationPolicy))
+    for scanner.Scan() {
+        rulesYaml.WriteString(" " + scanner.Text() + "\n")
+    }
+    return string(headerYaml) + rulesYaml.String(), nil
+}
+
+func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*ruleOption, policy *MyPolicy) (string, error) {
+    spec := &authzpb.AuthorizationPolicy{}
+    // This action will be set by the paramater action
+    switch action {
+    case "ALLOW":
+        spec.Action = authzpb.AuthorizationPolicy_ALLOW
+    case "DENY":
+        spec.Action = authzpb.AuthorizationPolicy_DENY
+    }
+
+    var ruleList []*authzpb.Rule
+    for name, ruleOp := range ruleToOccurences {
+        rule, err := ruleOp.g.generate(name, ruleOp.occurance)
         if err != nil {
             return "", err
         }
-        yaml.WriteString(rules)
+        ruleList = append(ruleList, rule)
     }
-    return yaml.String(), nil
-}
+    spec.Rules = ruleList
 
-func generateRule(policy string, action string, ruleToOccurences map[string]*ruleOption) (string, error) {
- 
-    switch policy {
-    case "AuthorizationPolicy":
-        return generateAuthorizationPolicy(action, ruleToOccurences)
-    case "PeerAuthentication":
-        fmt.Println("PeerAuthentication")
-        // TODO impliment
-        // return generatePeerAuthentication(selector, mtl []*mode, portLevel)
-    case "RequestAuthentication":
-        fmt.Println("RequestAuthentication")
-        // TODO impliment
-        // return generateRequestAuthentication(selector, ruleToOccurences)
-    default:
-        fmt.Println("invalid policy")
-    }
-
-    return "", fmt.Errorf("invalid policy")
-}
-
-
-func createRules(policy string, action string, ruleToOccurences map[string]*ruleOption) (string, error){
-    yaml, err := generateRule(policy, action, ruleToOccurences)
+    yaml, err := ToYAML(policy, spec)
     if (err != nil) {
         return "", err
     }
     return yaml, nil
 }
 
-func createHeader(namespace string, name string, kind string) (string, error) {
-    // This could be updated to exporting the data into a file,
-    // instead of printing it
-    yaml := bytes.Buffer{}
-    header := `apiVersion: security.istio.io/v1beta1
-kind: %s
-metadata:
-  name: %s
-  namespace: %s
-`
-    yaml.WriteString(fmt.Sprintf(header, kind, name, namespace))
-    return yaml.String(), nil
+func generateRule(action string, ruleToOccurences map[string]*ruleOption,
+                    policy *MyPolicy) (string, error) {
+ 
+    switch policy.Kind {
+    case "AuthorizationPolicy":
+        return generateAuthorizationPolicy(action, ruleToOccurences, policy)
+    case "PeerAuthentication":
+        fmt.Println("PeerAuthentication")
+        // TODO implement
+        // return generatePeerAuthentication(selector, mtl []*mode, portLevel)
+    case "RequestAuthentication":
+        fmt.Println("RequestAuthentication")
+        // TODO implement
+        // return generateRequestAuthentication(selector, ruleToOccurences)
+    default:
+        fmt.Println("invalid policy")
+    }
+    return "", fmt.Errorf("invalid policy")
+}
+
+
+func createRules(action string, ruleToOccurences map[string]*ruleOption, policy *MyPolicy) (string, error){
+    yaml, err := generateRule(action, ruleToOccurences, policy)
+    if (err != nil) {
+        return "", err
+    }
+    return yaml, nil
+}
+
+func createPolicyHeader(namespace string, name string, kind string) (*MyPolicy, error) {
+    metadata := MetadataStruct{namespace, name}
+    return &MyPolicy{
+        ApiVersion: "security.istio.io/v1beta1",
+        Kind: kind,
+        Metadata: metadata,
+      }, nil
 }
 
 func main() {
     yaml := bytes.Buffer{}
-    header, err := createHeader("foo", "httpbin", "AuthorizationPolicy")
+    policy, err := createPolicyHeader("deny-method-get", "twopods-istio", "AuthorizationPolicy")
     if (err != nil) {
         fmt.Println(err)
-    } else {
-        yaml.WriteString(header)
     }
 
     ruleOptionMap := make(map[string]*ruleOption)
     // These hardcoded values will be provided by 
     // command line arguments passed from runner.py
-    ruleOptionMap["from"] = &ruleOption{}
-    ruleOptionMap["from"].occurance = 2
-    ruleOptionMap["from"].g = sourceGenerator{}
-
     ruleOptionMap["when"] = &ruleOption{}
-    ruleOptionMap["when"].occurance = 1
+    ruleOptionMap["when"].occurance = 10
     ruleOptionMap["when"].g = conditionGenerator{}
 
-    rules, err := createRules("AuthorizationPolicy", "DENY", ruleOptionMap)
+    rules, err := createRules("DENY", ruleOptionMap, policy)
     if (err != nil) {
         fmt.Println(err)
     } else {

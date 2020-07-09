@@ -1,55 +1,45 @@
 package main
 
 import (
-	"fmt"
-	"bytes"
-	"math/rand"
+	authzpb "istio.io/api/security/v1beta1"
 )
 
 type generator interface {
-    generate(kind string, num int) (string, error)
+    generate(kind string, num int) (*authzpb.Rule, error)
 }
 
 type operationGenerator struct {
 }
 
-func (operationGenerator) generate(kind string, num int) (string, error) {
-	return "", fmt.Errorf("unimplimented")
+func (operationGenerator) generate(kind string, num int) (*authzpb.Rule, error) {
+	// TODO implement
+	condition := &authzpb.Rule{}
+	return condition, nil
 }
 
 type conditionGenerator struct {
 }
 
-func (conditionGenerator) generate(kind string, num int) (string, error) {
-	rule := bytes.Buffer{}
-	rule.WriteString("  - key: \n")
+func (conditionGenerator) generate(kind string, num int) (*authzpb.Rule, error) {
+	rule := &authzpb.Rule{}
+	listCondition := make([]*authzpb.Condition, 0)
 
-    for i := 0; i < num; i++ {
-		rule.WriteString("    value")
+	for i := 0; i < num; i++ {
+		condition := &authzpb.Condition{}
+		condition.Key = "request.headers[x-token]"
+		values := []string{"admin", "guest"}
+		condition.NotValues = values
+		listCondition = append(listCondition, condition)
 	}
-
-    return rule.String(), nil
+	rule.When = listCondition
+	return rule, nil
 }
 
 type sourceGenerator struct {
 }
 
-func (sourceGenerator) generate(kind string, num int) (string, error) {
-	rule := bytes.Buffer{}
-
-    for i := 0; i < num; i++ {
-		rule.WriteString("  - operation \n")
-		
-		// Currently hardcoded only for the methods call
-		rule.WriteString("     methods: ")
-		if (rand.Int() % 2 == 0) {
-			rule.WriteString("[\"GET\"]\n")
-		} else {
-			rule.WriteString("[\"POST\"]\n")
-		}
-	}
-
-    return rule.String(), nil
+func (sourceGenerator) generate(kind string, num int) (*authzpb.Rule, error) {
+	// TODO implement 
+	condition := &authzpb.Rule{}
+    return condition, nil
 }
-
-// May want JWTRules as a generator struct for RequestAuthentication
