@@ -7,6 +7,8 @@ ARG VERSION
 LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
+ENV GCLOUD_VERSION=265.0.0
+
 RUN yum install -y centos-release-scl epel-release && \
     yum update -y && \
     yum install -y fedpkg sudo devtoolset-7-gcc devtoolset-7-gcc-c++ \
@@ -24,6 +26,11 @@ RUN ln -s /usr/bin/cmake3 /usr/bin/cmake
 RUN echo "/opt/rh/httpd24/root/usr/lib64" > /etc/ld.so.conf.d/httpd24.conf && \
     ldconfig
 
+# We need gsutil to push/pull
+ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
+RUN tar -xzvf /tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz -C ${OUTDIR}/usr/local
+
+
 ENV LLVM_VERSION=9.0.0
 ENV LLVM_DISTRO="x86_64-linux-sles11.3"
 ENV LLVM_RELEASE="clang+llvm-${LLVM_VERSION}-${LLVM_DISTRO}"
@@ -34,3 +41,8 @@ RUN curl -fsSL --output ${LLVM_RELEASE}.tar.xz https://releases.llvm.org/${LLVM_
     rm ./${LLVM_RELEASE}.tar.xz && \
     echo "/opt/llvm/lib" > /etc/ld.so.conf.d/llvm.conf && \
     ldconfig
+
+ENV PATH=/opt/llvm/bin:/usr/local/google-cloud-sdk/bin:$PATH
+
+RUN cd /tmp && git clone https://gn.googlesource.com/gn && \
+    cd gn && python build/gen.py && ninja -C out && cp out/gn /usr/bin && rm -rf /tmp/cn
