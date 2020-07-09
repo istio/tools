@@ -17,6 +17,10 @@ package main
 import (
     "fmt"
     "bytes"
+    "github.com/ghodss/yaml"
+    "encoding/json"
+
+    authzpb "istio.io/api/security/v1beta1"
 )
 
 type ruleOption struct {
@@ -24,40 +28,70 @@ type ruleOption struct {
     g         generator
 }
 
-func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*ruleOption) (string, error) {
-    yaml := bytes.Buffer{}
-    yaml.WriteString("spec:\n")
-    yaml.WriteString(" action: " + action + "\n")
+type MyPolicy struct {
+    ApiVersion string `json:"apiVersion"`
+    Kind       string `json:"kind"`
+    Metadata   MetadataStruct `json:"metadata"`
+    Spec       authzpb.AuthorizationPolicy `json:"spec"`
+}
 
-    if (len(ruleToOccurences) == 0) {
-        yaml.WriteString(" {}")
-    } else {
-        yaml.WriteString(" rules:\n")
+type MetadataStruct struct {
+    Name      string  `json:"name"`
+    Namespace string  `json:"namespace"`
+}
+
+func formYaml(policy *MyPolicy) (string, error) {
+    header, err := json.Marshal(policy)
+    if err != nil {
+        return "", err
     }
 
-    for rule, ruleOp := range ruleToOccurences {
-        yaml.WriteString("  " + rule + ":\n")
-        rules, err := ruleOp.g.generate(rule, ruleOp.occurance)
+    yaml, err := yaml.JSONToYAML([]byte(header))
+    if err != nil {
+        return "", err
+    }
+
+    return string(yaml), nil
+}
+
+func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*ruleOption, policy *MyPolicy) (string, error) {
+    spec := &authzpb.AuthorizationPolicy{}
+    // This action will be set by the paramater action
+    spec.Action = 1;
+
+    var ruleList []*authzpb.Rule
+    for name, ruleOp := range ruleToOccurences {
+        rule, err := ruleOp.g.generate(name, ruleOp.occurance)
         if err != nil {
             return "", err
         }
-        yaml.WriteString(rules)
+        ruleList = append(ruleList, rule)
     }
-    return yaml.String(), nil
+    spec.Rules = ruleList
+
+    policy.Spec = *spec
+
+    yaml, err := formYaml(policy)
+    if (err != nil) {
+        return "", err
+    }
+
+    return yaml, nil
 }
 
-func generateRule(policy string, action string, ruleToOccurences map[string]*ruleOption) (string, error) {
+func generateRule(action string, ruleToOccurences map[string]*ruleOption,
+                    policy *MyPolicy) (string, error) {
  
-    switch policy {
+    switch policy.Kind {
     case "AuthorizationPolicy":
-        return generateAuthorizationPolicy(action, ruleToOccurences)
+        return generateAuthorizationPolicy(action, ruleToOccurences, policy)
     case "PeerAuthentication":
         fmt.Println("PeerAuthentication")
-        // TODO impliment
+        // TODO implement
         // return generatePeerAuthentication(selector, mtl []*mode, portLevel)
     case "RequestAuthentication":
         fmt.Println("RequestAuthentication")
-        // TODO impliment
+        // TODO implement
         // return generateRequestAuthentication(selector, ruleToOccurences)
     default:
         fmt.Println("invalid policy")
@@ -67,49 +101,39 @@ func generateRule(policy string, action string, ruleToOccurences map[string]*rul
 }
 
 
-func createRules(policy string, action string, ruleToOccurences map[string]*ruleOption) (string, error){
-    yaml, err := generateRule(policy, action, ruleToOccurences)
+func createRules(action string, ruleToOccurences map[string]*ruleOption, policy *MyPolicy) (string, error){
+    yaml, err := generateRule(action, ruleToOccurences, policy)
     if (err != nil) {
         return "", err
     }
     return yaml, nil
 }
 
-func createHeader(namespace string, name string, kind string) (string, error) {
-    // This could be updated to exporting the data into a file,
-    // instead of printing it
-    yaml := bytes.Buffer{}
-    header := `apiVersion: security.istio.io/v1beta1
-kind: %s
-metadata:
-  name: %s
-  namespace: %s
-`
-    yaml.WriteString(fmt.Sprintf(header, kind, name, namespace))
-    return yaml.String(), nil
+func createPolicyHeader(namespace string, name string, kind string) (*MyPolicy, error) {
+    metadata := MetadataStruct{namespace, name}
+    
+    policy := &MyPolicy{}
+    policy.ApiVersion = "security.istio.io/v1beta1"
+    policy.Kind = kind
+    policy.Metadata = metadata
+    return policy, nil
 }
 
 func main() {
     yaml := bytes.Buffer{}
-    header, err := createHeader("foo", "httpbin", "AuthorizationPolicy")
+    policy, err := createPolicyHeader("deny-method-get", "twopods-istio", "AuthorizationPolicy")
     if (err != nil) {
         fmt.Println(err)
-    } else {
-        yaml.WriteString(header)
     }
 
     ruleOptionMap := make(map[string]*ruleOption)
     // These hardcoded values will be provided by 
     // command line arguments passed from runner.py
-    ruleOptionMap["from"] = &ruleOption{}
-    ruleOptionMap["from"].occurance = 2
-    ruleOptionMap["from"].g = sourceGenerator{}
-
     ruleOptionMap["when"] = &ruleOption{}
-    ruleOptionMap["when"].occurance = 1
+    ruleOptionMap["when"].occurance = 10
     ruleOptionMap["when"].g = conditionGenerator{}
 
-    rules, err := createRules("AuthorizationPolicy", "DENY", ruleOptionMap)
+    rules, err := createRules("DENY", ruleOptionMap, policy)
     if (err != nil) {
         fmt.Println(err)
     } else {
