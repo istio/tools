@@ -17,8 +17,11 @@ package main
 import (
     "fmt"
     "bytes"
+    "strings"
+    "bufio"
     "github.com/ghodss/yaml"
     "encoding/json"
+    "istio.io/istio/pkg/util/protomarshal"
 
     authzpb "istio.io/api/security/v1beta1"
 )
@@ -32,7 +35,6 @@ type MyPolicy struct {
     ApiVersion string `json:"apiVersion"`
     Kind       string `json:"kind"`
     Metadata   MetadataStruct `json:"metadata"`
-    Spec       authzpb.AuthorizationPolicy `json:"spec"`
 }
 
 type MetadataStruct struct {
@@ -40,24 +42,40 @@ type MetadataStruct struct {
     Namespace string  `json:"namespace"`
 }
 
-func formYaml(policy *MyPolicy) (string, error) {
+func ToYAML(policy *MyPolicy, spec *authzpb.AuthorizationPolicy) (string, error) {
     header, err := json.Marshal(policy)
     if err != nil {
         return "", err
     }
 
-    yaml, err := yaml.JSONToYAML([]byte(header))
+    headerYaml, err := yaml.JSONToYAML([]byte(header))
     if err != nil {
         return "", err
     }
 
-    return string(yaml), nil
+    authorizationPolicy, err := protomarshal.ToYAML(spec)
+    if err != nil {
+        return "", err
+    }
+
+    rulesYaml := bytes.Buffer{}
+    rulesYaml.WriteString("spec:\n")
+    scanner := bufio.NewScanner(strings.NewReader(authorizationPolicy))
+    for scanner.Scan() {
+        rulesYaml.WriteString(" " + scanner.Text() + "\n")
+    }
+    return string(headerYaml) + rulesYaml.String(), nil
 }
 
 func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*ruleOption, policy *MyPolicy) (string, error) {
     spec := &authzpb.AuthorizationPolicy{}
     // This action will be set by the paramater action
-    spec.Action = 1;
+    switch action {
+    case "ALLOW":
+        spec.Action = authzpb.AuthorizationPolicy_ALLOW
+    case "DENY":
+        spec.Action = authzpb.AuthorizationPolicy_DENY
+    }
 
     var ruleList []*authzpb.Rule
     for name, ruleOp := range ruleToOccurences {
@@ -69,13 +87,10 @@ func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*rul
     }
     spec.Rules = ruleList
 
-    policy.Spec = *spec
-
-    yaml, err := formYaml(policy)
+    yaml, err := ToYAML(policy, spec)
     if (err != nil) {
         return "", err
     }
-
     return yaml, nil
 }
 
@@ -96,7 +111,6 @@ func generateRule(action string, ruleToOccurences map[string]*ruleOption,
     default:
         fmt.Println("invalid policy")
     }
-
     return "", fmt.Errorf("invalid policy")
 }
 
@@ -111,12 +125,11 @@ func createRules(action string, ruleToOccurences map[string]*ruleOption, policy 
 
 func createPolicyHeader(namespace string, name string, kind string) (*MyPolicy, error) {
     metadata := MetadataStruct{namespace, name}
-    
-    policy := &MyPolicy{}
-    policy.ApiVersion = "security.istio.io/v1beta1"
-    policy.Kind = kind
-    policy.Metadata = metadata
-    return policy, nil
+    return &MyPolicy{
+        ApiVersion: "security.istio.io/v1beta1",
+        Kind: kind,
+        Metadata: metadata,
+      }, nil
 }
 
 func main() {
