@@ -38,6 +38,7 @@ ENV GO_JUNIT_REPORT_VERSION=af01ea7f8024089b458d804d5cdf190f962a9a0c
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOGO_PROTOBUF_VERSION=v1.3.0
 ENV GOIMPORTS_VERSION=379209517ffe
+ENV BENCHSTAT_VERSION=9c9101da8316
 ENV GOLANG_PROTOBUF_VERSION=v1.3.1
 ENV GOLANGCI_LINT_VERSION=v1.27.0
 ENV HADOLINT_VERSION=v1.17.2
@@ -115,6 +116,7 @@ RUN gobin sigs.k8s.io/kind@${KIND_VERSION}
 RUN gobin github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
 RUN gobin github.com/fortio/fortio@${FORTIO_VERSION}
 RUN gobin github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
+RUN gobin golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
 
 # Install latest version of Istio-owned tools in this release
 RUN gobin istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
