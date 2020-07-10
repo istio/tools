@@ -86,14 +86,14 @@ func TestUnitTestNoGoroutineRule(t *testing.T) {
 	}
 }
 
-func TestUnitTestWhitelist(t *testing.T) {
+func TestUnitTestAllowlist(t *testing.T) {
 	clearLintRulesList()
 	LintRulesList[UnitTest] = []checker.Rule{rules.NewSkipByIssue(),
 		rules.NewNoShort(),
 		rules.NewNoSleep(),
 		rules.NewNoGoroutine()}
-	Whitelist = make(map[string][]string)
-	Whitelist["testdata/unit_test.go"] = []string{"skip_by_issue_rule", "no_short_rule",
+	Allowlist = make(map[string][]string)
+	Allowlist["testdata/unit_test.go"] = []string{"skip_by_issue_rule", "no_short_rule",
 		"no_sleep_rule", "no_goroutine_rule"}
 
 	rpts, _ := getReport([]string{"testdata/*"})

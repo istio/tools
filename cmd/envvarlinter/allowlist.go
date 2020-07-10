@@ -14,7 +14,7 @@
 
 package main
 
-// Whitelist contains pairs of file and rule IDs. Each file maps to an array of rules which
+// Allowlist contains pairs of file and rule IDs. Each file maps to an array of rules which
 // should not apply to that file. Each rule is represented by its unique rule ID, which is the
 // file name of that rule without ".go" extension in the rules package.
-var Whitelist = map[string][]string{}
+var Allowlist = map[string][]string{}
