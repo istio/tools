@@ -19,20 +19,20 @@ import (
 	"path/filepath"
 )
 
-// Whitelist determines if rules are whitelisted for the given paths.
-type Whitelist struct {
-	// Map from path to whitelisted rules.
-	ruleWhitelist map[string][]string
+// Allowlist determines if rules are allowlisted for the given paths.
+type Allowlist struct {
+	// Map from path to allowlisted rules.
+	ruleAllowlist map[string][]string
 }
 
-// NewWhitelist creates and returns a Whitelist object.
-func NewWhitelist(ruleWhitelist map[string][]string) *Whitelist {
-	return &Whitelist{ruleWhitelist: ruleWhitelist}
+// NewAllowlist creates and returns an Allowlist object.
+func NewAllowlist(ruleAllowlist map[string][]string) *Allowlist {
+	return &Allowlist{ruleAllowlist: ruleAllowlist}
 }
 
-// Apply returns true if the given rule is whitelisted for the given path.
-func (wl *Whitelist) Apply(path string, rule Rule) bool {
-	for _, skipRule := range wl.getWhitelistedRules(path) {
+// Apply returns true if the given rule is allowlisted for the given path.
+func (wl *Allowlist) Apply(path string, rule Rule) bool {
+	for _, skipRule := range wl.getAllowlistedRules(path) {
 		if skipRule == rule.GetID() {
 			return true
 		}
@@ -40,17 +40,17 @@ func (wl *Whitelist) Apply(path string, rule Rule) bool {
 	return false
 }
 
-// getWhitelistedRules returns the whitelisted rule given the path
-func (wl *Whitelist) getWhitelistedRules(path string) []string {
-	// Check whether path is whitelisted
-	for wp, whitelistedRules := range wl.ruleWhitelist {
+// getAllowlistedRules returns the allowlisted rule given the path
+func (wl *Allowlist) getAllowlistedRules(path string) []string {
+	// Check whether path is allowlisted
+	for wp, allowlistedRules := range wl.ruleAllowlist {
 		// filepath.Match is needed for canonical matching
 		matched, err := filepath.Match(wp, path)
 		if err != nil {
 			log.Printf("file match returns error: %v", err)
 		}
 		if matched {
-			return whitelistedRules
+			return allowlistedRules
 		}
 	}
 	return []string{}

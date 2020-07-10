@@ -30,7 +30,7 @@ var (
 )
 
 // Check checks the list of files, and write to the given Report.
-func Check(paths []string, factory RulesFactory, whitelist *Whitelist, report *Report) error {
+func Check(paths []string, factory RulesFactory, allowlist *Allowlist, report *Report) error {
 	// Empty paths means current dir.
 	if len(paths) == 0 {
 		paths = []string{"."}
@@ -46,7 +46,7 @@ func Check(paths []string, factory RulesFactory, whitelist *Whitelist, report *R
 			}
 			rules := factory.GetRules(fpath, info)
 			if len(rules) > 0 {
-				fileCheck(fpath, rules, whitelist, report)
+				fileCheck(fpath, rules, allowlist, report)
 			}
 			return nil
 		})
@@ -58,7 +58,7 @@ func Check(paths []string, factory RulesFactory, whitelist *Whitelist, report *R
 }
 
 // fileCheck checks a file using the given rules, and write to the given Report.
-func fileCheck(path string, rules []Rule, whitelist *Whitelist, report *Report) {
+func fileCheck(path string, rules []Rule, allowlist *Allowlist, report *Report) {
 	// TODO: skip over linter tests in a principled manner for all linters
 	if IgnoreTestLinterData && strings.Contains(path, "testlinter/testdata") {
 		return
@@ -73,7 +73,7 @@ func fileCheck(path string, rules []Rule, whitelist *Whitelist, report *Report) 
 	v := FileVisitor{
 		path:      path,
 		rules:     rules,
-		whitelist: whitelist,
+		allowlist: allowlist,
 		fileset:   fs,
 		report:    report,
 	}
@@ -85,7 +85,7 @@ func fileCheck(path string, rules []Rule, whitelist *Whitelist, report *Report) 
 type FileVisitor struct {
 	path      string
 	rules     []Rule     // rules to check
-	whitelist *Whitelist // rules to skip
+	allowlist *Allowlist // rules to skip
 	fileset   *token.FileSet
 	report    *Report // report for linting process
 }
@@ -98,7 +98,7 @@ func (fv *FileVisitor) Visit(node ast.Node) ast.Visitor {
 
 	// ApplyRules applies rules to node and generate lint report.
 	for _, rule := range fv.rules {
-		if !fv.whitelist.Apply(fv.path, rule) {
+		if !fv.allowlist.Apply(fv.path, rule) {
 			rule.Check(node, fv.fileset, fv.report)
 		}
 	}
