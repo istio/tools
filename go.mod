@@ -56,8 +56,9 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 	istio.io/gogo-genproto v0.0.0-20191009201739-17d570f95998
-	k8s.io/apiextensions-apiserver v0.18.1
-	k8s.io/apimachinery v0.18.1
+	k8s.io/apiextensions-apiserver v0.18.2
+	k8s.io/apimachinery v0.18.2
 	k8s.io/gengo v0.0.0-20190822140433-26a664648505
 	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
+	sigs.k8s.io/controller-tools v0.3.0
 )

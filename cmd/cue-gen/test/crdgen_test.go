@@ -72,8 +72,17 @@ func TestBazPreserveUnknownFields(t *testing.T) {
 	crds := readCRDFile(t)
 
 	for _, c := range crds {
-		if c.Name == "bazs.foo.istio.io" && !c.Spec.PreserveUnknownFields {
-			t.Error("spec of Baz should have preserveUnknownFields set to true")
+		if c.Name == "bazs.foo.istio.io" {
+			for _, v := range c.Spec.Versions {
+				if v.Name == "v1alpha3" {
+					if v.Schema.OpenAPIV3Schema.Properties["spec"].Properties["fieldB"].XPreserveUnknownFields == nil {
+						t.Errorf("baz.v1alpha3.fieldB is expected to have x-preserve-unknown-fields set to true")
+					}
+					if v.Schema.OpenAPIV3Schema.Properties["spec"].Properties["fooBaz"].Properties["qux"].Items.Schema.Properties["value"].XPreserveUnknownFields == nil {
+						t.Errorf("baz.v1alpha3.fooBaz.qux.[].value is expected to have x-preserve-unknown-fields set to true")
+					}
+				}
+			}
 		}
 	}
 

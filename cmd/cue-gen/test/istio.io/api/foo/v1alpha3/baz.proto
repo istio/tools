@@ -29,9 +29,20 @@ option go_package = "istio.io/api/foo/v1alpha3";
 // +cue-gen:Baz:subresource:status
 // +cue-gen:Baz:scope:Namespaced
 // +cue-gen:Baz:resource:categories=istio-io,foo-istio-io,shortNames=b
-// +cue-gen:Baz:preserveUnknownFields:true
+// +cue-gen:Baz:preserveUnknownFields:fieldB,fooBaz.qux.[].value
 // -->
 message Baz {
   uint32 fieldA = 1;
-  string fieldB = 2;
+  Struct fieldB = 2;
+  FooBaz foo_baz = 3;
 }
+
+message FooBaz {
+  repeated Qux qux = 1;
+
+  message Qux {
+    Struct value = 1;
+  }
+}
+
+message Struct {}

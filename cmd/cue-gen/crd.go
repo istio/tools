@@ -25,6 +25,8 @@ import (
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
 	"k8s.io/utils/pointer"
+
+	crdutil "sigs.k8s.io/controller-tools/pkg/crd"
 )
 
 const (
@@ -41,8 +43,8 @@ status:
 )
 
 // Build CRDs based on the configuration and schema.
-//nolint:staticcheck,interfacer
-func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap, statusSchema *openapi.OrderedMap) {
+//nolint:staticcheck,interfacer,lll
+func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap, statusSchema *openapi.OrderedMap, preserveUnknownFields map[string][]string) {
 
 	for i, version := range c.Spec.Versions {
 
@@ -54,6 +56,14 @@ func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string
 		j := &apiextv1.JSONSchemaProps{}
 		if err = json.Unmarshal(b, j); err != nil {
 			log.Fatalf("Cannot unmarshal raw OpenAPI schema to JSONSchemaProps for %v: %v", c.Name, err)
+		}
+
+		// mark fields as `x-kubernetes-preserve-unknown-fields: true` using the visitor
+		if fs, ok := preserveUnknownFields[version.Name]; ok {
+			for _, f := range fs {
+				p := &preserveUnknownFieldVisitor{path: f}
+				crdutil.EditSchema(j, p)
+			}
 		}
 
 		version.Schema = &apiextv1.CustomResourceValidation{OpenAPIV3Schema: &apiextv1.JSONSchemaProps{
