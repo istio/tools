@@ -58,7 +58,7 @@ func main() {
 
 		fmt.Printf("Module Name,Module Path,Whitelisted,License Path,License Name,Confidence,Similar To,Similarity Confidence,State\n")
 		for _, module := range modules {
-			fmt.Printf("%s,%s,%v", module.moduleName, module.path, cfg.whitelistedModules[module.moduleName])
+			fmt.Printf("%s,%s,%v", module.moduleName, module.path, cfg.allowlistedModules[module.moduleName])
 			for _, l := range module.licenses {
 
 				state := "unrecognized"
@@ -115,8 +115,8 @@ func main() {
 		// categorize the modules
 		for _, module := range modules {
 			if !report && !dump {
-				// if we're not producing a report, then exclude any module on the whitelist
-				if cfg.whitelistedModules[module.moduleName] {
+				// if we're not producing a report, then exclude any module on the allowlist
+				if cfg.allowlistedModules[module.moduleName] {
 					continue
 				}
 			}
@@ -217,8 +217,8 @@ func main() {
 		} else {
 			failLint := false
 
-			fmt.Printf("Found licenses: %v reciprocal, %v unrestricted, %v restricted, %v unrecognized, and %v unlicensed. %v are whitelisted.\n",
-				len(reciprocalLicenses), len(unrestrictedLicenses), len(restrictedLicenses), len(unrecognizedLicenses), len(unlicensedModules), len(cfg.whitelistedModules))
+			fmt.Printf("Found licenses: %v reciprocal, %v unrestricted, %v restricted, %v unrecognized, and %v unlicensed. %v are allowlisted.\n",
+				len(reciprocalLicenses), len(unrestrictedLicenses), len(restrictedLicenses), len(unrecognizedLicenses), len(unlicensedModules), len(cfg.allowlistedModules))
 
 			if len(unrecognizedLicenses) > 0 {
 				failLint = true

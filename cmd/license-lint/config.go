@@ -32,6 +32,8 @@ type rawConfig struct {
 	RestrictedLicenses []string `json:"restricted_licenses"`
 
 	// modules that get completely ignored during analysis
+	AllowlistedModules []string `json:"allowlisted_modules"`
+	// Deprecated. TODO(tbarrella): Clean up
 	WhitelistedModules []string `json:"whitelisted_modules"`
 }
 
@@ -46,7 +48,7 @@ type config struct {
 	restrictedLicenses map[string]bool
 
 	// modules that get completely ignored during analysis
-	whitelistedModules map[string]bool
+	allowlistedModules map[string]bool
 }
 
 func newConfig() config {
@@ -54,7 +56,7 @@ func newConfig() config {
 		unrestrictedLicenses: make(map[string]bool),
 		reciprocalLicenses:   make(map[string]bool),
 		restrictedLicenses:   make(map[string]bool),
-		whitelistedModules:   make(map[string]bool),
+		allowlistedModules:   make(map[string]bool),
 	}
 }
 
@@ -84,8 +86,13 @@ func readConfig(path string) (config, error) {
 		c.restrictedLicenses[s] = true
 	}
 
+	for _, s := range rc.AllowlistedModules {
+		c.allowlistedModules[s] = true
+	}
+
+	// TODO(tbarrella): Clean up
 	for _, s := range rc.WhitelistedModules {
-		c.whitelistedModules[s] = true
+		c.allowlistedModules[s] = true
 	}
 
 	return c, nil

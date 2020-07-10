@@ -49,7 +49,7 @@ reciprocal_licenses:
 restricted_licenses:
   - license name 1
   - license name 2
-whitelisted_modules:
+allowlisted_modules:
   - module name 1
   - module name 2
 ```
