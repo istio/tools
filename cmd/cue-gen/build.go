@@ -103,6 +103,10 @@ type CrdConfig struct {
 	// not following the <package>.<version>.<name> format.
 	VersionToSchema map[string]string
 
+	// Optional. Mapping of version to slice of field paths that
+	// need to be marked as `x-kubernetes-preserve-unknown-fields`
+	PreserveUnknownFields map[string][]string
+
 	CustomResourceDefinition *apiext.CustomResourceDefinition
 }
 
@@ -249,6 +253,7 @@ func (c *Config) getCrdConfig(filename string) {
 					c.Crd.CrdConfigs[t] = &CrdConfig{
 						VersionToSchema:          map[string]string{},
 						CustomResourceDefinition: &apiext.CustomResourceDefinition{},
+						PreserveUnknownFields:    map[string][]string{},
 					}
 				}
 				d := c.Crd.CrdConfigs[t]
@@ -448,16 +453,6 @@ func convertCrdConfig(c map[string]string, t string, cfg *CrdConfig) {
 			version.Name = v
 		case "schema":
 			sc = v
-		case "preserveUnknownFields":
-			if src.Spec.PreserveUnknownFields {
-				continue
-			}
-			switch v {
-			case "true":
-				src.Spec.PreserveUnknownFields = true
-			case "false":
-				src.Spec.PreserveUnknownFields = false
-			}
 		}
 	}
 	if sc != "" {
@@ -465,6 +460,12 @@ func convertCrdConfig(c map[string]string, t string, cfg *CrdConfig) {
 		m[version.Name] = sc
 		cfg.VersionToSchema = m
 	}
+
+	// store the fields to mark as preserved in the config
+	if f, ok := c["preserveUnknownFields"]; ok {
+		cfg.PreserveUnknownFields[version.Name] = strings.Split(f, ",")
+	}
+
 	src.Spec.Versions = append(src.Spec.Versions, version)
 	src.Name = fmt.Sprintf("%v.%v", src.Spec.Names.Plural, src.Spec.Group)
 }

@@ -442,7 +442,7 @@ func (x *builder) genCRD() {
 			versionSchemas[version.Name] = sc
 		}
 
-		completeCRD(v.CustomResourceDefinition, versionSchemas, statusSchema)
+		completeCRD(v.CustomResourceDefinition, versionSchemas, statusSchema, v.PreserveUnknownFields)
 	}
 
 	x.writeCRDFiles()

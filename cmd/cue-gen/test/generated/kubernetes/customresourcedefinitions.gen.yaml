@@ -101,7 +101,6 @@ spec:
     shortNames:
     - b
     singular: baz
-  preserveUnknownFields: true
   scope: Namespaced
   versions:
   - name: v1alpha3
@@ -113,8 +112,19 @@ spec:
               fieldA:
                 type: integer
               fieldB:
-                format: string
-                type: string
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              fooBaz:
+                properties:
+                  qux:
+                    items:
+                      properties:
+                        value:
+                          type: object
+                          x-kubernetes-preserve-unknown-fields: true
+                      type: object
+                    type: array
+                type: object
             type: object
           status:
             description: Status is the test status field.
