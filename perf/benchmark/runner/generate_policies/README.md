@@ -57,7 +57,7 @@ Optional arguments:
   -from int              Number of From sources wanted (default 1)
 
 ```
-To applya rule created to istio one can apply the following command replacing the "POLICY" with the policy created.
+To apply a rule created to istio one can apply the following command replacing the "POLICY" with the policy created.
 ```bash
 kubectl apply -f - <<EOF
 "POLICY"
