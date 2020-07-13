@@ -78,15 +78,19 @@ type Instance struct {
 }
 
 var (
-	{{ range .Annotations }}
-		{{ .VariableName }} = Instance {
-          Name: "{{ .Name }}",
-          Description: {{ wordWrap .Description 24 }},
-          Hidden: {{ .Hidden }},
-          Deprecated: {{ .Deprecated }},
-		  Resources: []ResourceTypes{ {{ range .Resources }}{{ . }}{{ end }}, },
-        }
-	{{ end }}
+{{ range .Annotations }}
+	{{ .VariableName }} = Instance {
+		Name: "{{ .Name }}",
+		Description: {{ wordWrap .Description 24 }},
+		Hidden: {{ .Hidden }},
+		Deprecated: {{ .Deprecated }},
+		Resources: []ResourceTypes{
+			{{- range .Resources }}
+			{{ . }},
+			{{- end }}
+		},
+	}
+{{ end }}
 )
 
 func AllResourceAnnotations() []*Instance {
