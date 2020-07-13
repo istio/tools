@@ -57,10 +57,14 @@ Optional arguments:
   -from int              Number of From sources wanted (default 1)
 
 ```
-To apply a rule created to istio one can apply the following command replacing the "POLICY" with the policy created.
+To create a large policy to an output .txt file apply the following command
+```bash
+./generate_polices -to=1000 -when=1000 -from=1000 > largePolicy.txt
+```
+To apply largePolicy.txt that was just created to istio use the following command.
 ```bash
 kubectl apply -f - <<EOF
-"POLICY"
+$(cat largePolicy.txt)
 EOF
 
 ```
