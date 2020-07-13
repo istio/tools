@@ -28,6 +28,7 @@ DATE=$(date +%Y-%m-%dT%H-%M-%S)
 BRANCH=master
 VERSION="${BRANCH}-${DATE}"
 SHA="${BRANCH}"
+GOBORING_IMAGE="goboring/golang:1.14.2b4"
 
 # The docker image runs `go get istio.io/tools@${SHA}`
 # In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
@@ -42,6 +43,8 @@ ${CONTAINER_CLI} ${CONTAINER_BUILDER}  --target build_tools --build-arg "ISTIO_T
 ${CONTAINER_CLI} ${CONTAINER_BUILDER}  --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
 # shellcheck disable=SC2086
 ${CONTAINER_CLI} ${CONTAINER_BUILDER}  --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-centos:${VERSION}" -t "${HUB}/build-tools-centos:${BRANCH}-latest" -f Dockerfile.centos .
+# shellcheck disable=SC2086
+${CONTAINER_CLI} ${CONTAINER_BUILDER}  --target build_tools --build-arg "GOLANG_IMAGE=${GOBORING_IMAGE}" --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
 
 if [[ -z "${DRY_RUN:-}" ]]; then
   ${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
@@ -50,4 +53,6 @@ if [[ -z "${DRY_RUN:-}" ]]; then
   ${CONTAINER_CLI} push "${HUB}/build-tools-proxy:${BRANCH}-latest"
   ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${VERSION}"
   ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${BRANCH}-latest"
+  ${CONTAINER_CLI} push "${HUB}/build-tools-fips:${VERSION}"
+  ${CONTAINER_CLI} push "${HUB}/build-tools-fips:${BRANCH}-latest"
 fi
