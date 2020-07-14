@@ -16,6 +16,7 @@ package main
 
 import (
     "fmt"
+    "flag"
     "bytes"
     "strings"
     "bufio"
@@ -88,7 +89,7 @@ func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*rul
     spec.Rules = ruleList
 
     yaml, err := ToYAML(policy, spec)
-    if (err != nil) {
+    if err != nil {
         return "", err
     }
     return yaml, nil
@@ -114,10 +115,9 @@ func generateRule(action string, ruleToOccurences map[string]*ruleOption,
     return "", fmt.Errorf("invalid policy")
 }
 
-
 func createRules(action string, ruleToOccurences map[string]*ruleOption, policy *MyPolicy) (string, error){
     yaml, err := generateRule(action, ruleToOccurences, policy)
-    if (err != nil) {
+    if err != nil {
         return "", err
     }
     return yaml, nil
@@ -132,25 +132,52 @@ func createPolicyHeader(namespace string, name string, kind string) (*MyPolicy, 
       }, nil
 }
 
-func main() {
-    yaml := bytes.Buffer{}
-    policy, err := createPolicyHeader("deny-method-get", "twopods-istio", "AuthorizationPolicy")
-    if (err != nil) {
-        fmt.Println(err)
-    }
-
+func createRuleOptionMap(ruleToOccurancesPtr map[string]*int) *map[string]*ruleOption {
     ruleOptionMap := make(map[string]*ruleOption)
-    // These hardcoded values will be provided by 
-    // command line arguments passed from runner.py
-    ruleOptionMap["when"] = &ruleOption{}
-    ruleOptionMap["when"].occurance = 10
-    ruleOptionMap["when"].g = conditionGenerator{}
+    for rule, occurance := range ruleToOccurancesPtr {
+        ruleOptionMap[rule] = &ruleOption{}
+        ruleOptionMap[rule].occurance = *occurance
+        switch rule {
+        case "when":
+            ruleOptionMap[rule].g = conditionGenerator{}
+        case "to":
+            ruleOptionMap[rule].g = operationGenerator{}
+        case "from":
+            ruleOptionMap[rule].g = sourceGenerator{}
+        default:
+            fmt.Println("invalid rules")
+        }
+    }
+    return &ruleOptionMap;
+}
 
-    rules, err := createRules("DENY", ruleOptionMap, policy)
-    if (err != nil) {
-        fmt.Println(err)
-    } else {
-        yaml.WriteString(rules)
-        fmt.Println(yaml.String())
+
+func main() {
+    namespacePtr := flag.String("namespace", "twopods-istio", "Current namespace")
+    policyType := flag.String("policyType", "AuthorizationPolicy", "The type of security policy")
+    actionPtr := flag.String("action", "DENY", "Type of action")
+    numPoliciesPtr := flag.Int("numPolicies", 1, "Number of policies wanted")
+
+    ruleToOccurancesPtr := make(map[string]*int)
+    ruleToOccurancesPtr["when"] = flag.Int("when", 1, "Number of when condition wanted")
+    ruleToOccurancesPtr["to"] = flag.Int("to", 1, "Number of To operations wanted")
+    ruleToOccurancesPtr["from"] = flag.Int("from", 1, "Number of From sources wanted")
+    flag.Parse()
+
+    for i := 1; i <= *numPoliciesPtr; i++ {
+        yaml := bytes.Buffer{}
+        policy, err := createPolicyHeader(fmt.Sprintf("%s%d", "test_", i), *namespacePtr, *policyType)
+        if err != nil {
+            fmt.Println(err)
+        }
+
+        ruleOptionMap := createRuleOptionMap(ruleToOccurancesPtr)
+        rules, err := createRules(*actionPtr, *ruleOptionMap, policy)
+        if err != nil {
+            fmt.Println(err)
+        } else {
+            yaml.WriteString(rules)
+            fmt.Println(yaml.String())
+        }
     }
 }
