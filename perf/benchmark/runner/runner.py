@@ -120,6 +120,7 @@ class Fortio:
             ingress=None,
             mesh="istio",
             cacert=None,
+            jitter=False,
             load_gen_type="fortio"):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
         self.headers = headers
@@ -145,6 +146,7 @@ class Fortio:
         self.run_bothsidecar = bothsidecar
         self.run_ingress = ingress
         self.cacert = cacert
+        self.jitter = jitter
         self.load_gen_type = load_gen_type
 
         if mesh == "linkerd":
@@ -243,12 +245,12 @@ class Fortio:
 
         return headers_cmd
 
-    def generate_fortio_cmd(self, headers_cmd, conn, qps, duration, grpc, cacert_arg, labels):
+    def generate_fortio_cmd(self, headers_cmd, conn, qps, duration, grpc, cacert_arg, jitter, labels):
         if duration is None:
             duration = self.duration
 
         fortio_cmd = (
-            "fortio load {headers} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} "
+            "fortio load {headers} -jitter {jitter} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} "
             "-httpbufferkb=128 -labels {labels}").format(
             headers=headers_cmd,
             conn=conn,
@@ -257,6 +259,7 @@ class Fortio:
             r=self.r,
             grpc=grpc,
             cacert_arg=cacert_arg,
+            jitter=jitter,
             labels=labels)
 
         return fortio_cmd
@@ -269,10 +272,10 @@ class Fortio:
             "--output-format json",
             "--prefetch-connections",
             "--open-loop",
+            "--jitter-uniform 0.0001s",
             "--experimental-h1-connection-reuse-strategy lru",
             "--experimental-h2-use-multiple-connections",
             "--connections {conn}",
-            "--burst-size {conn}",
             "--rps {qps}",
             "--duration {duration}",
             "--request-header \"x-nighthawk-test-server-config: {{response_body_size:{size}}}\""
@@ -443,6 +446,7 @@ def fortio_from_config_file(args):
         fortio.mesh = job_config.get('mesh', 'istio')
         fortio.protocol_mode = job_config.get('protocol_mode', 'http')
         fortio.extra_labels = job_config.get('extra_labels')
+        fortio.jitter = job_config.get("jitter", False)
 
         return fortio
 
@@ -478,6 +482,7 @@ def run_perf_test(args):
             mesh=args.mesh,
             telemetry_mode=args.telemetry_mode,
             cacert=args.cacert,
+            jitter=args.jitter,
             load_gen_type=args.load_gen_type)
 
     if fortio.duration <= min_duration:
@@ -633,6 +638,10 @@ def get_parser():
         "--cacert",
         help="path to the cacert for the fortio client inside the container",
         default=None)
+    parser.add_argument(
+        "--jitter",
+        help="to enable or disable fortio jitter",
+        default=False)
     parser.add_argument(
         "--load_gen_type",
         help="fortio or nighthawk",
