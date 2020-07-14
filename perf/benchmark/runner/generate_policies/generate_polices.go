@@ -20,6 +20,7 @@ import (
     "bytes"
     "strings"
     "bufio"
+    "sort"
     "github.com/ghodss/yaml"
     "encoding/json"
     "istio.io/istio/pkg/util/protomarshal"
@@ -68,9 +69,17 @@ func ToYAML(policy *MyPolicy, spec *authzpb.AuthorizationPolicy) (string, error)
     return string(headerYaml) + rulesYaml.String(), nil
 }
 
+func getOrderedKeySlice(ruleToOccurences map[string]*ruleOption) *[]string {
+    var sortedKeys []string
+    for key, _ := range ruleToOccurences {
+        sortedKeys = append(sortedKeys, key)
+    }
+    sort.Sort(sort.StringSlice(sortedKeys))
+    return &sortedKeys
+}
+
 func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*ruleOption, policy *MyPolicy) (string, error) {
     spec := &authzpb.AuthorizationPolicy{}
-    // This action will be set by the paramater action
     switch action {
     case "ALLOW":
         spec.Action = authzpb.AuthorizationPolicy_ALLOW
@@ -79,8 +88,10 @@ func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*rul
     }
 
     var ruleList []*authzpb.Rule
-    for name, ruleOp := range ruleToOccurences {
-        rule, err := ruleOp.g.generate(name, ruleOp.occurance)
+    sortedKeys := getOrderedKeySlice(ruleToOccurences)
+    for _, name := range *sortedKeys {
+        ruleOp := ruleToOccurences[name] 
+        rule, err := ruleOp.g.generate(name, ruleOp.occurance, action)
         if err != nil {
             return "", err
         }
@@ -166,7 +177,7 @@ func main() {
 
     for i := 1; i <= *numPoliciesPtr; i++ {
         yaml := bytes.Buffer{}
-        policy, err := createPolicyHeader(fmt.Sprintf("%s%d", "test_", i), *namespacePtr, *policyType)
+        policy, err := createPolicyHeader(fmt.Sprintf("%s%d", "test-", i), *namespacePtr, *policyType)
         if err != nil {
             fmt.Println(err)
         }
