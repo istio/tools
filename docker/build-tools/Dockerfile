@@ -25,7 +25,9 @@
 # Binary tools
 ################
 
-FROM golang:1.14.2 as binary_tools_context
+ARG GOLANG_IMAGE=golang:1.14.2
+# hadolint ignore=DL3006
+FROM ${GOLANG_IMAGE} as binary_tools_context
 
 # Istio tools SHA that we use for this image
 ARG ISTIO_TOOLS_SHA
