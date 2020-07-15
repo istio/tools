@@ -19,7 +19,8 @@ package version2
 import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	defaults "istio.io/tools/cmd/kubetype-gen/tests/test_input/positive/defaults"
+	v1beta1 "istio.io/api/meta/v1beta1"
+	defaults "istio.io/tools/cmd/kubetype-gen/testdata/test_input/positive/defaults"
 )
 
 //
@@ -37,6 +38,8 @@ type AllOverridden struct {
 	// Spec defines the implementation of this definition.
 	// +optional
 	Spec defaults.AllOverridden `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+
+	Status v1beta1.IstioStatus `json:",inline"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
