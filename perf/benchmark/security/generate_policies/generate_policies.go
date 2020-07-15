@@ -29,8 +29,8 @@ import (
 )
 
 type ruleOption struct {
-    occurance int
-    g         generator
+    occurence int
+    gen         generator
 }
 
 type MyPolicy struct {
@@ -91,7 +91,7 @@ func generateAuthorizationPolicy(action string, ruleToOccurences map[string]*rul
     sortedKeys := getOrderedKeySlice(ruleToOccurences)
     for _, name := range *sortedKeys {
         ruleOp := ruleToOccurences[name] 
-        rule, err := ruleOp.g.generate(name, ruleOp.occurance, action)
+        rule, err := ruleOp.gen.generate(name, ruleOp.occurence, action)
         if err != nil {
             return "", err
         }
@@ -145,16 +145,16 @@ func createPolicyHeader(namespace string, name string, kind string) (*MyPolicy, 
 
 func createRuleOptionMap(ruleToOccurancesPtr map[string]*int) *map[string]*ruleOption {
     ruleOptionMap := make(map[string]*ruleOption)
-    for rule, occurance := range ruleToOccurancesPtr {
+    for rule, occurence := range ruleToOccurancesPtr {
         ruleOptionMap[rule] = &ruleOption{}
-        ruleOptionMap[rule].occurance = *occurance
+        ruleOptionMap[rule].occurence = *occurence
         switch rule {
         case "when":
-            ruleOptionMap[rule].g = conditionGenerator{}
+            ruleOptionMap[rule].gen = conditionGenerator{}
         case "to":
-            ruleOptionMap[rule].g = operationGenerator{}
+            ruleOptionMap[rule].gen = operationGenerator{}
         case "from":
-            ruleOptionMap[rule].g = sourceGenerator{}
+            ruleOptionMap[rule].gen = sourceGenerator{}
         default:
             fmt.Println("invalid rules")
         }
