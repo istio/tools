@@ -21,7 +21,7 @@ test:
 check-stability:
 	./metrics/check_metrics.py
 
-MARKDOWN_LINT_WHITELIST=mysite.com/mypage.html,github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz,localhost
+MARKDOWN_LINT_ALLOWLIST=mysite.com/mypage.html,github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz,localhost
 
 lint: lint-all
 
