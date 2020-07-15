@@ -56,7 +56,7 @@ func main() {
 	if csv {
 		// produce a csv report
 
-		fmt.Printf("Module Name,Module Path,Whitelisted,License Path,License Name,Confidence,Similar To,Similarity Confidence,State\n")
+		fmt.Printf("Module Name,Module Path,Allowlisted,License Path,License Name,Confidence,Similar To,Similarity Confidence,State\n")
 		for _, module := range modules {
 			fmt.Printf("%s,%s,%v", module.moduleName, module.path, cfg.allowlistedModules[module.moduleName])
 			for _, l := range module.licenses {

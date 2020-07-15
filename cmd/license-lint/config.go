@@ -33,8 +33,6 @@ type rawConfig struct {
 
 	// modules that get completely ignored during analysis
 	AllowlistedModules []string `json:"allowlisted_modules"`
-	// Deprecated. TODO(tbarrella): Clean up
-	WhitelistedModules []string `json:"whitelisted_modules"`
 }
 
 type config struct {
@@ -87,11 +85,6 @@ func readConfig(path string) (config, error) {
 	}
 
 	for _, s := range rc.AllowlistedModules {
-		c.allowlistedModules[s] = true
-	}
-
-	// TODO(tbarrella): Clean up
-	for _, s := range rc.WhitelistedModules {
 		c.allowlistedModules[s] = true
 	}
 
