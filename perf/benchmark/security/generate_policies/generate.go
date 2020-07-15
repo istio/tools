@@ -19,7 +19,7 @@ import (
 )
 
 type generator interface {
-    generate(kind string, num int, action string) (*authzpb.Rule, error)
+	generate(kind string, num int, action string) (*authzpb.Rule, error)
 }
 
 type operationGenerator struct {
@@ -31,7 +31,7 @@ func (operationGenerator) generate(kind string, num int, _ string) (*authzpb.Rul
 
 	for i := 0; i < num; i++ {
 		operation := &authzpb.Rule_To{}
-		operation.Operation = &authzpb.Operation{} 
+		operation.Operation = &authzpb.Operation{}
 		operation.Operation.Methods = []string{"GET", "HEAD"}
 		operation.Operation.Paths = []string{"/invalid-path"}
 		listOperation = append(listOperation, operation)
@@ -51,7 +51,7 @@ func (conditionGenerator) generate(kind string, num int, action string) (*authzp
 		condition := &authzpb.Condition{}
 		condition.Key = "request.headers[x-token]"
 		// Sets the last rule to match
-		if (i == num - 1 && action == "ALLOW") {
+		if i == num-1 && action == "ALLOW" {
 			condition.Values = []string{"admin"}
 		} else {
 			condition.Values = []string{"guest"}
@@ -76,5 +76,5 @@ func (sourceGenerator) generate(kind string, num int, _ string) (*authzpb.Rule, 
 		listSource = append(listSource, source)
 	}
 	rule.From = listSource
-    return rule, nil
+	return rule, nil
 }
