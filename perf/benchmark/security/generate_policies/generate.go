@@ -15,66 +15,75 @@
 package main
 
 import (
+	"fmt"
 	authzpb "istio.io/api/security/v1beta1"
 )
 
 type generator interface {
-	generate(kind string, num int, action string) (*authzpb.Rule, error)
+	generate(kind string, num int, action string) *authzpb.Rule
 }
 
 type operationGenerator struct {
 }
 
-func (operationGenerator) generate(kind string, num int, _ string) (*authzpb.Rule, error) {
+func (operationGenerator) generate(kind string, num int, _ string) *authzpb.Rule {
 	rule := &authzpb.Rule{}
 	var listOperation []*authzpb.Rule_To
 
 	for i := 0; i < num; i++ {
-		operation := &authzpb.Rule_To{}
-		operation.Operation = &authzpb.Operation{}
-		operation.Operation.Methods = []string{"GET", "HEAD"}
-		operation.Operation.Paths = []string{"/invalid-path"}
+		path := fmt.Sprintf("%s%d", "/invalid-path-", i)
+		operation := &authzpb.Rule_To{
+			Operation: &authzpb.Operation{
+				Methods: []string{"GET", "HEAD"},
+				Paths:   []string{path},
+			},
+		}
 		listOperation = append(listOperation, operation)
 	}
 	rule.To = listOperation
-	return rule, nil
+	return rule
 }
 
 type conditionGenerator struct {
 }
 
-func (conditionGenerator) generate(kind string, num int, action string) (*authzpb.Rule, error) {
+func (conditionGenerator) generate(kind string, num int, action string) *authzpb.Rule {
 	rule := &authzpb.Rule{}
 	var listCondition []*authzpb.Condition
 
 	for i := 0; i < num; i++ {
-		condition := &authzpb.Condition{}
-		condition.Key = "request.headers[x-token]"
-		// Sets the last rule to match
+		values := []string{"guest"}
+		// Allow the last rule to match a request from "admin"
 		if i == num-1 && action == "ALLOW" {
-			condition.Values = []string{"admin"}
-		} else {
-			condition.Values = []string{"guest"}
+			values = []string{"admin"}
+		}
+
+		condition := &authzpb.Condition{
+			Key:    "request.headers[x-token]",
+			Values: values,
 		}
 		listCondition = append(listCondition, condition)
 	}
 	rule.When = listCondition
-	return rule, nil
+	return rule
 }
 
 type sourceGenerator struct {
 }
 
-func (sourceGenerator) generate(kind string, num int, _ string) (*authzpb.Rule, error) {
+func (sourceGenerator) generate(kind string, num int, _ string) *authzpb.Rule {
 	rule := &authzpb.Rule{}
 	var listSource []*authzpb.Rule_From
 
 	for i := 0; i < num; i++ {
-		source := &authzpb.Rule_From{}
-		source.Source = &authzpb.Source{}
-		source.Source.Namespaces = []string{"invalid-namespace"}
+		namespace := fmt.Sprintf("%s%d", "invalid-namespace-", i)
+		source := &authzpb.Rule_From{
+			Source: &authzpb.Source{
+				Namespaces: []string{namespace},
+			},
+		}
 		listSource = append(listSource, source)
 	}
 	rule.From = listSource
-	return rule, nil
+	return rule
 }

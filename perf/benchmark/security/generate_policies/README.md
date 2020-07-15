@@ -18,7 +18,7 @@ to run generate_polices run
 ```
 This will by default create an Authorization Policy as follows and print it out into the terminal. This AuthorizationPolicy is specifically made to work with the environment that is created in the setup of [Istio Performance Benchmarking](https://github.com/istio/tools/tree/master/perf/benchmark)
 
-```bash
+```yaml
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
