@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ghodss/yaml"
+	"github.com/golang/protobuf/proto"
 	"istio.io/istio/pkg/util/protomarshal"
 	"sort"
 	"strings"
@@ -44,7 +45,7 @@ type MetadataStruct struct {
 	Namespace string `json:"namespace"`
 }
 
-func ToYAML(policy *MyPolicy, spec *authzpb.AuthorizationPolicy) (string, error) {
+func ToYAML(policy *MyPolicy, spec proto.Message) (string, error) {
 	header, err := json.Marshal(policy)
 	if err != nil {
 		return "", err
