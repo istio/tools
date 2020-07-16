@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+
 	authzpb "istio.io/api/security/v1beta1"
 )
 
