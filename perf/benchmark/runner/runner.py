@@ -250,7 +250,7 @@ class Fortio:
             duration = self.duration
 
         fortio_cmd = (
-            "fortio load {headers} -jitter {jitter} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} "
+            "fortio load {headers} -jitter={jitter} -c {conn} -qps {qps} -t {duration}s -a -r {r} {cacert_arg} {grpc} "
             "-httpbufferkb=128 -labels {labels}").format(
             headers=headers_cmd,
             conn=conn,
@@ -258,8 +258,8 @@ class Fortio:
             duration=duration,
             r=self.r,
             grpc=grpc,
-            cacert_arg=cacert_arg,
             jitter=jitter,
+            cacert_arg=cacert_arg,
             labels=labels)
 
         return fortio_cmd
