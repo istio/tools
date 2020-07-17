@@ -264,7 +264,7 @@ class Fortio:
 
         return fortio_cmd
 
-    def generate_nighthawk_cmd(self, cpus, conn, qps, duration, labels):
+    def generate_nighthawk_cmd(self, cpus, conn, qps, jitter_uniform, duration, labels):
         labels = "nighthawk_" + labels
         nighthawk_args = [
             "nighthawk_client",
@@ -272,7 +272,7 @@ class Fortio:
             "--output-format json",
             "--prefetch-connections",
             "--open-loop",
-            "--jitter-uniform 0.0001s",
+            "--jitter-uniform {jitter_uniform}s",
             "--experimental-h1-connection-reuse-strategy lru",
             "--experimental-h2-use-multiple-connections",
             "--connections {conn}",
@@ -337,7 +337,8 @@ class Fortio:
             # See the comment above, we restrict execution to a single nighthawk worker for
             # now to avoid noise.
             workers = 1
-            load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, duration, labels)
+            jitter_uniform = float(0.1 * 1/qps)
+            load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, jitter_uniform, duration, labels)
 
         if self.run_baseline:
             perf_label = "_srv_baseline"
