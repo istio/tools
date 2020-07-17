@@ -20,11 +20,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/ghodss/yaml"
-	"github.com/golang/protobuf/proto"
-	"istio.io/istio/pkg/util/protomarshal"
+
 	"sort"
 	"strings"
+
+	"github.com/ghodss/yaml"
+	"github.com/golang/protobuf/proto"
+
+	"istio.io/istio/pkg/util/protomarshal"
 
 	authzpb "istio.io/api/security/v1beta1"
 )
