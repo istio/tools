@@ -16,9 +16,9 @@
 
     ```
     INSTALLED_APPS: 'whitenoise.runserver_nostatic',
-    MIDDLEWARE: 'whitenoise.middleware.WhiteNoiseMiddleware', 
+    MIDDLEWARE: 'whitenoise.middleware.WhiteNoiseMiddleware',
     ```
-   
+
     - Change `DEBUG` mode to be `True` instead of what we set `False` in production deployment.
 
 - Then, cd to the root directory of perf dashboard, which is `tools/perf_dashboard` and run:
