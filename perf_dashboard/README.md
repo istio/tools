@@ -11,24 +11,24 @@
     - On Docker for Mac and Windows, Docker compose comes pre-installed. On Linux system, you need
     to install it directly from [here](https://github.com/docker/compose/releases).
 
-- Next, update setting.py file in `tools/perf_dashboard/perf_dashboard`: 
+- Next, update setting.py file in `tools/perf_dashboard/perf_dashboard`:
     - Disable whitenoise related stuff (which we are using it in production only), which is
-    
+
     ```
     INSTALLED_APPS: 'whitenoise.runserver_nostatic',
-    MIDDLEWARE: 'whitenoise.middleware.WhiteNoiseMiddleware',   
+    MIDDLEWARE: 'whitenoise.middleware.WhiteNoiseMiddleware', 
     ```
-      
+   
     - Change `DEBUG` mode to be `True` instead of what we set `False` in production deployment.
 
-- Then, cd to the root directory of perf dashboard, which is ``tools/perf_dashboard` and run:
+- Then, cd to the root directory of perf dashboard, which is `tools/perf_dashboard` and run:
 
     ```bash
     docker-compose up
     ```
 
-    to build and run the container. If your build is successful, open your browser, go to `localhost:8000`, you should 
-    be able to access the application.
+    to build and run the container. If your build is successful, open your browser, go to `localhost:8000`, you should
+    be able to see the running application.
 
 ## Project Overview
 
