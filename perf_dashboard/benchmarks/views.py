@@ -25,6 +25,8 @@ master_selected_release = []
 cpu_cur_selected_release = []
 cpu_master_selected_release = []
 current_release = [os.getenv('CUR_RELEASE')]
+cpu_client_metric_name = 'cpu_mili_avg_istio_proxy_fortioclient'
+cpu_server_metric_name = 'cpu_mili_avg_istio_proxy_fortioserver'
 
 
 def benchmarks_overview(request):
@@ -277,9 +279,6 @@ def cpu_usage_vs_qps(request, uploaded_csv_url=None):
         if len(cpu_master_selected_release) > 0:
             df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
 
-        cpu_client_metric_name = 'cpu_mili_avg_istio_proxy_fortioclient'
-        cpu_server_metric_name = 'cpu_mili_avg_istio_proxy_fortioserver'
-
         cpu_client_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
         cpu_client_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_client_metric_name)
         cpu_client_none_plaintext_both_master = get_cpu_vs_qps_y_series(df, '_none_plaintext_both', cpu_client_metric_name)
@@ -360,9 +359,6 @@ def cpu_usage_vs_conn(request, uploaded_csv_url=None):
             cpu_master_selected_release.pop(0)
         if len(cpu_master_selected_release) > 0:
             df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
-
-        cpu_client_metric_name = 'cpu_mili_avg_istio_proxy_fortioclient'
-        cpu_server_metric_name = 'cpu_mili_avg_istio_proxy_fortioserver'
 
         cpu_client_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
         cpu_client_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_client_metric_name)
@@ -500,9 +496,6 @@ def get_lantency_vs_qps_context(df):
 
 
 def get_cpu_vs_qps_context(df):
-    cpu_client_metric_name = 'cpu_mili_avg_istio_proxy_fortioclient'
-    cpu_server_metric_name = 'cpu_mili_avg_istio_proxy_fortioserver'
-
     cpu_client_none_mtls_base = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
     cpu_client_none_mtls_both = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_client_metric_name)
     cpu_client_none_plaintext_both = get_cpu_vs_qps_y_series(df, '_none_plaintext_both', cpu_client_metric_name)
@@ -534,9 +527,6 @@ def get_cpu_vs_qps_context(df):
 
 
 def get_cpu_vs_conn_context(df):
-    cpu_client_metric_name = 'cpu_mili_avg_istio_proxy_fortioclient'
-    cpu_server_metric_name = 'cpu_mili_avg_istio_proxy_fortioserver'
-
     cpu_client_none_mtls_base = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
     cpu_client_none_mtls_both = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_client_metric_name)
     cpu_client_none_plaintext_both = get_cpu_vs_conn_y_series(df, '_none_plaintext_both', cpu_client_metric_name)

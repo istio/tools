@@ -6,7 +6,7 @@ var cpuOptions = {
         yAxes: [{
             scaleLabel: {
                 display: true,
-                labelString: "max CPUs, server proxy (millicores)"
+                labelString: "istio-proxy average CPUs (millicores)"
             },
         }],
         xAxes: [{

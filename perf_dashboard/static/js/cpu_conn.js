@@ -6,15 +6,15 @@ var cpuOptions = {
         yAxes: [{
             scaleLabel: {
                 display: true,
-                labelString: "Latency in milliseconds"
-            }
+                labelString: "istio-proxy average CPUs (millicores)"
+            },
         }],
         xAxes: [{
-            type: "linear",
+            type:"linear",
             scaleLabel: {
                 display: true,
                 labelString: "Connections"
-            }
+            },
         }]
     }
 };
