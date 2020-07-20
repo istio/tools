@@ -17,7 +17,8 @@ from . import views
 
 urlpatterns = [
     url('configs_measurements/', views.benchmarks_overview, name="benchmarks_overview"),
-    url('cpu_memory/', views.cpu_memory, name="cpu_memory"),
+    url('cpu_usage_vs_connection/', views.cpu_usage_vs_conn, name="cpu_conn"),
+    url('cpu_usage_vs_qps/', views.cpu_usage_vs_qps, name="cpu_qps"),
     url('latency_vs_connection/', views.latency_vs_conn, name="latency_conn"),
     url('latency_vs_qps/', views.latency_vs_qps, name="latency_qps"),
     url('flame_graph/', views.flame_graph, name="flame_graph"),

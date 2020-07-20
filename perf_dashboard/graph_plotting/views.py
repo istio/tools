@@ -40,7 +40,7 @@ def graph_plotting(request):
             d3 = v.latency_vs_qps(request, uploaded_file_url)
             context = reduce(lambda x, y: dict(x, **y), (d1, d3))
         elif my_benchmark_type == "CPU & Memory":
-            d4 = v.cpu_memory(request, uploaded_file_url)
+            d4 = v.cpu_qps(request, uploaded_file_url)
             context = reduce(lambda x, y: dict(x, **y), (d1, d4))
         else:
             context = d1

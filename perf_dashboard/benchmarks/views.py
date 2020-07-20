@@ -25,6 +25,8 @@ master_selected_release = []
 cpu_cur_selected_release = []
 cpu_master_selected_release = []
 current_release = [os.getenv('CUR_RELEASE')]
+cpu_client_metric_name = 'cpu_mili_avg_istio_proxy_fortioclient'
+cpu_server_metric_name = 'cpu_mili_avg_istio_proxy_fortioserver'
 
 
 def benchmarks_overview(request):
@@ -194,16 +196,14 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_none_mtls_both_p90_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p90')
         latency_none_plaintext_both_p90_master = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p90')
         latency_v2_stats_nullvm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p90')
-        latency_v2_sd_nologging_nullvm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both',
-                                                                                     'p90')
+        latency_v2_sd_nologging_nullvm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p90')
         latency_v2_sd_full_nullvm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p90')
 
         latency_none_mtls_base_p99_master = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p99')
         latency_none_mtls_both_p99_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p99')
         latency_none_plaintext_both_p99_master = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p99')
         latency_v2_stats_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p99')
-        latency_v2_sd_nologging_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both',
-                                                                                     'p99')
+        latency_v2_sd_nologging_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
         latency_v2_sd_full_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
         other_context = {'current_release': current_release,
@@ -237,11 +237,11 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         return render(request, "latency_vs_qps.html", context=context)
 
 
-def cpu_memory(request, uploaded_csv_url=None):
+def cpu_usage_vs_qps(request, uploaded_csv_url=None):
     if uploaded_csv_url is not None:
         uploaded_csv_path = cwd + uploaded_csv_url
         df = pd.read_csv(uploaded_csv_path)
-        context = get_cpu_mem_context(df)
+        context = get_cpu_vs_qps_context(df)
         os.remove(uploaded_csv_path)
         return context
     else:
@@ -256,42 +256,42 @@ def cpu_memory(request, uploaded_csv_url=None):
         df = pd.read_csv(perf_data_path + "cur_temp.csv")
 
         if cur_release_names is not None and len(cur_release_names) > 0:
-            df = pd.read_csv(perf_data_path + cur_release_names[0] + ".csv")
+            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
         # Parse data for the current release
         if len(cpu_cur_selected_release) > 1:
             cpu_cur_selected_release.pop(0)
         if len(cpu_cur_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + cpu_cur_selected_release[0] + ".csv")
+            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
 
-        release_context = get_cpu_mem_context(df)
+        release_context = get_cpu_vs_qps_context(df)
 
         # Parse data for the master
         if request.method == "POST" and 'master_release_name' in request.POST:
-            cpu_master_selected_release.append(request.POST['master_release_name'])
+            master_selected_release.append(request.POST['master_release_name'])
 
         df = pd.read_csv(perf_data_path + "master_temp.csv")
 
         if master_release_names is not None and len(master_release_names) > 0:
-            df = pd.read_csv(perf_data_path + master_release_names[0] + ".csv")
+            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
         # Parse data for the current release
         if len(cpu_master_selected_release) > 1:
             cpu_master_selected_release.pop(0)
         if len(cpu_master_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + cpu_master_selected_release[0] + ".csv")
+            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
 
-        cpu_none_mtls_base_master = get_cpu_y_series(df, '_none_mtls_base')
-        cpu_none_mtls_both_master = get_cpu_y_series(df, '_none_mtls_both')
-        cpu_none_plaintext_both_master = get_cpu_y_series(df, '_none_plaintext_both')
-        cpu_v2_stats_nullvm_both_master = get_cpu_y_series(df, '_v2-stats-nullvm_both')
-        cpu_v2_sd_nologging_nullvm_both_master = get_cpu_y_series(df, '_v2-sd-nologging-nullvm_both')
-        cpu_v2_sd_full_nullvm_both_master = get_cpu_y_series(df, '_v2-sd-full-nullvm_both')
+        cpu_client_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
+        cpu_client_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_client_metric_name)
+        cpu_client_none_plaintext_both_master = get_cpu_vs_qps_y_series(df, '_none_plaintext_both', cpu_client_metric_name)
+        cpu_client_v2_stats_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-stats-nullvm_both', cpu_client_metric_name)
+        cpu_client_v2_sd_nologging_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_client_metric_name)
+        cpu_client_v2_sd_full_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_client_metric_name)
 
-        mem_none_mtls_base_master = get_mem_y_series(df, '_none_mtls_base')
-        mem_none_mtls_both_master = get_mem_y_series(df, '_none_mtls_both')
-        mem_none_plaintext_both_master = get_mem_y_series(df, '_none_plaintext_both')
-        mem_v2_stats_nullvm_both_master = get_mem_y_series(df, '_v2-stats-nullvm_both')
-        mem_v2_sd_nologging_nullvm_both_master = get_mem_y_series(df, '_v2-sd-nologging-nullvm_both')
-        mem_v2_sd_full_nullvm_both_master = get_mem_y_series(df, '_v2-sd-full-nullvm_both')
+        cpu_server_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_server_metric_name)
+        cpu_server_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_server_metric_name)
+        cpu_server_none_plaintext_both_master = get_cpu_vs_qps_y_series(df, '_none_plaintext_both', cpu_server_metric_name)
+        cpu_server_v2_stats_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-stats-nullvm_both', cpu_server_metric_name)
+        cpu_server_v2_sd_nologging_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
+        cpu_server_v2_sd_full_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
 
         other_context = {'current_release': current_release,
                          'cpu_cur_selected_release': cpu_cur_selected_release,
@@ -300,22 +300,111 @@ def cpu_memory(request, uploaded_csv_url=None):
                          'master_release_names': master_benchmark_test_ids,
                          }
 
-        master_context = {'cpu_none_mtls_base_master': cpu_none_mtls_base_master,
-                          'cpu_none_mtls_both_master': cpu_none_mtls_both_master,
-                          'cpu_none_plaintext_both_master': cpu_none_plaintext_both_master,
-                          'cpu_v2_stats_nullvm_both_master': cpu_v2_stats_nullvm_both_master,
-                          'cpu_v2_sd_nologging_nullvm_both_master': cpu_v2_sd_nologging_nullvm_both_master,
-                          'cpu_v2_sd_full_nullvm_both_master': cpu_v2_sd_full_nullvm_both_master,
-                          'mem_none_mtls_base_master': mem_none_mtls_base_master,
-                          'mem_none_mtls_both_master': mem_none_mtls_both_master,
-                          'mem_none_plaintext_both_master': mem_none_plaintext_both_master,
-                          'mem_v2_stats_nullvm_both_master': mem_v2_stats_nullvm_both_master,
-                          'mem_v2_sd_nologging_nullvm_both_master': mem_v2_sd_nologging_nullvm_both_master,
-                          'mem_v2_sd_full_nullvm_both_master': mem_v2_sd_full_nullvm_both_master
+        master_context = {'cpu_client_none_mtls_base_master': cpu_client_none_mtls_base_master,
+                          'cpu_client_none_mtls_both_master': cpu_client_none_mtls_both_master,
+                          'cpu_client_none_plaintext_both_master': cpu_client_none_plaintext_both_master,
+                          'cpu_client_v2_stats_nullvm_both_master': cpu_client_v2_stats_nullvm_both_master,
+                          'cpu_client_v2_sd_nologging_nullvm_both_master': cpu_client_v2_sd_nologging_nullvm_both_master,
+                          'cpu_client_v2_sd_full_nullvm_both_master': cpu_client_v2_sd_full_nullvm_both_master,
+                          'cpu_server_none_mtls_base_master': cpu_server_none_mtls_base_master,
+                          'cpu_server_none_mtls_both_master': cpu_server_none_mtls_both_master,
+                          'cpu_server_none_plaintext_both_master': cpu_server_none_plaintext_both_master,
+                          'cpu_server_v2_stats_nullvm_both_master': cpu_server_v2_stats_nullvm_both_master,
+                          'cpu_server_v2_sd_nologging_nullvm_both_master': cpu_server_v2_sd_nologging_nullvm_both_master,
+                          'cpu_server_v2_sd_full_nullvm_both_master': cpu_server_v2_sd_full_nullvm_both_master,
                           }
 
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
-        return render(request, "cpu_memory.html", context=context)
+        return render(request, "cpu_usage_vs_qps.html", context=context)
+
+
+def cpu_usage_vs_conn(request, uploaded_csv_url=None):
+    if uploaded_csv_url is not None:
+        uploaded_csv_path = cwd + uploaded_csv_url
+        df = pd.read_csv(uploaded_csv_path)
+        context = get_cpu_vs_conn_context(df)
+        os.remove(uploaded_csv_path)
+        return context
+    else:
+        cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
+            master_release_dates = download.download_benchmark_csv(60)
+        cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
+        master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
+
+        if request.method == "POST" and 'current_release_name' in request.POST:
+            cpu_cur_selected_release.append(request.POST['current_release_name'])
+
+        df = pd.read_csv(perf_data_path + "cur_temp.csv")
+
+        if cur_release_names is not None and len(cur_release_names) > 0:
+            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
+        # Parse data for the current release
+        if len(cpu_cur_selected_release) > 1:
+            cpu_cur_selected_release.pop(0)
+        if len(cpu_cur_selected_release) > 0:
+            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
+
+        release_context = get_cpu_vs_conn_context(df)
+
+        # Parse data for the master
+        if request.method == "POST" and 'master_release_name' in request.POST:
+            master_selected_release.append(request.POST['master_release_name'])
+
+        df = pd.read_csv(perf_data_path + "master_temp.csv")
+
+        if master_release_names is not None and len(master_release_names) > 0:
+            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
+        # Parse data for the current release
+        if len(cpu_master_selected_release) > 1:
+            cpu_master_selected_release.pop(0)
+        if len(cpu_master_selected_release) > 0:
+            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
+
+        cpu_client_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
+        cpu_client_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_client_metric_name)
+        cpu_client_none_plaintext_both_master = get_cpu_vs_qps_y_series(df, '_none_plaintext_both',
+                                                                        cpu_client_metric_name)
+        cpu_client_v2_stats_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-stats-nullvm_both',
+                                                                         cpu_client_metric_name)
+        cpu_client_v2_sd_nologging_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both',
+                                                                                cpu_client_metric_name)
+        cpu_client_v2_sd_full_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both',
+                                                                           cpu_client_metric_name)
+
+        cpu_server_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_server_metric_name)
+        cpu_server_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_server_metric_name)
+        cpu_server_none_plaintext_both_master = get_cpu_vs_qps_y_series(df, '_none_plaintext_both',
+                                                                        cpu_server_metric_name)
+        cpu_server_v2_stats_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-stats-nullvm_both',
+                                                                         cpu_server_metric_name)
+        cpu_server_v2_sd_nologging_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both',
+                                                                                cpu_server_metric_name)
+        cpu_server_v2_sd_full_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both',
+                                                                           cpu_server_metric_name)
+
+        other_context = {'current_release': current_release,
+                         'cpu_cur_selected_release': cpu_cur_selected_release,
+                         'cpu_master_selected_release': cpu_master_selected_release,
+                         'cur_release_names': cur_benchmark_test_ids,
+                         'master_release_names': master_benchmark_test_ids,
+                         }
+
+        master_context = {'cpu_client_none_mtls_base_master': cpu_client_none_mtls_base_master,
+                          'cpu_client_none_mtls_both_master': cpu_client_none_mtls_both_master,
+                          'cpu_client_none_plaintext_both_master': cpu_client_none_plaintext_both_master,
+                          'cpu_client_v2_stats_nullvm_both_master': cpu_client_v2_stats_nullvm_both_master,
+                          'cpu_client_v2_sd_nologging_nullvm_both_master': cpu_client_v2_sd_nologging_nullvm_both_master,
+                          'cpu_client_v2_sd_full_nullvm_both_master': cpu_client_v2_sd_full_nullvm_both_master,
+                          'cpu_server_none_mtls_base_master': cpu_server_none_mtls_base_master,
+                          'cpu_server_none_mtls_both_master': cpu_server_none_mtls_both_master,
+                          'cpu_server_none_plaintext_both_master': cpu_server_none_plaintext_both_master,
+                          'cpu_server_v2_stats_nullvm_both_master': cpu_server_v2_stats_nullvm_both_master,
+                          'cpu_server_v2_sd_nologging_nullvm_both_master': cpu_server_v2_sd_nologging_nullvm_both_master,
+                          'cpu_server_v2_sd_full_nullvm_both_master': cpu_server_v2_sd_full_nullvm_both_master,
+                          }
+
+        context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
+        return render(request, "cpu_usage_vs_conn.html", context=context)
 
 
 def get_lantency_vs_conn_context(df):
@@ -406,33 +495,64 @@ def get_lantency_vs_qps_context(df):
     return context
 
 
-def get_cpu_mem_context(df):
-    cpu_none_mtls_base = get_cpu_y_series(df, '_none_mtls_baseline')
-    cpu_none_mtls_both = get_cpu_y_series(df, '_none_mtls_both')
-    cpu_none_plaintext_both = get_cpu_y_series(df, '_none_plaintext_both')
-    cpu_v2_stats_nullvm_both = get_cpu_y_series(df, '_v2-stats-nullvm_both')
-    cpu_v2_sd_nologging_nullvm_both = get_cpu_y_series(df, '_v2-sd-nologging-nullvm_both')
-    cpu_v2_sd_full_nullvm_both = get_cpu_y_series(df, '_v2-sd-full-nullvm_both')
+def get_cpu_vs_qps_context(df):
+    cpu_client_none_mtls_base = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
+    cpu_client_none_mtls_both = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_client_metric_name)
+    cpu_client_none_plaintext_both = get_cpu_vs_qps_y_series(df, '_none_plaintext_both', cpu_client_metric_name)
+    cpu_client_v2_stats_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-stats-nullvm_both', cpu_client_metric_name)
+    cpu_client_v2_sd_nologging_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_client_metric_name)
+    cpu_client_v2_sd_full_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_client_metric_name)
 
-    mem_none_mtls_base = get_mem_y_series(df, '_none_mtls_baseline')
-    mem_none_mtls_both = get_mem_y_series(df, '_none_mtls_both')
-    mem_none_plaintext_both = get_mem_y_series(df, '_none_plaintext_both')
-    mem_v2_stats_nullvm_both = get_mem_y_series(df, '_v2-stats-nullvm_both')
-    mem_v2_sd_nologging_nullvm_both = get_mem_y_series(df, '_v2-sd-nologging-nullvm_both')
-    mem_v2_sd_full_nullvm_both = get_mem_y_series(df, '_v2-sd-full-nullvm_both')
+    cpu_server_none_mtls_base = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_server_metric_name)
+    cpu_server_none_mtls_both = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_server_metric_name)
+    cpu_server_none_plaintext_both = get_cpu_vs_qps_y_series(df, '_none_plaintext_both', cpu_server_metric_name)
+    cpu_server_v2_stats_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-stats-nullvm_both', cpu_server_metric_name)
+    cpu_server_v2_sd_nologging_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
+    cpu_server_v2_sd_full_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
 
-    context = {'cpu_none_mtls_base': cpu_none_mtls_base,
-               'cpu_none_mtls_both': cpu_none_mtls_both,
-               'cpu_none_plaintext_both': cpu_none_plaintext_both,
-               'cpu_v2_stats_nullvm_both': cpu_v2_stats_nullvm_both,
-               'cpu_v2_sd_nologging_nullvm_both': cpu_v2_sd_nologging_nullvm_both,
-               'cpu_v2_sd_full_nullvm_both': cpu_v2_sd_full_nullvm_both,
-               'mem_none_mtls_base': mem_none_mtls_base,
-               'mem_none_mtls_both': mem_none_mtls_both,
-               'mem_none_plaintext_both': mem_none_plaintext_both,
-               'mem_v2_stats_nullvm_both': mem_v2_stats_nullvm_both,
-               'mem_v2_sd_nologging_nullvm_both': mem_v2_sd_nologging_nullvm_both,
-               'mem_v2_sd_full_nullvm_both': mem_v2_sd_full_nullvm_both,
+    context = {'cpu_client_none_mtls_base': cpu_client_none_mtls_base,
+               'cpu_client_none_mtls_both': cpu_client_none_mtls_both,
+               'cpu_client_none_plaintext_both': cpu_client_none_plaintext_both,
+               'cpu_client_v2_stats_nullvm_both': cpu_client_v2_stats_nullvm_both,
+               'cpu_client_v2_sd_nologging_nullvm_both': cpu_client_v2_sd_nologging_nullvm_both,
+               'cpu_client_v2_sd_full_nullvm_both': cpu_client_v2_sd_full_nullvm_both,
+               'cpu_server_none_mtls_base': cpu_server_none_mtls_base,
+               'cpu_server_none_mtls_both': cpu_server_none_mtls_both,
+               'cpu_server_none_plaintext_both': cpu_server_none_plaintext_both,
+               'cpu_server_v2_stats_nullvm_both': cpu_server_v2_stats_nullvm_both,
+               'cpu_server_v2_sd_nologging_nullvm_both': cpu_server_v2_sd_nologging_nullvm_both,
+               'cpu_server_v2_sd_full_nullvm_both': cpu_server_v2_sd_full_nullvm_both,
+               }
+    return context
+
+
+def get_cpu_vs_conn_context(df):
+    cpu_client_none_mtls_base = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
+    cpu_client_none_mtls_both = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_client_metric_name)
+    cpu_client_none_plaintext_both = get_cpu_vs_conn_y_series(df, '_none_plaintext_both', cpu_client_metric_name)
+    cpu_client_v2_stats_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-stats-nullvm_both', cpu_client_metric_name)
+    cpu_client_v2_sd_nologging_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_client_metric_name)
+    cpu_client_v2_sd_full_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_client_metric_name)
+
+    cpu_server_none_mtls_base = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_server_metric_name)
+    cpu_server_none_mtls_both = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_server_metric_name)
+    cpu_server_none_plaintext_both = get_cpu_vs_conn_y_series(df, '_none_plaintext_both', cpu_server_metric_name)
+    cpu_server_v2_stats_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-stats-nullvm_both', cpu_server_metric_name)
+    cpu_server_v2_sd_nologging_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
+    cpu_server_v2_sd_full_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
+
+    context = {'cpu_client_none_mtls_base': cpu_client_none_mtls_base,
+               'cpu_client_none_mtls_both': cpu_client_none_mtls_both,
+               'cpu_client_none_plaintext_both': cpu_client_none_plaintext_both,
+               'cpu_client_v2_stats_nullvm_both': cpu_client_v2_stats_nullvm_both,
+               'cpu_client_v2_sd_nologging_nullvm_both': cpu_client_v2_sd_nologging_nullvm_both,
+               'cpu_client_v2_sd_full_nullvm_both': cpu_client_v2_sd_full_nullvm_both,
+               'cpu_server_none_mtls_base': cpu_server_none_mtls_base,
+               'cpu_server_none_mtls_both': cpu_server_none_mtls_both,
+               'cpu_server_none_plaintext_both': cpu_server_none_plaintext_both,
+               'cpu_server_v2_stats_nullvm_both': cpu_server_v2_stats_nullvm_both,
+               'cpu_server_v2_sd_nologging_nullvm_both': cpu_server_v2_sd_nologging_nullvm_both,
+               'cpu_server_v2_sd_full_nullvm_both': cpu_server_v2_sd_full_nullvm_both,
                }
     return context
 
@@ -445,7 +565,7 @@ def micro_benchmarks(request):
     return render(request, "micro_benchmarks.html")
 
 
-# Helpers
+# Latency Helpers
 def get_latency_vs_conn_y_series(df, telemetry_mode, quantiles):
     y_series_data = []
     for thread in [2, 4, 8, 16, 32, 64]:
@@ -468,25 +588,37 @@ def get_latency_vs_qps_y_series(df, telemetry_mode, quantiles):
     return y_series_data
 
 
-def get_cpu_y_series(df, telemetry_mode):
+# CPU Helpers
+def get_cpu_vs_qps_y_series(df, telemetry_mode, cpu_metric_name):
     y_series_data = []
-    cpu_metric = 'cpu_mili_avg_fortioserver_deployment_proxy'
     for qps in [10, 100, 500, 1000, 2000, 3000]:
         data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
-        if not data[cpu_metric].head().empty:
-            y_series_data.append(data[cpu_metric].head(1).values[0])
-        else:
+        try:
+            data[cpu_metric_name].head().empty
+        except KeyError as e:
+            print(e)
             y_series_data.append('null')
+        else:
+            if len(data[cpu_metric_name]) > 0:
+                y_series_data.append(data[cpu_metric_name].head(1).values[0])
+            else:
+                y_series_data.append('null')
     return y_series_data
 
 
-def get_mem_y_series(df, telemetry_mode):
+# TODO: update the logic
+def get_cpu_vs_conn_y_series(df, telemetry_mode, cpu_metric_name):
     y_series_data = []
-    mem_metric = 'mem_MB_max_fortioserver_deployment_proxy'
-    for qps in [10, 100, 500, 1000, 2000, 3000]:
-        data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
-        if not data[mem_metric].head().empty:
-            y_series_data.append(data[mem_metric].head(1).values[0])
-        else:
+    for thread in [2, 4, 8, 16, 32, 64]:
+        data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@telemetry_mode)')
+        try:
+            data[cpu_metric_name].head().empty
+        except KeyError as e:
+            print(e)
             y_series_data.append('null')
+        else:
+            if len(data[cpu_metric_name]) > 0:
+                y_series_data.append(data[cpu_metric_name].head(1).values[0])
+            else:
+                y_series_data.append('null')
     return y_series_data

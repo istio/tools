@@ -13,13 +13,20 @@
     <i class="fa fa-area-chart"></i>Benchmarks</a>
     <ul id="dropDown" class="collapse list-unstyled">
         <li><a href="{% url 'benchmarks_overview' %}"><i class="fa fa-asterisk"></i>Configs & Measurements</a></li>
-        <li><a href="{% url 'cpu_memory' %}"><i class="fa fa-asterisk"></i>CPU & Memory Usage</a></li>
+        <li><a href="#dropDownCPU" aria-expanded="false" data-toggle="collapse">
+            <i class="fa fa-asterisk"></i>CPU Usages</a>
+            <ul id="dropDownCPU" class="collapse list-unstyled">
+                <li><a href="{% url 'cpu_conn' %}"><i class="fa fa-chevron-right"></i>CPU Usage vs. Connection</a></li>
+                <li><a href="{% url 'cpu_qps' %}"><i class="fa fa-chevron-right"></i>CPU Usage vs. QPS</a></li>
+            </ul>
+        </li>
         <li><a href="#dropDownLatency" aria-expanded="false" data-toggle="collapse">
             <i class="fa fa-asterisk"></i>Latency Quantiles</a>
             <ul id="dropDownLatency" class="collapse list-unstyled">
                 <li><a href="{% url 'latency_conn' %}"><i class="fa fa-chevron-right"></i>Latency vs. Connection</a></li>
                 <li><a href="{% url 'latency_qps' %}"><i class="fa fa-chevron-right"></i>Latency vs. QPS</a></li>
             </ul>
+        </li>
         <li><a href="{% url 'flame_graph' %}"><i class="fa fa-asterisk"></i>Flame Graph</a></li>
         <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
