@@ -25,13 +25,13 @@ CONTAINER_CLI=${CONTAINER_CLI:-docker}
 CONTAINER_BUILDER=${CONTAINER_BUILDER:-"buildx build"}
 HUB=${HUB:-gcr.io/istio-testing}
 DATE=$(date +%Y-%m-%dT%H-%M-%S)
-BRANCH=master
+BRANCH=release-1.7
 VERSION="${BRANCH}-${DATE}"
 SHA="${BRANCH}"
 
 # The docker image runs `go get istio.io/tools@${SHA}`
 # In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
-# In presubmit, this SHA does not exist, so we should just pull from the head of the branch (eg master)
+# In presubmit, this SHA does not exist, so we should just pull from the head of the branch (eg release-1.7)
 if [[ "${JOB_TYPE:-}" == "postsubmit" ]]; then
   SHA=$(git rev-parse ${BRANCH})
 fi
