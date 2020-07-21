@@ -467,6 +467,7 @@ RUN mkdir -p /go && \
     mkdir -p /config/.config/gcloud && \
     mkdir -p /config/.kube && \
     mkdir -p /config-copy && \
+    mkdir -p /home/.cache && \
     mkdir -p /home/.helm && \
     mkdir -p /home/.gsutil
 
@@ -481,6 +482,7 @@ RUN chmod 777 /go && \
     chmod 777 /config/.docker && \
     chmod 777 /config/.config/gcloud && \
     chmod 777 /config/.kube && \
+    chmod 777 /home/.cache && \
     chmod 777 /home/.helm && \
     chmod 777 /home/.gsutil
 
@@ -652,6 +654,7 @@ RUN mkdir -p /go && \
     mkdir -p /config/.config/gcloud && \
     mkdir -p /config/.kube && \
     mkdir -p /config-copy && \
+    mkdir -p /home/.cache && \
     mkdir -p /home/.helm && \
     mkdir -p /home/.gsutil
 
@@ -666,6 +669,7 @@ RUN chmod 777 /go && \
     chmod 777 /config/.docker && \
     chmod 777 /config/.config/gcloud && \
     chmod 777 /config/.kube && \
+    chmod 777 /home/.cache && \
     chmod 777 /home/.helm && \
     chmod 777 /home/.gsutil
 
