@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+
+{% block sidebar_active %}
+<ul id="side-main-menu" class="side-menu list-unstyled">
+    <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
+    <li><a href="#dropDown" aria-expanded="true" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Benchmarks</a>
+    <ul id="dropDown" class="list-unstyled">
+        <li><a href="{% url 'benchmarks_overview' %}"><i class="fa fa-asterisk"></i>Configs & Measurements</a></li>
+        <li><a href="#dropDownCPU" aria-expanded="true" data-toggle="collapse">
+            <i class="fa fa-asterisk"></i>CPU Usages</a>
+            <ul id="dropDownCPU" class="list-unstyled">
+                <li class="active"><a href="{% url 'cpu_conn' %}"><i class="fa fa-chevron-right"></i>CPUs vs. Conn</a></li>
+                <li><a href="{% url 'cpu_qps' %}"><i class="fa fa-chevron-right"></i>CPUs vs. QPS</a></li>
+            </ul>
+        </li>
+        <li><a href="#dropDownMem" aria-expanded="false" data-toggle="collapse">
+            <i class="fa fa-asterisk"></i>Mem Usages</a>
+            <ul id="dropDownMem" class="collapse list-unstyled">
+                <li><a href="{% url 'mem_conn' %}"><i class="fa fa-chevron-right"></i>Mem vs. Conn</a></li>
+                <li><a href="{% url 'mem_qps' %}"><i class="fa fa-chevron-right"></i>Mem vs. QPS</a></li>
+            </ul>
+        </li>
+        <li><a href="#dropDownLatency" aria-expanded="false" data-toggle="collapse">
+            <i class="fa fa-asterisk"></i>Latency Quantiles</a>
+            <ul id="dropDownLatency" class="collapse list-unstyled">
+                <li><a href="{% url 'latency_conn' %}"><i class="fa fa-chevron-right"></i>Latency vs. Conn</a></li>
+                <li><a href="{% url 'latency_qps' %}"><i class="fa fa-chevron-right"></i>Latency vs. QPS</a></li>
+            </ul>
+        </li>
+        <li><a href="{% url 'flame_graph' %}"><i class="fa fa-asterisk"></i>Flame Graph</a></li>
+        <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
+    </ul>
+    <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
+    <i class="fa fa-bullhorn"></i>Regression Pattern</a>
+    <ul id="alertDropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'cur_pattern' %}"><i class="fa fa-asterisk"></i>Current Release</a></li>
+        <li><a href="{% url 'master_pattern' %}"><i class="fa fa-asterisk"></i>Master</a></li>
+    </ul>
+    <li><a href="{% url 'graph_plotting' %}"> <i class="fa fa-edit"></i>Graph Plotting</a></li>
+    <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+    <li><a href="{% url 'history' %}"> <i class="fa fa-file-archive-o"></i>History</a></li>
+    <li><a href="{% url 'analyze_issues' %}"> <i class="fa fa-file-archive-o"></i>Analyze Perf & Issues</a></li>
+</ul>
+{% endblock sidebar_active %}
+
+{% block current_active %}
+<li class="breadcrumb-item">Benchmarks</li>
+<li class="breadcrumb-item">CPU Usages</li>
+<li class="breadcrumb-item active">CPUs vs. Conn</li>
+{% endblock current_active %}
+
+{% block page_content %}
+<section class="charts">
+    <div class="container-fluid">
+      <!-- Page Header-->
+      <header>
+        <h1 class="h3 display">Istio Proxy Average CPUs vs. Connection</h1>
+      </header>
+      <div class="row">
+        <div class="col-lg-12">
+          <form class="form-horizontal" action="" method="post">
+                {% csrf_token %}
+                  <div class="form-group row">
+                      <label class="col-sm-3 form-control-label">Istio Current Release Builds</label>
+                      <div class="col-sm-12">
+                        <select name="current_release_name" class="form-control mb-3">
+                        {% for release in cur_release_names %}
+                            {% if release == cpu_cur_selected_release|last %}
+                            <option selected>{{ release }}</option>
+                            {% else %}
+                            <option>{{ release }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+                        <small class="help-block-none">Choose from the latest builds</small>
+                        <input type="submit">
+                       </div>
+                   </div>
+                <div class="line"></div>
+          </form>
+        </div>
+    </div>
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header d-flex align-items-center">
+              <h4>Client side: {{ current_release|first }} CPUs, 1000QPS over 240 seconds</h4>
+            </div>
+            <div class="card-body">
+              <canvas id="cpu-client-conn-release"></canvas>
+            </div>
+          </div>
+        </div>
+      <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header d-flex align-items-center">
+              <h4>Server side: {{ current_release|first }} CPUs, 1000QPS over 240 seconds</h4>
+            </div>
+            <div class="card-body">
+              <canvas id="cpu-server-conn-release"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12">
+          <form class="form-horizontal" action="" method="post">
+                    {% csrf_token %}
+                      <div class="form-group row">
+                          <label class="col-sm-3 form-control-label">Istio master Release Builds</label>
+                          <div class="col-sm-12">
+                            <select name="current_release_name" class="form-control mb-3">
+                            {% for release in master_release_names %}
+                                {% if release == cpu_master_selected_release|last %}
+                                <option selected>{{ release }}</option>
+                                {% else %}
+                                <option>{{ release }}</option>
+                                {% endif %}
+                            {% endfor %}
+                            </select>
+                            <small class="help-block-none">Choose from the latest builds</small>
+                            <input type="submit">
+                           </div>
+                       </div>
+                    <div class="line"></div>
+                </form>
+        </div>
+    </div>
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header d-flex align-items-center">
+              <h4>Client side: CPU usage, 1000QPS over 240 seconds</h4>
+            </div>
+            <div class="card-body">
+              <canvas id="cpu-client-conn-master"></canvas>
+            </div>
+          </div>
+        </div>
+      <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header d-flex align-items-center">
+              <h4>Server side: CPU usage, 1000QPS over 240 seconds</h4>
+            </div>
+            <div class="card-body">
+              <canvas id="cpu-server-conn-master"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+{% endblock page_content %}
+
+
+{% block page_data %}
+    <script>
+        current_release = {{ current_release|safe }}
+        cpu_cur_selected_release = {{ cpu_cur_selected_release|safe }}
+        cpu_master_selected_release = {{  cpu_master_selected_release|safe }}
+        cur_release_names = {{ cur_release_names|safe }}
+        master_release_names = {{ master_release_names|safe }}
+
+        cpu_client_none_mtls_base = {{ cpu_client_none_mtls_base|safe }}
+        cpu_client_none_mtls_both = {{ cpu_client_none_mtls_both|safe }}
+        cpu_client_none_plaintext_both = {{ cpu_client_none_plaintext_both|safe }}
+        cpu_client_v2_stats_nullvm_both = {{ cpu_client_v2_stats_nullvm_both|safe }}
+        cpu_client_v2_sd_nologging_nullvm_both = {{ cpu_client_v2_sd_nologging_nullvm_both|safe }}
+        cpu_client_v2_sd_full_nullvm_both = {{ cpu_client_v2_sd_full_nullvm_both|safe }}
+
+        cpu_server_none_mtls_base = {{ cpu_server_none_mtls_base|safe }}
+        cpu_server_none_mtls_both = {{ cpu_server_none_mtls_both|safe }}
+        cpu_server_none_plaintext_both = {{ cpu_server_none_plaintext_both|safe }}
+        cpu_server_v2_stats_nullvm_both = {{ cpu_server_v2_stats_nullvm_both|safe }}
+        cpu_server_v2_sd_nologging_nullvm_both = {{ cpu_server_v2_sd_nologging_nullvm_both|safe }}
+        cpu_server_v2_sd_full_nullvm_both = {{ cpu_server_v2_sd_full_nullvm_both|safe }}
+
+        cpu_client_none_mtls_base_master = {{ cpu_client_none_mtls_base_master|safe }}
+        cpu_client_none_mtls_both_master = {{ cpu_client_none_mtls_both_master|safe }}
+        cpu_client_none_plaintext_both_master = {{ cpu_client_none_plaintext_both_master|safe }}
+        cpu_client_v2_stats_nullvm_both_master = {{ cpu_client_v2_stats_nullvm_both_master|safe }}
+        cpu_client_v2_sd_nologging_nullvm_both_master = {{ cpu_client_v2_sd_nologging_nullvm_both_master| safe }}
+        cpu_client_v2_sd_full_nullvm_both_master = {{ cpu_client_v2_sd_full_nullvm_both_master|safe }}
+
+        cpu_server_none_mtls_base_master = {{ cpu_server_none_mtls_base_master|safe }}
+        cpu_server_none_mtls_both_master = {{ cpu_server_none_mtls_both_master|safe }}
+        cpu_server_none_plaintext_both_master = {{ cpu_server_none_plaintext_both_master|safe }}
+        cpu_server_v2_stats_nullvm_both_master = {{ cpu_server_v2_stats_nullvm_both_master|safe }}
+        cpu_server_v2_sd_nologging_nullvm_both_master = {{ cpu_server_v2_sd_nologging_nullvm_both_master| safe }}
+        cpu_server_v2_sd_full_nullvm_both_master = {{ cpu_server_v2_sd_full_nullvm_both_master|safe }}
+    </script>
+{% endblock page_data %}
+
+{% block charts_js %}
+    <script src="{% static 'js/utils.js' %}"></script>
+    <script src="{% static 'js/cpu_conn.js' %}"></script>
+{% endblock charts_js %}
