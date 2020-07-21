@@ -118,7 +118,7 @@ func generateRule(action string, ruleToOccurrences map[string]*ruleOption,
 	case "RequestAuthentication":
 		return "", fmt.Errorf("unimplemented")
 	default:
-		return "", fmt.Errorf("invalid policy")
+		return "", fmt.Errorf("unknown policy kind: %s", policy.Kind)
 	}
 }
 
@@ -131,15 +131,14 @@ func createRules(action string, ruleToOccurrences map[string]*ruleOption, policy
 }
 
 func createPolicyHeader(namespace string, name string, kind string) *MyPolicy {
-	metadata := MetadataStruct{namespace, name}
 	return &MyPolicy{
 		APIVersion: "security.istio.io/v1beta1",
 		Kind:       kind,
-		Metadata:   metadata,
+		Metadata:   MetadataStruct{Namespace: namespace, Name: name},
 	}
 }
 
-func createRuleOptionMap(ruleToOccurancesPtr map[string]*int) *map[string]*ruleOption {
+func createRuleOptionMap(ruleToOccurancesPtr map[string]*int) (map[string]*ruleOption, error) {
 	ruleOptionMap := make(map[string]*ruleOption)
 	for rule, occurrence := range ruleToOccurancesPtr {
 		ruleOptionMap[rule] = &ruleOption{}
@@ -152,16 +151,16 @@ func createRuleOptionMap(ruleToOccurancesPtr map[string]*int) *map[string]*ruleO
 		case "from":
 			ruleOptionMap[rule].gen = sourceGenerator{}
 		default:
-			fmt.Println("invalid rules")
+			return nil, fmt.Errorf("invalid rule: %s", rule)
 		}
 	}
-	return &ruleOptionMap
+	return ruleOptionMap, nil
 }
 
 func main() {
-	namespacePtr := flag.String("namespace", "twopods-istio", "Namespace in which the rule shall be applied to")
-	policyType := flag.String("policyType", "AuthorizationPolicy", "The type of security policy")
-	actionPtr := flag.String("action", "DENY", "Type of action")
+	namespacePtr := flag.String("namespace", "twopods-istio", "Namespace in which the rule shall be applied to.")
+	policyType := flag.String("policyType", "AuthorizationPolicy", "The type of security policy. Supported value: AuthorizationPolicy")
+	actionPtr := flag.String("action", "DENY", "Type of action. Supported values: DENY, ALLOW")
 	numPoliciesPtr := flag.Int("numPolicies", 1, "Number of policies wanted")
 
 	ruleToOccurancesPtr := make(map[string]*int)
@@ -172,11 +171,17 @@ func main() {
 
 	for i := 1; i <= *numPoliciesPtr; i++ {
 		yaml := bytes.Buffer{}
-		policy := createPolicyHeader(fmt.Sprintf("test-%d", i), *namespacePtr, *policyType)
+		policy := createPolicyHeader(*namespacePtr, fmt.Sprintf("test-%d", i), *policyType)
 
-		ruleOptionMap := createRuleOptionMap(ruleToOccurancesPtr)
-		if rules, err := createRules(*actionPtr, *ruleOptionMap, policy); err != nil {
+		ruleOptionMap, err := createRuleOptionMap(ruleToOccurancesPtr)
+		if err != nil {
 			fmt.Println(err)
+			break
+		}
+
+		if rules, err := createRules(*actionPtr, ruleOptionMap, policy); err != nil {
+			fmt.Println(err)
+			break
 		} else {
 			yaml.WriteString(rules)
 			if i < *numPoliciesPtr  {

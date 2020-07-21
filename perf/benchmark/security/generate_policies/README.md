@@ -1,22 +1,17 @@
-
 # Istio Security Policy Generator
 
-This directory contains information needed to create large scale Security policies.
+This directory contains information needed to create large scale security policies.
 
-See the [Istio Security](https://istio.io/latest/docs/reference/config/security/) for more information about policies
+See the [Istio Security](https://istio.io/latest/docs/reference/config/security/) for more information about policies.
 
 ## Setup
 
-Build the project in the generate_policies folder
-
+To build and run generate_policies, run the following command:
 ```bash
-go build *.go
-```
-to run generate_polices run
-```bash
+go build generate_policies.go generate.go
 ./generate_polices
 ```
-This will by default create an Authorization Policy as follows and print it out into the terminal. This AuthorizationPolicy is specifically made to work with the environment that is created in the setup of [Istio Performance Benchmarking](https://github.com/istio/tools/tree/master/perf/benchmark)
+This will by default create an Authorization Policy as follows and print it out to the stdout. This AuthorizationPolicy is specifically made to work with the environment that is created in the setup of [Istio Performance Benchmarking](https://github.com/istio/tools/tree/master/perf/benchmark)
 
 ```yaml
 apiVersion: security.istio.io/v1beta1
@@ -44,7 +39,7 @@ spec:
        namespaces:
        - twopods-istio
 ```
- generate_polices does allow for multiple optional command line flags which will allow you to customize you policies, these include
+generate_polices allows to customize the generated policies with command line flags:
 ```bash
 Optional arguments:
   -h, --help 
@@ -57,15 +52,13 @@ Optional arguments:
   -from int              Number of From sources wanted (default 1)
 
 ```
-To create a large policy to an output .txt file apply the following command
+To create a large policy to an output .yaml file, run the following command:
 ```bash
-./generate_polices -to=1000 -when=1000 -from=1000 > largePolicy.txt
+./generate_polices -to=1000 -when=1000 -from=1000 > largePolicy.yaml
 ```
-To apply largePolicy.txt that was just created to istio use the following command.
+To apply largePolicy.yaml that was just created to istio use the following command.
 ```bash
-kubectl apply -f - <<EOF
-$(cat largePolicy.txt)
-EOF
+kubectl apply -f largePolicy.yaml
 
 ```
 
@@ -80,4 +73,4 @@ EOF
 ```bash
  ./generate_polices -to=100 -when=100 -from=100
 ```
- - This creates 1 AuthorizationPolicy which each contain 100 "To" operations, 100 "When" conditions, and 100 "From" sources
+ - This creates 1 AuthorizationPolicy which each contains 100 "To" operations, 100 "When" conditions, and 100 "From" sources
