@@ -89,7 +89,7 @@ IMAGE=${IMAGE:-"COS"}
 MAXPODS_PER_NODE=100
 
 # Labels and version
-ISTIO_VERSION=${ISTIO_VERSION:-master}
+ISTIO_VERSION=${ISTIO_VERSION:-release-1.7}
 
 DEFAULT_GKE_VERSION=$(default_gke_version "${ZONE}")
 # shellcheck disable=SC2181

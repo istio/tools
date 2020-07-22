@@ -9,7 +9,7 @@ Sources:
 
 ## 1 - Create cluster and Install Istio
 
-Please follow this [Setup README](https://github.com/istio/tools/tree/master/perf/benchmark#setup), finish step 1.
+Please follow this [Setup README](https://github.com/istio/tools/tree/release-1.7/perf/benchmark#setup), finish step 1.
 
 ## 2 - Install Linkerd
 
@@ -36,7 +36,7 @@ cd ..
 
 ## 4.Prepare Python Environment
 
-Please follow steps here: [Prepare Python Env](https://github.com/istio/tools/tree/master/perf/benchmark#prepare-python-environment)
+Please follow steps here: [Prepare Python Env](https://github.com/istio/tools/tree/release-1.7/perf/benchmark#prepare-python-environment)
 
 ## 5. Run benchmark
 

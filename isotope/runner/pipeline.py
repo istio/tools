@@ -148,7 +148,7 @@ def _run_load_test(result_output_path: str, test_target_url: str,
 
     The HTTP request's query string contains the necessary info to perform
     the load test, adapted from the arguments described in
-    https://github.com/istio/istio/blob/master/tools/README.md#run-the-functions.
+    https://github.com/istio/istio/blob/release-1.7/tools/README.md#run-the-functions.
 
     Args:
         result_output_path: the path to write the JSON output.

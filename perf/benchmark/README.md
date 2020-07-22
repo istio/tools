@@ -15,7 +15,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 ## Setup
 
 1. Create a Kubernetes cluster. We provide a GKE cluster-create script in this repo.
-**Note**: The CPU requirement is very high, you may need to update your quota accordingly. If you are using your own cluster, see the install [README](https://github.com/istio/tools/tree/master/perf/istio-install#istio-setup) for machine type recommendations.
+**Note**: The CPU requirement is very high, you may need to update your quota accordingly. If you are using your own cluster, see the install [README](https://github.com/istio/tools/tree/release-1.7/perf/istio-install#istio-setup) for machine type recommendations.
 
     ```bash
     cd perf/istio-install/
@@ -174,7 +174,7 @@ optional arguments:
 Note:
 - `runner.py` will run all combinations of the parameters given. However, in order to reduce ambiguity when generating the graph, it would be
  better to change one parameter at a time and fix other parameters
-- if you want to run with `--perf` flag to generate a flame graph, please make sure you have the permission to gather perf data, please refer to step 2 of this [README](https://github.com/istio/tools/tree/master/perf/benchmark/flame#setup-perf-tool)
+- if you want to run with `--perf` flag to generate a flame graph, please make sure you have the permission to gather perf data, please refer to step 2 of this [README](https://github.com/istio/tools/tree/release-1.7/perf/benchmark/flame#setup-perf-tool)
 
 For example:
 
@@ -225,7 +225,7 @@ python runner/runner.py --conn 10  --qps 100,500,1000,2000,4000 --duration 240 -
 ```
 
 This will generate corresponding `.svg` flame graph in the `perf/benchmark/flame/flameoutput` repo.
-Here is the [sample output](https://github.com/istio/tools/tree/master/perf/benchmark/flame/example_flame_graph/example_output)
+Here is the [sample output](https://github.com/istio/tools/tree/release-1.7/perf/benchmark/flame/example_flame_graph/example_output)
 
 ## Gather Result Metrics
 
@@ -278,9 +278,9 @@ Example Output:
 
 Currently we are running benchmark test towards different configs as [prow job](https://prow.istio.io/?job=daily-nighthawk-performance-benchmark)
 
-To add a new config to this pipeline, we need to add a new directory under [configs folder](https://github.com/istio/tools/tree/master/perf/benchmark/configs/istio), where we can define config parameters structured as below:
+To add a new config to this pipeline, we need to add a new directory under [configs folder](https://github.com/istio/tools/tree/release-1.7/perf/benchmark/configs/istio), where we can define config parameters structured as below:
 
-- installation.yaml: install Istio with this IstioOperator overlay file on top of istioctl built-in default profile and [perf testing default overlay](https://github.com/istio/tools/tree/master/perf/istio-install/istioctl_profiles/default-overlay.yaml)
+- installation.yaml: install Istio with this IstioOperator overlay file on top of istioctl built-in default profile and [perf testing default overlay](https://github.com/istio/tools/tree/release-1.7/perf/istio-install/istioctl_profiles/default-overlay.yaml)
 - cpu_mem.yaml: if provided, run cpu, memory test with this config
 - latency.yaml: if provided, run latency test with this config
 - prerun.sh: prerun hook we want to run before test
