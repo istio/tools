@@ -63,7 +63,7 @@
               <form class="form-horizontal" action="" method="post">
                     {% csrf_token %}
                       <div class="form-group row">
-                          <label class="col-sm-3 form-control-label">Istio Release Builds</label>
+                          <label class="col-sm-3 form-control-label">Istio Current Release Builds</label>
                           <div class="col-sm-9">
                             <select name="current_release_name" class="form-control mb-3">
                             {% for release in cur_release_names %}
