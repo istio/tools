@@ -341,35 +341,35 @@ class Fortio:
             load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, jitter_uniform, duration, labels)
 
         if self.run_baseline:
-            perf_label = "_srv_baseline"
+            perf_label = "baseline_perf"
             sidecar_mode = "baseline"
             sidecar_mode_func = self.baseline
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
                                       sidecar_mode_func, labels, perf_label)
 
         if self.run_serversidecar:
-            perf_label = "_srv_serveronly"
+            perf_label = "serveronly_perf"
             sidecar_mode = "serveronly"
             sidecar_mode_func = self.serversidecar
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
                                       sidecar_mode_func, labels, perf_label)
 
         if self.run_clientsidecar:
-            perf_label = "_srv_clientonly"
+            perf_label = "clientonly_perf"
             sidecar_mode = "clientonly"
             sidecar_mode_func = self.clientsidecar
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
                                       sidecar_mode_func, labels, perf_label)
 
         if self.run_bothsidecar:
-            perf_label = "_srv_bothsidecars"
+            perf_label = "bothsidecars_perf"
             sidecar_mode = "both"
             sidecar_mode_func = self.bothsidecar
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
                                       sidecar_mode_func, labels, perf_label)
 
         if self.run_ingress:
-            perf_label = "_srv_ingress"
+            perf_label = "ingress_perf"
             print('-------------- Running in ingress mode --------------')
             p = multiprocessing.Process(target=kubectl_exec,
                                         args=[self.client.name, self.ingress(load_gen_cmd)])
@@ -400,7 +400,7 @@ def run_perf(pod, labels, duration, frequency):
         duration = 240
     if frequency is None:
         frequency = 99
-    os.environ["PERF_DATA_FILENAME"] = labels + "_perf.data"
+    os.environ["PERF_DATA_FILENAME"] = labels + ".data"
     print(os.environ["PERF_DATA_FILENAME"])
     p = multiprocessing.Process(target=run_command_sync,
                                 args=[LOCAL_FLAME_PROXY_FILE_PATH +
