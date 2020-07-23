@@ -81,19 +81,18 @@ function prepare_root_ca() {
     openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=example Inc./CN=example.com' -keyout ${wd}/example.com.key -out ${wd}/example.com.crt
 }
 
-timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
 testns=clientns
 
 function prepare_namespace() {
     # shellcheck disable=SC2086
     ${kc} create namespace mesh-external
-    ${kc} create -n mesh-external secret generic nginx-ca-certs --from-file=${wd}/example.com.crt
+    ${kc} create -n mesh-external secret generic nginx-ca-certs --from-file="${wd}"/example.com.crt
     ${kc} create namespace ${testns}
 
 }
 
 function deploy_nginx() {
-    for ((id=1; id<=${NUM}; id++)); do
+    for ((id=1; id<="${NUM}"; id++)); do
         credential_name="nginx-server-certs-${id}"
         # shellcheck disable=SC2086
         openssl req -out ${wd}/my-nginx.mesh-external.svc.cluster.local.csr -newkey rsa:2048 -nodes -keyout ${wd}/mesh-external.svc.cluster.local.key -subj "/CN=my-nginx-${id}.mesh-external.svc.cluster.local/O=some organization"
@@ -102,7 +101,7 @@ function deploy_nginx() {
         # shellcheck disable=SC2086
         ${kc} create -n istio-system secret generic "${credential_name}" --from-file=key=${wd}/mesh-external.svc.cluster.local.key --from-file=cert=${wd}/my-nginx.mesh-external.svc.cluster.local.crt
 
-        setup_nginx $id "mesh-external" "${CLUSTER}" ${wd}
+        setup_nginx $id "mesh-external" "${CLUSTER}" "${wd}"
     done
 }
 

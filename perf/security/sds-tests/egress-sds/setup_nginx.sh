@@ -21,10 +21,9 @@ function setup_nginx () {
     local ns="${2:?"please specify the namespace"}"
     local cs="${3:?"please specify the cluster"}"
     local wd="${4:?"please specify the cert path"}"
-    local credential_name="ngins-server-certs-${id}"
-    local host="httpbin-${id}.example.com"
 
-        cat <<EOF > ${wd}/nginx-"${id}".conf
+    # shellcheck disable=SC2154
+    cat <<EOF > "${wd}/nginx-${id}".conf
 events {
 }
 

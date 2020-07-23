@@ -22,11 +22,11 @@ kc="kubectl --cluster ${CLUSTER}"
 function cleanup() {
   ${kc} delete ns mesh-external
   ${kc} delete ns clientns
-  for s in $(kubectl -n istio-system get secrets -oname | grep "client-credential*")
+  for s in $(kubectl -n istio-system get secrets -oname | grep "client-credential-*")
   do
     kubectl -n istio-system delete "${s}"
   done
-    for s in $(kubectl -n istio-system get secrets -oname | grep "nginx-server-certs*")
+    for s in $(kubectl -n istio-system get secrets -oname | grep "nginx-server-certs-*")
   do
     kubectl -n istio-system delete "${s}"
   done

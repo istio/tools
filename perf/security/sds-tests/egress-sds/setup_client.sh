@@ -20,7 +20,7 @@ function deploy_sleep() {
     local id="${1:?"please specify the gateway id"}"
     local ns="${2:?"please specify the namespace"}"
     local cs="${3:?"please specify the cluster"}"
-    local host="my-nginx-"${id}".mesh-external.svc.cluster.local"
+    local host="my-nginx-${id}.mesh-external.svc.cluster.local"
 
     # shellcheck disable=SC2154
     cat <<-EOF | kubectl apply -n "${ns}" --cluster "${cs}" -f -

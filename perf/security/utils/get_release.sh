@@ -21,7 +21,7 @@ function get_release_url() {
   ostype=""
   case "${OSTYPE}" in
     darwin*) ostype="osx" ;;
-    linux*) ostype="linux" ;;
+    linux*) ostype="linux-amd64" ;;
     *)
         echo "unsupported OS: ${OSTYPE}"
         return ;;
