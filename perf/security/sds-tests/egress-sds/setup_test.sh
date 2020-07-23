@@ -141,26 +141,6 @@ function deploy_destinationrule() {
     done
 }
 
-function make_requests() {
-    for ((id=1; id<=${NUM}; id++)); do
-      local url="http://my-nginx-${id}.mesh-external.svc.cluster.local"
-      num_curl=0
-      num_succeed=0
-      sleep 10
-      while true; do
-        resp_code=$(kubectl exec -n clientns "$(kubectl get pod -n clientns -l app=sleep-${id} -o jsonpath={.items..metadata.name})" -c sleep-${id} -- curl -sS  -o /dev/null -w "%{http_code}\n" "${url}")
-        if [ "${resp_code}" = 200 ]; then
-          num_succeed=$((num_succeed+1))
-        else
-          echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") curl to my-nginx-${id}.mesh-external.svc.cluster.local failed, response code $resp_code"
-        fi
-        num_curl=$((num_curl+1))
-        echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
-        sleep .5
-        done &
-    done
-}
-
 prepare_istioctl
 prepare_root_ca
 prepare_namespace
@@ -169,4 +149,3 @@ deploy_gateways
 deploy_virtualservice
 deploy_destinationrule
 deploy_clients
-make_requests
