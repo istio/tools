@@ -21,6 +21,7 @@ function deploy_sleep() {
     local ns="${2:?"please specify the namespace"}"
     local cs="${3:?"please specify the cluster"}"
     local host="my-nginx-${id}.mesh-external.svc.cluster.local"
+    local url="http://my-nginx-${id}.mesh-external.svc.cluster.local"
 
     # shellcheck disable=SC2154
     cat <<-EOF | kubectl apply -n "${ns}" --cluster "${cs}" -f -
@@ -58,25 +59,18 @@ spec:
     spec:
       serviceAccountName: "sleep-${id}"
       containers:
-      - name: sleep
-        image: istio/kubectl:1.3.0
-        args:
-          - bash
-          - -c
-          - |-
-            num_curl=0
-            num_succeed=0
-            while true; do
-              resp_code=$(curl -s  -w "%{http_code}\n" http://"${host}")
-              if [ ${resp_code} = 200 ]; then
-                num_succeed=$((num_succeed+1))
-              else
-                echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") curl to my-nginx-${id}.mesh-external.svc.cluster.local failed, response code $resp_code"
-              fi
-              num_curl=$((num_curl+1))
-              echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
-              sleep .5
-            done
+      - name: "sleep-${id}"
+        image: governmentpaas/curl-ssl
+        command: ["/bin/sleep", "3650d"]
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /etc/sleep/tls
+          name: secret-volume
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: sleep-secret
+          optional: true
 ---
 EOF
 }

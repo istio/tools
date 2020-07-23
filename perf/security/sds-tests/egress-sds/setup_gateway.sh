@@ -23,7 +23,8 @@ function setup_gateways() {
     local gateway_name="istio-egressgateway-${id}"
     local gateway_dr="egressgateway-for-nginx-${id}"
     local subset="nginx-${id}"
-    local host="my-nginx-${id}.mesh-external.svc.cluster.local"
+    local host_gateway="istio-egressgateway.istio-system.svc.cluster.local"
+    local host_nginx="my-nginx-${id}.mesh-external.svc.cluster.local"
 
     cat <<-EOF | kubectl apply -n "${ns}" --cluster "${cs}" -f -
 apiVersion: networking.istio.io/v1alpha3
@@ -38,17 +39,17 @@ spec:
       number: 443
       name: https
       protocol: HTTPS
+    hosts:
+    - "${host_nginx}"
     tls:
       mode: ISTIO_MUTUAL
-    hosts:
-    - "${host}"
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
   name: "${gateway_dr}"
 spec:
-  host: "${host}"
+  host: "${host_gateway}"
   subsets:
   - name: "${subset}"
     trafficPolicy:
@@ -59,7 +60,8 @@ spec:
           number: 443
         tls:
           mode: ISTIO_MUTUAL
-          sni: "${host}"
+          sni: "${host_nginx}"
 EOF
+    sleep 5
 
 }

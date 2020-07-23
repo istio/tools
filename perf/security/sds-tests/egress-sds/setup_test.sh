@@ -88,7 +88,7 @@ function prepare_namespace() {
     ${kc} create namespace mesh-external
     ${kc} create -n mesh-external secret generic nginx-ca-certs --from-file="${wd}"/example.com.crt
     ${kc} create namespace ${testns}
-
+    ${kc} label namespace ${testns} istio-injection=enabled
 }
 
 function deploy_nginx() {
@@ -99,7 +99,7 @@ function deploy_nginx() {
         # shellcheck disable=SC2086
         openssl x509 -req -days 365 -CA ${wd}/example.com.crt -CAkey ${wd}/example.com.key -set_serial 0 -in ${wd}/my-nginx.mesh-external.svc.cluster.local.csr -out ${wd}/my-nginx.mesh-external.svc.cluster.local.crt
         # shellcheck disable=SC2086
-        ${kc} create -n istio-system secret generic "${credential_name}" --from-file=key=${wd}/mesh-external.svc.cluster.local.key --from-file=cert=${wd}/my-nginx.mesh-external.svc.cluster.local.crt
+        ${kc} create -n mesh-external secret tls "${credential_name}" --key ${wd}/mesh-external.svc.cluster.local.key --cert=${wd}/my-nginx.mesh-external.svc.cluster.local.crt
 
         setup_nginx $id "mesh-external" "${CLUSTER}" "${wd}"
     done
@@ -108,7 +108,7 @@ function deploy_nginx() {
 function deploy_clients() {
     # shellcheck disable=SC2004
     for ((id=1; id<=${NUM}; id++)); do
-        deploy_sleep $id "${testns}" "${CLUSTER}"
+        deploy_sleep $id "${testns}" "${CLUSTER}" "${wd}"
     done
 }
 
@@ -141,6 +141,26 @@ function deploy_destinationrule() {
     done
 }
 
+function make_requests() {
+    for ((id=1; id<=${NUM}; id++)); do
+      local url="http://my-nginx-${id}.mesh-external.svc.cluster.local"
+      num_curl=0
+      num_succeed=0
+      sleep 10
+      while true; do
+        resp_code=$(kubectl exec -n clientns "$(kubectl get pod -n clientns -l app=sleep-${id} -o jsonpath={.items..metadata.name})" -c sleep-${id} -- curl -sS  -o /dev/null -w "%{http_code}\n" "${url}")
+        if [ "${resp_code}" = 200 ]; then
+          num_succeed=$((num_succeed+1))
+        else
+          echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") curl to my-nginx-${id}.mesh-external.svc.cluster.local failed, response code $resp_code"
+        fi
+        num_curl=$((num_curl+1))
+        echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
+        sleep .5
+        done &
+    done
+}
+
 prepare_istioctl
 prepare_root_ca
 prepare_namespace
@@ -149,3 +169,4 @@ deploy_gateways
 deploy_virtualservice
 deploy_destinationrule
 deploy_clients
+make_requests

@@ -23,7 +23,8 @@ function setup_virtualservices() {
     local gateway_name="istio-egressgateway-${id}"
     local vs_name="direct-nginx-through-egress-gateway-${id}"
     local subset="nginx-${id}"
-    local host="my-nginx-${id}.mesh-external.svc.cluster.local"
+    local host_gateway="istio-egressgateway.istio-system.svc.cluster.local"
+    local host_nginx="my-nginx-${id}.mesh-external.svc.cluster.local"
 
     cat <<EOF | kubectl apply -n "${ns}" --cluster "${cs}" -f -
 apiVersion: networking.istio.io/v1alpha3
@@ -32,7 +33,7 @@ metadata:
   name: "${vs_name}"
 spec:
   hosts:
-  - "${host}"
+  - "${host_nginx}"
   gateways:
   - "${gateway_name}"
   - mesh
@@ -43,7 +44,7 @@ spec:
       port: 80
     route:
     - destination:
-        host: "${host}"
+        host: "${host_gateway}"
         subset: "${subset}"
         port:
           number: 443
@@ -54,10 +55,10 @@ spec:
       port: 443
     route:
     - destination:
-        host: "${host}"
+        host: "${host_nginx}"
         port:
           number: 443
       weight: 100
 EOF
-
+    sleep 2
 }
