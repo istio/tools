@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     'analyze_perf_issues',
     'artifacts',
     'regression_pattern',
-    'graph_plotting',
     'history',
 ]
 
