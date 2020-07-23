@@ -179,12 +179,13 @@ func main() {
 			break
 		}
 
-		if rules, err := createRules(*actionPtr, ruleOptionMap, policy); err != nil {
+		rules, err := createRules(*actionPtr, ruleOptionMap, policy)
+		if err != nil {
 			fmt.Println(err)
 			break
 		} else {
 			yaml.WriteString(rules)
-			if i < *numPoliciesPtr  {
+			if i < *numPoliciesPtr {
 				yaml.WriteString("---")
 			}
 			fmt.Println(yaml.String())
