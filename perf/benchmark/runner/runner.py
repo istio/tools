@@ -337,7 +337,7 @@ class Fortio:
             # See the comment above, we restrict execution to a single nighthawk worker for
             # now to avoid noise.
             workers = 1
-            jitter_uniform = float(0.1 * 1/qps)
+            jitter_uniform = float(0.1 * 1 / qps)
             load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, jitter_uniform, duration, labels)
 
         if self.run_baseline:
