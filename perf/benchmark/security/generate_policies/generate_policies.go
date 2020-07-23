@@ -25,9 +25,8 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
-
-	"istio.io/istio/pkg/util/protomarshal"
 
 	authzpb "istio.io/api/security/v1beta1"
 )
@@ -48,7 +47,29 @@ type MetadataStruct struct {
 	Namespace string `json:"namespace"`
 }
 
-func ToYAML(policy *MyPolicy, spec proto.Message) (string, error) {
+func ToJSON(msg proto.Message) (string, error) {
+	return ToJSONWithIndent(msg, " ")
+}
+
+func ToJSONWithIndent(msg proto.Message, indent string) (string, error) {
+	if msg == nil {
+		return "", fmt.Errorf("unexpected nil message")
+	}
+
+	m := jsonpb.Marshaler{Indent: indent}
+	return m.MarshalToString(msg)
+}
+
+func ToYAML(msg proto.Message) (string, error) {
+	js, err := ToJSON(msg)
+	if err != nil {
+		return "", err
+	}
+	yml, err := yaml.JSONToYAML([]byte(js))
+	return string(yml), err
+}
+
+func PolicyToYAML(policy *MyPolicy, spec proto.Message) (string, error) {
 	header, err := json.Marshal(policy)
 	if err != nil {
 		return "", err
@@ -59,7 +80,7 @@ func ToYAML(policy *MyPolicy, spec proto.Message) (string, error) {
 		return "", err
 	}
 
-	authorizationPolicy, err := protomarshal.ToYAML(spec)
+	authorizationPolicy, err := ToYAML(spec)
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +89,7 @@ func ToYAML(policy *MyPolicy, spec proto.Message) (string, error) {
 	rulesYaml.WriteString("spec:\n")
 	scanner := bufio.NewScanner(strings.NewReader(authorizationPolicy))
 	for scanner.Scan() {
-		rulesYaml.WriteString(" " + scanner.Text() + "\n")
+		rulesYaml.WriteString(scanner.Text() + "\n")
 	}
 	return string(headerYaml) + rulesYaml.String(), nil
 }
@@ -100,7 +121,7 @@ func generateAuthorizationPolicy(action string, ruleToOccurrences map[string]*ru
 	}
 	spec.Rules = ruleList
 
-	yaml, err := ToYAML(policy, spec)
+	yaml, err := PolicyToYAML(policy, spec)
 	if err != nil {
 		return "", err
 	}
