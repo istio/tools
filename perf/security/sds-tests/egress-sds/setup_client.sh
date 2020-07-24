@@ -20,8 +20,12 @@ function deploy_sleep() {
     local id="${1:?"please specify the gateway id"}"
     local ns="${2:?"please specify the namespace"}"
     local cs="${3:?"please specify the cluster"}"
-    local url="http://my-nginx-${id}.mesh-external.svc.cluster.local"
-    local host="my-nginx-${id}.mesh-external.svc.cluster.local:80"
+    local wd="${4:?"please specify the wd"}"
+    local url="http:\/\/my-nginx-${id}.mesh-external.svc.cluster.local"
+
+    sed "s/URL_TO_REPLACE/${url}/g" request_script.sh > "${wd}/request_script_${id}.sh"
+
+    kubectl -n "${ns}" --cluster "${cs}" create configmap script-"${id}" --from-file="${wd}/request_script_${id}.sh"
 
     # shellcheck disable=SC2154
     cat <<-EOF | kubectl apply -n "${ns}" --cluster "${cs}" -f -
@@ -59,26 +63,20 @@ spec:
     spec:
       serviceAccountName: "sleep-${id}"
       containers:
-      - name: sleep-${id}
-        image: istio/kubectl:1.5.8
+      - name: sleep
+        image: istio/kubectl:1.3.0
+        volumeMounts:
+        - name: "script-${id}"
+          mountPath: /opt/script
         args:
           - bash
           - -c
           - |-
-            num_curl=0
-            num_succeed=0
-            while true; do
-              resp_code=$(curl -s  -o /dev/null -w "%{http_code}\n" "${url}")
-              if [ "${resp_code}" = 200 ]; then
-                num_succeed=$((num_succeed+1))
-              else
-                echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") curl to "${url}" failed, response code $resp_code"
-              fi
-              num_curl=$((num_curl+1))
-              echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
-              sleep .5
-            done
-            curl -sS  -o /dev/null -w "%{http_code}\n" -HHost:"${host}" --resolve "${host}":80 "${url}"
+            /bin/sh "/opt/script/request_script_${id}.sh"
+      volumes:
+        - name: "script-${id}"
+          configMap:
+            name: "script-${id}"
 ---
 EOF
 }
