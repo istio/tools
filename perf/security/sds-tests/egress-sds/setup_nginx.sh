@@ -106,6 +106,4 @@ spec:
         secret:
           secretName: nginx-ca-certs
 EOF
-    sleep 5
-
 }

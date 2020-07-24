@@ -62,6 +62,6 @@ spec:
           mode: ISTIO_MUTUAL
           sni: "${host_nginx}"
 EOF
-    sleep 5
+    sleep 2
 
 }

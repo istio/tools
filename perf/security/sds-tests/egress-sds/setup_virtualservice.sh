@@ -60,5 +60,4 @@ spec:
           number: 443
       weight: 100
 EOF
-    sleep 2
 }
