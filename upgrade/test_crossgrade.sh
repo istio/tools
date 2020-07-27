@@ -221,7 +221,7 @@ installIstioAtVersionUsingHelm() {
     writeMsg "helm templating then applying new yaml using version ${2} from ${3}."
     if [[ -n "${AUTH_ENABLE}" ]]; then
         echo "Auth is enabled, generating manifest with auth."
-        auth_opts="--set global.mtls.enabled=true --set global.controlPlaneSecurityEnabled=true "
+        auth_opts="--set global.mtls.enabled=true"
     fi
     release_path="${3}"/install/kubernetes/helm/istio
 

@@ -7,7 +7,6 @@ spec:
 
   values:
     global:
-      controlPlaneSecurityEnabled: false
       # Default is 10s second
       refreshInterval: 1s
       mtls:
