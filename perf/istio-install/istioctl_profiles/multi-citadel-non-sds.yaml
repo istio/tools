@@ -10,7 +10,6 @@ spec:
 
   values:
     global:
-      controlPlaneSecurityEnabled: false
       mtls:
         enabled: true
       sds:
