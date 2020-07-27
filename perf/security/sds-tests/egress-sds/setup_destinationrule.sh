@@ -41,4 +41,6 @@ spec:
         credentialName: "${credential_name}" # this must match the secret created earlier to hold client certs
         sni: "${host}"
 EOF
+
+#    istioctl experimental wait -n istio-system destinationrule "${dr_name}" --timeout=60s
 }

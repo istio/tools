@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # shellcheck disable=SC2086
-sleep 30
+sleep 120
 num_curl=0
 num_succeed=0
 while true; do
@@ -27,5 +27,5 @@ while true; do
   fi
   num_curl=$((num_curl+1))
   echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
-  sleep .5
+  sleep 1
 done
