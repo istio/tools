@@ -185,7 +185,7 @@ func parseArguments(arguments string) map[string]string {
 	argumentMap := make(map[string]string)
 	for _, arg := range strings.Split(arguments, ",") {
 		keyValue := strings.Split(arg, ":")
-		argumentMap[keyValue[0]] = keyValue[1];
+		argumentMap[keyValue[0]] = keyValue[1]
 	}
 	return argumentMap
 }
@@ -217,7 +217,7 @@ func parseRules(arguments map[string]string) (map[string]int, error) {
 		if argVal, inMap := arguments[key]; inMap {
 			argVal, err := strconv.Atoi(argVal)
 			if err != nil {
-				return nil, fmt.Errorf("invalid value: %s", ruleMap["numPolicies"])
+				return nil, fmt.Errorf("invalid value: %d", ruleMap["numPolicies"])
 			}
 			ruleMap[key] = argVal
 		}
@@ -226,7 +226,7 @@ func parseRules(arguments map[string]string) (map[string]int, error) {
 }
 
 func main() {
-	securityPtr := flag.String("security_option", "numPolicies:1", "List of key value pairs seperated by commas")
+	securityPtr := flag.String("security_option", "numPolicies:1", "List of key value pairs separated by commas")
 	flag.Parse()
 
 	argumentMap := parseArguments(*securityPtr)
