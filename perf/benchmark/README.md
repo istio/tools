@@ -58,19 +58,19 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
    - To enable telemetryv2 mode (which is enabled by default from Istio 1.5), run:
 
      ```bash
-     istioctl manifest apply
+     istioctl install
      ```
 
    - To enable Mixer mode (which will be deprecated in Istio 1.7), run:
 
      ```bash
-     istioctl manifest apply --set values.telemetry.v1.enabled=true --set values.telemetry.v2.enabled=false
+     istioctl install --set values.telemetry.v1.enabled=true --set values.telemetry.v2.enabled=false
      ```
 
    - To run test `none` mode (no filters), run:
 
      ```bash
-     istioctl manifest apply --set values.telemetry.enabled=false
+     istioctl install --set values.telemetry.enabled=false
      ```
 
 1. Deploy the workloads to measure performance against. The test environment is two [Fortio](http://fortio.org/) pods (one client, one server), set to communicate over HTTP1, using mutual TLS authentication. By default, the client pod will make HTTP requests with a 1KB payload.
