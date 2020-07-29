@@ -92,14 +92,23 @@
                 <div class="card-body">
                   <p>These are the benchmarks we run on a daily basis and publish those measurements in the following sections.</p>
                     <ul>
-                        <li><a href="{% url 'cpu_conn' %}" target="_blank">CPUs vs. Conn</a></li>
-                        <li><a href="{% url 'cpu_qps' %}" target="_blank">CPUs vs. QPS</a></li>
+                      <li>CPU Usages:</li>
+                      <ul>
+                         <li><a href="{% url 'cpu_conn' %}" target="_blank">CPUs vs. Conn</a></li>
+                         <li><a href="{% url 'cpu_qps' %}" target="_blank">CPUs vs. QPS</a></li>
+                      </ul>
+                      <li>Memory Usages:</li>
+                      <ul>
                         <li><a href="{% url 'mem_conn' %}" target="_blank">Memory vs. Conn</a></li>
                         <li><a href="{% url 'mem_qps' %}" target="_blank">Memory vs. QPS</a></li>
+                      </ul>
+                      <li>Latency:</li>
+                      <ul>
                         <li><a href="{% url 'latency_conn' %}" target="_blank">Latency vs. Conn</a></li>
                         <li><a href="{% url 'latency_qps' %}" target="_blank">Latency vs. QPS</a></li>
-                        <li><a href="{% url 'flame_graph' %}" target="_blank">Flame Graph</a></li>
-                        <li><a href="{% url 'micro_benchmarks' %}" target="_blank">Micro Benchmarks</a></li>
+                      </ul>
+                      <li><a href="{% url 'flame_graph' %}" target="_blank">Flame Graph</a></li>
+                      <li><a href="{% url 'micro_benchmarks' %}" target="_blank">Micro Benchmarks</a></li>
                     </ul>
                 </div>
               </div>
