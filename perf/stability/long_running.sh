@@ -27,13 +27,16 @@ export RELEASE_URL="${RELEASE_URL:-}"
 export DNS_DOMAIN="fake-dns.org"
 export LOCAL_ISTIO_PATH="${LOCAL_ISTIO_PATH:-}"
 export NAMESPACE_NUM="${NAMESPACE_NUM:-5}"
-${ROOT}/istio-install/setup_istio.sh
-
+export SKIP_ISTIO_SETUP="${SKIP_ISTIO_SETUP:-false}"
+if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then
+  ${ROOT}/istio-install/setup_istio.sh "${@}"
+fi
 # setup service graph
 pushd "${ROOT}/load"
 # shellcheck disable=SC1090
 source "./common.sh"
 START_NUM=0
+export START_NUM="${START_NUM:-0}"
 export DELETE=""
 export CMD=""
 export WD="${ROOT}/load"
@@ -43,7 +46,6 @@ popd
 export NOT_INJECTED="True"
 # deploy alertmanager related resources
 NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager
-kubectl apply -f ./alertmanager/alertmanagerconfig.yaml
 kubectl apply -f ./alertmanager/prometheusrule.yaml
 # TODO(richardwxn): this and other stability scenario jobs would be added as phase2 effort.
 # deploy canary upgrader

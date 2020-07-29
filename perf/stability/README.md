@@ -10,7 +10,7 @@ The long running test would deploy service graphs application with 15 namespaces
 
 Abnormal metrics breaking SLO and suspicious logs would be recorded in the alertmanager-webhook pod, corresponding notification would be pushed to slack channel #stability-test(Note: any slack webhook url uploaded to github would be deactivated, contact @richardwxn for latest webhook url to put in the alertmanagerconfig.yaml)
 
-If you want to run against a public release(stable or dev), specify the target release TAG/VERSION/RELEASE_URL, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio). You can specify the namespace number of the servicegraph workloads by setting NAMESPACE_NUM var.
+If you want to run against a public release(stable or dev), specify the target release TAG/VERSION/RELEASE_URL and you can pass extra arguments to istioctl install, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio). You can specify the namespace number of the servicegraph workloads by setting NAMESPACE_NUM var.
 
 For example
  
@@ -20,13 +20,21 @@ run with istio 1.5.4:
 
 run with istio 1.6.5 prerelease:
 
-`RELEASE_URL=https://storage.googleapis.com/istio-prerelease/prerelease/1.6.5/istio-1.6.5-osx.tar.gz NAMESPACE_NUM=15  ./long_running.sh`
+`VERSION=1.6.5 NAMESPACE_NUM=15  ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`
 
 If you already install specific Istio version in the cluster, you can also point to the local release bundles to install grafana, some extra prometheus configs needed, e.g. 
 
 `LOCAL_ISTIO_PATH=/Users/iamwen/Downloads/istio-1.5.5 ./long_running.sh`
 
-Note: This does not support running with asm managed control plane yet.
+Or you skip Istio setup completely, just deploy the workloads and alertmanager
+
+`VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh`
+
+Note:
+1. This does not support running with asm managed control plane yet.
+2. It is likely the script would fail in between because of transient issues such as node rescaling as more workloads being deployed. Just rerun the script again accordingly when that happens, for example it is likely that the scaling happen at the stage of deploying workload, you can just rerun from the failing namespace like:
+`VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`
+
 
 ## Setup Tests
 
