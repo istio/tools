@@ -181,32 +181,27 @@ func createRuleOptionMap(ruleToOccurancesPtr map[string]int) (map[string]*ruleOp
 	return ruleOptionMap, nil
 }
 
-func parseArguments(arguments string) map[string]string {
+func parseArguments(arguments string) (map[string]string, error) {
 	argumentMap := make(map[string]string)
-	for _, arg := range strings.Split(arguments, ",") {
-		keyValue := strings.Split(arg, ":")
-		argumentMap[keyValue[0]] = keyValue[1]
-	}
-	return argumentMap
-}
-
-func parseHeader(arguments map[string]string) map[string]string {
-	headerMap := make(map[string]string)
 	// These are the default values
-	headerMap["namespace"] = "twopods-istio"
-	headerMap["policyType"] = "AuthorizationPolicy"
-	headerMap["action"] = "DENY"
-	headerMap["numPolicies"] = "1"
+	argumentMap["namespace"] = "twopods-istio"
+	argumentMap["policyType"] = "AuthorizationPolicy"
+	argumentMap["action"] = "DENY"
+	argumentMap["numPolicies"] = "1"
 
-	for key := range headerMap {
-		if argVal, inMap := arguments[key]; inMap {
-			headerMap[key] = argVal
+	if len(arguments) > 0 {
+		for _, arg := range strings.Split(arguments, ",") {
+			keyValue := strings.Split(arg, ":")
+			if len(keyValue) < 2 {
+				return nil, fmt.Errorf("invalid argument: ", keyValue)
+			}
+			argumentMap[keyValue[0]] = keyValue[1]
 		}
 	}
-	return headerMap
+	return argumentMap, nil
 }
 
-func parseRules(arguments map[string]string) (map[string]int, error) {
+func createRuleMap(arguments map[string]string) (map[string]int, error) {
 	ruleMap := make(map[string]int)
 	// These are the default values
 	ruleMap["when"] = 0
@@ -226,26 +221,31 @@ func parseRules(arguments map[string]string) (map[string]int, error) {
 }
 
 func main() {
-	securityPtr := flag.String("security_option", "numPolicies:1", "List of key value pairs separated by commas")
+	securityPtr := flag.String("security_policy", "numPolicies:1", `List of key value pairs separated by commas.
+	Supported options: namespace:\"string\", action:DENY/ALLOW, policyType:AuthorizationPolicy, 
+	numPolicies:int, when:int, from:int, to:int`)
 	flag.Parse()
 
-	argumentMap := parseArguments(*securityPtr)
-	headerMap := parseHeader(argumentMap)
-	ruleMap, err := parseRules(argumentMap)
+	argumentMap, err := parseArguments(*securityPtr)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	numPolices, err := strconv.Atoi(headerMap["numPolicies"])
+	ruleMap, err := createRuleMap(argumentMap)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	numPolices, err := strconv.Atoi(argumentMap["numPolicies"])
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	for i := 1; i <= numPolices; i++ {
-		yaml := bytes.Buffer{}
-		policy := createPolicyHeader(headerMap["namespace"], fmt.Sprintf("test-%d", i), headerMap["policyType"])
+		policy := createPolicyHeader(argumentMap["namespace"], fmt.Sprintf("test-%d", i), argumentMap["policyType"])
 
 		ruleOptionMap, err := createRuleOptionMap(ruleMap)
 		if err != nil {
@@ -253,11 +253,12 @@ func main() {
 			break
 		}
 
-		rules, err := createRules(headerMap["action"], ruleOptionMap, policy)
+		rules, err := createRules(argumentMap["action"], ruleOptionMap, policy)
 		if err != nil {
 			fmt.Println(err)
 			break
 		} else {
+			yaml := bytes.Buffer{}
 			yaml.WriteString(rules)
 			if i < numPolices {
 				yaml.WriteString("---")

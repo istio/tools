@@ -10,7 +10,7 @@ To build and run generate_policies, run the following command:
 
 ```bash
 go build generate_policies.go generate.go
-./generate_polices
+./generate_policies
 ```
 
 This will by default create an Authorization Policy as follows and print it out to the stdout. This AuthorizationPolicy is specifically made to work with the environment that is created in the setup of [Istio Performance Benchmarking](https://github.com/istio/tools/tree/master/perf/benchmark)
@@ -47,20 +47,14 @@ generate_polices allows to customize the generated policies with command line fl
 ```bash
 Optional arguments:
   -h, --help
-  -action string         Type of action (default "DENY")
-  -namespace string      Current namespace (default "twopods-istio")
-  -numPolicies int       Number of policies wanted (default 1)
-  -policyType string     The type of security policy (default "AuthorizationPolicy")
-  -to int                Number of To operations wanted (default 1)
-  -when int              Number of when condition wanted (default 1)
-  -from int              Number of From sources wanted (default 1)
-
+  -security_policy string         List of key value pairs separated by commas.
+                                  Supported options: namespace:string, action:DENY/ALLOW, policyType:AuthorizationPolicy, numPolicies:int, when:int, from:int, to:int  (default "numPolicies:1")
 ```
 
 To create a large policy to an output .yaml file, run the following command:
 
 ```bash
-./generate_polices -to=1000 -when=1000 -from=1000 > largePolicy.yaml
+./generate_policies -security_policy="to:1000,when:1000,from:1000" > largePolicy.yaml
 ```
 
 To apply largePolicy.yaml that was just created to istio use the following command.
@@ -72,7 +66,7 @@ kubectl apply -f largePolicy.yaml
 ## Example 1
 
 ```bash
- ./generate_polices -numPolicies=10 -to=10 -when=2
+ ./generate_policies -security_policy="numPolicies:10,to:10,when:2,from:1"
 ```
 
 - This creates 10 AuthorizationPolicies which each contains 10 "To" operations, 2 "When" conditions, and 1 "From" sources
@@ -80,7 +74,59 @@ kubectl apply -f largePolicy.yaml
 ## Example 2
 
 ```bash
- ./generate_polices -to=100 -when=100 -from=100
+ ./generate_policies -security_policy="to:100,when:100,from:100"
 ```
 
 - This creates 1 AuthorizationPolicy which each contains 100 "To" operations, 100 "When" conditions, and 100 "From" sources
+
+## Run with runner.py
+
+To measure the performance of having certain policies that have been applied, one can use [Istio Performance Benchmarking](https://github.com/istio/tools/tree/master/perf/benchmark) in particular the Run performance tests section with an extra flag (--security_policy) which will:
+ 1.  Generate policies depending on what was passed in as the arguments for the flag --security_policy and save the policies in a file called generated_policy.yaml within the generate_policies folder
+ 2. Apply those policies
+ 3. Run the performance test
+
+To create specific policies the value which the security_policy flag will be assigned to will be in the same format as in the examples above for example:
+
+```bash
+"to:100,when:100,from:100"
+```
+
+## Runner.py Example 1
+
+```bash
+python3 runner.py --conn 64 --qps 1000 --duration 240 --baseline --load_gen_type=fortio --telemetry_mode=v2-nullvm --security_policy="numPolicies:1,from:100"
+```
+
+- This creates 2 AuthorizationPolicies which each contain 100 from rules, applies those policies, then runs the performance test.
+
+The example output should start with:
+
+```bash
+authorizationpolicy.security.istio.io/test-1 configured
+-------------- Running in baseline mode --------------
+```
+
+## Runner.py Example 2
+
+```bash
+python3 runner.py --conn 64 --qps 1000 --duration 240 --baseline --load_gen_type=fortio --telemetry_mode=v2-nullvm --security_policy="numPolicies:10,from:1"
+```
+
+- This creates 10 AuthorizationPolicies which each contain 1 from rules, applies those policies. Then runs the performance test
+
+The example output should start with:
+
+```bash
+authorizationpolicy.security.istio.io/test-1 configured
+authorizationpolicy.security.istio.io/test-2 configured
+authorizationpolicy.security.istio.io/test-3 configured
+authorizationpolicy.security.istio.io/test-4 configured
+authorizationpolicy.security.istio.io/test-5 configured
+authorizationpolicy.security.istio.io/test-6 configured
+authorizationpolicy.security.istio.io/test-7 configured
+authorizationpolicy.security.istio.io/test-8 configured
+authorizationpolicy.security.istio.io/test-9 configured
+authorizationpolicy.security.istio.io/test-10 configured
+-------------- Running in baseline mode --------------
+```
