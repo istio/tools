@@ -20,7 +20,7 @@ is set as the current cluster.
 
 - Deploy workloads that request for certificates through SDS.
 *NUM* variable specifies the number of client workloads and nginx services to be deployed. For example, `NUM=100` will
-create 100 mutual TLS egress gateways and 100 egress secrets, and 100 sleep workloads in clients. We also configure 100 `DestinationRule` 
+create 100 mutual TLS egress gateways and 100 egress secrets, and 100 sleep workloads in clients. We also configure 100 `DestinationRule`
 deployments to apply traffic policies for outgoing request to the 100 `nginx` instances running in `mesh-external` namespace.
 *CLUSTER* variable specifies the cluster for running the test
 (the list of clusters can be viewed through "kubectl config get-contexts").
