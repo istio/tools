@@ -199,7 +199,7 @@ func parseHeader(arguments map[string]string) map[string]string {
 	headerMap["numPolicies"] = "1"
 
 	for key := range headerMap {
-		if argVal, inMap  := arguments[key]; inMap {
+		if argVal, inMap := arguments[key]; inMap {
 			headerMap[key] = argVal
 		}
 	}
