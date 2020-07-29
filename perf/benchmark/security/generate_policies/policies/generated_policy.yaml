@@ -1,0 +1,12 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: test-1
+  namespace: twopods-istio
+spec:
+ action: DENY
+ rules:
+ - from:
+   - source:
+       namespaces:
+       - invalid-namespace-0

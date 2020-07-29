@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -48,7 +49,7 @@ type MetadataStruct struct {
 }
 
 func ToJSON(msg proto.Message) (string, error) {
-	return ToJSONWithIndent(msg, " ")
+	return ToJSONWithIndent(msg, "")
 }
 
 func ToJSONWithIndent(msg proto.Message, indent string) (string, error) {
@@ -89,7 +90,7 @@ func PolicyToYAML(policy *MyPolicy, spec proto.Message) (string, error) {
 	rulesYaml.WriteString("spec:\n")
 	scanner := bufio.NewScanner(strings.NewReader(authorizationPolicy))
 	for scanner.Scan() {
-		rulesYaml.WriteString(scanner.Text() + "\n")
+		rulesYaml.WriteString(" " + scanner.Text() + "\n")
 	}
 	return string(headerYaml) + rulesYaml.String(), nil
 }
@@ -116,8 +117,10 @@ func generateAuthorizationPolicy(action string, ruleToOccurrences map[string]*ru
 	sortedKeys := getOrderedKeySlice(ruleToOccurrences)
 	for _, name := range *sortedKeys {
 		ruleOp := ruleToOccurrences[name]
-		rule := ruleOp.gen.generate(name, ruleOp.occurrence, action)
-		ruleList = append(ruleList, rule)
+		if ruleOp.occurrence > 0 {
+			rule := ruleOp.gen.generate(name, ruleOp.occurrence, action)
+			ruleList = append(ruleList, rule)
+		}
 	}
 	spec.Rules = ruleList
 
@@ -159,11 +162,11 @@ func createPolicyHeader(namespace string, name string, kind string) *MyPolicy {
 	}
 }
 
-func createRuleOptionMap(ruleToOccurancesPtr map[string]*int) (map[string]*ruleOption, error) {
+func createRuleOptionMap(ruleToOccurancesPtr map[string]int) (map[string]*ruleOption, error) {
 	ruleOptionMap := make(map[string]*ruleOption)
 	for rule, occurrence := range ruleToOccurancesPtr {
 		ruleOptionMap[rule] = &ruleOption{}
-		ruleOptionMap[rule].occurrence = *occurrence
+		ruleOptionMap[rule].occurrence = occurrence
 		switch rule {
 		case "when":
 			ruleOptionMap[rule].gen = conditionGenerator{}
@@ -178,35 +181,85 @@ func createRuleOptionMap(ruleToOccurancesPtr map[string]*int) (map[string]*ruleO
 	return ruleOptionMap, nil
 }
 
-func main() {
-	namespacePtr := flag.String("namespace", "twopods-istio", "Namespace in which the rule shall be applied to.")
-	policyType := flag.String("policyType", "AuthorizationPolicy", "The type of security policy. Supported value: AuthorizationPolicy")
-	actionPtr := flag.String("action", "DENY", "Type of action. Supported values: DENY, ALLOW")
-	numPoliciesPtr := flag.Int("numPolicies", 1, "Number of policies wanted")
+func parseArguments(arguments string) map[string]string {
+	argumentMap := make(map[string]string)
+	for _, arg := range strings.Split(arguments, ",") {
+		keyValue := strings.Split(arg, ":")
+		argumentMap[keyValue[0]] = keyValue[1];
+	}
+	return argumentMap
+}
 
-	ruleToOccurancesPtr := make(map[string]*int)
-	ruleToOccurancesPtr["when"] = flag.Int("when", 1, "Number of when condition wanted")
-	ruleToOccurancesPtr["to"] = flag.Int("to", 1, "Number of To operations wanted")
-	ruleToOccurancesPtr["from"] = flag.Int("from", 1, "Number of From sources wanted")
+func parseHeader(arguments map[string]string) map[string]string {
+	headerMap := make(map[string]string)
+	// These are the default values
+	headerMap["namespace"] = "twopods-istio"
+	headerMap["policyType"] = "AuthorizationPolicy"
+	headerMap["action"] = "DENY"
+	headerMap["numPolicies"] = "1"
+
+	for key := range headerMap {
+		if argVal, inMap  := arguments[key]; inMap {
+			headerMap[key] = argVal
+		}
+	}
+	return headerMap;
+}
+
+func parseRules(arguments map[string]string) (map[string]int, error) {
+	ruleMap := make(map[string]int)
+	// These are the default values
+	ruleMap["when"] = 0
+	ruleMap["from"] = 1
+	ruleMap["to"] = 0
+
+	for key := range ruleMap {
+		if argVal, inMap := arguments[key]; inMap {
+			argVal, err := strconv.Atoi(argVal)
+			if err != nil {
+				return nil, fmt.Errorf("invalid value: %s", ruleMap["numPolicies"])
+			}
+			ruleMap[key] = argVal
+		}
+	}
+	return ruleMap, nil
+}
+
+func main() {
+	securityPtr := flag.String("security_option", "numPolicies:1", "List of key value pairs seperated by commas")
 	flag.Parse()
 
-	for i := 1; i <= *numPoliciesPtr; i++ {
-		yaml := bytes.Buffer{}
-		policy := createPolicyHeader(*namespacePtr, fmt.Sprintf("test-%d", i), *policyType)
+	argumentMap := parseArguments(*securityPtr)
+	headerMap := parseHeader(argumentMap)
+	ruleMap, err := parseRules(argumentMap)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-		ruleOptionMap, err := createRuleOptionMap(ruleToOccurancesPtr)
+	numPolices, err := strconv.Atoi(headerMap["numPolicies"])
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for i := 1; i <= numPolices; i++ {
+		yaml := bytes.Buffer{}
+		policy := createPolicyHeader(headerMap["namespace"], fmt.Sprintf("test-%d", i), headerMap["policyType"])
+
+		ruleOptionMap, err := createRuleOptionMap(ruleMap)
 		if err != nil {
 			fmt.Println(err)
 			break
 		}
 
-		rules, err := createRules(*actionPtr, ruleOptionMap, policy)
+		rules, err := createRules(headerMap["action"], ruleOptionMap, policy)
 		if err != nil {
 			fmt.Println(err)
 			break
 		} else {
 			yaml.WriteString(rules)
-			if i < *numPoliciesPtr {
+			if i < numPolices {
 				yaml.WriteString("---")
 			}
 			fmt.Println(yaml.String())
