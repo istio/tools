@@ -313,8 +313,8 @@ class Fortio:
 
     def generate_policies(self, security_cmd):
         os.system("go build {path}generate_policies.go {path}generate.go".format(path=LOCAL_GENERATE_POLICIES))
-        os.system("./generate_policies {param} > {path}policies/{filename}"\
-        .format(param=security_cmd, path=LOCAL_GENERATE_POLICIES, filename=LOCAL_GENERATED_POLICY_FILE))
+        os.system("./generate_policies {param} > {path}policies/{filename}"
+                  .format(param=security_cmd, path=LOCAL_GENERATE_POLICIES, filename=LOCAL_GENERATED_POLICY_FILE))
 
     def apply_generated_policy(self):
         cmd = "kubectl apply -f {path}policies/{filename}".format(path=LOCAL_GENERATE_POLICIES, filename=LOCAL_GENERATED_POLICY_FILE)
@@ -339,7 +339,7 @@ class Fortio:
                 security_cmd = "-security_option={security}".format(security=self.security)
                 self.generate_policies(security_cmd)
                 self.apply_generated_policy()
-    
+
             load_gen_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, self.jitter, labels)
         elif self.load_gen_type == "nighthawk":
             # TODO(oschaaf): Figure out how to best determine the right concurrency for Nighthawk.
