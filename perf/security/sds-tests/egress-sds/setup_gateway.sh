@@ -62,7 +62,5 @@ spec:
           mode: ISTIO_MUTUAL
           sni: "${host_nginx}"
 EOF
-#    istioctl experimental wait -n "${ns}" gateway "${gateway_name}" --timeout=60s
-#    istioctl experimental wait -n "${ns}" destinationrule "${gateway_dr}" --timeout=120s
      sleep 2
 }

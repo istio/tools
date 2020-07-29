@@ -27,5 +27,5 @@ while true; do
   fi
   num_curl=$((num_curl+1))
   echo "$(date +"%Y-%m-%d %H:%M:%S:%3N") Out of ${num_curl} curl, ${num_succeed} succeeded."
-  sleep 1
+  sleep 0.1
 done

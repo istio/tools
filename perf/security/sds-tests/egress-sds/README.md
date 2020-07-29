@@ -19,11 +19,11 @@ is set as the current cluster.
   istio-egressgateway must be enabled!
 
 - Deploy workloads that request for certificates through SDS.
-*NUM* variable specifies the number of TLS gateway and client workloads. For example, `NUM=100` will
-create 100 TLS egress gateway and 100 egress secrets, and 100 sleep workloads as clients.
+*NUM* variable specifies the number of mutual TLS gateway and client workloads. For example, `NUM=100` will
+create 100 mutual TLS egress gateway and 100 egress secrets, and 100 sleep workloads as clients.
 *CLUSTER* variable specifies the cluster for running the test
 (the list of clusters can be viewed through "kubectl config get-contexts").
-The following example command will deploy a test namespace, with 100 TLS gateway and 100 sleep workloads in
+The following example command will deploy a test namespace, with 100 mutual TLS gateway and 100 sleep workloads in
 the namespace.
 Note: the number of workloads can be ran depends on the size of your cluster.
 
@@ -36,7 +36,7 @@ The log in sleep container shows number of requests sent to nginx and number of 
 To download a specific version of istioctl and deploy the test worloads using that istioctl binary.
 
     ```bash
-    NUM=100 CLUSTER=gke_istio-security-testing_us-central1-a_istio-testing ./setup_test.sh 1.5.1 pre-release
+    NUM=100 CLUSTER=gke_istio-security-testing_us-central1-a_istio-testing ./setup_test.sh 1.7.0 pre-release
     ```
 
 To cleanup the setup with NUM of deployments use the following command:
