@@ -203,7 +203,7 @@ func parseHeader(arguments map[string]string) map[string]string {
 			headerMap[key] = argVal
 		}
 	}
-	return headerMap;
+	return headerMap
 }
 
 func parseRules(arguments map[string]string) (map[string]int, error) {
