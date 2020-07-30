@@ -16,7 +16,6 @@
 
 WD=$(dirname "$0")
 WD=$(cd "$WD"; pwd)
-ROOT=$(dirname "$WD")
 DIRNAME="/tmp"
 set -eux
 
@@ -35,7 +34,7 @@ function download_release() {
 }
 
 function install_istioctl() {
-  "${outfile}/bin/istioctl" install -d "${outfile}/manifests" --set revision=${rev}
+  "${outfile}/bin/istioctl" install -d "${outfile}/manifests" --set revision="${rev}"
 }
 
 dtsuffix=$(date +'%Y%m%d')
@@ -44,8 +43,8 @@ download_release
 install_istioctl
 
 # verify whether canary one exist
-podc=$(kubectl -n istio-system get pods -l istio.io/rev=${rev} | grep -c istiod)
-svcc=$(kubectl -n istio-system get svc -l istio.io/rev=${rev} | grep -c istiod)
+podc=$(kubectl -n istio-system get pods -l istio.io/rev="${rev}" | grep -c istiod)
+svcc=$(kubectl -n istio-system get svc -l istio.io/rev="${rev}" | grep -c istiod)
 if [[ ${podc} == 0 ]] || [[ ${svcc} == 0 ]]; then
   echo "canary deployment not available"
   exit 1
@@ -54,8 +53,8 @@ allns=$(kubectl get ns -o jsonpath="{.items[*].metadata.name}")
 # upgrade data plane
 for testns in ${allns};do
     if [[ ${testns} =~ "service_graph" ]];then
-        kubectl label namespace ${testns} istio-injection- istio.io/rev=${rev}
-        kubectl rollout restart deployment -n ${testns}
+        kubectl label namespace "${testns}" istio-injection- istio.io/rev="${rev}"
+        kubectl rollout restart deployment -n "${testns}"
     # verify
     fi
 done

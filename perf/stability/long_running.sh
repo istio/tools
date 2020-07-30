@@ -29,11 +29,11 @@ export LOCAL_ISTIO_PATH="${LOCAL_ISTIO_PATH:-}"
 export NAMESPACE_NUM="${NAMESPACE_NUM:-5}"
 export SKIP_ISTIO_SETUP="${SKIP_ISTIO_SETUP:-false}"
 if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then
-  ${ROOT}/istio-install/setup_istio.sh "${@}"
+  "${ROOT}"/istio-install/setup_istio.sh "${@}"
 fi
 # setup service graph
 pushd "${ROOT}/load"
-# shellcheck disable=SC1090
+# shellcheck disable=SC1091
 source "./common.sh"
 START_NUM=0
 export START_NUM="${START_NUM:-0}"
