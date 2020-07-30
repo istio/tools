@@ -35,6 +35,7 @@ require (
 	github.com/montanaflynn/stats v0.0.0-20180911141734-db72e6cae808 // indirect
 	github.com/neurosnap/sentences v1.0.6 // indirect
 	github.com/pelletier/go-buffruneio v0.2.0 // indirect
+	github.com/prometheus/alertmanager v0.20.0
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shogo82148/go-shuffle v0.0.0-20180218125048-27e6095f230d // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect

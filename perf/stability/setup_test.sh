@@ -23,7 +23,7 @@ WD=$(cd $WD; pwd)
 
 function setup_test() {
   local DIRNAME="${1:?"test directory"}"
-  local NAMESPACE="istio-stability-${NAMESPACE:-"$1"}"
+  local NAMESPACE="${NAMESPACE:-"$1"}"
   local HELM_ARGS="${2:-}"
 
   mkdir -p "${WD}/tmp"
@@ -34,8 +34,9 @@ function setup_test() {
 
   if [[ -z "${DRY_RUN}" ]]; then
     kubectl create ns "${NAMESPACE}" || true
-    kubectl label namespace "${NAMESPACE}" istio-injection=enabled || true
-
+    if [[ "${NOT_INJECTED}" != "True" ]]; then
+        kubectl label namespace "${NAMESPACE}" istio-injection=enabled || true
+    fi
     kubectl -n "${NAMESPACE}" apply -f "${OUTFILE}"
   fi
 }

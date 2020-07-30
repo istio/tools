@@ -45,7 +45,7 @@ function run_test() {
     --set domain="${DNS_DOMAIN}" \
     --set https="${HTTPS}" \
     ${LOADCLIENT_EXTRA_HELM_FLAGS} \
-          . > "${YAML}"
+          "${WD}" > "${YAML}"
   echo "Wrote ${YAML}"
 
   if [[ -z "${DELETE}" ]];then

@@ -109,11 +109,18 @@ function install_extras() {
   helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
   # Also deploy relevant ServiceMonitors
   "${release}/bin/istioctl" manifest generate --set profile=empty --set addonComponents.prometheusOperator.enabled=true -d "${release}/manifests" | kubectl apply -f -
+  # deploy grafana
+  kubectl apply -f "${release}/samples/addons/grafana.yaml" -n istio-system
 }
 
-download_release
-install_istioctl "${DIRNAME}/${OUT_FILE}" "${@}"
+if [[ -z "${LOCAL_ISTIO_PATH}" ]];then
+  download_release
+  install_istioctl "${DIRNAME}/${OUT_FILE}" "${@}"
 
-if [[ -z "${SKIP_EXTRAS:-}" ]]; then
+  if [[ -z "${SKIP_EXTRAS:-}" ]]; then
+    install_extras
+  fi
+else
+  release="${LOCAL_ISTIO_PATH}"
   install_extras
 fi

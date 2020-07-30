@@ -1,0 +1,51 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  components:
+    ingressGateways:
+      - name: istio-ingressgateway
+        enabled: true
+        k8s:
+          hpaSpec:
+            maxReplicas: 5
+            minReplicas: 3
+            scaleTargetRef:
+              apiVersion: apps/v1
+              kind: Deployment
+              name: istio-ingressgateway
+          resources:
+            limits:
+              cpu: 6000m
+              memory: 512Mi
+            requests:
+              cpu: 4000m
+              memory: 512Mi
+
+            memory: 4G
+    pilot:
+      enabled: true
+      k8s:
+        hpaSpec:
+          maxReplicas: 10
+          minReplicas: 2
+          scaleTargetRef:
+            apiVersion: apps/v1
+            kind: Deployment
+            name: istio-pilot
+        resources:
+          limits:
+            cpu: 5800m
+            memory: 12G
+          requests:
+            cpu: 4800m
+            memory: 2G
+  values:
+    global:
+      proxy:
+        enableCoreDump: true
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+
+
