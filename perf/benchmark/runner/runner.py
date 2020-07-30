@@ -312,8 +312,7 @@ class Fortio:
         return nighthawk_cmd
 
     def generate_policies(self, security_cmd):
-        os.system("go build -o {path} {path}generate_policies.go {path}generate.go".format(path=LOCAL_GENERATED_SECURITY_POLICY_DIR))
-        os.system("{path}./generate_policies {param} > {path}{filename}"
+        os.system("go run {path}generate_policies.go {path}generate.go {param} > {path}{filename}"
                   .format(param=security_cmd, path=LOCAL_GENERATED_SECURITY_POLICY_DIR, filename=LOCAL_GENERATED_SECURITY_POLICY_FILENAME))
 
     def apply_generated_policy(self):
@@ -336,7 +335,7 @@ class Fortio:
         load_gen_cmd = ""
         if self.load_gen_type == "fortio":
             if self.security_policy is not None:
-                security_cmd = "-security_policy={security}".format(security=self.security_policy)
+                security_cmd = "-generate_policy={security}".format(security=self.security_policy)
                 self.generate_policies(security_cmd)
                 self.apply_generated_policy()
 

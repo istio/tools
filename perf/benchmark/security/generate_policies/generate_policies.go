@@ -192,8 +192,8 @@ func parseArguments(arguments string) (map[string]string, error) {
 	if len(arguments) > 0 {
 		for _, arg := range strings.Split(arguments, ",") {
 			keyValue := strings.Split(arg, ":")
-			if len(keyValue) < 2 {
-				return nil, fmt.Errorf("invalid argument: ", keyValue)
+			if len(keyValue) == 1 {
+				return nil, fmt.Errorf("invalid argument: %s", keyValue[0])
 			}
 			argumentMap[keyValue[0]] = keyValue[1]
 		}
@@ -221,7 +221,7 @@ func createRuleMap(arguments map[string]string) (map[string]int, error) {
 }
 
 func main() {
-	securityPtr := flag.String("security_policy", "numPolicies:1", `List of key value pairs separated by commas.
+	securityPtr := flag.String("generate_policy", "numPolicies:1", `List of key value pairs separated by commas.
 	Supported options: namespace:\"string\", action:DENY/ALLOW, policyType:AuthorizationPolicy, 
 	numPolicies:int, when:int, from:int, to:int`)
 	flag.Parse()
