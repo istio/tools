@@ -91,7 +91,7 @@ To create specific policies the value which the security_policy flag will be ass
 "to:100,when:100,from:100"
 ```
 
-#### Cleanup
+## Cleanup
 
 To remove the policies applied navigate to the generate_policies folder and run the following command:
 
