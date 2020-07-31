@@ -77,7 +77,7 @@ function download_release() {
 }
 
 function install_istioctl() {
-  release=${1:?release folder}
+  release=${1:?missing release path}
   shift
   "${release}/bin/istioctl" install --skip-confirmation -d "${release}/manifests" "${@}"
 }
@@ -107,8 +107,6 @@ function install_extras() {
   done
   # Redeploy, this time with the Prometheus resource created
   helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
-  # Also deploy relevant ServiceMonitors
-  "${release}/bin/istioctl" manifest generate --set profile=empty --set addonComponents.prometheusOperator.enabled=true -d "${release}/manifests" | kubectl apply -f -
   # deploy grafana
   kubectl apply -f "${release}/samples/addons/grafana.yaml" -n istio-system
 }
