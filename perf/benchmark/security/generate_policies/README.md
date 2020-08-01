@@ -68,7 +68,7 @@ go run generate_policies.go generate.go -generate_policy="numSourceIP:100,numPat
 
 ## Cleanup
 
-To remove the policies applied navigate to the generate_policies folder and run the following command (updating "largePolicy.yaml" if applied a different .yaml file): 
+To remove the policies applied navigate to the generate_policies folder and run the following command (updating "largePolicy.yaml" if applied a different .yaml file):
 
 ```bash
 kubectl delete -f largePolicy.yaml

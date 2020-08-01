@@ -59,7 +59,7 @@ func (conditionGenerator) generate(action string, ruleMap map[string]int) *authz
 	if numValues > 0 {
 		values := make([]string, numValues)
 		for i := 0; i < numValues; i++ {
-			if i == numValues - 1 && action == "ALLOW" {
+			if i == numValues-1 && action == "ALLOW" {
 				values[i] = "admin"
 			} else {
 				values[i] = "guest"
@@ -86,7 +86,7 @@ func (sourceGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Rule 
 	if numSourceIP > 0 {
 		sourceIPList := make([]string, numSourceIP)
 		for i := 0; i < numSourceIP; i++ {
-			sourceIPList[i] = fmt.Sprintf("0.0.%d.%d", i / 256, i % 256)
+			sourceIPList[i] = fmt.Sprintf("0.0.%d.%d", i/256, i%256)
 		}
 		source := &authzpb.Rule_From{
 			Source: &authzpb.Source{

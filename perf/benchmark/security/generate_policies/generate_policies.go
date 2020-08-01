@@ -33,7 +33,7 @@ import (
 )
 
 type ruleGenerator struct {
-	gen        generator
+	gen generator
 }
 
 type MyPolicy struct {
@@ -151,7 +151,7 @@ func createPolicyHeader(namespace string, name string, kind string) *MyPolicy {
 	}
 }
 
-func createRuleGeneratorMap(ruleToOccurancesPtr map[string]int) (map[string]*ruleGenerator, error) {
+func createRuleGeneratorMap(ruleToOccurancesPtr map[string]int) map[string]*ruleGenerator {
 	ruleGeneratorMap := make(map[string]*ruleGenerator)
 
 	if ruleToOccurancesPtr["numSourceIP"] > 0 || ruleToOccurancesPtr["numNamespaces"] > 0 {
@@ -171,7 +171,7 @@ func createRuleGeneratorMap(ruleToOccurancesPtr map[string]int) (map[string]*rul
 			gen: conditionGenerator{},
 		}
 	}
-	return ruleGeneratorMap, nil
+	return ruleGeneratorMap
 }
 
 func parseArguments(arguments string) (map[string]string, error) {
@@ -242,12 +242,7 @@ func main() {
 	for i := 1; i <= numPolices; i++ {
 		policy := createPolicyHeader(argumentMap["namespace"], fmt.Sprintf("test-%d", i), argumentMap["policyType"])
 
-		ruleToGenerator, err := createRuleGeneratorMap(ruleMap)
-		if err != nil {
-			fmt.Println(err)
-			break
-		}
-
+		ruleToGenerator := createRuleGeneratorMap(ruleMap)
 		rules, err := generateRules(argumentMap["action"], ruleToGenerator, policy, ruleMap)
 		if err != nil {
 			fmt.Println(err)
