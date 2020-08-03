@@ -216,7 +216,7 @@ func createRuleMap(arguments map[string]string) (map[string]int, error) {
 
 func main() {
 	securityPtr := flag.String("generate_policy", "numPolicies:1", `List of key value pairs separated by commas.
-	Supported options: namespace:\"string\", action:DENY/ALLOW, policyType:AuthorizationPolicy, 
+	Supported options: namespace:string, action:DENY/ALLOW, policyType:AuthorizationPolicy, 
 	numPolicies:int, numPaths:int, numSourceIP:int. numNamespaces:int`)
 
 	flag.Parse()

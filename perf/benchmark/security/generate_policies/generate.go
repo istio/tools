@@ -31,8 +31,7 @@ func (operationGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Ru
 	rule := &authzpb.Rule{}
 	var listOperation []*authzpb.Rule_To
 
-	numPaths := ruleMap["numPaths"]
-	if numPaths > 0 {
+	if numPaths := ruleMap["numPaths"]; numPaths > 0  {
 		paths := make([]string, numPaths)
 		for i := 0; i < numPaths; i++ {
 			paths[i] = fmt.Sprintf("/Invalid-path-%d", i)
@@ -55,8 +54,7 @@ func (conditionGenerator) generate(action string, ruleMap map[string]int) *authz
 	rule := &authzpb.Rule{}
 	var listCondition []*authzpb.Condition
 
-	numValues := ruleMap["numValues"]
-	if numValues > 0 {
+	if numValues := ruleMap["numValues"]; numValues > 0 {
 		values := make([]string, numValues)
 		for i := 0; i < numValues; i++ {
 			if i == numValues-1 && action == "ALLOW" {
@@ -82,8 +80,7 @@ func (sourceGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Rule 
 	rule := &authzpb.Rule{}
 	var listSource []*authzpb.Rule_From
 
-	numSourceIP := ruleMap["numSourceIP"]
-	if numSourceIP > 0 {
+	if numSourceIP := ruleMap["numSourceIP"]; numSourceIP > 0 {
 		sourceIPList := make([]string, numSourceIP)
 		for i := 0; i < numSourceIP; i++ {
 			sourceIPList[i] = fmt.Sprintf("0.0.%d.%d", i/256, i%256)
@@ -96,8 +93,7 @@ func (sourceGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Rule 
 		listSource = append(listSource, source)
 	}
 
-	numNamepaces := ruleMap["numNamespaces"]
-	if numNamepaces > 0 {
+	if numNamepaces := ruleMap["numNamespaces"]; numNamepaces > 0 {
 		namespaces := make([]string, numNamepaces)
 		for i := 0; i < numNamepaces; i++ {
 			namespaces[i] = fmt.Sprintf("Invalid-namespace-%d", i)
