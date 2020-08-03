@@ -26,7 +26,7 @@ function cleanup() {
   do
     kubectl -n istio-system delete "${s}"
   done
-    for s in $(kubectl -n istio-system get secrets -oname | grep "nginx-server-certs-*")
+  for s in $(kubectl -n istio-system get secrets -oname | grep "nginx-server-certs-*")
   do
     kubectl -n istio-system delete "${s}"
   done
