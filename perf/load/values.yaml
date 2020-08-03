@@ -18,6 +18,14 @@ mtls: true
 
 prometheus_scrape: false
 
+# For multi cluster case
+# first cluster run with multicluster.enabled=true and multicluster.cluster1=true
+# second cluster run with multicluster.enabled=true and multicluster.cluster2=true
+multicluster:
+  enabled: false
+  cluster1: false
+  cluster2: false
+
 # time between config changes
 configSleep: 120
 

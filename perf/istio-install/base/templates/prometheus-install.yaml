@@ -40,7 +40,7 @@ spec:
       sidecar.istio.io/inject: "false"
   resources:
     requests:
-      memory: 32Gi
+      memory: 16Gi
   securityContext:
     fsGroup: 2000
     runAsNonRoot: true

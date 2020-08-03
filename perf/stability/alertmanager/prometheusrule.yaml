@@ -17,6 +17,11 @@ spec:
           expr: >
             sum(irate(istio_requests_total{reporter="destination", response_code=~"5.*"}[5m])) / sum(irate(istio_requests_total{reporter="destination"}[5m])) > 0.05
           for: 5m
+        - alert: LatencyHigh
+          expr: sum(irate(istio_request_duration_seconds_bucket{source_workload=~".*"}[5m])) by (source_workload,namespace) * on (source_workload) group_right() BY (label_app,namespace) , "source_workload", "$1", "label_app", "(.*)") > 8
+          for: 10m
+          annotations:
+            message:  "Request duration has slowed down for workload: {{`{{$labels.source_workload}}`}} in namespace: {{`{{$labels.namespace}}`}}. Response duration is {{`{{$value}}`}} seconds"
     - name: ./infra.rules
       rules:
         - alert: ContainerCPUUsageHigh
@@ -46,6 +51,13 @@ spec:
             description: 'istiod rejects rate is too high during the last 5m'
           expr: >
             sum(irate(pilot_total_xds_rejects{app="istiod"}[5m])) / sum(irate(pilot_xds_pushes{app="istiod"}[5m])) > 0.05
+          for: 5m
+        - alert: IstiodAvailabilityLow
+          annotations:
+            summary: 'Istiod AvailabilityLow'
+            description: 'Istiod pods have dropped during the last 5m (current value: *{{ printf "%2.0f%%" $value }}*).'
+          expr: >
+            avg(avg_over_time(up{job="istiod"}[1m])) < 0.5
           for: 5m
     - name: "istio.recording-rules"
       interval: 5s

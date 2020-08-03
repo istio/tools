@@ -5,7 +5,8 @@ metadata:
   name: alertmanager-main
   namespace: istio-prometheus
 stringData:
-  alertmanager.yaml: {{ toYaml .Values.config | b64enc | quote }}
+  alertmanager.yaml:
+    {{ toYaml .Values.config | quote }}
 
 type: Opaque
 ---

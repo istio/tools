@@ -1,0 +1,32 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: istio-canary-upgrader
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: istio-canary-upgrader
+spec:
+  schedule: "0 0 */{{ .Values.redeployDays }} * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+          labels:
+            app: logs-checker
+        spec:
+          serviceAccountName: {{ .Values.namespace }}-account
+          containers:
+              - name: logs-checker
+                image: {{ .Values.kubectlImage }}
+                command: ["/scripts/check_k8s_logs.sh"]
+                volumeMounts:
+                  - name: logs-checker-script
+                    mountPath: /scripts
+          restartPolicy: OnFailure
+          volumes:
+            - name: logs-checker-script
+              configMap:
+                name: logs-checker
+                defaultMode: 0744

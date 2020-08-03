@@ -1,3 +1,4 @@
+{{- if or (not .Values.multicluster.enabled) (.Values.multicluster.cluster1) }}
 apiVersion: v1
 data:
   service-graph: |
@@ -582,56 +583,6 @@ spec:
     app: {{ .Values.serviceNamePrefix }}0-4
 status:
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-5
-spec:
-  replicas: {{ .Values.replicas }}
-  selector:
-    matchLabels:
-      app: {{ .Values.serviceNamePrefix }}0-5
-  template:
-    metadata:
-      annotations:
-{{- if .Values.prometheus_scrape }}
-        prometheus.io/scrape: "true"
-{{- end }}
-      labels:
-        app: {{ .Values.serviceNamePrefix }}0-5
-        role: service
-        version: v1
-    spec:
-      containers:
-      - args:
-        - --max-idle-connections-per-host=32
-        env:
-        - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}0-5
-        image: {{ .Values.serviceGraphImage }}
-        name: mock-service
-        ports:
-        - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
-{{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
-{{- end}}
-        resources: {{ toJson .Values.resources }}
-        volumeMounts:
-        - mountPath: /etc/config
-          name: config-volume
-      volumes:
-      - configMap:
-          items:
-          - key: service-graph
-            path: service-graph.yaml
-          name: service-graph-config
-        name: config-volume
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -645,56 +596,6 @@ spec:
   selector:
     app: {{ .Values.serviceNamePrefix }}0-5
 status:
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-6
-spec:
-  replicas: {{ .Values.replicas }}
-  selector:
-    matchLabels:
-      app: {{ .Values.serviceNamePrefix }}0-6
-  template:
-    metadata:
-      annotations:
-{{- if .Values.prometheus_scrape }}
-        prometheus.io/scrape: "true"
-{{- end }}
-      labels:
-        app: {{ .Values.serviceNamePrefix }}0-6
-        role: service
-        version: v1
-    spec:
-      containers:
-      - args:
-        - --max-idle-connections-per-host=32
-        env:
-        - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}0-6
-        image: {{ .Values.serviceGraphImage }}
-        name: mock-service
-        ports:
-        - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
-{{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
-{{- end}}
-        resources: {{ toJson .Values.resources }}
-        volumeMounts:
-        - mountPath: /etc/config
-          name: config-volume
-      volumes:
-      - configMap:
-          items:
-          - key: service-graph
-            path: service-graph.yaml
-          name: service-graph-config
-        name: config-volume
 ---
 apiVersion: v1
 kind: Service
@@ -710,56 +611,6 @@ spec:
     app: {{ .Values.serviceNamePrefix }}0-6
 status:
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-7
-spec:
-  replicas: {{ .Values.replicas }}
-  selector:
-    matchLabels:
-      app: {{ .Values.serviceNamePrefix }}0-7
-  template:
-    metadata:
-      annotations:
-{{- if .Values.prometheus_scrape }}
-        prometheus.io/scrape: "true"
-{{- end }}
-      labels:
-        app: {{ .Values.serviceNamePrefix }}0-7
-        role: service
-        version: v1
-    spec:
-      containers:
-      - args:
-        - --max-idle-connections-per-host=32
-        env:
-        - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}0-7
-        image: {{ .Values.serviceGraphImage }}
-        name: mock-service
-        ports:
-        - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
-{{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
-{{- end}}
-        resources: {{ toJson .Values.resources }}
-        volumeMounts:
-        - mountPath: /etc/config
-          name: config-volume
-      volumes:
-      - configMap:
-          items:
-          - key: service-graph
-            path: service-graph.yaml
-          name: service-graph-config
-        name: config-volume
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -773,56 +624,6 @@ spec:
   selector:
     app: {{ .Values.serviceNamePrefix }}0-7
 status:
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-8
-spec:
-  replicas: {{ .Values.replicas }}
-  selector:
-    matchLabels:
-      app: {{ .Values.serviceNamePrefix }}0-8
-  template:
-    metadata:
-      annotations:
-{{- if .Values.prometheus_scrape }}
-        prometheus.io/scrape: "true"
-{{- end }}
-      labels:
-        app: {{ .Values.serviceNamePrefix }}0-8
-        role: service
-        version: v1
-    spec:
-      containers:
-      - args:
-        - --max-idle-connections-per-host=32
-        env:
-        - name: SERVICE_NAME
-          value: {{ .Values.serviceNamePrefix }}0-8
-        image: {{ .Values.serviceGraphImage }}
-        name: mock-service
-        ports:
-        - containerPort: 8080
-{{- if .Values.livenessProbe }}
-        livenessProbe: {{ toJson .Values.livenessProbe }}
-{{- end}}
-{{- if .Values.readinessProbe }}
-        readinessProbe: {{ toJson .Values.readinessProbe }}
-{{- end}}
-        resources: {{ toJson .Values.resources }}
-        volumeMounts:
-        - mountPath: /etc/config
-          name: config-volume
-      volumes:
-      - configMap:
-          items:
-          - key: service-graph
-            path: service-graph.yaml
-          name: service-graph-config
-        name: config-volume
 ---
 apiVersion: v1
 kind: Service
@@ -1157,6 +958,202 @@ spec:
   selector:
     app: {{ .Values.serviceNamePrefix }}0-4-0
 status:
+
+{{- end}}
+---
+# Resources that can be put in second cluster for multicluster case
+{{- if or (not .Values.multicluster.enabled) (.Values.multicluster.cluster2) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-5
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceNamePrefix }}0-5
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+        {{- end }}
+      labels:
+        app: {{ .Values.serviceNamePrefix }}0-5
+        role: service
+        version: v1
+    spec:
+      containers:
+      - args:
+          - --max-idle-connections-per-host=32
+        env:
+          - name: SERVICE_NAME
+            value: {{ .Values.serviceNamePrefix }}0-5
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+          - containerPort: 8080
+          {{- if .Values.livenessProbe }}
+        livenessProbe: {{ toJson .Values.livenessProbe }}
+          {{- end}}
+          {{- if .Values.readinessProbe }}
+        readinessProbe: {{ toJson .Values.readinessProbe }}
+          {{- end}}
+        resources: {{ toJson .Values.resources }}
+        volumeMounts:
+          - mountPath: /etc/config
+            name: config-volume
+      volumes:
+        - configMap:
+            items:
+              - key: service-graph
+                path: service-graph.yaml
+            name: service-graph-config
+          name: config-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-5
+spec:
+  ports:
+  - name: {{ .Values.httpPortName }}
+    port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-5
+status:
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-6
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceNamePrefix }}0-6
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+        {{- end }}
+      labels:
+        app: {{ .Values.serviceNamePrefix }}0-6
+        role: service
+        version: v1
+    spec:
+      containers:
+      - args:
+          - --max-idle-connections-per-host=32
+        env:
+          - name: SERVICE_NAME
+            value: {{ .Values.serviceNamePrefix }}0-6
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+          - containerPort: 8080
+          {{- if .Values.livenessProbe }}
+        livenessProbe: {{ toJson .Values.livenessProbe }}
+          {{- end}}
+          {{- if .Values.readinessProbe }}
+        readinessProbe: {{ toJson .Values.readinessProbe }}
+          {{- end}}
+        resources: {{ toJson .Values.resources }}
+        volumeMounts:
+          - mountPath: /etc/config
+            name: config-volume
+      volumes:
+      - configMap:
+          items:
+            - key: service-graph
+              path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-6
+spec:
+  ports:
+    - name: {{ .Values.httpPortName }}
+      port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-6
+status:
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-7
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceNamePrefix }}0-7
+  template:
+    metadata:
+      annotations:
+          {{- if .Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+          {{- end }}
+      labels:
+        app: {{ .Values.serviceNamePrefix }}0-7
+        role: service
+        version: v1
+    spec:
+      containers:
+      - args:
+          - --max-idle-connections-per-host=32
+        env:
+          - name: SERVICE_NAME
+            value: {{ .Values.serviceNamePrefix }}0-7
+        image: {{ .Values.serviceGraphImage }}
+        name: mock-service
+        ports:
+          - containerPort: 8080
+          {{- if .Values.livenessProbe }}
+        livenessProbe: {{ toJson .Values.livenessProbe }}
+          {{- end}}
+          {{- if .Values.readinessProbe }}
+        readinessProbe: {{ toJson .Values.readinessProbe }}
+          {{- end}}
+        resources: {{ toJson .Values.resources }}
+        volumeMounts:
+          - mountPath: /etc/config
+            name: config-volume
+      volumes:
+      - configMap:
+          items:
+            - key: service-graph
+              path: service-graph.yaml
+          name: service-graph-config
+        name: config-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-7
+spec:
+  ports:
+  - name: {{ .Values.httpPortName }}
+    port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-7
+status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1208,20 +1205,7 @@ spec:
           name: service-graph-config
         name: config-volume
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: service-graph
-  name: {{ .Values.serviceNamePrefix }}0-5-0
-spec:
-  ports:
-  - name: tcp-web
-    port: 8080
-  selector:
-    app: {{ .Values.serviceNamePrefix }}0-5-0
-status:
----
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1413,3 +1397,4 @@ spec:
   selector:
     app: {{ .Values.serviceNamePrefix }}0-8-0
 status:
+{{- end}}
