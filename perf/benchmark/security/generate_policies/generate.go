@@ -31,7 +31,7 @@ func (operationGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Ru
 	rule := &authzpb.Rule{}
 	var listOperation []*authzpb.Rule_To
 
-	if numPaths := ruleMap["numPaths"]; numPaths > 0  {
+	if numPaths := ruleMap["numPaths"]; numPaths > 0 {
 		paths := make([]string, numPaths)
 		for i := 0; i < numPaths; i++ {
 			paths[i] = fmt.Sprintf("/Invalid-path-%d", i)
