@@ -4,16 +4,12 @@ This is a TLS egress gateway SDS test.
 The test sets up a number of TLS egress gateways for a group of nginx services.
 The test creates a group of sleep pods, where each sleep sends HTTP requests to an nginx
 service periodically. For example, sleep-1 sends HTTP requests to my-nginx-1,
-and sleep-2 sends HTTPS requests to my-nginx-2. The sleep pods are deployed in clientns namespace and nginx services are deployed
-in a namespace called mesh-external".
+and sleep-2 sends HTTPS requests to my-nginx-2. The sleep pods are deployed in `clientns` namespace and nginx services are deployed
+in a namespace called `mesh-external`.
 
 ## To run the SDS test originating mTLS at gateway
 
-- Create a GKE cluster and set it as the current cluster.
-Here this test is run on the cluster *istio-testing*
-on GCP project *istio-security-testing*.
-You may use `kubectl config current-context` to confirm that your newly created cluster
-is set as the current cluster.
+- Create a GKE cluster and run the test against your created cluster.
 
 - Deploy Istio:
   istio-egressgateway must be enabled!
@@ -31,9 +27,9 @@ Note: the number of workloads that can be ran depends on the size of your cluste
     NUM=100 CLUSTER=gke_istio-security-testing_us-central1-a_istio-testing ./setup_test.sh
     ```
 
-The logs for sleep containers shows number of requests that are sent to nginx and number of successful responses received.
-The logs for istio-egressgateway also show the GET requests that are routed from sleep pod's in clientns namespace to corresponding
-nginx pod's in mesh-external namespace
+The logs for sleep containers show number of requests that are sent to nginx and number of successful responses received.
+The logs for istio-egressgateway also show the GET requests that are routed from sleep pod's in `clientns` namespace to corresponding
+nginx pod's in `mesh-external` namespace.
 
 To download a specific version of istioctl and deploy the test worloads using that istioctl binary use:
 

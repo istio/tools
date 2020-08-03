@@ -20,7 +20,7 @@ function setup_nginx () {
     local id="${1:?"please specify the gateway id"}"
     local ns="${2:?"please specify the namespace"}"
     local cs="${3:?"please specify the cluster"}"
-    local wd="${4:?"please specify the cert path"}"
+    local wd="${4:?"please specify the working directory"}"
 
     # shellcheck disable=SC2154
     cat <<EOF > "${wd}/nginx-${id}".conf
