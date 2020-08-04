@@ -215,7 +215,11 @@ function collect_clusters_info() {
 function collect_pod_spec() {
   POD_NAME=${1}
   POD_SPEC_NAME="${LOAD_GEN_TYPE}_${POD_NAME}.yaml"
-  kubectl get pods "${POD_NAME}" -n "${NAMESPACE}" -o yaml > "${POD_SPEC_NAME}"
+  if [[ "${POD_NAME}" == "prometheus"* ]]; then
+    kubectl get pods "${POD_NAME}" -n "${PROMETHEUS_NAMESPACE}" -o yaml > "${POD_SPEC_NAME}"
+  else
+    kubectl get pods "${POD_NAME}" -n "${NAMESPACE}" -o yaml > "${POD_SPEC_NAME}"
+  fi
   gsutil -q cp -r "${POD_SPEC_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/pod_spec/${POD_SPEC_NAME}"
 }
 
@@ -264,6 +268,10 @@ for dir in "${CONFIG_DIR}"/*; do
     # Collect pod spec
     collect_pod_spec "${FORTIO_CLIENT_POD}"
     collect_pod_spec "${FORTIO_SERVER_POD}"
+
+    # Collect prometheus pod spec
+    PROM_POD=$(kubectl get pods -n "${PROMETHEUS_NAMESPACE}" | grep prometheus | awk '{print $1}')
+    collect_pod_spec "${PROM_POD}"
 
     # Run test and collect data
     if [[ -e "./cpu_mem.yaml" ]]; then
