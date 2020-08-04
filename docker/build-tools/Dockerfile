@@ -59,7 +59,7 @@ ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
 ENV PROTOC_VERSION=3.9.2
 ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=7df3b957ffe3d09dc57fe4e1eb96694614db8c7a
-ENV SHELLCHECK_VERSION=v0.7.0
+ENV SHELLCHECK_VERSION=v0.7.1
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.96
 ENV YQ_VERSION=3.3.0
@@ -158,7 +158,7 @@ RUN upx --lzma /tmp/go/bin/*
 RUN mv /tmp/go/bin/* ${OUTDIR}/usr/bin
 
 # ShellCheck linter
-ADD https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
+ADD https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
 RUN tar -xJf /tmp/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz -C /tmp
 RUN mv /tmp/shellcheck-${SHELLCHECK_VERSION}/shellcheck ${OUTDIR}/usr/bin
 
