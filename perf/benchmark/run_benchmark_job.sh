@@ -269,6 +269,14 @@ for dir in "${CONFIG_DIR}"/*; do
     collect_pod_spec "${FORTIO_CLIENT_POD}"
     collect_pod_spec "${FORTIO_SERVER_POD}"
 
+    # List all pods in istio-system namespace
+    PODs="$(kubectl get pods -n istio-system -o=name)"
+    echo "${PODs}"
+
+    # Check pods in istio-prometheus namespace
+    PROM="$(kubectl get pods -n istio-prometheus -o=name)"
+    echo "${PROM}"
+
     # Collect prometheus pod spec
     PROM_POD=$(kubectl get pods -n "${PROMETHEUS_NAMESPACE}" | grep prometheus | awk '{print $1}')
     collect_pod_spec "${PROM_POD}"
