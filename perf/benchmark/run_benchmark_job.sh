@@ -41,7 +41,7 @@ export OWNER="${OWNER:-perf-tests}"
 
 # Istio performance test related Env vars
 export NAMESPACE=${NAMESPACE:-'twopods-istio'}
-export PROMETHEUS_NAMESPACE=${PROMETHEUS_NAMESPACE:-'istio-system'}
+export PROMETHEUS_NAMESPACE=${PROMETHEUS_NAMESPACE:-'istio-prometheus'}
 export ISTIO_INJECT=${ISTIO_INJECT:-true}
 export DNS_DOMAIN="fake-dns.org"
 export LOAD_GEN_TYPE=${LOAD_GEN_TYPE:-"fortio"}
@@ -117,7 +117,7 @@ function setup_fortio_and_prometheus() {
     fi
 
     export PROMETHEUS_URL=http://localhost:9090
-    kubectl -n "${PROMETHEUS_NAMESPACE}" port-forward svc/prometheus 9090:9090 &>/dev/null &
+    kubectl -n "${PROMETHEUS_NAMESPACE}" port-forward svc/istio-prometheus 9090:9090 &>/dev/null &
     CLEANUP_PIDS+=("$!")
 
     FORTIO_CLIENT_POD=$(kubectl get pods -n "${NAMESPACE}" | grep fortioclient | awk '{print $1}')
