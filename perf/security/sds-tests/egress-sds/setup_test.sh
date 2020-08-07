@@ -101,28 +101,28 @@ function deploy_nginx() {
         # shellcheck disable=SC2086
         ${kc} create -n mesh-external secret tls "${credential_name}" --key ${wd}/mesh-external.svc.cluster.local.key --cert=${wd}/my-nginx.mesh-external.svc.cluster.local.crt
 
-        setup_nginx $id "mesh-external" "${CLUSTER}" "${wd}"
+        setup_nginx "${id}" "mesh-external" "${CLUSTER}" "${wd}"
     done
 }
 
 function deploy_clients() {
     # shellcheck disable=SC2004
     for ((id=1; id<=${NUM}; id++)); do
-        deploy_sleep $id "${testns}" "${CLUSTER}" "${wd}"
+        deploy_sleep "${id}" "${testns}" "${CLUSTER}" "${wd}"
     done
 }
 
 function deploy_gateways() {
     # shellcheck disable=SC2004
     for ((id=1; id<=${NUM}; id++)); do
-        setup_gateways $id "${testns}" "${CLUSTER}"
+        setup_gateways "${id}" "${testns}" "${CLUSTER}"
     done
 }
 
 function deploy_virtualservice() {
     # shellcheck disable=SC2004
     for ((id=1; id<=${NUM}; id++)); do
-        setup_virtualservices $id "${testns}" "${CLUSTER}"
+        setup_virtualservices "${id}" "${testns}" "${CLUSTER}"
     done
 }
 
@@ -137,7 +137,7 @@ function deploy_destinationrule() {
         # shellcheck disable=SC2086
         ${kc} create -n istio-system secret generic "${credential_name}" --from-file=tls.key=${wd}/client.example.com.key --from-file=tls.crt=${wd}/client.example.com.crt --from-file=ca.crt=${wd}/example.com.crt
 
-        setup_destinationrules $id "${CLUSTER}"
+        setup_destinationrules "${id}" "${CLUSTER}"
     done
 }
 
