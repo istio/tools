@@ -112,15 +112,15 @@ function deploy_httpbin() {
 function deploy_gateways() {
     # shellcheck disable=SC2004
     for ((id=1; id<=${NUM}; id++)); do
-        deploy_gateway $id "${testns}" "${CLUSTER}"
-        deploy_virtualservice $id "${testns}" "${CLUSTER}"
+        deploy_gateway "$id" "${testns}" "${CLUSTER}"
+        deploy_virtualservice "$id" "${testns}" "${CLUSTER}"
     done
 }
 
 function deploy_clients() {
     # shellcheck disable=SC2004
     for ((id=1; id<=${NUM}; id++)); do
-        deploy_sleep $id "${testns}" "${CLUSTER}" "${wd}" "${secure_ingress_port}"
+        deploy_sleep "$id" "${testns}" "${CLUSTER}" "${wd}" "${secure_ingress_port}"
     done
 }
 
