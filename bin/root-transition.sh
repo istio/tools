@@ -76,7 +76,7 @@ verify_certs() {
   else
     echo
     echo "=====The following secrets do not match current root: ====="
-    echo ${NOT_UPDATED}
+    echo "${NOT_UPDATED}"
     echo
   fi
 }
