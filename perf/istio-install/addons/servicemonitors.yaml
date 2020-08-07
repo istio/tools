@@ -1,0 +1,42 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kubelet
+  namespace: istio-system
+  labels:
+    monitoring: kubelet-monitor
+    release: istio
+spec:
+  endpoints:
+    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      honorLabels: true
+      interval: 15s
+      port: http-metrics
+      scheme: http
+      tlsConfig:
+        insecureSkipVerify: true
+    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      honorLabels: true
+      interval: 15s
+      relabelings:
+        - sourceLabels: [job]
+          action: replace
+          replacement: kubernetes-cadvisor
+          targetLabel: job
+      metricRelabelings:
+        - action: drop
+          regex: container_(network_tcp_usage_total|network_udp_usage_total|tasks_state|cpu_load_average_10s)
+          sourceLabels:
+            - __name__
+      path: /metrics/cadvisor
+      port: http-metrics
+      scheme: http
+      tlsConfig:
+        insecureSkipVerify: true
+  jobLabel: k8s-app
+  namespaceSelector:
+    matchNames:
+      - kube-system
+  selector:
+    matchLabels:
+      k8s-app: kubelet
