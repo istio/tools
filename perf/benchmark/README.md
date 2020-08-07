@@ -60,7 +60,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
      ```bash
      istioctl install
      ```
-     
+
    - To run test `none` mode (no filters), run:
 
      ```bash
@@ -140,7 +140,7 @@ optional arguments:
   --size SIZE           size of the payload
   --mesh MESH           istio or linkerd
   --telemetry_mode TELEMETRY_MODE
-                        run with different telemetry configurations: 
+                        run with different telemetry configurations:
                         none, telemetryv2
   --client CLIENT       where to run the test from
   --server SERVER       pod ip of the server
