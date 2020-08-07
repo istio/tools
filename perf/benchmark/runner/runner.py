@@ -106,7 +106,7 @@ class Fortio:
             frequency=None,
             protocol_mode="http",
             size=None,
-            telemetry_mode="mixer",
+            telemetry_mode="v2-stats-nullvm",
             perf_record=False,
             server="fortioserver",
             client="fortioclient",
@@ -435,7 +435,7 @@ def fortio_from_config_file(args):
         fortio.qps = job_config.get('qps', 1000)
         fortio.duration = job_config.get('duration', 240)
         fortio.load_gen_type = os.environ.get("LOAD_GEN_TYPE", "fortio")
-        fortio.telemetry_mode = job_config.get('telemetry_mode', 'mixer')
+        fortio.telemetry_mode = job_config.get('telemetry_mode', 'v2-stats-nullvm')
         fortio.metrics = job_config.get('metrics', 'p90')
         fortio.size = job_config.get('size', 1024)
         fortio.perf_record = job_config.get('perf_record', False)
@@ -605,8 +605,8 @@ def get_parser():
         default="istio")
     parser.add_argument(
         "--telemetry_mode",
-        help="run with different mixer configurations: mixer, none, telemetryv2",
-        default="mixer")
+        help="run with different telemetry configurations: none, v2-stats-nullvm, v2-sd-full-nullvm, etc.",
+        default="v2-stats-nullvm")
     parser.add_argument(
         "--client",
         help="where to run the test from",

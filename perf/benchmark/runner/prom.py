@@ -142,13 +142,13 @@ class Prom:
 
     def fetch_cpu_by_container(self):
         return self.fetch(
-            'irate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
+            'irate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name=~"discovery|istio-proxy|captured|uncaptured"}[1m])',
             metric_by_deployment_by_container,
             to_mili_cpus)
 
     def fetch_memory_by_container(self):
         return self.fetch(
-            'container_memory_usage_bytes{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}',
+            'container_memory_usage_bytes{job="kubernetes-cadvisor",container_name=~"discovery|istio-proxy|captured|uncaptured"}',
             metric_by_deployment_by_container,
             to_mega_bytes)
 
@@ -188,61 +188,6 @@ class Prom:
             res["istio_requests_total_504"] = data_504[-1][1]
         else:
             res["istio_requests_total_504"] = "0"
-        return res
-
-    def fetch_mixer_rules_count_by_metric_name(self, metric_name):
-        data = self.fetch_by_query(
-            'scalar(topk(1, max(' + metric_name + ') by (configID)))')
-        if data["data"]["result"]:
-            return data["data"]["result"][0]["values"]
-        return []
-
-    def fetch_mixer_rules_count(self):
-        res = {}
-        config_count = self.fetch_mixer_rules_count_by_metric_name(
-            "mixer_config_rule_config_count")
-        config_error_count = self.fetch_mixer_rules_count_by_metric_name(
-            "mixer_config_rule_config_error_count")
-        config_match_error_count = self.fetch_mixer_rules_count_by_metric_name(
-            "mixer_config_rule_config_match_error_count")
-        unsatisfied_action_handler_count = self.fetch_mixer_rules_count_by_metric_name(
-            "mixer_config_unsatisfied_action_handler_count")
-        instance_count = self.fetch_mixer_rules_count_by_metric_name(
-            "mixer_config_instance_config_count")
-        handler_count = self.fetch_mixer_rules_count_by_metric_name(
-            "mixer_config_handler_config_count")
-        attribute_count = self.fetch_mixer_rules_count_by_metric_name(
-            "mixer_config_attribute_count")
-
-        if config_count:
-            res["mixer_config_rule_config_count"] = config_count[-1][1]
-        else:
-            res["mixer_config_rule_config_count"] = "0"
-        if config_error_count:
-            res["mixer_config_rule_config_error_count"] = config_error_count[-1][1]
-        else:
-            res["mixer_config_rule_config_error_count"] = "0"
-        if config_match_error_count:
-            res["mixer_config_rule_config_match_error_count"] = config_match_error_count[-1][1]
-        else:
-            res["mixer_config_rule_config_match_error_count"] = "0"
-        if unsatisfied_action_handler_count:
-            res["mixer_config_unsatisfied_action_handler_count"] = unsatisfied_action_handler_count[-1][1]
-        else:
-            res["mixer_config_unsatisfied_action_handler_count"] = "0"
-        if instance_count:
-            res["mixer_config_instance_config_count"] = instance_count[-1][1]
-        else:
-            res["mixer_config_instance_config_count"] = "0"
-        if handler_count:
-            res["mixer_config_handler_config_count"] = handler_count[-1][1]
-        else:
-            res["mixer_config_handler_config_count"] = "0"
-        if attribute_count:
-            res["mixer_config_attribute_count"] = attribute_count[-1][1]
-        else:
-            res["mixer_config_attribute_count"] = "0"
-
         return res
 
     def fetch_sum_by_metric_name(self, metric, groupby=None):
@@ -304,53 +249,6 @@ class Prom:
             res["grpc_server_handled_total_5xx"] = "0"
         return res
 
-    def fetch_non_successes_rate(self):
-        query = 'sum(irate(grpc_server_handled_total{grpc_code!="OK",grpc_service=~".*Mixer"}[' + str(
-            self.nseconds) + 's])) by (grpc_method)'
-        data = self.fetch_by_query(query)
-        res = {}
-        if data["data"]["result"]:
-            for i in range(len(data["data"]["result"])):
-                key = data["data"]["result"][i]["metric"]["groupby"]
-                values = data["data"]["result"][i]["values"]
-                if values:
-                    res["grpc_server_handled_total_4xx_" +
-                        key] = values[-1][1]
-                else:
-                    res["grpc_server_handled_total_4xx_" + key] = "0"
-        else:
-            res["grpc_server_handled_total_4xx"] = "0"
-        return res
-
-    def fetch_mixer_traffic_overview(self):
-        res = {}
-        total_mixer_call = self.fetch_sum_by_metric_name(
-            "grpc_server_handled_total")
-        res.update(total_mixer_call)
-
-        total_mixer_call_by_method = self.fetch_sum_by_metric_name(
-            "grpc_server_handled_total", "grpc_method")
-        res.update(total_mixer_call_by_method)
-
-        response_durations_5 = self.fetch_histogram_by_metric_name(
-            "grpc_server_handling_seconds_bucket", "0.5", "grpc_method")
-        res.update(response_durations_5)
-
-        response_durations_9 = self.fetch_histogram_by_metric_name(
-            "grpc_server_handling_seconds_bucket", "0.9", "grpc_method")
-        res.update(response_durations_9)
-
-        response_durations_99 = self.fetch_histogram_by_metric_name(
-            "grpc_server_handling_seconds_bucket", "0.99", "grpc_method")
-        res.update(response_durations_99)
-
-        server_error_rate_5xx = self.fetch_server_error_rate()
-        res.update(server_error_rate_5xx)
-
-        non_successes_rate_4xx = self.fetch_non_successes_rate()
-        res.update(non_successes_rate_4xx)
-        return res
-
 
 def flatten(data, metric, aggregate):
     res = {}
@@ -398,8 +296,6 @@ def metric_by_deployment_by_container(metric):
 
 # These deployments have columns in the table, so only these are watched.
 Watched_Deployments = set(["istio-pilot",
-                           "istio-telemetry",
-                           "istio-policy",
                            "fortioserver",
                            "fortioclient",
                            "istio-ingressgateway"])
@@ -467,10 +363,6 @@ def main(argv):
     out = p.fetch_cpu_and_mem()
     resp_out = p.fetch_500s_and_400s()
     out.update(resp_out)
-    mixer_rules = p.fetch_mixer_rules_count()
-    out.update(mixer_rules)
-    mixer_overview = p.fetch_mixer_traffic_overview()
-    out.update(mixer_overview)
     indent = None
     if args.indent is not None:
         indent = int(args.indent)

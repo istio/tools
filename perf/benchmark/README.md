@@ -61,12 +61,6 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
      istioctl install
      ```
 
-   - To enable Mixer mode (which will be deprecated in Istio 1.7), run:
-
-     ```bash
-     istioctl install --set values.telemetry.v1.enabled=true --set values.telemetry.v2.enabled=false
-     ```
-
    - To run test `none` mode (no filters), run:
 
      ```bash
@@ -123,7 +117,7 @@ python runner/runner.py --conn <conn> --qps <qps> --duration <duration> --OPTION
 1. run with config yaml
 
 ```bash
-python runner/runner.py --config_file ./configs/istio/mixer/latency.yaml
+python runner/runner.py --config_file ./configs/istio/telemetryv2_stats/latency.yaml
 ```
 
 Required fields to specified via CLI or config file:
@@ -132,7 +126,7 @@ Required fields to specified via CLI or config file:
 - `qps` = queries per second for each connection
 - `duration` = number of seconds to run each test for  (the minimum value for duration should be: 92 seconds)
 - `load_gen_type` = the traffic load generator type
-- `telemetry_mode` = the telemetry mode you enabled while installing Istio (mixer, none or telemetryv2)
+- `telemetry_mode` = the telemetry mode you enabled while installing Istio (none or telemetryv2)
 
 ```bash
 optional arguments:
@@ -146,7 +140,7 @@ optional arguments:
   --size SIZE           size of the payload
   --mesh MESH           istio or linkerd
   --telemetry_mode TELEMETRY_MODE
-                        run with different telemetry configurations: mixer,
+                        run with different telemetry configurations:
                         none, telemetryv2
   --client CLIENT       where to run the test from
   --server SERVER       pod ip of the server
@@ -181,11 +175,11 @@ For example:
 ### Example 1
 
 ```bash
-python runner/runner.py --config_file ./configs/istio/mixer/latency.yaml
+python runner/runner.py --config_file ./configs/istio/telemetryv2_stats/latency.yaml
 ```
 
-- This will run with configuration specified in the /mixer/latency.yaml
-- Run with mixerv1 on and measure the latency
+- This will run with configuration specified in the ./configs/istio/telemetryv2_stats/latency.yaml
+- Run with telemetry v2 stats filter on and measure the latency
 
 ### Example 2
 
