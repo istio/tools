@@ -18,10 +18,8 @@ spec:
               cpu: 6000m
               memory: 512Mi
             requests:
-              cpu: 4000m
+              cpu: 2000m
               memory: 512Mi
-
-            memory: 4G
     pilot:
       enabled: true
       k8s:
@@ -31,7 +29,7 @@ spec:
           scaleTargetRef:
             apiVersion: apps/v1
             kind: Deployment
-            name: istio-pilot
+            name: istiod
         resources:
           limits:
             cpu: 5800m

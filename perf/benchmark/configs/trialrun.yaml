@@ -2,14 +2,14 @@ telemetry_mode: "dryrun"
 conn:
   - 8
 qps:
-  - 1000
+  - 10
 duration: 100
 metrics:
   - p50
   - p90
   - p99
-perf_record: true
+perf_record: false
 run_bothsidecar: true
 run_serversidecar: false
 run_clientsidecar: false
-run_baseline: true
+run_baseline: false

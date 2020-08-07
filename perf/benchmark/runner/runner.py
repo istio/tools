@@ -304,6 +304,7 @@ class Fortio:
             duration=duration,
             labels=labels,
             size=self.size,
+            jitter_uniform=jitter_uniform,
             cpus=cpus,
             port_forward=NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD)
 

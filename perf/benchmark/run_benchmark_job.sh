@@ -254,7 +254,6 @@ for dir in "${CONFIG_DIR}"/*; do
     # TRIALRUN as a pre-submit check, only run agaist the first set of enabled perf run in the perf_conf file
     if [[ "${TRIALRUN}" == "True" ]]; then
        run_benchmark_test "${WD}/configs/trialrun.yaml"
-       collect_flame_graph
        break
     fi
 
