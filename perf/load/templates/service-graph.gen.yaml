@@ -1160,6 +1160,70 @@ kind: Deployment
 metadata:
   labels:
     app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-8
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceNamePrefix }}0-8
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.prometheus_scrape }}
+        prometheus.io/scrape: "true"
+        {{- end }}
+      labels:
+        app: {{ .Values.serviceNamePrefix }}0-8
+        role: service
+        version: v1
+    spec:
+      containers:
+        - args:
+            - --max-idle-connections-per-host=32
+          env:
+            - name: SERVICE_NAME
+              value: {{ .Values.serviceNamePrefix }}0-8
+          image: {{ .Values.serviceGraphImage }}
+          name: mock-service
+          ports:
+            - containerPort: 8080
+            {{- if .Values.livenessProbe }}
+          livenessProbe: {{ toJson .Values.livenessProbe }}
+            {{- end}}
+            {{- if .Values.readinessProbe }}
+          readinessProbe: {{ toJson .Values.readinessProbe }}
+            {{- end}}
+          resources: {{ toJson .Values.resources }}
+          volumeMounts:
+            - mountPath: /etc/config
+              name: config-volume
+      volumes:
+        - configMap:
+            items:
+              - key: service-graph
+                path: service-graph.yaml
+            name: service-graph-config
+          name: config-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-8
+spec:
+  ports:
+    - name: {{ .Values.httpPortName }}
+      port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-8
+  status:
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: service-graph
   name: {{ .Values.serviceNamePrefix }}0-5-0
 spec:
   replicas: {{ .Values.replicas }}
@@ -1205,7 +1269,20 @@ spec:
           name: service-graph-config
         name: config-volume
 ---
-
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-5-0
+spec:
+  ports:
+    - name: tcp-web
+      port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-5-0
+status:
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
