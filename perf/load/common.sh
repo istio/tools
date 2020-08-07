@@ -55,8 +55,8 @@ function start_servicegraphs() {
 
    # shellcheck disable=SC2004
    for ((ii=$min; ii<$nn; ii++)) {
-    ns=$(printf 'service-graph%.2d' $ii)
-    prefix=$(printf 'svc%.2d-' $ii)
+    ns=$(printf 'service-graph%.2d' "$ii")
+    prefix=$(printf 'svc%.2d-' "$ii")
     if [[ -z "${DELETE}" ]];then
       ${CMD} run_test "${ns}" "${prefix}"
       ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}"
