@@ -1,9 +1,6 @@
 apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
-  components:
-    telemetry:
-      enabled: false
   values:
     telemetry:
       enabled: true
@@ -16,5 +13,3 @@ spec:
           wasmEnabled: true
         stackdriver:
           enabled: false
-      v1:
-        enabled: false

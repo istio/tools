@@ -12,5 +12,3 @@ spec:
           enabled: true
           topology: true
           logging: false
-      v1:
-        enabled: false
