@@ -107,8 +107,10 @@ function install_extras() {
   done
   # Redeploy, this time with the Prometheus resource created
   helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
-  # Also deploy relevant ServiceMonitors
+  # Also deploy relevant istio ServiceMonitors
   kubectl apply -f "${release}/samples/addons/extras/prometheus-operator.yaml" -n istio-system
+  # Deploy k8s ServiceMonitors
+  kubectl apply -f "${WD}/addons/servicemonitors.yaml" -n istio-system
   # deploy grafana
   kubectl apply -f "${release}/samples/addons/grafana.yaml" -n istio-system
 }
