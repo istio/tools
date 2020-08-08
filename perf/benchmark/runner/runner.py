@@ -302,6 +302,7 @@ class Fortio:
             conn=round(conn / cpus),
             qps=round(qps / cpus),
             duration=duration,
+            jitter_uniform=jitter_uniform,
             labels=labels,
             size=self.size,
             cpus=cpus,
