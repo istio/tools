@@ -5,6 +5,7 @@ window.generateLatencyChart = function(xNum, options) {
   p50ReleaseModesData.push(latency_none_mtls_both_p50);
   p50ReleaseModesData.push(latency_none_plaintext_both_p50);
   p50ReleaseModesData.push(latency_v2_stats_nullvm_both_p50);
+  p50ReleaseModesData.push(latency_v2_stats_wasm_both_p50);
   p50ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p50);
   p50ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p50);
 
@@ -16,6 +17,7 @@ window.generateLatencyChart = function(xNum, options) {
   p90ReleaseModesData.push(latency_none_mtls_both_p90);
   p90ReleaseModesData.push(latency_none_plaintext_both_p90);
   p90ReleaseModesData.push(latency_v2_stats_nullvm_both_p90);
+  p90ReleaseModesData.push(latency_v2_stats_wasm_both_p90);
   p90ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p90);
   p90ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p90);
 
@@ -28,6 +30,7 @@ window.generateLatencyChart = function(xNum, options) {
   p99ReleaseModesData.push(latency_none_mtls_both_p99);
   p99ReleaseModesData.push(latency_none_plaintext_both_p99);
   p99ReleaseModesData.push(latency_v2_stats_nullvm_both_p99);
+  p99ReleaseModesData.push(latency_v2_stats_wasm_both_p99);
   p99ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p99);
   p99ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p99);
 
@@ -39,6 +42,7 @@ window.generateLatencyChart = function(xNum, options) {
   p50ModesData.push(latency_none_mtls_both_p50_master);
   p50ModesData.push(latency_none_plaintext_both_p50_master);
   p50ModesData.push(latency_v2_stats_nullvm_both_p50_master);
+  p50ModesData.push(latency_v2_stats_wasm_both_p50_master);
   p50ModesData.push(latency_v2_sd_nologging_nullvm_both_p50_master);
   p50ModesData.push(latency_v2_sd_full_nullvm_both_p50_master);
 
@@ -50,6 +54,7 @@ window.generateLatencyChart = function(xNum, options) {
   p90ModesData.push(latency_none_mtls_both_p90_master);
   p90ModesData.push(latency_none_plaintext_both_p90_master);
   p90ModesData.push(latency_v2_stats_nullvm_both_p90_master);
+  p90ModesData.push(latency_v2_stats_wasm_both_p90_master);
   p90ModesData.push(latency_v2_sd_nologging_nullvm_both_p90_master);
   p90ModesData.push(latency_v2_sd_full_nullvm_both_p90_master);
 
@@ -62,6 +67,7 @@ window.generateLatencyChart = function(xNum, options) {
   p99ModesData.push(latency_none_mtls_both_p99_master);
   p99ModesData.push(latency_none_plaintext_both_p99_master);
   p99ModesData.push(latency_v2_stats_nullvm_both_p99_master);
+  p99ModesData.push(latency_v2_stats_wasm_both_p99_master);
   p99ModesData.push(latency_v2_sd_nologging_nullvm_both_p99_master);
   p99ModesData.push(latency_v2_sd_full_nullvm_both_p99_master);
 
@@ -99,17 +105,23 @@ window.generateLatencyChartByID = function(chartID, xNum, modesData, options) {
                 data: modesData[3],
                 fill: false
             }, {
+                label: "v2-stats-wasm_both",
+                backgroundColor: "rgba(242, 245, 66, 0.2)",
+                borderColor: "rgba(242, 245, 66, 1)",
+                data: modesData[4],
+                fill: false
+            }, {
                 label: "v2-sd-nologging-nullvm_both",
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
-                data: modesData[4],
+                data: modesData[5],
                 hidden: true,
                 fill: false
             }, {
                 label: "v2-sd-full-nullvm_both",
                 backgroundColor: "rgba(168, 50, 168, 0.2)",
                 borderColor: "rgba(168, 50, 168, 1)",
-                data: modesData[5],
+                data: modesData[6],
                 hidden: true,
                 fill: false
             }

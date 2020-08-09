@@ -49,6 +49,12 @@ new Chart(document.getElementById("mem-client-conn-release"), {
                 data: mem_client_v2_stats_nullvm_both,
                 fill: false
             }, {
+                label: "v2-stats-wasm_both",
+                backgroundColor: "rgba(242, 245, 66, 0.2)",
+                borderColor: "rgba(242, 245, 66, 1)",
+                data: mem_client_v2_stats_wasm_both,
+                fill: false
+            }, {
                 label: "v2-sd-nologging-nullvm_both",
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
@@ -96,6 +102,12 @@ new Chart(document.getElementById("mem-client-conn-master"), {
                 backgroundColor: "rgba(252, 123, 3, 0.2)",
                 borderColor: "rgba(252, 123, 3, 1)",
                 data: mem_client_v2_stats_nullvm_both_master,
+                fill: false
+            }, {
+                label: "v2-stats-wasm_both",
+                backgroundColor: "rgba(242, 245, 66, 0.2)",
+                borderColor: "rgba(242, 245, 66, 1)",
+                data: mem_client_v2_stats_wasm_both_master,
                 fill: false
             }, {
                 label: "v2-sd-nologging-nullvm_both",
@@ -147,6 +159,12 @@ new Chart(document.getElementById("mem-server-conn-release"), {
                 data: mem_server_v2_stats_nullvm_both,
                 fill: false
             }, {
+                label: "v2-stats-wasm_both",
+                backgroundColor: "rgba(242, 245, 66, 0.2)",
+                borderColor: "rgba(242, 245, 66, 1)",
+                data: mem_server_v2_stats_wasm_both,
+                fill: false
+            },{
                 label: "v2-sd-nologging-nullvm_both",
                 backgroundColor: "rgba(52, 168, 85, 0.2)",
                 borderColor: "rgba(52, 168, 85, 1)",
@@ -194,6 +212,12 @@ new Chart(document.getElementById("mem-server-conn-master"), {
                 backgroundColor: "rgba(252, 123, 3, 0.2)",
                 borderColor: "rgba(252, 123, 3, 1)",
                 data: mem_server_v2_stats_nullvm_both_master,
+                fill: false
+            }, {
+                label: "v2-stats-wasm_both",
+                backgroundColor: "rgba(242, 245, 66, 0.2)",
+                borderColor: "rgba(242, 245, 66, 1)",
+                data: mem_server_v2_stats_wasm_both_master,
                 fill: false
             }, {
                 label: "v2-sd-nologging-nullvm_both",
