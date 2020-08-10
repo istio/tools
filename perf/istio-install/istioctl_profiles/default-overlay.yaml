@@ -77,9 +77,6 @@ spec:
           secretName: istio-ingressgateway-certs
         type: LoadBalancer
     global:
-      meshExpansion:
-        enabled: true
-        useILB: true
       multiCluster:
         enabled: true
       podDNSSearchNamespaces:
