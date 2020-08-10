@@ -53,7 +53,7 @@ def get_average_within_query_time_range(data, resource_type):
     val_by_pod_name = {"fortioclient": 0, "fortioserver": 0, "istio-ingressgateway": 0}
     if data["data"]["result"]:
         for item in data["data"]["result"]:
-            pod_name = item["metric"]["pod_name"]
+            pod_name = item["metric"]["pod"]
             if "fortioclient" in pod_name:
                 val_by_pod_name["fortioclient"] = calculate_average(item, resource_type)
             if "fortioserver" in pod_name:
@@ -114,13 +114,13 @@ class Prom:
             aggregate=self.aggregate)
 
     def fetch_istio_proxy_cpu_usage_by_pod_name(self):
-        cpu_query = 'sum(rate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name="istio-proxy"}[1m])) by (pod_name)'
+        cpu_query = 'sum(rate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container="istio-proxy"}[1m])) by (pod)'
         data = self.fetch_by_query(cpu_query)
         avg_cpu_dict = get_average_within_query_time_range(data, "cpu")
         return avg_cpu_dict
 
     def fetch_istio_proxy_memory_usage_by_pod_name(self):
-        mem_query = 'container_memory_usage_bytes{job = "kubernetes-cadvisor", container_name="istio-proxy"}'
+        mem_query = 'container_memory_usage_bytes{job = "kubernetes-cadvisor", container="istio-proxy"}'
         data = self.fetch_by_query(mem_query)
         avg_mem_dict = get_average_within_query_time_range(data, "mem")
         return avg_mem_dict
@@ -142,13 +142,13 @@ class Prom:
 
     def fetch_cpu_by_container(self):
         return self.fetch(
-            'irate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}[1m])',
+            'irate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",container=~"discovery|istio-proxy|captured|uncaptured"}[1m])',
             metric_by_deployment_by_container,
             to_mili_cpus)
 
     def fetch_memory_by_container(self):
         return self.fetch(
-            'container_memory_usage_bytes{job="kubernetes-cadvisor",container_name=~"mixer|policy|discovery|istio-proxy|captured|uncaptured"}',
+            'container_memory_usage_bytes{job="kubernetes-cadvisor",container=~"discovery|istio-proxy|captured|uncaptured"}',
             metric_by_deployment_by_container,
             to_mega_bytes)
 
@@ -393,7 +393,7 @@ def metric_by_deployment_by_container(metric):
     mapped_name = depl
     if depl in DEPL_MAP:
         mapped_name = DEPL_MAP[depl]
-    return mapped_name + "/" + metric['container_name']
+    return mapped_name + "/" + metric['container']
 
 
 # These deployments have columns in the table, so only these are watched.
@@ -407,7 +407,7 @@ Watched_Deployments = set(["istio-pilot",
 
 # returns deployment_name
 def metric_by_deployment(metric):
-    depl = metric['pod_name'].rsplit('-', 2)[0]
+    depl = metric['pod'].rsplit('-', 2)[0]
     if depl not in Watched_Deployments:
         return None
     return depl
