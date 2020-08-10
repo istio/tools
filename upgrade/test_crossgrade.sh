@@ -252,7 +252,9 @@ installIstioAtVersionUsingIstioctl(){
   istioctl_path="${3}"/bin
   find "${istioctl_path}" -maxdepth 1 -type f
   # shellcheck disable=SC2072
-  if [[ "${2}" > "1.4" ]]; then
+  if [[ "${2}" > "1.6" ]]; then
+      "${istioctl_path}"/istioctl install --skip-confirmation
+  elif [[ "${2}" > "1.4" ]]; then
       "${istioctl_path}"/istioctl manifest apply --skip-confirmation
   else
       "${istioctl_path}"/istioctl x manifest apply --yes
@@ -263,7 +265,9 @@ upgradeIstioAtVersionUsingIstioctl(){
   writeMsg "istioctl upgrade istio using version ${2} from ${3}."
   istioctl_path="${3}"/bin
   # shellcheck disable=SC2072
-  if [[ "${TO_TAG}" > "1.5" ]]; then
+  if [[ "${TO_TAG}" > "1.6" ]]; then
+    "${istioctl_path}"/istioctl install --skip-confirmation --charts "${3}"/manifests
+  elif [[ "${TO_TAG}" > "1.5" ]]; then
     # The following is a workaround for the test failure due to that the charts is
     # no longer bundled in the release (https://github.com/istio/istio/issues/23172).
     "${istioctl_path}"/istioctl manifest apply --skip-confirmation --charts "${3}"/manifests
