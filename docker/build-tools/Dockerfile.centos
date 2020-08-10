@@ -29,6 +29,7 @@ ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-
 RUN tar -xzvf "/tmp/google-cloud-sdk-265.0.0-linux-x86_64.tar.gz" -C /usr/local
 
 ENV LLVM_RELEASE=clang+llvm-9.0.0-x86_64-linux-centos7
+# hadolint ignore=DL4006
 RUN curl -sSL https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-10.0.0/llvm/utils/release/test-release.sh | sed 's,http://llvm.org,https://llvm.org,' > /home/build/test-release.sh
 RUN curl -fsSL --output ${LLVM_RELEASE}.tar.xz http://storage.googleapis.com/getenvoy-package/clang-toolchain/0e9d364b7199f3aaecbaf914cea3d9df4e97b850/${LLVM_RELEASE}.tar.xz && \
     tar Jxf ${LLVM_RELEASE}.tar.xz && \
