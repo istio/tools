@@ -284,7 +284,7 @@ func main() {
 		policiesLeft += numPolicy
 	}
 	if policiesLeft <= 0 {
-		fmt.Errorf("invalid number of policies: %d", policiesLeft)
+		fmt.Println(fmt.Errorf("invalid number of policies: %d", policiesLeft))
 	}
 
 	for policyType, numPolicy := range policyMap {
