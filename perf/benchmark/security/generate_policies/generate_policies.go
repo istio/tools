@@ -128,14 +128,34 @@ func generateAuthorizationPolicy(action string, ruleToGenerator map[string]*rule
 	return yaml, nil
 }
 
-func generateRules(action string, ruleToGenerator map[string]*ruleGenerator,
+func generatePeerAuthentication(mtlsMode string, ruleToGenerator map[string]*ruleGenerator, policy *MyPolicy) (string, error) {
+	spec := &authzpb.PeerAuthentication{
+		Mtls: &authzpb.PeerAuthentication_MutualTLS{},
+	}
+	switch mtlsMode {
+	case "STRICT":
+		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_STRICT
+	case "DISABLE":
+		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_DISABLE
+	default:
+		return "", fmt.Errorf("Invalid mtlsMode: %s", mtlsMode)
+	}
+
+	yaml, err := PolicyToYAML(policy, spec)
+	if err != nil {
+		return "", err
+	}
+	return yaml, nil
+}
+
+func generateRules(argumentMap map[string]string, ruleToGenerator map[string]*ruleGenerator,
 	policy *MyPolicy, ruleMap map[string]int) (string, error) {
 
 	switch policy.Kind {
 	case "AuthorizationPolicy":
-		return generateAuthorizationPolicy(action, ruleToGenerator, policy, ruleMap)
+		return generateAuthorizationPolicy(argumentMap["action"], ruleToGenerator, policy, ruleMap)
 	case "PeerAuthentication":
-		return "", fmt.Errorf("unimplemented")
+		return generatePeerAuthentication(argumentMap["mtlsMode"], ruleToGenerator, policy)
 	case "RequestAuthentication":
 		return "", fmt.Errorf("unimplemented")
 	default:
@@ -154,7 +174,8 @@ func createPolicyHeader(namespace string, name string, kind string) *MyPolicy {
 func createRuleGeneratorMap(ruleToOccurancesPtr map[string]int) map[string]*ruleGenerator {
 	ruleGeneratorMap := make(map[string]*ruleGenerator)
 
-	if ruleToOccurancesPtr["numSourceIP"] > 0 || ruleToOccurancesPtr["numNamespaces"] > 0 {
+	if ruleToOccurancesPtr["numSourceIP"] > 0 || ruleToOccurancesPtr["numNamespaces"] > 0 ||
+		ruleToOccurancesPtr["numPrincipals"] > 0 {
 		ruleGeneratorMap["from"] = &ruleGenerator{
 			gen: sourceGenerator{},
 		}
@@ -178,9 +199,8 @@ func parseArguments(arguments string) (map[string]string, error) {
 	argumentMap := make(map[string]string)
 	// These are the default values
 	argumentMap["namespace"] = "twopods-istio"
-	argumentMap["policyType"] = "AuthorizationPolicy"
 	argumentMap["action"] = "DENY"
-	argumentMap["numPolicies"] = "1"
+	argumentMap["mtlsMode"] = "STRICT"
 
 	if len(arguments) > 0 {
 		for _, arg := range strings.Split(arguments, ",") {
@@ -194,30 +214,50 @@ func parseArguments(arguments string) (map[string]string, error) {
 	return argumentMap, nil
 }
 
+func createPolicyMap(argument map[string]string) (map[string]int, error) {
+	policyMap := make(map[string]int)
+	// These are the default values
+	policyMap["AuthorizationPolicy"] = 0
+	policyMap["PeerAuthentication"] = 0
+
+	if err := populateMap(argument, policyMap); err != nil {
+		return nil, err
+	}
+	return policyMap, nil
+}
+
 func createRuleMap(arguments map[string]string) (map[string]int, error) {
 	ruleMap := make(map[string]int)
 	// These are the default values
 	ruleMap["numPaths"] = 0
-	ruleMap["numSourceIP"] = 1
+	ruleMap["numSourceIP"] = 0
 	ruleMap["numNamespaces"] = 0
 	ruleMap["numValues"] = 0
+	ruleMap["numPrincipals"] = 0
 
-	for key := range ruleMap {
-		if argVal, inMap := arguments[key]; inMap {
-			argVal, err := strconv.Atoi(argVal)
-			if err != nil {
-				return nil, fmt.Errorf("invalid value: %d", argVal)
-			}
-			ruleMap[key] = argVal
-		}
+	if err := populateMap(arguments, ruleMap); err != nil {
+		return nil, err
 	}
 	return ruleMap, nil
 }
 
+func populateMap(arguments map[string]string, populatedMap map[string]int) error {
+	for key := range populatedMap {
+		if argVal, inMap := arguments[key]; inMap {
+			argVal, err := strconv.Atoi(argVal)
+			if err != nil {
+				return fmt.Errorf("invalid value: %d", argVal)
+			}
+			populatedMap[key] = argVal
+		}
+	}
+	return nil
+}
+
 func main() {
 	securityPtr := flag.String("generate_policy", "numPolicies:1", `List of key value pairs separated by commas.
-	Supported options: namespace:string, action:DENY/ALLOW, policyType:AuthorizationPolicy, 
-	numPolicies:int, numPaths:int, numSourceIP:int. numNamespaces:int`)
+	Supported options: namespace:string, action:DENY/ALLOW, AuthorizationPolicy:int, PeerAuthentication:in,
+	mtlsMode:STRICT/DISABLE, numPrincipals:int, numValues:int, numPaths:int, numSourceIP:int. numNamespaces:int`)
 
 	flag.Parse()
 
@@ -233,27 +273,37 @@ func main() {
 		return
 	}
 
-	numPolices, err := strconv.Atoi(argumentMap["numPolicies"])
+	policyMap, err := createPolicyMap(argumentMap)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	for i := 1; i <= numPolices; i++ {
-		policy := createPolicyHeader(argumentMap["namespace"], fmt.Sprintf("test-%d", i), argumentMap["policyType"])
+	policiesLeft := 0;
+	for _, numPolicy := range policyMap {
+		policiesLeft += numPolicy
+	}
+	if policiesLeft <= 0 {
+		fmt.Errorf("Invalid number of policies: %d", policiesLeft)
+	}
 
-		ruleToGenerator := createRuleGeneratorMap(ruleMap)
-		rules, err := generateRules(argumentMap["action"], ruleToGenerator, policy, ruleMap)
-		if err != nil {
-			fmt.Println(err)
-			break
-		} else {
-			yaml := bytes.Buffer{}
-			yaml.WriteString(rules)
-			if i < numPolices {
-				yaml.WriteString("---")
+	for policyType, numPolicy := range policyMap {
+		for i := 1; i <= numPolicy; i++ {
+			policy := createPolicyHeader(argumentMap["namespace"], fmt.Sprintf("test-%s-%d", policyType, i), policyType)
+
+			ruleToGenerator := createRuleGeneratorMap(ruleMap)
+			if rules, err := generateRules(argumentMap, ruleToGenerator, policy, ruleMap); err != nil {
+				fmt.Println(err)
+				break
+			} else {
+				yaml := bytes.Buffer{}
+				yaml.WriteString(rules)
+				if policiesLeft > 1 {
+					yaml.WriteString("---")
+				}
+				policiesLeft--
+				fmt.Println(yaml.String())
 			}
-			fmt.Println(yaml.String())
 		}
 	}
 }

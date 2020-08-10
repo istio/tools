@@ -105,6 +105,19 @@ func (sourceGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Rule 
 		}
 		listSource = append(listSource, source)
 	}
+
+	if numPrincipals := ruleMap["numPrincipals"]; numPrincipals > 0 {
+		principals := make([]string, numPrincipals)
+		for i := 0; i < numPrincipals; i++ {
+			principals[i] = fmt.Sprintf("cluster.local/ns/twopods-istio/sa/Invalid-%d", i)
+		}
+		source := &authzpb.Rule_From{
+			Source: &authzpb.Source{
+				Principals: principals,
+			},
+		}
+		listSource = append(listSource, source)
+	}
 	rule.From = listSource
 	return rule
 }
