@@ -128,7 +128,7 @@ func generateAuthorizationPolicy(action string, ruleToGenerator map[string]*rule
 	return yaml, nil
 }
 
-func generatePeerAuthentication(mtlsMode string, ruleToGenerator map[string]*ruleGenerator, policy *MyPolicy) (string, error) {
+func generatePeerAuthentication(mtlsMode string, policy *MyPolicy) (string, error) {
 	spec := &authzpb.PeerAuthentication{
 		Mtls: &authzpb.PeerAuthentication_MutualTLS{},
 	}
@@ -138,7 +138,7 @@ func generatePeerAuthentication(mtlsMode string, ruleToGenerator map[string]*rul
 	case "DISABLE":
 		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_DISABLE
 	default:
-		return "", fmt.Errorf("Invalid mtlsMode: %s", mtlsMode)
+		return "", fmt.Errorf("invalid mtlsMode: %s", mtlsMode)
 	}
 
 	yaml, err := PolicyToYAML(policy, spec)
@@ -155,7 +155,7 @@ func generateRules(argumentMap map[string]string, ruleToGenerator map[string]*ru
 	case "AuthorizationPolicy":
 		return generateAuthorizationPolicy(argumentMap["action"], ruleToGenerator, policy, ruleMap)
 	case "PeerAuthentication":
-		return generatePeerAuthentication(argumentMap["mtlsMode"], ruleToGenerator, policy)
+		return generatePeerAuthentication(argumentMap["mtlsMode"], policy)
 	case "RequestAuthentication":
 		return "", fmt.Errorf("unimplemented")
 	default:
@@ -279,12 +279,12 @@ func main() {
 		return
 	}
 
-	policiesLeft := 0;
+	policiesLeft := 0
 	for _, numPolicy := range policyMap {
 		policiesLeft += numPolicy
 	}
 	if policiesLeft <= 0 {
-		fmt.Errorf("Invalid number of policies: %d", policiesLeft)
+		fmt.Errorf("invalid number of policies: %d", policiesLeft)
 	}
 
 	for policyType, numPolicy := range policyMap {
