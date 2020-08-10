@@ -1,10 +1,99 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.namespace }}-account
+  namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.namespace }}-role
+rules:
+  - apiGroups:
+      - networking.istio.io
+    resources:
+      - '*'
+    verbs:
+      - '*'
+  - apiGroups:
+      - security.istio.io
+    resources:
+      - '*'
+    verbs:
+      - '*'
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - clusterrolebindings
+      - clusterroles
+      - roles
+      - rolebindings
+    verbs: [get]
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - namespaces
+      - pods
+      - services
+      - serviceaccounts
+    verbs:
+      - get
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - get
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - get
+  - apiGroups:
+      - admissionregistration.k8s.io
+    resources:
+      - mutatingwebhookconfigurations
+      - validatingwebhookconfigurations
+    verbs: [get]
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions.apiextensions.k8s.io
+      - customresourcedefinitions
+    verbs:
+      - get
+  - apiGroups:
+      - apps
+      - extensions
+    resources:
+      - deployments
+      - deployments/finalizers
+      - replicasets
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Values.namespace }}-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.namespace }}-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.namespace }}-account
+    namespace: {{ .Values.namespace }}
+---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: istio-canary-upgrader
+  name: istio-logs-checker
   namespace: {{ .Values.namespace }}
   labels:
-    app: istio-canary-upgrader
+    app: istio-logs-checker
 spec:
   schedule: "0 0 */{{ .Values.redeployDays }} * *"
   jobTemplate:

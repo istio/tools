@@ -58,13 +58,9 @@ function check_pod_errors() {
     do
       for CONTAINER in ${CONTAINERS//,/ }
       do
-        COUNT=$(kubectl logs --since=24h "${POD}" -c "${CONTAINER}" -n "${NAMESPACE}" | egrep -c '^error|Error|ERROR|Warn|WARN' || true)
-        if [[ ${COUNT} -gt 0 ]];then
-            STATE=("${STATE[@]}" "$POD|$CONTAINER|$COUNT")
-        else
-            ERRORED=($(kubectl get pods -n "${NAMESPACE}" --no-headers=true | \
-                awk '!/Running/ {print $1}' ORS=" ") \
-                )
+        COUNT=$(kubectl logs --since=24h "${POD}" -c "${CONTAINER}" -n "${NAMESPACE}" | egrep -c 'error|Error|ERROR|Warn|WARN' || true)
+        if [[ ${COUNT} -gt 100 ]];then
+            echo "found suspicious logs from $POD|$CONTAINER, count: $COUNT"
         fi
       done
     done< <(kubectl get pods -n ${NAMESPACE} --ignore-not-found=true -o=custom-columns=NAME:.metadata.name,CONTAINERS:.spec.containers[*].name --no-headers=true)
