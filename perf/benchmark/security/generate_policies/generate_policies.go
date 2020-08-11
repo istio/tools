@@ -47,7 +47,7 @@ type AuthorizationPolicy struct {
 	NumNamespaces int    `json:"numNamespaces"`
 	NumPaths      int    `json:"numPaths"`
 	NumPolicies   int    `json:"numPolicies"`
-	NumPrincipals int    `json:"numPrincipals`
+	NumPrincipals int    `json:"numPrincipals"`
 	NumSourceIP   int    `json:"numSourceIP"`
 	NumValues     int    `json:"numValues"`
 }
@@ -216,7 +216,7 @@ func generatePolicy(policyData SecurityPolicy, kind string, numPolicy int, total
 		testName := fmt.Sprintf("test-%s-%d", kind, i)
 		policyHeader := createPolicyHeader(policyData.Namespace, testName, kind)
 
-		rules, err := generateRules(policyData, policyHeader);
+		rules, err := generateRules(policyData, policyHeader)
 		if err != nil {
 			return 0, err
 		}
@@ -250,7 +250,10 @@ func main() {
 	}
 
 	policyData := SecurityPolicy{}
-	json.Unmarshal([]byte(jsonString), &policyData)
+	err := json.Unmarshal([]byte(jsonString), &policyData)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	policiesLeft := policyData.AuthZ.NumPolicies + policyData.PeerAuthN.NumPolicies
 	if policiesLeft <= 0 {
