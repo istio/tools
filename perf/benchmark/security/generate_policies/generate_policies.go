@@ -21,8 +21,8 @@ import (
 	"flag"
 	"fmt"
 
-	"sort"
-	"strconv"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -34,6 +34,27 @@ import (
 
 type ruleGenerator struct {
 	gen generator
+}
+
+type SecurityPolicy struct {
+	AuthZ     AuthorizationPolicy `json:"authZ"`
+	Namespace string              `json:"namespace"`
+	PeerAuthN PeerAuthentication  `json:"peerAuthN"`
+}
+
+type AuthorizationPolicy struct {
+	Action        string `json:"action"`
+	NumNamespaces int    `json:"numNamespaces"`
+	NumPaths      int    `json:"numPaths"`
+	NumPolicies   int    `json:"numPolicies"`
+	NumPrincipals int    `json:"numPrincipals`
+	NumSourceIP   int    `json:"numSourceIP"`
+	NumValues     int    `json:"numValues"`
+}
+
+type PeerAuthentication struct {
+	MtlsMode    string `json:"mtlsMode"`
+	NumPolicies int    `json:"numPolicies"`
 }
 
 type MyPolicy struct {
@@ -80,114 +101,37 @@ func PolicyToYAML(policy *MyPolicy, spec proto.Message) (string, error) {
 		return "", err
 	}
 
-	authorizationPolicy, err := ToYAML(spec)
+	createdPolicy, err := ToYAML(spec)
 	if err != nil {
 		return "", err
 	}
 
 	rulesYaml := bytes.Buffer{}
 	rulesYaml.WriteString("spec:\n")
-	scanner := bufio.NewScanner(strings.NewReader(authorizationPolicy))
+	scanner := bufio.NewScanner(strings.NewReader(createdPolicy))
 	for scanner.Scan() {
 		rulesYaml.WriteString(" " + scanner.Text() + "\n")
 	}
 	return string(headerYaml) + rulesYaml.String(), nil
 }
 
-func getOrderedKeySlice(ruleToGenerator map[string]*ruleGenerator) *[]string {
-	var sortedKeys []string
-	for key := range ruleToGenerator {
-		sortedKeys = append(sortedKeys, key)
-	}
-	sort.Strings(sortedKeys)
-	return &sortedKeys
-}
-
-func generateAuthorizationPolicy(action string, ruleToGenerator map[string]*ruleGenerator, policy *MyPolicy,
-	ruleMap map[string]int) (string, error) {
-	spec := &authzpb.AuthorizationPolicy{}
-	switch action {
-	case "ALLOW":
-		spec.Action = authzpb.AuthorizationPolicy_ALLOW
-	case "DENY":
-		spec.Action = authzpb.AuthorizationPolicy_DENY
-	}
-
-	var ruleList []*authzpb.Rule
-	sortedKeys := getOrderedKeySlice(ruleToGenerator)
-	for _, name := range *sortedKeys {
-		rule := ruleToGenerator[name].gen.generate(action, ruleMap)
-		ruleList = append(ruleList, rule)
-	}
-	spec.Rules = ruleList
-
-	yaml, err := PolicyToYAML(policy, spec)
-	if err != nil {
-		return "", err
-	}
-	return yaml, nil
-}
-
-func generatePeerAuthentication(mtlsMode string, policy *MyPolicy) (string, error) {
-	spec := &authzpb.PeerAuthentication{
-		Mtls: &authzpb.PeerAuthentication_MutualTLS{},
-	}
-	switch mtlsMode {
-	case "STRICT":
-		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_STRICT
-	case "DISABLE":
-		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_DISABLE
-	default:
-		return "", fmt.Errorf("invalid mtlsMode: %s", mtlsMode)
-	}
-
-	yaml, err := PolicyToYAML(policy, spec)
-	if err != nil {
-		return "", err
-	}
-	return yaml, nil
-}
-
-func generateRules(argumentMap map[string]string, ruleToGenerator map[string]*ruleGenerator,
-	policy *MyPolicy, ruleMap map[string]int) (string, error) {
-
-	switch policy.Kind {
-	case "AuthorizationPolicy":
-		return generateAuthorizationPolicy(argumentMap["action"], ruleToGenerator, policy, ruleMap)
-	case "PeerAuthentication":
-		return generatePeerAuthentication(argumentMap["mtlsMode"], policy)
-	case "RequestAuthentication":
-		return "", fmt.Errorf("unimplemented")
-	default:
-		return "", fmt.Errorf("unknown policy kind: %s", policy.Kind)
-	}
-}
-
-func createPolicyHeader(namespace string, name string, kind string) *MyPolicy {
-	return &MyPolicy{
-		APIVersion: "security.istio.io/v1beta1",
-		Kind:       kind,
-		Metadata:   MetadataStruct{Namespace: namespace, Name: name},
-	}
-}
-
-func createRuleGeneratorMap(ruleToOccurancesPtr map[string]int) map[string]*ruleGenerator {
+func createRuleGeneratorMap(authZData AuthorizationPolicy) map[string]*ruleGenerator {
 	ruleGeneratorMap := make(map[string]*ruleGenerator)
 
-	if ruleToOccurancesPtr["numSourceIP"] > 0 || ruleToOccurancesPtr["numNamespaces"] > 0 ||
-		ruleToOccurancesPtr["numPrincipals"] > 0 {
+	if authZData.NumSourceIP > 0 || authZData.NumNamespaces > 0 ||
+		authZData.NumPrincipals > 0 {
 		ruleGeneratorMap["from"] = &ruleGenerator{
 			gen: sourceGenerator{},
 		}
 	}
 
-	if ruleToOccurancesPtr["numPaths"] > 0 {
+	if authZData.NumPaths > 0 {
 		ruleGeneratorMap["to"] = &ruleGenerator{
 			gen: operationGenerator{},
 		}
 	}
 
-	if ruleToOccurancesPtr["numValues"] > 0 {
+	if authZData.NumValues > 0 {
 		ruleGeneratorMap["when"] = &ruleGenerator{
 			gen: conditionGenerator{},
 		}
@@ -195,115 +139,136 @@ func createRuleGeneratorMap(ruleToOccurancesPtr map[string]int) map[string]*rule
 	return ruleGeneratorMap
 }
 
-func parseArguments(arguments string) (map[string]string, error) {
-	argumentMap := make(map[string]string)
-	// These are the default values
-	argumentMap["namespace"] = "twopods-istio"
-	argumentMap["action"] = "DENY"
-	argumentMap["mtlsMode"] = "STRICT"
+func generateAuthorizationPolicy(policyData SecurityPolicy, policyHeader *MyPolicy) (string, error) {
+	spec := &authzpb.AuthorizationPolicy{}
+	switch policyData.AuthZ.Action {
+	case "ALLOW":
+		spec.Action = authzpb.AuthorizationPolicy_ALLOW
+	case "DENY":
+		spec.Action = authzpb.AuthorizationPolicy_DENY
+	case "":
+		spec.Action = authzpb.AuthorizationPolicy_DENY
+	}
 
-	if len(arguments) > 0 {
-		for _, arg := range strings.Split(arguments, ",") {
-			keyValue := strings.Split(arg, ":")
-			if len(keyValue) == 1 {
-				return nil, fmt.Errorf("invalid argument: %s", keyValue[0])
-			}
-			argumentMap[keyValue[0]] = keyValue[1]
+	ruleToGenerator := createRuleGeneratorMap(policyData.AuthZ)
+	var ruleList []*authzpb.Rule
+	for name := range ruleToGenerator {
+		rule := ruleToGenerator[name].gen.generate(policyData)
+		ruleList = append(ruleList, rule)
+	}
+	spec.Rules = ruleList
+
+	yaml, err := PolicyToYAML(policyHeader, spec)
+	if err != nil {
+		return "", err
+	}
+	return yaml, nil
+}
+
+func generatePeerAuthentication(policyData SecurityPolicy, policyHeader *MyPolicy) (string, error) {
+	spec := &authzpb.PeerAuthentication{
+		Mtls: &authzpb.PeerAuthentication_MutualTLS{},
+	}
+	switch policyData.PeerAuthN.MtlsMode {
+	case "STRICT":
+		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_STRICT
+	case "DISABLE":
+		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_DISABLE
+	case "":
+		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_STRICT
+	default:
+		return "", fmt.Errorf("invalid mtlsMode: %s", policyData.PeerAuthN.MtlsMode)
+	}
+
+	yaml, err := PolicyToYAML(policyHeader, spec)
+	if err != nil {
+		return "", err
+	}
+	return yaml, nil
+}
+
+func generateRules(policyData SecurityPolicy, policyHeader *MyPolicy) (string, error) {
+	switch policyHeader.Kind {
+	case "AuthorizationPolicy":
+		return generateAuthorizationPolicy(policyData, policyHeader)
+	case "PeerAuthentication":
+		return generatePeerAuthentication(policyData, policyHeader)
+	case "RequestAuthentication":
+		return "", fmt.Errorf("unimplemented")
+	default:
+		return "", fmt.Errorf("unknown policy kind: %s", policyHeader.Kind)
+	}
+}
+
+func createPolicyHeader(namespace string, name string, kind string) *MyPolicy {
+	if namespace == "" {
+		namespace = "twopods-istio"
+	}
+	return &MyPolicy{
+		APIVersion: "security.istio.io/v1beta1",
+		Kind:       kind,
+		Metadata:   MetadataStruct{Namespace: namespace, Name: name},
+	}
+}
+
+func generatePolicy(policyData SecurityPolicy, kind string, numPolicy int, totalPolicies int) (int, error) {
+	for i := 1; i <= numPolicy; i++ {
+		testName := fmt.Sprintf("test-%s-%d", kind, i)
+		policyHeader := createPolicyHeader(policyData.Namespace, testName, kind)
+
+		rules, err := generateRules(policyData, policyHeader);
+		if err != nil {
+			return 0, err
 		}
-	}
-	return argumentMap, nil
-}
-
-func createPolicyMap(argument map[string]string) (map[string]int, error) {
-	policyMap := make(map[string]int)
-	// These are the default values
-	policyMap["AuthorizationPolicy"] = 0
-	policyMap["PeerAuthentication"] = 0
-
-	if err := populateMap(argument, policyMap); err != nil {
-		return nil, err
-	}
-	return policyMap, nil
-}
-
-func createRuleMap(arguments map[string]string) (map[string]int, error) {
-	ruleMap := make(map[string]int)
-	// These are the default values
-	ruleMap["numPaths"] = 0
-	ruleMap["numSourceIP"] = 0
-	ruleMap["numNamespaces"] = 0
-	ruleMap["numValues"] = 0
-	ruleMap["numPrincipals"] = 0
-
-	if err := populateMap(arguments, ruleMap); err != nil {
-		return nil, err
-	}
-	return ruleMap, nil
-}
-
-func populateMap(arguments map[string]string, populatedMap map[string]int) error {
-	for key := range populatedMap {
-		if argVal, inMap := arguments[key]; inMap {
-			argVal, err := strconv.Atoi(argVal)
-			if err != nil {
-				return fmt.Errorf("invalid value: %d", argVal)
-			}
-			populatedMap[key] = argVal
+		yaml := bytes.Buffer{}
+		yaml.WriteString(rules)
+		if totalPolicies > 1 {
+			yaml.WriteString("---")
 		}
+		totalPolicies--
+		fmt.Println(yaml.String())
 	}
-	return nil
+	return numPolicy, nil
 }
 
 func main() {
-	securityPtr := flag.String("generate_policy", "numPolicies:1", `List of key value pairs separated by commas.
-	Supported options: namespace:string, action:DENY/ALLOW, AuthorizationPolicy:int, PeerAuthentication:in,
-	mtlsMode:STRICT/DISABLE, numPrincipals:int, numValues:int, numPaths:int, numSourceIP:int. numNamespaces:int`)
-
+	configFilePtr := flag.String("configFile", "", "The name of the config json file")
 	flag.Parse()
 
-	argumentMap, err := parseArguments(*securityPtr)
-	if err != nil {
-		fmt.Println(err)
-		return
+	jsonString := ""
+	if *configFilePtr != "" {
+		jsonFile, err := os.Open(*configFilePtr)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		jsonBytes, err := ioutil.ReadAll(jsonFile)
+		if err != nil {
+			fmt.Println(err)
+		}
+		jsonString = string(jsonBytes)
 	}
 
-	ruleMap, err := createRuleMap(argumentMap)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	policyData := SecurityPolicy{}
+	json.Unmarshal([]byte(jsonString), &policyData)
 
-	policyMap, err := createPolicyMap(argumentMap)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	policiesLeft := 0
-	for _, numPolicy := range policyMap {
-		policiesLeft += numPolicy
-	}
+	policiesLeft := policyData.AuthZ.NumPolicies + policyData.PeerAuthN.NumPolicies
 	if policiesLeft <= 0 {
 		fmt.Println(fmt.Errorf("invalid number of policies: %d", policiesLeft))
 	}
 
-	for policyType, numPolicy := range policyMap {
-		for i := 1; i <= numPolicy; i++ {
-			policy := createPolicyHeader(argumentMap["namespace"], fmt.Sprintf("test-%s-%d", policyType, i), policyType)
+	if policyData.AuthZ.NumPolicies > 0 {
+		writtenPolicies, err := generatePolicy(policyData, "AuthorizationPolicy", policyData.AuthZ.NumPolicies, policiesLeft)
+		if err != nil {
+			fmt.Println(err)
+		}
+		policiesLeft -= writtenPolicies
+	}
 
-			ruleToGenerator := createRuleGeneratorMap(ruleMap)
-			if rules, err := generateRules(argumentMap, ruleToGenerator, policy, ruleMap); err != nil {
-				fmt.Println(err)
-				break
-			} else {
-				yaml := bytes.Buffer{}
-				yaml.WriteString(rules)
-				if policiesLeft > 1 {
-					yaml.WriteString("---")
-				}
-				policiesLeft--
-				fmt.Println(yaml.String())
-			}
+	if policyData.PeerAuthN.NumPolicies > 0 {
+		_, err := generatePolicy(policyData, "PeerAuthentication", policyData.PeerAuthN.NumPolicies, policiesLeft)
+		if err != nil {
+			fmt.Println(err)
 		}
 	}
 }

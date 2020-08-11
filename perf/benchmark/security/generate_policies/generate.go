@@ -21,17 +21,17 @@ import (
 )
 
 type generator interface {
-	generate(action string, ruleMap map[string]int) *authzpb.Rule
+	generate(policyData SecurityPolicy) *authzpb.Rule
 }
 
 type operationGenerator struct {
 }
 
-func (operationGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Rule {
+func (operationGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	rule := &authzpb.Rule{}
 	var listOperation []*authzpb.Rule_To
 
-	if numPaths := ruleMap["numPaths"]; numPaths > 0 {
+	if numPaths := policyData.AuthZ.NumPaths; numPaths > 0 {
 		paths := make([]string, numPaths)
 		for i := 0; i < numPaths; i++ {
 			paths[i] = fmt.Sprintf("/Invalid-path-%d", i)
@@ -50,14 +50,14 @@ func (operationGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Ru
 type conditionGenerator struct {
 }
 
-func (conditionGenerator) generate(action string, ruleMap map[string]int) *authzpb.Rule {
+func (conditionGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	rule := &authzpb.Rule{}
 	var listCondition []*authzpb.Condition
 
-	if numValues := ruleMap["numValues"]; numValues > 0 {
+	if numValues := policyData.AuthZ.NumValues; numValues > 0 {
 		values := make([]string, numValues)
 		for i := 0; i < numValues; i++ {
-			if i == numValues-1 && action == "ALLOW" {
+			if i == numValues-1 && policyData.AuthZ.Action == "ALLOW" {
 				values[i] = "admin"
 			} else {
 				values[i] = "guest"
@@ -76,11 +76,11 @@ func (conditionGenerator) generate(action string, ruleMap map[string]int) *authz
 type sourceGenerator struct {
 }
 
-func (sourceGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Rule {
+func (sourceGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	rule := &authzpb.Rule{}
 	var listSource []*authzpb.Rule_From
 
-	if numSourceIP := ruleMap["numSourceIP"]; numSourceIP > 0 {
+	if numSourceIP := policyData.AuthZ.NumSourceIP; numSourceIP > 0 {
 		sourceIPList := make([]string, numSourceIP)
 		for i := 0; i < numSourceIP; i++ {
 			sourceIPList[i] = fmt.Sprintf("0.0.%d.%d", i/256, i%256)
@@ -93,7 +93,7 @@ func (sourceGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Rule 
 		listSource = append(listSource, source)
 	}
 
-	if numNamepaces := ruleMap["numNamespaces"]; numNamepaces > 0 {
+	if numNamepaces := policyData.AuthZ.NumNamespaces; numNamepaces > 0 {
 		namespaces := make([]string, numNamepaces)
 		for i := 0; i < numNamepaces; i++ {
 			namespaces[i] = fmt.Sprintf("Invalid-namespace-%d", i)
@@ -106,7 +106,7 @@ func (sourceGenerator) generate(_ string, ruleMap map[string]int) *authzpb.Rule 
 		listSource = append(listSource, source)
 	}
 
-	if numPrincipals := ruleMap["numPrincipals"]; numPrincipals > 0 {
+	if numPrincipals := policyData.AuthZ.NumPrincipals; numPrincipals > 0 {
 		principals := make([]string, numPrincipals)
 		for i := 0; i < numPrincipals; i++ {
 			principals[i] = fmt.Sprintf("cluster.local/ns/twopods-istio/sa/Invalid-%d", i)
