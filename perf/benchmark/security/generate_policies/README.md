@@ -248,6 +248,7 @@ kubectl apply -f largePolicy.yaml
     "numPaths":2
   }
 }
+```
 
 ```bash
 go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.yaml
@@ -269,6 +270,7 @@ go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.
     "numNamespaces":100
   }
 }
+```
 
 ```bash
 go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.yaml
@@ -288,6 +290,7 @@ go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.
     "mtlsMode":"DISABLE"
   }
 }
+```
 
 ```bash
 go run generate_policies.go generate.go -generate_policy="PeerAuthentication:1,mtlsMode:DISABLE"
