@@ -20,9 +20,10 @@ DIRNAME="/tmp"
 set -eux
 
 function download_release() {
+# shellcheck disable=SC2155
   export VERSION=$(curl -sL https://gcsweb.istio.io/gcs/istio-build/dev/latest)
   OUT_FILE="istio-${VERSION}"
-  RELEASE_URL="https://storage.googleapis.com/istio-build/dev/${VERSION}/istio-${VERSION}-osx.tar.gz"
+  RELEASE_URL="https://storage.googleapis.com/istio-build/dev/${VERSION}/istio-${VERSION}-linux-amd64.tar.gz"
   outfile="${DIRNAME}/${OUT_FILE}"
   if [[ ! -d "${outfile}" ]]; then
     tmp=$(mktemp -d)
@@ -41,7 +42,7 @@ function install_istioctl() {
 EXISTING_REV=$(kubectl get pods -n istio-system -lapp=istiod -o "jsonpath={.items[*].metadata.labels.istio\.io\/rev}")
 
 download_release
-SUFFIX=$(echo ${VERSION} | cut -f2 -d- | cut -f2 -d.)
+SUFFIX=$(echo "${VERSION}" | cut -f2 -d- | cut -f2 -d.)
 NEW_REV="canary-${SUFFIX}"
 install_istioctl
 
@@ -66,5 +67,5 @@ done
 # clean up old control plane
 # This command only works for 1.7 or later
 if [[ -n ${EXISTING_REV} ]];then
-  "${outfile}/bin/istioctl" x uninstall --revision ${EXISTING_REV}
+  "${outfile}/bin/istioctl" x uninstall --revision "${EXISTING_REV}"
 fi

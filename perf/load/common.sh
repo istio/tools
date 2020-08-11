@@ -85,8 +85,8 @@ function start_servicegraphs_multicluster() {
   fi
    # shellcheck disable=SC2004
    for ((ii=$min; ii<$nn; ii++)) {
-    ns=$(printf 'service-graph%.2d' $ii)
-    prefix=$(printf 'svc%.2d-' $ii)
+    ns=$(printf 'service-graph%.2d' "${ii}")
+    prefix=$(printf 'svc%.2d-' "${ii}")
     if [[ -z "${DELETE}" ]];then
       kubectl config use-context "${CTX1}"
       MULTI_CLUSTER="true" CLUSTER1="true" CLUSTER2="false" ${CMD} run_test "${ns}" "${prefix}"

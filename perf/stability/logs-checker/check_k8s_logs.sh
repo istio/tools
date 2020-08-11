@@ -16,15 +16,14 @@
 
 WD=$(dirname "$0")
 WD=$(cd "$WD"; pwd)
-ROOT=$(dirname "$WD")
 
 set -eux
 
 declare -a namespaces=("istio-system" )
 # shellcheck disable=SC2004
 for ((ii=0; ii<15; ii++)) {
-    ns=$(printf 'service-graph%.2d' ${ii})
-    namespaces+=(${ns})
+    ns=$(printf 'service-graph%.2d' "${ii}")
+    namespaces+=("${ns}")
 }
 
 function check_events() {
@@ -32,6 +31,7 @@ function check_events() {
   if [[ ${#ERRORED[@]} -ne 0 ]]
   then
       echo "${#ERRORED[@]} errored pods found."
+      # shellcheck disable=SC2068
       for CULPRIT in ${ERRORED[@]}
       do
         echo "POD: $CULPRIT"
@@ -48,6 +48,7 @@ function check_events() {
 }
 
 function check_pod_errors() {
+  # shellcheck disable=SC2068
   for NAMESPACE in ${namespaces[@]}
   do
     echo "Scanning pod logs, Namespace: ${NAMESPACE}"
@@ -58,12 +59,12 @@ function check_pod_errors() {
     do
       for CONTAINER in ${CONTAINERS//,/ }
       do
-        COUNT=$(kubectl logs --since=24h "${POD}" -c "${CONTAINER}" -n "${NAMESPACE}" | egrep -c 'error|Error|ERROR|Warn|WARN' || true)
+        COUNT=$(kubectl logs --since=24h "${POD}" -c "${CONTAINER}" -n "${NAMESPACE}" | grep -E -c 'error|Error|ERROR|Warn|WARN' || true)
         if [[ ${COUNT} -gt 100 ]];then
             echo "found suspicious logs from $POD|$CONTAINER, count: $COUNT"
         fi
       done
-    done< <(kubectl get pods -n ${NAMESPACE} --ignore-not-found=true -o=custom-columns=NAME:.metadata.name,CONTAINERS:.spec.containers[*].name --no-headers=true)
+    done< <(kubectl get pods -n "${NAMESPACE}" --ignore-not-found=true -o=custom-columns=NAME:.metadata.name,CONTAINERS:.spec.containers[*].name --no-headers=true)
   done
 }
 

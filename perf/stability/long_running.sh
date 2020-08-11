@@ -71,7 +71,8 @@ kubectl apply -f ./alertmanager/prometheusrule.yaml
 kubectl create configmap logs-checker --from-file=./logs-checker/check_k8s_logs.sh || true
 ./setup_test.sh logs-checker
 
-# TODO(richardwxn): this and other stability scenario jobs would be added as phase2 effort.
+# This part would be only needed when we run the fully automated jobs on a dedicated cluster
+# It would upgrade control plane and data plane to newer dev release every 48h.
 # deploy canary upgrader
 # kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh
 #./setup_test.sh canary-upgrader

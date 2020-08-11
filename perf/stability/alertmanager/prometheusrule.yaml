@@ -18,20 +18,20 @@ spec:
             sum(irate(istio_requests_total{reporter="destination", response_code=~"5.*"}[5m])) / sum(irate(istio_requests_total{reporter="destination"}[5m])) > 0.05
           for: 5m
         - alert: LatencyHigh
-          expr: sum(irate(istio_request_duration_seconds_bucket{source_workload=~".*"}[5m])) by (source_workload,namespace) * on (source_workload) group_right() BY (label_app,namespace) , "source_workload", "$1", "label_app", "(.*)") > 8
+          expr: sum(irate(istio_request_duration_milliseconds_bucket{source_workload=~"svc.*"}[5m])) by (source_workload,namespace)  > 30000
           for: 10m
           annotations:
             message:  "Request duration has slowed down for workload: {{`{{$labels.source_workload}}`}} in namespace: {{`{{$labels.namespace}}`}}. Response duration is {{`{{$value}}`}} seconds"
     - name: ./infra.rules
       rules:
         - alert: ContainerCPUUsageHigh
-          expr: (sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container!="POD", namespace!=""}[5m])) BY (namespace, pod, container) * 100) > 80
+          expr: (sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container=~"istio-proxy|discovery", namespace!=""}[5m])) BY (namespace, pod, container) * 100) > 80
           for: 5m
           annotations:
             summary: "Container CPU usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
             description: "Container CPU usage is above 80%\n  VALUE = {{ $value }}\n"
         - alert: ContainerMemoryUsageHigh
-          expr: (sum(container_memory_usage_bytes{namespace!="kube-system", container!="POD", namespace!=""}) BY (container, pod, namespace)  / (sum(container_spec_memory_limit_bytes{namespace!="kube-system", container!="POD"}) BY (container, pod, namespace) > 0)* 100) > 80
+          expr: (sum(container_memory_usage_bytes{namespace!="kube-system", container=~"istio-proxy|discovery", namespace!=""}) BY (container, pod, namespace)  / (sum(container_spec_memory_limit_bytes{namespace!="kube-system", container!="POD"}) BY (container, pod, namespace) > 0)* 100) > 80
           for: 5m
           annotations:
             summary: "Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
@@ -52,55 +52,61 @@ spec:
           expr: >
             sum(irate(pilot_total_xds_rejects{app="istiod"}[5m])) / sum(irate(pilot_xds_pushes{app="istiod"}[5m])) > 0.05
           for: 5m
-        - alert: IstiodAvailabilityLow
+        - alert: IstiodContainerNotReady
+            annotations:
+              summary: 'istiod container not ready'
+              description: 'container: discovery not running'
+            expr: >
+              kube_pod_container_status_running{namespace="istio-system", container="discovery", component=""} == 0
+            for: 5m
+        - alert: IstiodUnavailableReplica
           annotations:
-            summary: 'Istiod AvailabilityLow'
-            description: 'Istiod pods have dropped during the last 5m (current value: *{{ printf "%2.0f%%" $value }}*).'
+            summary: 'Istiod unavailable pod'
           expr: >
-            avg(avg_over_time(up{job="istiod"}[1m])) < 0.5
+            kube_deployment_status_replicas_unavailable{deployment="istiod", component=""} > 0
           for: 5m
     - name: "istio.recording-rules"
       interval: 5s
       rules:
         - record: "workload:istio_requests_total"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_requests_total)
+            sum without(instance, namespace, pod) (istio_requests_total)
 
         - record: "workload:istio_request_duration_milliseconds_count"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_request_duration_milliseconds_count)
+            sum without(instance, namespace, pod) (istio_request_duration_milliseconds_count)
 
         - record: "workload:istio_request_duration_milliseconds_sum"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_request_duration_milliseconds_sum)
+            sum without(instance, namespace, pod) (istio_request_duration_milliseconds_sum)
 
         - record: "workload:istio_request_duration_milliseconds_bucket"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_request_duration_milliseconds_bucket)
+            sum without(instance, namespace, pod) (istio_request_duration_milliseconds_bucket)
 
         - record: "workload:istio_request_bytes_count"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_request_bytes_count)
+            sum without(instance, namespace, pod) (istio_request_bytes_count)
 
         - record: "workload:istio_request_bytes_sum"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_request_bytes_sum)
+            sum without(instance, namespace, pod) (istio_request_bytes_sum)
 
         - record: "workload:istio_request_bytes_bucket"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_request_bytes_bucket)
+            sum without(instance, namespace, pod) (istio_request_bytes_bucket)
 
         - record: "workload:istio_response_bytes_count"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_response_bytes_count)
+            sum without(instance, namespace, pod) (istio_response_bytes_count)
 
         - record: "workload:istio_response_bytes_sum"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_response_bytes_sum)
+            sum without(instance, namespace, pod) (istio_response_bytes_sum)
 
         - record: "workload:istio_response_bytes_bucket"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_response_bytes_bucket)
+            sum without(instance, namespace, pod) (istio_response_bytes_bucket)
     - name: k8s.rules
       rules:
         - expr: |
