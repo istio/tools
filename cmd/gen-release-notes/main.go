@@ -28,12 +28,12 @@ import (
 )
 
 type ReleaseNote struct {
-	Kind          string      `json:"kind"`
-	Area          string      `json:"area"`
-	Issue         []string    `json:"issue,omitempty"`
-	ReleaseNotes  string      `json:"releaseNotes"`
-	UpgradeNotes  upgradeNote `json:"upgradeNotes"`
-	SecurityNotes string      `json:"securityNotes"`
+	Kind          string        `json:"kind"`
+	Area          string        `json:"area"`
+	Issue         []string      `json:"issue,omitempty"`
+	ReleaseNotes  []string      `json:"releaseNotes"`
+	UpgradeNotes  []upgradeNote `json:"upgradeNotes"`
+	SecurityNotes []string      `json:"securityNotes"`
 }
 
 type upgradeNote struct {
@@ -120,16 +120,25 @@ func parseReleaseNote(releaseNotes []ReleaseNote, format string) []string {
 
 	for _, note := range releaseNotes {
 		formatted := ""
-		if noteType == "releaseNotes" && note.ReleaseNotes != "" && (note.Area == area || area == "") {
-			formatted = fmt.Sprintf("- %s %s", note.ReleaseNotes, issuesListToString(note.Issue))
-		} else if noteType == "upgradeNotes" && note.UpgradeNotes.Content != "" {
-			if note.UpgradeNotes.Title == "" {
-				fmt.Printf("Upgrade note is missing title. Skipping.")
-			} else {
-				formatted = fmt.Sprintf("## %s\n%s", note.UpgradeNotes.Title, note.UpgradeNotes.Content)
+		if noteType == "releaseNotes" && note.ReleaseNotes != nil && (note.Area == area || area == "") {
+			for _, releaseNote := range note.ReleaseNotes {
+				formatted += fmt.Sprintf("- %s %s\n", releaseNote, issuesListToString(note.Issue))
 			}
-		} else if noteType == "securityNotes" && note.SecurityNotes != "" {
-			formatted = fmt.Sprintf("- %s", note.SecurityNotes)
+		} else if noteType == "upgradeNotes" {
+
+			for _, upgradeNote := range note.UpgradeNotes {
+				if upgradeNote.Content != "" {
+					if upgradeNote.Title == "" {
+						fmt.Printf("Upgrade note is missing title. Skipping.")
+					} else {
+						formatted += fmt.Sprintf("## %s\n%s", upgradeNote.Title, upgradeNote.Content)
+					}
+				}
+			}
+		} else if noteType == "securityNotes" && note.SecurityNotes != nil {
+			for _, securityNote := range note.SecurityNotes {
+				formatted += fmt.Sprintf("- %s", securityNote)
+			}
 		}
 
 		if formatted != "" {
