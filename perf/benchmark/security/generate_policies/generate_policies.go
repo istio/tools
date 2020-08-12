@@ -144,10 +144,10 @@ func generateAuthorizationPolicy(policyData SecurityPolicy, policyHeader *MyPoli
 	switch policyData.AuthZ.Action {
 	case "ALLOW":
 		spec.Action = authzpb.AuthorizationPolicy_ALLOW
-	case "DENY":
+	case "DENY", "":
 		spec.Action = authzpb.AuthorizationPolicy_DENY
-	case "":
-		spec.Action = authzpb.AuthorizationPolicy_DENY
+	default:
+		return "", fmt.Errorf("action %s not supported", policyData.AuthZ.Action)
 	}
 
 	ruleToGenerator := createRuleGeneratorMap(policyData.AuthZ)
@@ -170,12 +170,10 @@ func generatePeerAuthentication(policyData SecurityPolicy, policyHeader *MyPolic
 		Mtls: &authzpb.PeerAuthentication_MutualTLS{},
 	}
 	switch policyData.PeerAuthN.MtlsMode {
-	case "STRICT":
+	case "STRICT", "":
 		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_STRICT
 	case "DISABLE":
 		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_DISABLE
-	case "":
-		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_STRICT
 	default:
 		return "", fmt.Errorf("invalid mtlsMode: %s", policyData.PeerAuthN.MtlsMode)
 	}
@@ -211,65 +209,60 @@ func createPolicyHeader(namespace string, name string, kind string) *MyPolicy {
 	}
 }
 
-func generatePolicy(policyData SecurityPolicy, kind string, numPolicy int, totalPolicies int) (int, error) {
+func generatePolicy(policyData SecurityPolicy, kind string, numPolicy int) error {
 	for i := 1; i <= numPolicy; i++ {
-		testName := fmt.Sprintf("test-%s-%d", kind, i)
+		testName := fmt.Sprintf("test-%s-%d", strings.ToLower(kind), i)
 		policyHeader := createPolicyHeader(policyData.Namespace, testName, kind)
 
 		rules, err := generateRules(policyData, policyHeader)
 		if err != nil {
-			return 0, err
+			return err
 		}
 		yaml := bytes.Buffer{}
 		yaml.WriteString(rules)
-		if totalPolicies > 1 {
-			yaml.WriteString("---")
-		}
-		totalPolicies--
+		yaml.WriteString("---")
 		fmt.Println(yaml.String())
 	}
-	return numPolicy, nil
+	return nil
 }
 
 func main() {
 	configFilePtr := flag.String("configFile", "", "The name of the config json file")
 	flag.Parse()
 
-	jsonString := ""
+	jsonBytes := make([]byte, 0)
 	if *configFilePtr != "" {
 		jsonFile, err := os.Open(*configFilePtr)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		jsonBytes, err := ioutil.ReadAll(jsonFile)
+		jsonBytes, err = ioutil.ReadAll(jsonFile)
 		if err != nil {
 			fmt.Println(err)
 		}
-		jsonString = string(jsonBytes)
 	}
 
 	policyData := SecurityPolicy{}
-	err := json.Unmarshal([]byte(jsonString), &policyData)
+	err := json.Unmarshal(jsonBytes, &policyData)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	policiesLeft := policyData.AuthZ.NumPolicies + policyData.PeerAuthN.NumPolicies
-	if policiesLeft <= 0 {
-		fmt.Println(fmt.Errorf("invalid number of policies: %d", policiesLeft))
+	totalPolicies := policyData.AuthZ.NumPolicies + policyData.PeerAuthN.NumPolicies
+	if totalPolicies <= 0 {
+		fmt.Println(fmt.Errorf("invalid number of policies: %d", totalPolicies))
 	}
 
 	if policyData.AuthZ.NumPolicies > 0 {
-		writtenPolicies, err := generatePolicy(policyData, "AuthorizationPolicy", policyData.AuthZ.NumPolicies, policiesLeft)
+		err := generatePolicy(policyData, "AuthorizationPolicy", policyData.AuthZ.NumPolicies)
 		if err != nil {
 			fmt.Println(err)
 		}
-		policiesLeft -= writtenPolicies
 	}
 
 	if policyData.PeerAuthN.NumPolicies > 0 {
-		_, err := generatePolicy(policyData, "PeerAuthentication", policyData.PeerAuthN.NumPolicies, policiesLeft)
+		err := generatePolicy(policyData, "PeerAuthentication", policyData.PeerAuthN.NumPolicies)
 		if err != nil {
 			fmt.Println(err)
 		}
