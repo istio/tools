@@ -30,7 +30,7 @@ If you already install specific Istio version in the cluster, you can also point
 
 `LOCAL_ISTIO_PATH=/Users/iamwen/Downloads/istio-1.5.5 ./long_running.sh`
 
-Or you skip Istio setup completely, just deploy the workloads and alertmanager
+Or if you want to skip Istio setup completely, just deploy the workloads and alertmanager
 
 `VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh`
 

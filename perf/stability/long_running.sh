@@ -44,24 +44,6 @@ if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then
   "${ROOT}"/istio-install/setup_istio.sh "${@}"
 fi
 
-# setup service graph
-pushd "${ROOT}/load"
-# shellcheck disable=SC1091
-source "./common.sh"
-START_NUM=0
-export START_NUM="${START_NUM:-0}"
-export DELETE=""
-export CMD=""
-export WD="${ROOT}/load"
-
-if [[ -z ${MULTI_CLUSTER} ]];then
-  start_servicegraphs "${NAMESPACE_NUM}" "${START_NUM}"
-else
- # run on two cluster
- CTX1=${CTX1} CTX=${CTX2} start_servicegraphs_multicluster "${NAMESPACE_NUM}" "${START_NUM}"
-fi
-popd
-
 export NOT_INJECTED="True"
 # deploy alertmanager related resources
 NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager
@@ -74,6 +56,22 @@ kubectl create configmap logs-checker --from-file=./logs-checker/check_k8s_logs.
 # This part would be only needed when we run the fully automated jobs on a dedicated cluster
 # It would upgrade control plane and data plane to newer dev release every 48h.
 # deploy canary upgrader
-# kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh
-#./setup_test.sh canary-upgrader
+ kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh
+./setup_test.sh canary-upgrader
 
+# Setup workloads
+pushd "${ROOT}/load"
+# shellcheck disable=SC1091
+source "./common.sh"
+START_NUM=13
+export START_NUM="${START_NUM:-0}"
+export DELETE=""
+export CMD=""
+export WD="${ROOT}/load"
+if [[ -z ${MULTI_CLUSTER} ]];then
+  start_servicegraphs "${NAMESPACE_NUM}" "${START_NUM}"
+else
+ # run on two cluster
+ CTX1=${CTX1} CTX=${CTX2} start_servicegraphs_multicluster "${NAMESPACE_NUM}" "${START_NUM}"
+fi
+popd

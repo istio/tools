@@ -53,12 +53,12 @@ spec:
             sum(irate(pilot_total_xds_rejects{app="istiod"}[5m])) / sum(irate(pilot_xds_pushes{app="istiod"}[5m])) > 0.05
           for: 5m
         - alert: IstiodContainerNotReady
-            annotations:
-              summary: 'istiod container not ready'
-              description: 'container: discovery not running'
-            expr: >
-              kube_pod_container_status_running{namespace="istio-system", container="discovery", component=""} == 0
-            for: 5m
+          annotations:
+            summary: 'istiod container not ready'
+            description: 'container: discovery not running'
+          expr: >
+            kube_pod_container_status_running{namespace="istio-system", container="discovery", component=""} == 0
+          for: 5m
         - alert: IstiodUnavailableReplica
           annotations:
             summary: 'Istiod unavailable pod'
