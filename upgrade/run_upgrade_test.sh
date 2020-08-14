@@ -30,12 +30,12 @@ ROOT=$(dirname "$WD")
 # Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh
 # These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade jobs
 export SOURCE_HUB=${SOURCE_HUB:-"docker.io/istio"}
-export TARGET_HUB=${TARGET_HUB:-"docker.io/istio"}
-export SOURCE_TAG=${SOURCE_TAG:-"1.3.0"}
-export TARGET_TAG=${TARGET_TAG:-"1.3.4"}
-export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
+export TARGET_HUB=${TARGET_HUB:-"gcr.io/istio-testing"}
+export SOURCE_TAG=${SOURCE_TAG:-"1.6.8"}
+export TARGET_TAG=${TARGET_TAG:-"1.7-dev"}
+export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://github.com/istio/istio/releases/download"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
-export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"helm"}
+export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"istioctl"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
 export SOURCE_LINUX_TAR_SUFFIX=${SOURCE_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
@@ -48,6 +48,9 @@ export TARGET_LINUX_TAR_SUFFIX=${TARGET_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
 # to downgrade from whereas TARGET_HUB and TARGET_TAG specify the version
 # to downgrade to.
 export TEST_SCENARIO=${TEST_SCENARIO:-"upgrade-downgrade"}
+
+# obtain the actual target tag
+TARGET_TAG=$(curl -s https://storage.googleapis.com/istio-build/dev/"$TARGET_TAG")
 
 function get_git_sha() {
   local url_path=${1}
@@ -93,6 +96,7 @@ function download_untar_istio_release() {
 
   # Download artifacts
   LINUX_DIST_URL="${url_path}/${tag}/istio-${tag}-${suffix}"
+  echo "Downloading ${LINUX_DIST_URL}"
   wget -q "${LINUX_DIST_URL}" -P "${dir}"
   tar -xzf "${dir}/istio-${tag}-${suffix}" -C "${dir}"
 }
@@ -129,4 +133,5 @@ go get fortio.org/fortio
   --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
   --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
   --install_options="${INSTALL_OPTIONS}" --cloud="GKE"
+
 
