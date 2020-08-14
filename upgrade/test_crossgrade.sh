@@ -266,7 +266,7 @@ upgradeIstioAtVersionUsingIstioctl(){
   if [[ "${TO_TAG}" > "1.5" ]]; then
     # The following is a workaround for the test failure due to that the charts is
     # no longer bundled in the release (https://github.com/istio/istio/issues/23172).
-    "${istioctl_path}"/istioctl manifest apply --skip-confirmation --charts "${3}"/manifests
+    "${istioctl_path}"/istioctl upgrade --skip-confirmation --charts "${3}"/manifests
   elif [[ "${TO_TAG}" > "1.4" ]]; then
     "${istioctl_path}"/istioctl x upgrade --skip-confirmation
   fi
