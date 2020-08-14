@@ -29,11 +29,11 @@ ROOT=$(dirname "$WD")
 
 # Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh
 # These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade jobs
-export SOURCE_HUB=${SOURCE_HUB:-"docker.io/istio"}
+export SOURCE_HUB=${SOURCE_HUB:-"gcr.io/istio-testing"}
 export TARGET_HUB=${TARGET_HUB:-"gcr.io/istio-testing"}
-export SOURCE_TAG=${SOURCE_TAG:-"1.7.0-rc.1"}
+export SOURCE_TAG=${SOURCE_TAG:-"1.7-dev"}
 export TARGET_TAG=${TARGET_TAG:-"master"}
-export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://github.com/istio/istio/releases/download"}
+export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"istioctl"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
@@ -48,6 +48,9 @@ export TARGET_LINUX_TAR_SUFFIX=${TARGET_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
 # to downgrade from whereas TARGET_HUB and TARGET_TAG specify the version
 # to downgrade to.
 export TEST_SCENARIO=${TEST_SCENARIO:-"upgrade-downgrade"}
+
+# obtain the actual source tag
+SOURCE_TAG=$(curl -s https://storage.googleapis.com/istio-build/dev/"$SOURCE_TAG")
 
 function get_git_sha() {
   local url_path=${1}
@@ -103,7 +106,7 @@ source "${ROOT}/bin/setup_cluster.sh"
 # Set to any non-empty value to use kubectl configured cluster instead of mason provisioned cluster.
 UPGRADE_TEST_LOCAL="${UPGRADE_TEST_LOCAL:-""}"
 
-echo "Testing upgrade and downgrade between ${SOURCE_HUB}/${SOURCE_TAG} and ${TARGET_HUB}/${TARGET_TAG}"
+echo "Testing upgrade and downgrade between ${SOURCE_HUB}:${SOURCE_TAG} and ${TARGET_HUB}:${TARGET_TAG}"
 
 # Download release artifacts.
 download_untar_istio_release "${SOURCE_RELEASE_PATH}" "${SOURCE_TAG}" "${SOURCE_LINUX_TAR_SUFFIX}" "${FROM_PATH}"
