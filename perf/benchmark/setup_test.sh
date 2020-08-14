@@ -62,7 +62,7 @@ function run_test() {
       --set client.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
-      --set fortioImage="gcr.io/istio-testing/fortio:v1.3.1-1" \
+      --set fortioImage="fortio/fortio:latest_release" \
           . > "${TMPDIR}/${NAMESPACE}.yaml"
   echo "Wrote file ${TMPDIR}/${NAMESPACE}.yaml"
 
