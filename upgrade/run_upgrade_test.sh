@@ -30,9 +30,9 @@ ROOT=$(dirname "$WD")
 # Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh
 # These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade jobs
 export SOURCE_HUB=${SOURCE_HUB:-"docker.io/istio"}
-export TARGET_HUB=${TARGET_HUB:-"gcr.io/istio-testing"}
-export SOURCE_TAG=${SOURCE_TAG:-"1.7.0-rc.1"}
-export TARGET_TAG=${TARGET_TAG:-"master"}
+export TARGET_HUB=${TARGET_HUB:-"docker.io/istio"}
+export SOURCE_TAG=${SOURCE_TAG:-"1.6.8"}
+export TARGET_TAG=${TARGET_TAG:-"1.7.0-rc.1"}
 export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://github.com/istio/istio/releases/download"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"istioctl"}
