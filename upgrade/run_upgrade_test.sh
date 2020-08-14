@@ -50,7 +50,7 @@ export TARGET_LINUX_TAR_SUFFIX=${TARGET_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
 export TEST_SCENARIO=${TEST_SCENARIO:-"upgrade-downgrade"}
 
 # obtain the actual source tag
-SOURCE_TAG=$(curl -s https://storage.googleapis.com/istio-build/dev/$SOURCE_TAG)
+SOURCE_TAG=$(curl -s https://storage.googleapis.com/istio-build/dev/"$SOURCE_TAG")
 
 function get_git_sha() {
   local url_path=${1}
