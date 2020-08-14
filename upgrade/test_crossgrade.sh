@@ -56,7 +56,7 @@ usage() {
     echo "  e.g. ./test_crossgrade.sh \"
     echo "        --from_hub=gcr.io/istio-testing --from_tag=d639408fd --from_path=/tmp/release-d639408fd \"
     echo "        --to_hub=gcr.io/istio-release --to_tag=1.0.2 --to_path=/tmp/istio-1.0.2 --cloud=GKE"
-    echo "        --install_options=helm"
+    echo "        --install_options=istioctl"
     echo
     exit 1
 }
