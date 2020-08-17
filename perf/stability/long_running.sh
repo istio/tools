@@ -41,7 +41,11 @@ export CTX2="${CTX2:-}"
 
 # setup Istio
 if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then
-  "${ROOT}"/istio-install/setup_istio.sh "${@}"
+  if [[ -n "${@}" ]];then
+    "${ROOT}"/istio-install/setup_istio.sh "${@}"
+  else
+    "${ROOT}"/istio-install/setup_istio.sh
+  fi
 fi
 
 export NOT_INJECTED="True"
@@ -50,13 +54,15 @@ NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager
 kubectl apply -f ./alertmanager/prometheusrule.yaml
 
 # deploy log scanner
-kubectl create configmap logs-checker --from-file=./logs-checker/check_k8s_logs.sh || true
+kubectl create ns logs-checker || true
+kubectl create configmap logs-checker --from-file=./logs-checker/check_k8s_logs.sh -n logs-checker || true
 ./setup_test.sh logs-checker
 
 # This part would be only needed when we run the fully automated jobs on a dedicated cluster
 # It would upgrade control plane and data plane to newer dev release every 48h.
 # deploy canary upgrader
- kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh
+kubectl create ns canary-upgrader || true
+kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh -n canary-upgrader || true
 ./setup_test.sh canary-upgrader
 
 # Setup workloads

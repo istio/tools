@@ -39,7 +39,8 @@ function install_istioctl() {
 }
 
 # existing revision
-EXISTING_REV=$(kubectl get pods -n istio-system -lapp=istiod -o "jsonpath={.items[*].metadata.labels.istio\.io\/rev}")
+REV_LIST=$(kubectl get pods -n istio-system -lapp=istiod --sort-by=.status.startTime -o "jsonpath={.items[*].metadata.labels.istio\.io\/rev}")
+EXISTING_REV=$(echo ${REV_LIST} | cut -f1 -d' ')
 
 download_release
 SUFFIX=$(echo "${VERSION}" | cut -f2 -d- | cut -f2 -d.)
@@ -56,7 +57,7 @@ fi
 allns=$(kubectl get ns -o jsonpath="{.items[*].metadata.name}")
 # upgrade data plane
 for testns in ${allns};do
-    if [[ ${testns} =~ "service_graph" ]];then
+    if [[ ${testns} == *"service-graph"* ]];then
         kubectl label namespace "${testns}" istio-injection- istio.io/rev="${NEW_REV}" --overwrite
         kubectl rollout restart deployment -n "${testns}"
         sleep 30

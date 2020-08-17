@@ -35,15 +35,15 @@ function install_asm() {
   trap 'rm -rf "${TMP_DIR}"' EXIT
   cd "${TMP_DIR}"
   # shellcheck disable=SC2155
-  export PROJECT_NUMBER=$(gcloud projects describe ${PROJECT_ID} --format="value(projectNumber)")
-  export WORKLOAD_POOL=${PROJECT_ID}.svc.id.goog
+  export PROJECT_NUMBER=$(gcloud projects describe "${PROJECT_ID}" --format="value(projectNumber)")
+  export WORKLOAD_POOL="${PROJECT_ID}.svc.id.goog"
   export MESH_ID="proj-${PROJECT_NUMBER}"
   export ASM_HUB="${ASM_HUB:-}"
   export ASM_TAG="${ASM_TAG:-}"
 
   gcloud config set compute/zone "${CLUSTER_LOCATION}"
-  gcloud container clusters update "${CLUSTER_NAME}" --update-labels=mesh_id=${MESH_ID}
-  gcloud container clusters update "${CLUSTER_NAME}" --workload-pool=${WORKLOAD_POOL}
+  gcloud container clusters update "${CLUSTER_NAME}" --update-labels=mesh_id="${MESH_ID}"
+  gcloud container clusters update "${CLUSTER_NAME}" --workload-pool="${WORKLOAD_POOL}"
   gcloud container clusters update "${CLUSTER_NAME}" --enable-stackdriver-kubernetes
 
   curl --request POST \
@@ -74,7 +74,8 @@ function install_asm() {
 export INSTALL_ASM="${INSTALL_ASM:-}"
 export MULTI_CLUSTER="${MULTI_CLUSTER:-}"
 export SKIP_INSTALL=true
-source ${ROOT}/../perf/istio-install/setup_istio.sh
+# shellcheck disable=SC1090
+source "${ROOT}/../perf/istio-install/setup_istio.sh"
 
 download_release
 release="${DIRNAME}/${OUT_FILE}"

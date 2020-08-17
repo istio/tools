@@ -37,7 +37,7 @@ function check_events() {
         echo "POD: $CULPRIT"
         echo
         kubectl get events \
-        --field-selector=involvedObject.name=${CULPRIT} \
+        --field-selector=involvedObject.name="${CULPRIT}" \
         -ocustom-columns=LASTSEEN:.lastTimestamp,REASON:.reason,MESSAGE:.message \
         --all-namespaces \
         --ignore-not-found=true
