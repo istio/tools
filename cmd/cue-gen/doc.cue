@@ -48,7 +48,7 @@ all?: {
 	// title overrides the $description associated with a directory.
 	title: string
 
-	version: =~#"^v\d."# | *"v1aplha1"
+	version: =~#"^v\d."# | *"v1alpha1"
 }
 
 // directories is a map of directories, relative to the root, for which to
