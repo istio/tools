@@ -58,38 +58,39 @@ def download_benchmark_csv(days):
             # an example benchmark_test_id would be like:
             # "20200525_fortio_master_1.7-alpha.d0e07f6e430fd99554ccc3aee3be8a730cd8a226"
             benchmark_test_id = href_parts[4]
-            test_date, test_load_gen_type, test_branch, release_name = parse_perf_href_str(benchmark_test_id)
-            if test_date in download_dateset:
-                download_prefix = "https://storage.googleapis.com/istio-build/perf/"
-                download_filename = "benchmark.csv"
-                download_url = download_prefix + benchmark_test_id + "/" + download_filename
-                # TODO: this will make all filename to be empty but without this check will slow down the page rendering
-                # local_filename = benchmark_test_id + "_" + download_filename
-                # if check_exist(local_filename):
-                #     continue
-                dump_to_filepath = perf_data_path + benchmark_test_id + "_" + download_filename
-                if test_branch == "master":
-                    master_href_links.insert(0, href_str)
-                    master_release_names.insert(0, release_name)
-                    master_release_dates.insert(0, test_date)
-                else:
-                    cur_href_links.insert(0, href_str)
-                    cur_release_names.insert(0, release_name)
-                    cur_release_dates.insert(0, test_date)
-                try:
-                    wget.download(download_url, dump_to_filepath)
-                except Exception as e:
+            if current_release.split("-")[1] in benchmark_test_id or "master" in benchmark_test_id:
+                test_date, test_load_gen_type, test_branch, release_name = parse_perf_href_str(benchmark_test_id)
+                if test_date in download_dateset:
+                    download_prefix = "https://storage.googleapis.com/istio-build/perf/"
+                    download_filename = "benchmark.csv"
+                    download_url = download_prefix + benchmark_test_id + "/" + download_filename
+                    # TODO: this will make all filename to be empty but without this check will slow down the page rendering
+                    # local_filename = benchmark_test_id + "_" + download_filename
+                    # if check_exist(local_filename):
+                    #     continue
+                    dump_to_filepath = perf_data_path + benchmark_test_id + "_" + download_filename
                     if test_branch == "master":
-                        master_href_links.pop(0)
-                        master_release_names.pop(0)
-                        master_release_dates.pop(0)
+                        master_href_links.insert(0, href_str)
+                        master_release_names.insert(0, release_name)
+                        master_release_dates.insert(0, test_date)
                     else:
-                        cur_href_links.pop(0)
-                        cur_release_names.pop(0)
-                        cur_release_dates.pop(0)
-                    print(e)
-        else:
-            continue
+                        cur_href_links.insert(0, href_str)
+                        cur_release_names.insert(0, release_name)
+                        cur_release_dates.insert(0, test_date)
+                    try:
+                        wget.download(download_url, dump_to_filepath)
+                    except Exception as e:
+                        if test_branch == "master":
+                            master_href_links.pop(0)
+                            master_release_names.pop(0)
+                            master_release_dates.pop(0)
+                        else:
+                            cur_href_links.pop(0)
+                            cur_release_names.pop(0)
+                            cur_release_dates.pop(0)
+                        print(e)
+            else:
+                continue
     return cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates
 
 
