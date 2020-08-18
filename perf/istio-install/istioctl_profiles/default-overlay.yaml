@@ -71,10 +71,6 @@ spec:
   values:
     gateways:
       istio-ingressgateway:
-        secretVolumes:
-        - mountPath: /etc/istio/ingressgateway-certs
-          name: istio-ingressgateway-certs
-          secretName: istio-ingressgateway-certs
         type: LoadBalancer
     global:
       controlPlaneSecurityEnabled: false
