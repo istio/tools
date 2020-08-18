@@ -49,9 +49,6 @@ export TARGET_LINUX_TAR_SUFFIX=${TARGET_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
 # to downgrade to.
 export TEST_SCENARIO=${TEST_SCENARIO:-"upgrade-downgrade"}
 
-# obtain the actual target tag
-TARGET_TAG=$(curl -s https://storage.googleapis.com/istio-build/dev/"$TARGET_TAG")
-
 function get_git_sha() {
   local url_path=${1}
   local tag=${2}
