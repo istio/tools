@@ -34,7 +34,7 @@ func (operationGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	if numPaths := policyData.AuthZ.NumPaths; numPaths > 0 {
 		paths := make([]string, numPaths)
 		for i := 0; i < numPaths; i++ {
-			paths[i] = fmt.Sprintf("/Invalid-path-%d", i)
+			paths[i] = fmt.Sprintf("/invalid-path-%d", i)
 		}
 		operation := &authzpb.Rule_To{
 			Operation: &authzpb.Operation{
@@ -96,7 +96,7 @@ func (sourceGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	if numNamepaces := policyData.AuthZ.NumNamespaces; numNamepaces > 0 {
 		namespaces := make([]string, numNamepaces)
 		for i := 0; i < numNamepaces; i++ {
-			namespaces[i] = fmt.Sprintf("Invalid-namespace-%d", i)
+			namespaces[i] = fmt.Sprintf("invalid-namespace-%d", i)
 		}
 		source := &authzpb.Rule_From{
 			Source: &authzpb.Source{
@@ -114,6 +114,23 @@ func (sourceGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 		source := &authzpb.Rule_From{
 			Source: &authzpb.Source{
 				Principals: principals,
+			},
+		}
+		listSource = append(listSource, source)
+	}
+
+	if numRequestPrincipals := policyData.AuthZ.NumRequestPrincipals; numRequestPrincipals > 0 {
+		requestPrincipals := make([]string, numRequestPrincipals)
+		for i := 0; i < numRequestPrincipals; i++ {
+			principalValue := "invalid-issuer/subject"
+			if i == numRequestPrincipals-1 && policyData.AuthZ.MatchRequestPrincipal {
+				principalValue = fmt.Sprintf("issuer-%d/subject", policyData.RequestAuthN.NumJwks)
+			}
+			requestPrincipals[i] = principalValue
+		}
+		source := &authzpb.Rule_From{
+			Source: &authzpb.Source{
+				RequestPrincipals: requestPrincipals,
 			},
 		}
 		listSource = append(listSource, source)

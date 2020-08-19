@@ -15,19 +15,29 @@ To generate specific security policies begin by creating a json file that has th
 {
   "AuthZ":
   {
-    "action":int,           // optional DENY/ALLOW. Default:DENY
-    "numNamespaces":int,    // optional. Default:0
-    "numPaths":int,         // optional. Default:0
-    "numPolicies":int,      // optional. Default:0
-    "numPrincipals":int,    // optional. Default:0
-    "numSourceIP":int,      // optional. Default:0
-    "numValues":int         // optional. Default:0
+    "action":int,                 // optional DENY/ALLOW. Default:DENY
+    "MatchRequestPrincipal":bool  // optional. Default:false
+    "numNamespaces":int,          // optional. Default:0
+    "numPaths":int,               // optional. Default:0
+    "numPolicies":int,            // optional. Default:0
+    "numPrincipals":int,          // optional. Default:0
+    "numSourceIP":int,            // optional. Default:0
+    "numValues":int               // optional. Default:0
+    "numRequestPrincipals":int    // optional. Default:0
+
   },
   "namespace":string,       // optional, the namespace in which all the policies will be applied to. Default:twopods-istio
-  "peerAuthN":
+  "PeerAuthN":
   {
     "mtlsMode":string,      // optional STRICT/DISABLE. Default:STRICT
     "numPolicies":int       // optional. Default:0
+  },
+  "RequestAuthN":
+  {
+    "invalidToken":bool	    // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings. Default:false
+    "numPolicies":int		    // optional. Default:0  
+    "numJwks":int       	  // optional. Default:0
+    "tokenIssuer":string	  // optional. If set the issuer in the generated token will be set to the tokenIssuer. Default:"" 
   }
 }
 ```
@@ -96,13 +106,15 @@ The values which can be used to create custom AuthorizationPolicies are as follo
 ```go
   "AuthZ":
   {
-    "action":int,           // optional DENY/ALLOW. Default:DENY
-    "numNamespaces":int,    // optional. Default:0
-    "numPaths":int,         // optional. Default:0
-    "numPolicies":int,      // optional. Default:0
-    "numPrincipals":int,    // optional. Default:0
-    "numSourceIP":int,      // optional. Default:0
-    "numValues":int         // optional. Default:0
+    "action":int,                 // optional DENY/ALLOW. Default:DENY
+    "MatchRequestPrincipal":bool  // optional. Default:false
+    "numNamespaces":int,          // optional. Default:0
+    "numPaths":int,               // optional. Default:0
+    "numPolicies":int,            // optional. Default:0
+    "numPrincipals":int,          // optional. Default:0
+    "numSourceIP":int,            // optional. Default:0
+    "numValues":int               // optional. Default:0
+    "numRequestPrincipals":int    // optional. Default:0
   }
 ```
 
@@ -155,6 +167,58 @@ The values which can be used to create custom AuthorizationPolicies are as follo
 ```
 
 For more information see [PeerAuthentication Reference](https://istio.io/latest/docs/reference/config/security/peer_authentication/).
+
+## RequestAuthentication
+
+To create a RequestAuthentication policy one must create a json file with the RequestAuthN field as well as set the numPolicies >= 1.
+One should also include at least 1 rule. In this example NumJwks is set to 1.
+
+```json
+{
+  "AuthZ":
+  {
+    "numPolicies":1,
+    "NumJwks":1
+  }
+}
+```
+
+Once the wanted json file is created (called config.json) to generate the policies we just need pass in the config.json file to the configFile flag.
+
+```bash
+go run generate_policies.go generate.go -configFile="config.json"
+```
+
+This will create a RequestAuthentication Policy as follows and print it out to the stdout. When creating a jwks rule each key is formed of a public key of an RSA256 public/private key pair. This key pair is generated at random and created a new pair every time generate_policies are run.
+
+```yaml
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: test-requestauthentication-1
+  namespace: twopods-istio
+spec:
+ jwtRules:
+ - issuer: issuer-1
+   jwks: '{"keys":[{"kty":"RSA","e":"AQAB","n":"wWsKXFFiKHJvX48Z13pUOTqaT9rYezxx2csQN02VL2Ud7nVVvMoTrrTV8nP4mVtel6xDhzpjI39hFemULsgpD6JuOrEJc8HOPooI9eA00zV3_Gv_wPV1GzN_Fa9A5e0RR2Nt92Hd5lrtR6rLcmWNdeDcx6mnHYw_N40maZV0stcEliXMRboV7Drz2JAx9VfG6Fk-cgwPgRbSMIMPR8SYCTQhwvoTBaI49csxEDRlH-kuhlmxCG3r7okuZfjMEOtKx3GTI7ykOIMAEMaDouChEuAepwkE0D5jaZ6uVqRgwyxCRqVgq_Z7cjzJ_UMyqNrWTtrha1piLBUwwl3BOPwZXQ"}]}'
+```
+
+##
+
+The values which can be used to create custom RequestAuthentication are as follows:
+
+```go
+  "RequestAuthN":
+  {
+    "invalidToken":bool	    // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings. Default:false
+    "numPolicies":int		    // optional. Default:0  
+    "numJwks":int       	  // optional. Default:0
+    "tokenIssuer":string	  // optional. If set the issuer in the generated token will be set to the tokenIssuer. Default:"" 
+  }
+```
+
+For more information see [RequestAuthentication Reference](https://istio.io/latest/docs/reference/config/security/request_authentication/).
+
 
 ## Examples
 
@@ -293,10 +357,47 @@ go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.
 ```
 
 ```bash
-go run generate_policies.go generate.go -generate_policy="PeerAuthentication:1,mtlsMode:DISABLE"
+go run generate_policies.go generate.go -configFile="config.json" > peerAuthN.yaml
 ```
 
 - This creates 1 PeerAuthentication policy which has the mtls mode set to DISABLE
+
+## Example 4
+
+- To run a perf test with a requestAuthentication and an AuthorizationPolicy, create a config file called config.json and run the following command:
+
+```json
+{
+  "authZ":
+  {
+    "action":"ALLOW",
+    "numPolicies":1,
+    "numRequestPrincipals":1,
+    "matchRequestPrincipal":true
+  },
+  "requestAuthN":
+  {
+    "numPolicies":1,
+    "NumJwks":1
+  }
+}
+```
+
+```bash
+go run generate_policies.go generate.go -configFile="config.json" > requestAuthN.yaml
+```
+
+- This creates 1 AuthorizationPolicy which has a requestPrincipals rule which will match to the JWKS which is created in the RequestAuthentication policy. This command also
+creates a file called token.txt which is signed with the corresponding public key to match with the JWKS. To use this token in the perf test we must save the token in an environment variable and pass that in as a header to the perf test.
+- To apply the policies and run the perf test with the token run the following commands:
+
+```bash
+kubectl apply -f requestAuthN.yaml
+TOKEN=`cat token.txt`
+python3 ../../runner/runner.py --conn 64 --qps 1000 --duration 240 --load_gen_type=fortio --headers="$TOKEN" --telemetry_mode=v2-nullvm
+```
+
+- It may take a couple minutes for the policy to be enabled and the jwt token to match.
 
 ## Cleanup
 

@@ -17,14 +17,19 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
 
 	"io/ioutil"
+	"math/big"
 	"os"
 	"strings"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -36,25 +41,45 @@ type ruleGenerator struct {
 	gen generator
 }
 
+type Jwks struct {
+	Keys []*Jwk `json:"keys"`
+}
+
+type Jwk struct {
+	Kty string `json:"kty"`
+	E   string `json:"e"`
+	N   string `json:"n"`
+}
+
 type SecurityPolicy struct {
-	AuthZ     AuthorizationPolicy `json:"authZ"`
-	Namespace string              `json:"namespace"`
-	PeerAuthN PeerAuthentication  `json:"peerAuthN"`
+	AuthZ        AuthorizationPolicy   `json:"authZ"`
+	Namespace    string                `json:"namespace"`
+	PeerAuthN    PeerAuthentication    `json:"peerAuthN"`
+	RequestAuthN RequestAuthentication `json:"requestAuthN"`
 }
 
 type AuthorizationPolicy struct {
-	Action        string `json:"action"`
-	NumNamespaces int    `json:"numNamespaces"`
-	NumPaths      int    `json:"numPaths"`
-	NumPolicies   int    `json:"numPolicies"`
-	NumPrincipals int    `json:"numPrincipals"`
-	NumSourceIP   int    `json:"numSourceIP"`
-	NumValues     int    `json:"numValues"`
+	Action                string `json:"action"`
+	MatchRequestPrincipal bool   `json:"matchRequestPrincipal"`
+	NumNamespaces         int    `json:"numNamespaces"`
+	NumPaths              int    `json:"numPaths"`
+	NumPolicies           int    `json:"numPolicies"`
+	NumPrincipals         int    `json:"numPrincipals"`
+	NumSourceIP           int    `json:"numSourceIP"`
+	NumValues             int    `json:"numValues"`
+	NumRequestPrincipals  int    `json:"numRequestPrincipals"`
 }
 
 type PeerAuthentication struct {
 	MtlsMode    string `json:"mtlsMode"`
 	NumPolicies int    `json:"numPolicies"`
+}
+
+type RequestAuthentication struct {
+	InvalidToken bool   `json:"invalidToken"`
+	NumPolicies  int    `json:"numPolicies"`
+	NumJwks      int    `json:"numJwks"`
+	TokenIssuer  string `json:"tokenIssuer"`
 }
 
 type MyPolicy struct {
@@ -119,7 +144,7 @@ func createRuleGeneratorMap(authZData AuthorizationPolicy) map[string]*ruleGener
 	ruleGeneratorMap := make(map[string]*ruleGenerator)
 
 	if authZData.NumSourceIP > 0 || authZData.NumNamespaces > 0 ||
-		authZData.NumPrincipals > 0 {
+		authZData.NumPrincipals > 0 || authZData.NumRequestPrincipals > 0 {
 		ruleGeneratorMap["from"] = &ruleGenerator{
 			gen: sourceGenerator{},
 		}
@@ -185,6 +210,103 @@ func generatePeerAuthentication(policyData SecurityPolicy, policyHeader *MyPolic
 	return yaml, nil
 }
 
+func generateToken(policyData SecurityPolicy, privateKey *rsa.PrivateKey) (string, error) {
+	issuer := fmt.Sprintf("issuer-%d", policyData.RequestAuthN.NumJwks)
+	if policyData.RequestAuthN.TokenIssuer != "" {
+		issuer = policyData.RequestAuthN.TokenIssuer
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss": issuer,
+		"sub": "subject",
+	})
+	if policyData.RequestAuthN.InvalidToken {
+		newPrivateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		if err != nil {
+			return "", err
+		}
+		privateKey = newPrivateKey
+	}
+	tokenString, err := token.SignedString(privateKey)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
+
+func generateJwksBytes(privateKey *rsa.PrivateKey) ([]byte, error) {
+	jwks := &Jwks{
+		Keys: []*Jwk{
+			&Jwk{
+				E:   base64.URLEncoding.EncodeToString(big.NewInt(int64(privateKey.PublicKey.E)).Bytes()),
+				N:   base64.URLEncoding.EncodeToString((*privateKey.PublicKey.N).Bytes()),
+				Kty: "RSA",
+			},
+		},
+	}
+
+	jwksBytes, err := json.Marshal(jwks)
+	if err != nil {
+		return nil, err
+	}
+	return jwksBytes, nil
+}
+
+func writeTokenIntoFile(token string, fileName string) error {
+	file, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(fmt.Sprintf(`"Authorization":"Bearer %s"`, token))
+	if err != nil {
+		file.Close()
+		return err
+	}
+	err = file.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func generateRequestAuthentication(policyData SecurityPolicy, policyHeader *MyPolicy) (string, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return "", err
+	}
+	token, err := generateToken(policyData, privateKey)
+	if err != nil {
+		return "", err
+	}
+	err = writeTokenIntoFile(token, "token.txt")
+	if err != nil {
+		return "", err
+	}
+	jwksBytes, err := generateJwksBytes(privateKey)
+	if err != nil {
+		return "", err
+	}
+
+	var listJWTRules []*authzpb.JWTRule
+	if numJwks := policyData.RequestAuthN.NumJwks; numJwks > 0 {
+		for i := 1; i <= numJwks; i++ {
+			jwkRule := &authzpb.JWTRule{
+				Issuer: fmt.Sprintf("issuer-%d", i),
+				Jwks:   string(jwksBytes),
+			}
+			listJWTRules = append(listJWTRules, jwkRule)
+		}
+	}
+
+	spec := &authzpb.RequestAuthentication{
+		JwtRules: listJWTRules,
+	}
+	yaml, err := PolicyToYAML(policyHeader, spec)
+	if err != nil {
+		return "", err
+	}
+	return yaml, nil
+}
+
 func generateRules(policyData SecurityPolicy, policyHeader *MyPolicy) (string, error) {
 	switch policyHeader.Kind {
 	case "AuthorizationPolicy":
@@ -192,7 +314,7 @@ func generateRules(policyData SecurityPolicy, policyHeader *MyPolicy) (string, e
 	case "PeerAuthentication":
 		return generatePeerAuthentication(policyData, policyHeader)
 	case "RequestAuthentication":
-		return "", fmt.Errorf("unimplemented")
+		return generateRequestAuthentication(policyData, policyHeader)
 	default:
 		return "", fmt.Errorf("unknown policy kind: %s", policyHeader.Kind)
 	}
@@ -249,7 +371,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	totalPolicies := policyData.AuthZ.NumPolicies + policyData.PeerAuthN.NumPolicies
+	totalPolicies := policyData.AuthZ.NumPolicies + policyData.PeerAuthN.NumPolicies + policyData.RequestAuthN.NumPolicies
 	if totalPolicies <= 0 {
 		fmt.Println(fmt.Errorf("invalid number of policies: %d", totalPolicies))
 	}
@@ -263,6 +385,13 @@ func main() {
 
 	if policyData.PeerAuthN.NumPolicies > 0 {
 		err := generatePolicy(policyData, "PeerAuthentication", policyData.PeerAuthN.NumPolicies)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	if policyData.RequestAuthN.NumPolicies > 0 {
+		err := generatePolicy(policyData, "RequestAuthentication", policyData.RequestAuthN.NumPolicies)
 		if err != nil {
 			fmt.Println(err)
 		}
