@@ -18,15 +18,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 
 	"cuelang.org/go/encoding/openapi"
 
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
-	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
 	"k8s.io/utils/pointer"
-
-	crdutil "sigs.k8s.io/controller-tools/pkg/crd"
 )
 
 const (
@@ -44,7 +43,7 @@ status:
 
 // Build CRDs based on the configuration and schema.
 //nolint:staticcheck,interfacer,lll
-func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap, statusSchema *openapi.OrderedMap, preserveUnknownFields map[string][]string) {
+func completeCRD(c *apiextv1beta1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap, statusSchema *openapi.OrderedMap) {
 
 	for i, version := range c.Spec.Versions {
 
@@ -53,31 +52,23 @@ func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string
 			log.Fatalf("Cannot marshal OpenAPI schema for %v: %v", c.Name, err)
 		}
 
-		j := &apiextv1.JSONSchemaProps{}
+		j := &apiextv1beta1.JSONSchemaProps{}
 		if err = json.Unmarshal(b, j); err != nil {
 			log.Fatalf("Cannot unmarshal raw OpenAPI schema to JSONSchemaProps for %v: %v", c.Name, err)
 		}
 
-		// mark fields as `x-kubernetes-preserve-unknown-fields: true` using the visitor
-		if fs, ok := preserveUnknownFields[version.Name]; ok {
-			for _, f := range fs {
-				p := &preserveUnknownFieldVisitor{path: f}
-				crdutil.EditSchema(j, p)
-			}
-		}
-
-		version.Schema = &apiextv1.CustomResourceValidation{OpenAPIV3Schema: &apiextv1.JSONSchemaProps{
+		version.Schema = &apiextv1beta1.CustomResourceValidation{OpenAPIV3Schema: &apiextv1beta1.JSONSchemaProps{
 			Type: "object",
-			Properties: map[string]apiextv1.JSONSchemaProps{
+			Properties: map[string]apiextv1beta1.JSONSchemaProps{
 				"spec": *j,
 			},
 		}}
 
 		// only add status schema validation when status subresource is enabled in the CRD.
-		if version.Subresources != nil {
-			status := &apiextv1.JSONSchemaProps{}
+		if c.Spec.Subresources.Status != nil {
+			status := &apiextv1beta1.JSONSchemaProps{}
 			if statusSchema == nil {
-				status = &apiextv1.JSONSchemaProps{
+				status = &apiextv1beta1.JSONSchemaProps{
 					Type:                   "object",
 					XPreserveUnknownFields: pointer.BoolPtr(true),
 				}
@@ -103,17 +94,21 @@ func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string
 		c.Spec.Versions[i] = version
 	}
 
-	c.APIVersion = apiextv1.SchemeGroupVersion.String()
+	if schemasEqual(versionSchemas) {
+		collapseCRDVersions(c)
+	}
+
+	c.APIVersion = apiextv1beta1.SchemeGroupVersion.String()
 	c.Kind = "CustomResourceDefinition"
 
 	// marshal to an empty field in the output
-	c.Status = apiextv1.CustomResourceDefinitionStatus{}
+	c.Status = apiextv1beta1.CustomResourceDefinitionStatus{}
 }
 
-func validateStructural(s *apiextv1.JSONSchemaProps) error {
+func validateStructural(s *apiextv1beta1.JSONSchemaProps) error {
 	out := &apiext.JSONSchemaProps{}
-	if err := apiextv1.Convert_v1_JSONSchemaProps_To_apiextensions_JSONSchemaProps(s, out, nil); err != nil {
-		return fmt.Errorf("cannot convert v1 JSONSchemaProps to JSONSchemaProps: %v", err)
+	if err := apiextv1beta1.Convert_v1beta1_JSONSchemaProps_To_apiextensions_JSONSchemaProps(s, out, nil); err != nil {
+		return fmt.Errorf("cannot convert v1beta1 JSONSchemaProps to JSONSchemaProps: %v", err)
 	}
 
 	r, err := structuralschema.NewStructural(out)
@@ -126,4 +121,31 @@ func validateStructural(s *apiextv1.JSONSchemaProps) error {
 	}
 
 	return nil
+}
+
+//nolint:staticcheck
+func schemasEqual(versionSchemas map[string]*openapi.OrderedMap) bool {
+	if len(versionSchemas) < 2 {
+		return true
+	}
+	var schema *openapi.OrderedMap //nolint:staticcheck
+	for _, s := range versionSchemas {
+		if schema == nil {
+			schema = s
+			continue
+		}
+		if !reflect.DeepEqual(*schema, *s) {
+			return false
+		}
+	}
+	return true
+}
+
+func collapseCRDVersions(c *apiextv1beta1.CustomResourceDefinition) {
+	c.Spec.Validation = c.Spec.Versions[0].Schema
+	c.Spec.AdditionalPrinterColumns = c.Spec.Versions[0].AdditionalPrinterColumns
+	for i := range c.Spec.Versions {
+		c.Spec.Versions[i].Schema = nil
+		c.Spec.Versions[i].AdditionalPrinterColumns = []apiextv1beta1.CustomResourceColumnDefinition{}
+	}
 }
