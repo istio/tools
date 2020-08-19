@@ -42,7 +42,10 @@ def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
         namespace=namespace, filterstr=filterstr)
     op = getoutput(cmd)
-    o = json.loads(op)
+    try:
+        o = json.loads(op)
+    except ValueError:
+        print("Decoding pod spec JSON has failed!")
     items = o['items']
 
     if not multi_ok and len(items) > 1:
