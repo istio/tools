@@ -236,7 +236,7 @@ func generateToken(policyData SecurityPolicy, privateKey *rsa.PrivateKey) (strin
 func generateJwksBytes(privateKey *rsa.PrivateKey) ([]byte, error) {
 	jwks := &Jwks{
 		Keys: []*Jwk{
-			&Jwk{
+			{
 				E:   base64.URLEncoding.EncodeToString(big.NewInt(int64(privateKey.PublicKey.E)).Bytes()),
 				N:   base64.URLEncoding.EncodeToString((*privateKey.PublicKey.N).Bytes()),
 				Kty: "RSA",

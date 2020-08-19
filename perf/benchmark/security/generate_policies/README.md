@@ -34,10 +34,10 @@ To generate specific security policies begin by creating a json file that has th
   },
   "RequestAuthN":
   {
-    "invalidToken":bool	    // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings. Default:false
-    "numPolicies":int		    // optional. Default:0  
-    "numJwks":int       	  // optional. Default:0
-    "tokenIssuer":string	  // optional. If set the issuer in the generated token will be set to the tokenIssuer. Default:"" 
+    "invalidToken":bool     // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings. Default:false
+    "numPolicies":int       // optional. Default:0
+    "numJwks":int           // optional. Default:0
+    "tokenIssuer":string    // optional. If set the issuer in the generated token will be set to the tokenIssuer. Default:""
   }
 }
 ```
@@ -210,15 +210,14 @@ The values which can be used to create custom RequestAuthentication are as follo
 ```go
   "RequestAuthN":
   {
-    "invalidToken":bool	    // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings. Default:false
-    "numPolicies":int		    // optional. Default:0  
-    "numJwks":int       	  // optional. Default:0
-    "tokenIssuer":string	  // optional. If set the issuer in the generated token will be set to the tokenIssuer. Default:"" 
+    "invalidToken":bool     // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings. Default:false
+    "numPolicies":int       // optional. Default:0
+    "numJwks":int           // optional. Default:0
+    "tokenIssuer":string    // optional. If set the issuer in the generated token will be set to the tokenIssuer. Default:""
   }
 ```
 
 For more information see [RequestAuthentication Reference](https://istio.io/latest/docs/reference/config/security/request_authentication/).
-
 
 ## Examples
 
