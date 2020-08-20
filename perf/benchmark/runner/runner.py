@@ -42,20 +42,21 @@ def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr}  -o json".format(
         namespace=namespace, filterstr=filterstr)
     op = getoutput(cmd)
+    o = None
     try:
         o = json.loads(op)
     except ValueError:
         print("Decoding pod spec JSON has failed!")
-    items = o['items']
+    else:
+        items = o['items']
+        if not multi_ok and len(items) > 1:
+            raise Exception("more than one found " + op)
 
-    if not multi_ok and len(items) > 1:
-        raise Exception("more than one found " + op)
+        if not items:
+            raise Exception("no pods found with command [" + cmd + "]")
 
-    if not items:
-        raise Exception("no pods found with command [" + cmd + "]")
-
-    i = items[0]
-    return POD(i['metadata']['name'], i['metadata']['namespace'],
+        i = items[0]
+        return POD(i['metadata']['name'], i['metadata']['namespace'],
                i['status']['podIP'], i['metadata']['labels'])
 
 
