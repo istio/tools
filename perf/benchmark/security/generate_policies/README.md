@@ -13,31 +13,30 @@ To generate specific security policies begin by creating a json file that has th
 ```go
 "SecurityPolicy":
 {
-  "AuthZ":
+  "authZ":
   {
-    "action":int,                 // optional DENY/ALLOW. Default:DENY
-    "MatchRequestPrincipal":bool  // optional. Default:false
-    "numNamespaces":int,          // optional. Default:0
-    "numPaths":int,               // optional. Default:0
-    "numPolicies":int,            // optional. Default:0
-    "numPrincipals":int,          // optional. Default:0
-    "numSourceIP":int,            // optional. Default:0
-    "numValues":int               // optional. Default:0
-    "numRequestPrincipals":int    // optional. Default:0
-
+    "action":string,              // optional DENY/ALLOW. Default:DENY
+    "matchRequestPrincipal":bool  // optional.
+    "numNamespaces":int,          // optional
+    "numPaths":int,               // optional.
+    "numPolicies":int,            // optional.
+    "numPrincipals":int,          // optional.
+    "numSourceIP":int,            // optional.
+    "numValues":int               // optional.
+    "numRequestPrincipals":int    // optional.
   },
   "namespace":string,       // optional, the namespace in which all the policies will be applied to. Default:twopods-istio
-  "PeerAuthN":
+  "peerAuthN":
   {
     "mtlsMode":string,      // optional STRICT/DISABLE. Default:STRICT
-    "numPolicies":int       // optional. Default:0
+    "numPolicies":int       // optional.
   },
-  "RequestAuthN":
+  "requestAuthN":
   {
-    "invalidToken":bool     // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings. Default:false
-    "numPolicies":int       // optional. Default:0
-    "numJwks":int           // optional. Default:0
-    "tokenIssuer":string    // optional. If set the issuer in the generated token will be set to the tokenIssuer. Default:""
+    "invalidToken":bool     // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings.
+    "numPolicies":int       // optional.
+    "numJwks":int           // optional.
+    "tokenIssuer":string    // optional. If set the issuer in the generated token will be set to the tokenIssuer.
   }
 }
 ```
@@ -46,7 +45,7 @@ An example config file that will create 2 AuthorizationPolicies that each contai
 
 ```json
 {
-    "AuthZ":
+    "authZ":
     {
         "numPolicies": 2,
         "numSourceIP":1,
@@ -68,7 +67,7 @@ One should also include at least 1 rule. In this example numSourceIP is set to 1
 
 ```json
 {
-  "AuthZ":
+  "authZ":
   {
     "numPolicies":1,
     "numSourceIP":1
@@ -106,15 +105,15 @@ The values which can be used to create custom AuthorizationPolicies are as follo
 ```go
   "AuthZ":
   {
-    "action":int,                 // optional DENY/ALLOW. Default:DENY
-    "MatchRequestPrincipal":bool  // optional. Default:false
-    "numNamespaces":int,          // optional. Default:0
-    "numPaths":int,               // optional. Default:0
-    "numPolicies":int,            // optional. Default:0
-    "numPrincipals":int,          // optional. Default:0
-    "numSourceIP":int,            // optional. Default:0
-    "numValues":int               // optional. Default:0
-    "numRequestPrincipals":int    // optional. Default:0
+    "action":string,              // optional DENY/ALLOW. Default:DENY
+    "matchRequestPrincipal":bool  // optional.
+    "numNamespaces":int,          // optional.
+    "numPaths":int,               // optional.
+    "numPolicies":int,            // optional.
+    "numPrincipals":int,          // optional.
+    "numSourceIP":int,            // optional.
+    "numValues":int               // optional.
+    "numRequestPrincipals":int    // optional.
   }
 ```
 
@@ -127,7 +126,7 @@ By default this generates a mtlsMode of "STRICT" but this can be overwritten as 
 
 ```json
 {
-  "PeerAuthN":
+  "peerAuthN":
   {
     "numPolicies":1,
     "mtlsMode":"DISABLE"
@@ -162,7 +161,7 @@ The values which can be used to create custom AuthorizationPolicies are as follo
   "peerAuthN":
   {
     "mtlsMode":string,      // optional STRICT/DISABLE. Default:STRICT
-    "numPolicies":int       // optional. Default:0
+    "numPolicies":int       // optional.
   }
 ```
 
@@ -175,7 +174,7 @@ One should also include at least 1 rule. In this example NumJwks is set to 1.
 
 ```json
 {
-  "AuthZ":
+  "requestAuthN":
   {
     "numPolicies":1,
     "NumJwks":1
@@ -208,12 +207,12 @@ spec:
 The values which can be used to create custom RequestAuthentication are as follows:
 
 ```go
-  "RequestAuthN":
+  "requestAuthN":
   {
-    "invalidToken":bool     // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings. Default:false
-    "numPolicies":int       // optional. Default:0
-    "numJwks":int           // optional. Default:0
-    "tokenIssuer":string    // optional. If set the issuer in the generated token will be set to the tokenIssuer. Default:""
+    "invalidToken":bool     // optional. If set to true the token which is generate will be signed by an new private key which will not match with any of the jwks signings.
+    "numPolicies":int       // optional.
+    "numJwks":int           // optional.
+    "tokenIssuer":string    // optional. If set the issuer in the generated token will be set to the tokenIssuer.
   }
 ```
 
@@ -226,13 +225,14 @@ To generate 1 AuthorizationPolicy with a principals rule and 1 PeerAuthorization
 
 ```json
 {
-    "mtlsMode":
+    "authZ":
     {
       "numPolicies":1,
       "numPrincipals":1
     },
     "peerAuthN":
     {
+      "mtlsMode":"STRICT",
       "numPolicies":1
     }
 }
@@ -274,7 +274,7 @@ To create a large AuthorizationPolicy to an output .yaml file, create a file cal
 
 ```json
 {
-  "AuthZ":
+  "authZ":
   {
     "numPolicies":1000,
     "numSourceIP":100,
@@ -304,7 +304,7 @@ kubectl apply -f largePolicy.yaml
 
 ```json
 {
-  "AuthZ":
+  "authZ":
   {
     "numPolicies":10,
     "numSourceIP":10,
@@ -325,7 +325,7 @@ go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.
 
 ```json
 {
-  "AuthZ":
+  "authZ":
   {
     "numPolicies":1,
     "numSourceIP":100,
@@ -347,7 +347,7 @@ go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.
 
 ```json
 {
-  "PeerAuthN":
+  "peerAuthN":
   {
     "numPolicies":1,
     "mtlsMode":"DISABLE"
@@ -387,7 +387,7 @@ go run generate_policies.go generate.go -configFile="config.json" > requestAuthN
 ```
 
 - This creates 1 AuthorizationPolicy which has a requestPrincipals rule which will match to the JWKS which is created in the RequestAuthentication policy. This command also
-creates a file called token.txt which is signed with the corresponding public key to match with the JWKS. To use this token in the perf test we must save the token in an environment variable and pass that in as a header to the perf test.
+creates a file called token.txt which is the JWT token signed with the corresponding public key to match with the JWKS. To use this token in the perf test we must save the token in an environment variable and pass that in as a header to the perf test.
 - To apply the policies and run the perf test with the token run the following commands:
 
 ```bash

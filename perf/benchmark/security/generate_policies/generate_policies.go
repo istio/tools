@@ -19,17 +19,14 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
 
 	"io/ioutil"
-	"math/big"
 	"os"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -41,16 +38,6 @@ type ruleGenerator struct {
 	gen generator
 }
 
-type Jwks struct {
-	Keys []*Jwk `json:"keys"`
-}
-
-type Jwk struct {
-	Kty string `json:"kty"`
-	E   string `json:"e"`
-	N   string `json:"n"`
-}
-
 type SecurityPolicy struct {
 	AuthZ        AuthorizationPolicy   `json:"authZ"`
 	Namespace    string                `json:"namespace"`
@@ -59,15 +46,18 @@ type SecurityPolicy struct {
 }
 
 type AuthorizationPolicy struct {
-	Action                string `json:"action"`
-	MatchRequestPrincipal bool   `json:"matchRequestPrincipal"`
-	NumNamespaces         int    `json:"numNamespaces"`
-	NumPaths              int    `json:"numPaths"`
-	NumPolicies           int    `json:"numPolicies"`
-	NumPrincipals         int    `json:"numPrincipals"`
-	NumSourceIP           int    `json:"numSourceIP"`
-	NumValues             int    `json:"numValues"`
-	NumRequestPrincipals  int    `json:"numRequestPrincipals"`
+	Action string `json:"action"`
+	// By setting MatchRequestPrincipal to true and by making NumRequestPrincipals > 0 will
+	// result in a requestPrincipal rule which has the same issuer as the last Jwks rule in
+	// a RequestAuthN rule if numJwks > 0
+	MatchRequestPrincipal bool `json:"matchRequestPrincipal"`
+	NumNamespaces         int  `json:"numNamespaces"`
+	NumPaths              int  `json:"numPaths"`
+	NumPolicies           int  `json:"numPolicies"`
+	NumPrincipals         int  `json:"numPrincipals"`
+	NumSourceIP           int  `json:"numSourceIP"`
+	NumValues             int  `json:"numValues"`
+	NumRequestPrincipals  int  `json:"numRequestPrincipals"`
 }
 
 type PeerAuthentication struct {
@@ -76,6 +66,8 @@ type PeerAuthentication struct {
 }
 
 type RequestAuthentication struct {
+	// Setting InvalidToken to true will create a token which will be signed by it's own
+	// privateKey creating a token which will never match with a jwks
 	InvalidToken bool   `json:"invalidToken"`
 	NumPolicies  int    `json:"numPolicies"`
 	NumJwks      int    `json:"numJwks"`
@@ -199,6 +191,8 @@ func generatePeerAuthentication(policyData SecurityPolicy, policyHeader *MyPolic
 		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_STRICT
 	case "DISABLE":
 		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_DISABLE
+	case "PERMISSIVE":
+		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_PERMISSIVE
 	default:
 		return "", fmt.Errorf("invalid mtlsMode: %s", policyData.PeerAuthN.MtlsMode)
 	}
@@ -208,64 +202,6 @@ func generatePeerAuthentication(policyData SecurityPolicy, policyHeader *MyPolic
 		return "", err
 	}
 	return yaml, nil
-}
-
-func generateToken(policyData SecurityPolicy, privateKey *rsa.PrivateKey) (string, error) {
-	issuer := fmt.Sprintf("issuer-%d", policyData.RequestAuthN.NumJwks)
-	if policyData.RequestAuthN.TokenIssuer != "" {
-		issuer = policyData.RequestAuthN.TokenIssuer
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iss": issuer,
-		"sub": "subject",
-	})
-	if policyData.RequestAuthN.InvalidToken {
-		newPrivateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-		if err != nil {
-			return "", err
-		}
-		privateKey = newPrivateKey
-	}
-	tokenString, err := token.SignedString(privateKey)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
-func generateJwksBytes(privateKey *rsa.PrivateKey) ([]byte, error) {
-	jwks := &Jwks{
-		Keys: []*Jwk{
-			{
-				E:   base64.URLEncoding.EncodeToString(big.NewInt(int64(privateKey.PublicKey.E)).Bytes()),
-				N:   base64.URLEncoding.EncodeToString((*privateKey.PublicKey.N).Bytes()),
-				Kty: "RSA",
-			},
-		},
-	}
-
-	jwksBytes, err := json.Marshal(jwks)
-	if err != nil {
-		return nil, err
-	}
-	return jwksBytes, nil
-}
-
-func writeTokenIntoFile(token string, fileName string) error {
-	file, err := os.Create(fileName)
-	if err != nil {
-		return err
-	}
-	_, err = file.WriteString(fmt.Sprintf(`"Authorization":"Bearer %s"`, token))
-	if err != nil {
-		file.Close()
-		return err
-	}
-	err = file.Close()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func generateRequestAuthentication(policyData SecurityPolicy, policyHeader *MyPolicy) (string, error) {
@@ -281,7 +217,7 @@ func generateRequestAuthentication(policyData SecurityPolicy, policyHeader *MyPo
 	if err != nil {
 		return "", err
 	}
-	jwksBytes, err := generateJwksBytes(privateKey)
+	jwks, err := generateJwks(privateKey)
 	if err != nil {
 		return "", err
 	}
@@ -291,7 +227,7 @@ func generateRequestAuthentication(policyData SecurityPolicy, policyHeader *MyPo
 		for i := 1; i <= numJwks; i++ {
 			jwkRule := &authzpb.JWTRule{
 				Issuer: fmt.Sprintf("issuer-%d", i),
-				Jwks:   string(jwksBytes),
+				Jwks:   jwks,
 			}
 			listJWTRules = append(listJWTRules, jwkRule)
 		}
