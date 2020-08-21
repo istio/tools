@@ -209,15 +209,15 @@ func generateRequestAuthentication(policyData SecurityPolicy, policyHeader *MyPo
 	if err != nil {
 		return "", err
 	}
-	token, err := GenerateToken(policyData, privateKey)
+	token, err := generateToken(policyData, privateKey)
 	if err != nil {
 		return "", err
 	}
-	err = WriteTokenIntoFile(token, "token.txt")
+	err = writeTokenIntoFile(token, "token.txt")
 	if err != nil {
 		return "", err
 	}
-	jwks, err := GenerateJwks(privateKey)
+	jwks, err := generateJwks(privateKey)
 	if err != nil {
 		return "", err
 	}
