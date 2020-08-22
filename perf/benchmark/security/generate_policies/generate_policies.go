@@ -46,18 +46,18 @@ type SecurityPolicy struct {
 }
 
 type AuthorizationPolicy struct {
-	Action string `json:"action"`
-	// By setting MatchRequestPrincipal to true and by making NumRequestPrincipals > 0 will
-	// result in a requestPrincipal rule which has the same issuer as the last Jwks rule in
-	// a RequestAuthN rule if numJwks > 0
-	MatchRequestPrincipal bool `json:"matchRequestPrincipal"`
-	NumNamespaces         int  `json:"numNamespaces"`
-	NumPaths              int  `json:"numPaths"`
-	NumPolicies           int  `json:"numPolicies"`
-	NumPrincipals         int  `json:"numPrincipals"`
-	NumSourceIP           int  `json:"numSourceIP"`
-	NumValues             int  `json:"numValues"`
-	NumRequestPrincipals  int  `json:"numRequestPrincipals"`
+	Action        string `json:"action"`
+	NumNamespaces int    `json:"numNamespaces"`
+	NumPaths      int    `json:"numPaths"`
+	NumPolicies   int    `json:"numPolicies"`
+	NumPrincipals int    `json:"numPrincipals"`
+	NumSourceIP   int    `json:"numSourceIP"`
+	NumValues     int    `json:"numValues"`
+	// The request_principal in the generated authorization policy will match the
+	// RequestAuthentication policies generated from the requestAuthN. This allows
+	// to test RequestAuthentication and AuthorizationPolicy together to verify that
+	// a request with a valid JWT token is allowed.
+	NumRequestPrincipals int `json:"numRequestPrincipals"`
 }
 
 type PeerAuthentication struct {

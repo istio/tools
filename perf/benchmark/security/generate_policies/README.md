@@ -16,7 +16,6 @@ To generate specific security policies begin by creating a json file that has th
   "authZ":
   {
     "action":string,              // optional DENY/ALLOW. Default:DENY
-    "matchRequestPrincipal":bool  // optional.
     "numNamespaces":int,          // optional
     "numPaths":int,               // optional.
     "numPolicies":int,            // optional.
@@ -57,7 +56,7 @@ An example config file that will create 2 AuthorizationPolicies that each contai
 To generate the policies from the config file one must pass in the filename into the configFile flag. For example to generate the policy that is described in the above json run:
 
 ```bash
-go run generate_policies.go generate.go -configFile="config.json"
+go run generate_policies.go generate.go jwt.go -configFile="config.json"
 ```
 
 ## AuthorizationPolicy
@@ -78,7 +77,7 @@ One should also include at least 1 rule. In this example numSourceIP is set to 1
 Once the wanted json file is created (called config.json) to generate the policies we just need pass in the config.json file to the configFile flag.
 
 ```bash
-go run generate_policies.go generate.go -configFile="config.json"
+go run generate_policies.go generate.go jwt.go -configFile="config.json"
 ```
 
 This will create an Authorization Policy as follows and print it out to the stdout.
@@ -103,10 +102,9 @@ spec:
 The values which can be used to create custom AuthorizationPolicies are as follows:
 
 ```go
-  "AuthZ":
+  "authZ":
   {
     "action":string,              // optional DENY/ALLOW. Default:DENY
-    "matchRequestPrincipal":bool  // optional.
     "numNamespaces":int,          // optional.
     "numPaths":int,               // optional.
     "numPolicies":int,            // optional.
@@ -137,7 +135,7 @@ By default this generates a mtlsMode of "STRICT" but this can be overwritten as 
 Once the wanted json file is created (called config.json) to generate the policies we just need pass in the config.json file to the configFile flag.
 
 ```bash
-go run generate_policies.go generate.go -configFile="config.json"
+go run generate_policies.go generate.go jwt.go -configFile="config.json"
 ```
 
 This will create a PeerAuthentication policy as follows and print it out to the stdout.
@@ -185,7 +183,7 @@ One should also include at least 1 rule. In this example NumJwks is set to 1.
 Once the wanted json file is created (called config.json) to generate the policies we just need pass in the config.json file to the configFile flag.
 
 ```bash
-go run generate_policies.go generate.go -configFile="config.json"
+go run generate_policies.go generate.go jwt.go -configFile="config.json"
 ```
 
 This will create a RequestAuthentication Policy as follows and print it out to the stdout. When creating a jwks rule each key is formed of a public key of an RSA256 public/private key pair. This key pair is generated at random and created a new pair every time generate_policies are run.
@@ -239,7 +237,7 @@ To generate 1 AuthorizationPolicy with a principals rule and 1 PeerAuthorization
 ```
 
 ```bash
- go run generate_policies.go generate.go -configFile="twoPolicies.json"
+go run generate_policies.go generate.go jwt.go -configFile="twoPolicies.json"
 ```
 
 Which outputs the following yaml:
@@ -287,7 +285,7 @@ To create a large AuthorizationPolicy to an output .yaml file, create a file cal
 run the following command:
 
 ```bash
-go run generate_policies.go generate.go -configFile="largeConfig.json" > largePolicy.yaml
+go run generate_policies.go generate.go jwt.go -configFile="largeConfig.json" > largePolicy.yaml
 ```
 
 ### Apply the yaml file
@@ -314,7 +312,7 @@ kubectl apply -f largePolicy.yaml
 ```
 
 ```bash
-go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.yaml
+go run generate_policies.go generate.go jwt.go -configFile="config.json" > authZPolicy.yaml
 ```
 
 - This creates 10 AuthorizationPolicies which each contains 10 sourceIP's sources, 2 paths operations, and places the policies in authZPolicy.yaml.
@@ -336,7 +334,7 @@ go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.
 ```
 
 ```bash
-go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.yaml
+go run generate_policies.go generate.go jwt.go -configFile="config.json" > authZPolicy.yaml
 ```
 
 - This creates 1 AuthorizationPolicy which contains 100 sourceIP's sources, 100 paths operations, 100 namespaces sources, and places the policy in authZPolicy.yaml.
@@ -356,7 +354,7 @@ go run generate_policies.go generate.go -configFile="config.json" > authZPolicy.
 ```
 
 ```bash
-go run generate_policies.go generate.go -configFile="config.json" > peerAuthN.yaml
+go run generate_policies.go generate.go jwt.go -configFile="config.json" > peerAuthN.yaml
 ```
 
 - This creates 1 PeerAuthentication policy which has the mtls mode set to DISABLE
@@ -372,7 +370,6 @@ go run generate_policies.go generate.go -configFile="config.json" > peerAuthN.ya
     "action":"ALLOW",
     "numPolicies":1,
     "numRequestPrincipals":1,
-    "matchRequestPrincipal":true
   },
   "requestAuthN":
   {
@@ -383,7 +380,7 @@ go run generate_policies.go generate.go -configFile="config.json" > peerAuthN.ya
 ```
 
 ```bash
-go run generate_policies.go generate.go -configFile="config.json" > requestAuthN.yaml
+go run generate_policies.go generate.go jwt.go -configFile="config.json" > requestAuthN.yaml
 ```
 
 - This creates 1 AuthorizationPolicy which has a requestPrincipals rule which will match to the JWKS which is created in the RequestAuthentication policy. This command also

@@ -123,7 +123,7 @@ func (sourceGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 		requestPrincipals := make([]string, numRequestPrincipals)
 		for i := 0; i < numRequestPrincipals; i++ {
 			principalValue := "invalid-issuer/subject"
-			if i == numRequestPrincipals-1 && policyData.AuthZ.MatchRequestPrincipal {
+			if i == numRequestPrincipals-1 {
 				principalValue = fmt.Sprintf("issuer-%d/subject", policyData.RequestAuthN.NumJwks)
 			}
 			requestPrincipals[i] = principalValue
