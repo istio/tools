@@ -39,7 +39,7 @@ command -v fortio >/dev/null 2>&1 || { echo >&2 "fortio must be installed, abort
 
 usage() {
     echo "Usage:"
-    echo "  ./test_crossgrade.sh [OPTIONS]"
+    echo "  ./test_upgrade_downgrade.sh [OPTIONS]"
     echo
     echo "  from_hub          hub of release to upgrade from (required)."
     echo "  from_tag          tag of release to upgrade from (required)."
@@ -53,7 +53,7 @@ usage() {
     echo "  namespace         namespace to install istio control plane in (default istio-system)."
     echo "  cloud             cloud provider name (required)"
     echo
-    echo "  e.g. ./test_crossgrade.sh \"
+    echo "  e.g. ./test_upgrade_downgrade.sh \"
     echo "        --from_hub=gcr.io/istio-testing --from_tag=d639408fd --from_path=/tmp/release-d639408fd \"
     echo "        --to_hub=gcr.io/istio-release --to_tag=1.0.2 --to_path=/tmp/istio-1.0.2 --cloud=GKE"
     echo "        --install_options=istioctl"
@@ -134,7 +134,7 @@ else
     exit 1
 fi
 
-echo "Testing crossgrade from ${FROM_HUB}:${FROM_TAG} at ${FROM_PATH} to ${TO_HUB}:${TO_TAG} at ${TO_PATH} in namespace ${ISTIO_NAMESPACE}, auth=${AUTH_ENABLE}, cleanup=${SKIP_CLEANUP}"
+echo "Testing upgrade/downgrade from ${FROM_HUB}:${FROM_TAG} at ${FROM_PATH} to ${TO_HUB}:${TO_TAG} at ${TO_PATH} in namespace ${ISTIO_NAMESPACE}, auth=${AUTH_ENABLE}, cleanup=${SKIP_CLEANUP}"
 
 TMP_DIR=/tmp/istio_upgrade_test
 LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
