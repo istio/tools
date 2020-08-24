@@ -1,4 +1,4 @@
-# How to run the upgrade test
+# How to run the crossgrade test
 
 ## Create a test cluster
 
@@ -49,8 +49,8 @@ to configure this test scenario:
     export TEST_SCENARIO=downgrade; export SOURCE_TAG=master; export TARGET_TAG=1.5_latest; export INSTALL_OPTIONS=istioctl; export UPGRADE_TEST_LOCAL=true;
     ```
 
-## Run the upgrade test
+## Run the crossgrade test
 
     ```bash
-    ./run_upgrade_test.sh
+    ./run_crossgrade_test.sh
     ```

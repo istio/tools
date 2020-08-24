@@ -130,5 +130,3 @@ go get fortio.org/fortio
   --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
   --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
   --install_options="${INSTALL_OPTIONS}" --cloud="GKE"
-
-
