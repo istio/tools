@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strings"
@@ -42,14 +43,15 @@ type upgradeNote struct {
 }
 
 func main() {
-	var notesDir string
-	var templatesDir string
+	var oldBranch, newBranch, notesDir, templatesDir string
+	flag.StringVar(&oldBranch, "oldBranch", "a", "branch to compare against")
+	flag.StringVar(&newBranch, "newBranch", "b", "branch containing new files")
 	flag.StringVar(&notesDir, "notes", "./notes", "the directory containing release notes")
 	flag.StringVar(&templatesDir, "templates", "./templates", "the directory containing release note templates")
 	flag.Parse()
 
 	fmt.Printf("Looking for release notes in %s.\n", notesDir)
-	releaseNoteFiles, err := getFilesWithExtension(notesDir, "yaml")
+	releaseNoteFiles, err := getNewFilesInBranch(oldBranch, newBranch, notesDir, "releasenotes/notes")
 	if err != nil {
 		fmt.Printf("failed to list files: %s", err.Error())
 		return
@@ -72,10 +74,6 @@ func main() {
 
 	processTemplates(templatesDir, templateFiles, releaseNotes)
 }
-
-//Bavery_todo: issue display formatting template
-//Bavery_TODO: find previous branch
-//Bavery_todo: diff previous branch
 
 func processTemplates(templatesDir string, templateFiles []string, releaseNotes []ReleaseNote) {
 
@@ -236,4 +234,19 @@ func parseTemplate(filepath string, filename string, releaseNotes []ReleaseNote)
 	}
 
 	return output, nil
+}
+
+func getNewFilesInBranch(oldBranch string, newBranch string, path string, notesSubpath string) ([]string, error) {
+	cmd := fmt.Sprintf("cd %s; git diff-tree -r --diff-filter=AR --name-only --relative=%s '%s' '%s'", path, notesSubpath, oldBranch, newBranch)
+	fmt.Printf("Executing: %s\n", cmd)
+
+	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("Release notes files: %s\n", out)
+
+	outFiles := strings.Split(string(out), "\n")
+	return outFiles[:len(outFiles)-1], nil
 }
