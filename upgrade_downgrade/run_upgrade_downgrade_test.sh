@@ -27,8 +27,8 @@ WD=$(dirname "$0")
 WD=$(cd "$WD"; pwd)
 ROOT=$(dirname "$WD")
 
-# Set up inputs needed by /istio/istio/tests/upgrade/test_crossgrade.sh
-# These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade jobs
+# Set up inputs needed by /istio/tools/upgrade_downgrade/test_upgrade_downgrade.sh
+# These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade and downgrade jobs
 export SOURCE_HUB=${SOURCE_HUB:-"gcr.io/istio-testing"}
 export TARGET_HUB=${TARGET_HUB:-"gcr.io/istio-testing"}
 export SOURCE_TAG=${SOURCE_TAG:-"1.7-dev"}
@@ -101,7 +101,7 @@ function download_untar_istio_release() {
 # shellcheck disable=SC1090
 source "${ROOT}/bin/setup_cluster.sh"
 # Set to any non-empty value to use kubectl configured cluster instead of mason provisioned cluster.
-UPGRADE_TEST_LOCAL="${UPGRADE_TEST_LOCAL:-""}"
+UPGRADE_DOWNGRADE_TEST_LOCAL="${UPGRADE_DOWNGRADE_TEST_LOCAL:-""}"
 
 echo "Testing upgrade and downgrade between ${SOURCE_HUB}:${SOURCE_TAG} and ${TARGET_HUB}:${TARGET_TAG}"
 
@@ -111,9 +111,9 @@ download_untar_istio_release "${TARGET_RELEASE_PATH}" "${TARGET_TAG}" "${TARGET_
 
 # Check https://github.com/istio/test-infra/blob/master/boskos/resources.yaml
 # for existing resources types
-if [[ "${UPGRADE_TEST_LOCAL}" = "" ]]; then
+if [[ "${UPGRADE_DOWNGRADE_TEST_LOCAL}" = "" ]]; then
     export RESOURCE_TYPE="${RESOURCE_TYPE:-gke-e2e-test}"
-    export OWNER='upgrade-tests'
+    export OWNER='upgrade-downgrade-tests'
     export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
     export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 
@@ -122,7 +122,7 @@ else
     echo "Running against cluster that kubectl is configured for."
 fi
 
-# Install fortio which is needed by the upgrade test.
+# Install fortio which is needed by the upgrade and downgrade test.
 go get fortio.org/fortio
 
 # Kick off tests

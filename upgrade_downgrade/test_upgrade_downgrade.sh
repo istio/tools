@@ -134,7 +134,7 @@ else
     exit 1
 fi
 
-echo "Testing crossgrade from ${FROM_HUB}:${FROM_TAG} at ${FROM_PATH} to ${TO_HUB}:${TO_TAG} at ${TO_PATH} in namespace ${ISTIO_NAMESPACE}, auth=${AUTH_ENABLE}, cleanup=${SKIP_CLEANUP}"
+echo "Testing upgrade/downgrade from ${FROM_HUB}:${FROM_TAG} at ${FROM_PATH} to ${TO_HUB}:${TO_TAG} at ${TO_PATH} in namespace ${ISTIO_NAMESPACE}, auth=${AUTH_ENABLE}, cleanup=${SKIP_CLEANUP}"
 
 TMP_DIR=/tmp/istio_upgrade_test
 LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
