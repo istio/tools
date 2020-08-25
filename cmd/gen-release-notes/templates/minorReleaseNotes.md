@@ -8,6 +8,7 @@ weight:10
 ## Traffic Management
 
 <!-- releaseNotes area:traffic-management action:Improved -->
+<!-- releaseNotes area:traffic-management action:Updated -->
 <!-- releaseNotes area:traffic-management action:Added -->
 <!-- releaseNotes area:traffic-management action:Deprecated -->
 <!-- releaseNotes area:traffic-management action:Enabled -->
@@ -19,6 +20,7 @@ weight:10
 ## Security
 
 <!-- releaseNotes area:security action:Improved -->
+<!-- releaseNotes area:security action:Updated -->
 <!-- releaseNotes area:security action:Added -->
 <!-- releaseNotes area:security action:Deprecated -->
 <!-- releaseNotes area:security action:Enabled -->
@@ -30,6 +32,7 @@ weight:10
 ## Telemetry
 
 <!-- releaseNotes area:telemetry action:Improved -->
+<!-- releaseNotes area:telemetry action:Updated -->
 <!-- releaseNotes area:telemetry action:Added -->
 <!-- releaseNotes area:telemetry action:Deprecated -->
 <!-- releaseNotes area:telemetry action:Enabled -->
@@ -41,6 +44,7 @@ weight:10
 ## Installation
 
 <!-- releaseNotes area:installation action:Improved -->
+<!-- releaseNotes area:installation action:Updated -->
 <!-- releaseNotes area:installation action:Added -->
 <!-- releaseNotes area:installation action:Deprecated -->
 <!-- releaseNotes area:installation action:Enabled -->
@@ -52,6 +56,7 @@ weight:10
 ## istioctl
 
 <!-- releaseNotes area:istioctl action:Improved -->
+<!-- releaseNotes area:istioctl action:Updated -->
 <!-- releaseNotes area:istioctl action:Added -->
 <!-- releaseNotes area:istioctl action:Deprecated -->
 <!-- releaseNotes area:istioctl action:Enabled -->
@@ -63,6 +68,7 @@ weight:10
 ## Documentation changes
 
 <!-- releaseNotes area:documentation action:Improved -->
+<!-- releaseNotes area:documentation action:Updated -->
 <!-- releaseNotes area:documentation action:Added -->
 <!-- releaseNotes area:documentation action:Deprecated -->
 <!-- releaseNotes area:documentation action:Enabled -->

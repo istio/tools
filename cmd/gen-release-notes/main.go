@@ -136,7 +136,7 @@ func getActionFromFormat(format string) string {
 
 func getNoteAction(note string) string {
 	action := ""
-	actionRegexp := regexp.MustCompile("\\*\\*[A-Z][a-zA-Z]*\\*\\*")
+	actionRegexp := regexp.MustCompile(`\*\*[A-Z][a-zA-Z]*\*\*`)
 	if match := actionRegexp.FindString(note); match != "" {
 		action = match[2 : len(match)-2]
 	}
