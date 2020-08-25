@@ -17,6 +17,8 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -37,9 +39,10 @@ type ruleGenerator struct {
 }
 
 type SecurityPolicy struct {
-	AuthZ     AuthorizationPolicy `json:"authZ"`
-	Namespace string              `json:"namespace"`
-	PeerAuthN PeerAuthentication  `json:"peerAuthN"`
+	AuthZ        AuthorizationPolicy   `json:"authZ"`
+	Namespace    string                `json:"namespace"`
+	PeerAuthN    PeerAuthentication    `json:"peerAuthN"`
+	RequestAuthN RequestAuthentication `json:"requestAuthN"`
 }
 
 type AuthorizationPolicy struct {
@@ -50,11 +53,25 @@ type AuthorizationPolicy struct {
 	NumPrincipals int    `json:"numPrincipals"`
 	NumSourceIP   int    `json:"numSourceIP"`
 	NumValues     int    `json:"numValues"`
+	// The request_principal in the generated authorization policy will match the
+	// RequestAuthentication policies generated from the requestAuthN. This allows
+	// to test RequestAuthentication and AuthorizationPolicy together to verify that
+	// a request with a valid JWT token is allowed.
+	NumRequestPrincipals int `json:"numRequestPrincipals"`
 }
 
 type PeerAuthentication struct {
 	MtlsMode    string `json:"mtlsMode"`
 	NumPolicies int    `json:"numPolicies"`
+}
+
+type RequestAuthentication struct {
+	// Setting InvalidToken to true will create a token which will be signed by it's own
+	// privateKey creating a token which will never match with a jwks
+	InvalidToken bool   `json:"invalidToken"`
+	NumPolicies  int    `json:"numPolicies"`
+	NumJwks      int    `json:"numJwks"`
+	TokenIssuer  string `json:"tokenIssuer"`
 }
 
 type MyPolicy struct {
@@ -119,7 +136,7 @@ func createRuleGeneratorMap(authZData AuthorizationPolicy) map[string]*ruleGener
 	ruleGeneratorMap := make(map[string]*ruleGenerator)
 
 	if authZData.NumSourceIP > 0 || authZData.NumNamespaces > 0 ||
-		authZData.NumPrincipals > 0 {
+		authZData.NumPrincipals > 0 || authZData.NumRequestPrincipals > 0 {
 		ruleGeneratorMap["from"] = &ruleGenerator{
 			gen: sourceGenerator{},
 		}
@@ -174,10 +191,51 @@ func generatePeerAuthentication(policyData SecurityPolicy, policyHeader *MyPolic
 		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_STRICT
 	case "DISABLE":
 		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_DISABLE
+	case "PERMISSIVE":
+		spec.Mtls.Mode = authzpb.PeerAuthentication_MutualTLS_PERMISSIVE
 	default:
 		return "", fmt.Errorf("invalid mtlsMode: %s", policyData.PeerAuthN.MtlsMode)
 	}
 
+	yaml, err := PolicyToYAML(policyHeader, spec)
+	if err != nil {
+		return "", err
+	}
+	return yaml, nil
+}
+
+func generateRequestAuthentication(policyData SecurityPolicy, policyHeader *MyPolicy) (string, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return "", err
+	}
+	token, err := generateToken(policyData, privateKey)
+	if err != nil {
+		return "", err
+	}
+	err = writeTokenIntoFile(token, "token.txt")
+	if err != nil {
+		return "", err
+	}
+	jwks, err := generateJwks(privateKey)
+	if err != nil {
+		return "", err
+	}
+
+	var listJWTRules []*authzpb.JWTRule
+	if numJwks := policyData.RequestAuthN.NumJwks; numJwks > 0 {
+		for i := 1; i <= numJwks; i++ {
+			jwkRule := &authzpb.JWTRule{
+				Issuer: fmt.Sprintf("issuer-%d", i),
+				Jwks:   jwks,
+			}
+			listJWTRules = append(listJWTRules, jwkRule)
+		}
+	}
+
+	spec := &authzpb.RequestAuthentication{
+		JwtRules: listJWTRules,
+	}
 	yaml, err := PolicyToYAML(policyHeader, spec)
 	if err != nil {
 		return "", err
@@ -192,7 +250,7 @@ func generateRules(policyData SecurityPolicy, policyHeader *MyPolicy) (string, e
 	case "PeerAuthentication":
 		return generatePeerAuthentication(policyData, policyHeader)
 	case "RequestAuthentication":
-		return "", fmt.Errorf("unimplemented")
+		return generateRequestAuthentication(policyData, policyHeader)
 	default:
 		return "", fmt.Errorf("unknown policy kind: %s", policyHeader.Kind)
 	}
@@ -249,7 +307,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	totalPolicies := policyData.AuthZ.NumPolicies + policyData.PeerAuthN.NumPolicies
+	totalPolicies := policyData.AuthZ.NumPolicies + policyData.PeerAuthN.NumPolicies + policyData.RequestAuthN.NumPolicies
 	if totalPolicies <= 0 {
 		fmt.Println(fmt.Errorf("invalid number of policies: %d", totalPolicies))
 	}
@@ -263,6 +321,13 @@ func main() {
 
 	if policyData.PeerAuthN.NumPolicies > 0 {
 		err := generatePolicy(policyData, "PeerAuthentication", policyData.PeerAuthN.NumPolicies)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	if policyData.RequestAuthN.NumPolicies > 0 {
+		err := generatePolicy(policyData, "RequestAuthentication", policyData.RequestAuthN.NumPolicies)
 		if err != nil {
 			fmt.Println(err)
 		}
