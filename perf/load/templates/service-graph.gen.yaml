@@ -1,3 +1,5 @@
+# Workloads are split into two groups, for single cluster there is no difference as before.
+# For multicluster we can deploy the first set of workloads into first cluster and the second one into second cluster.
 {{- if or (not .Values.multicluster.enabled) (.Values.multicluster.cluster1) }}
 apiVersion: v1
 data:

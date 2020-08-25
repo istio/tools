@@ -34,22 +34,6 @@ Or if you want to skip Istio setup completely, just deploy the workloads and ale
 
 `VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh`
 
-### Google ASM specific instruction
-
-run with ASM 1.6 or later on an existing cluster, set INSTALL_ASM=true and these prerequisite: PROJECT_ID, CLUSTER_NAME, CLUSTER_LOCATION
-
-`export RELEASE_URL=https://storage.googleapis.com/gke-release/asm/istio-1.6.5-asm.7-linux-amd64.tar.gz`
-`INSTALL_ASM=true RELEASE=release-1.6-asm PROJECT_ID=istio-test CLUSTER_NAME=cluster1 CLUSTER_LOCATION=us-central1-b NAMESPACE_NUM=15 ./long_running.sh --set hub=gcr.io/asm-testing --set tag=1.6.5-asm.7` 
-
-run with ASM 1.6 or later with two clusters(for simplicity, we assume two clusters in the same project and same location now)
-
-`export CTX1=cluster1_ctx`
-`export CTX2=cluster2_ctx`
-`CLUSTER1=cluster1_name`
-`CLUSTER1=cluster2_name`
-`export RELEASE_URL=https://storage.googleapis.com/gke-release/asm/istio-1.6.5-asm.7-linux-amd64.tar.gz`
-`INSTALL_ASM=true MULTI_CLUSTER=true RELEASE=release-1.6-asm PROJECT_ID=istio-test CLUSTER_LOCATION=us-central1-a NAMESPACE_NUM=15 ./long_running.sh --set hub=gcr.io/asm-testing --set tag=1.6.5-asm.7` 
-
 Note:
 1. It is likely the script would fail in between because of transient issues such as node rescaling as more workloads being deployed. Just rerun the script again accordingly when that happens, for example it is likely that the scaling happen at the stage of deploying workload, you can just rerun from the failing namespace like:
 `VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`

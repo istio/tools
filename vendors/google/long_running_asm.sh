@@ -20,47 +20,36 @@ ROOT=$(dirname "$WD")
 
 set -eux
 
-# envs for Istio installation
-export TAG="${TAG:-}"
-export VERSION="${VERSION:-}"
-export RELEASE_URL="${RELEASE_URL:-}"
-export DNS_DOMAIN="fake-dns.org"
-export LOCAL_ISTIO_PATH="${LOCAL_ISTIO_PATH:-}"
-export NAMESPACE_NUM="${NAMESPACE_NUM:-15}"
-export SKIP_ISTIO_SETUP="${SKIP_ISTIO_SETUP:-false}"
-
-# setup Istio
-if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then
-# shellcheck disable=SC2199
-  if [[ -n "${@}" ]];then
-    "${ROOT}"/istio-install/setup_istio.sh "${@}"
-  else
-    "${ROOT}"/istio-install/setup_istio.sh
-  fi
-fi
+# below envs are for ASM installation
+export INSTALL_ASM="${INSTALL_ASM:-}"
+export PROJECT_ID="${PROJECT_ID:-}"
+export CLUSTER_NAME="${CLUSTER_NAME:-}"
+export CLUSTER_LOCATION="${CLUSTER_LOCATION:-}"
+export RELEASE="${RELEASE:-}"
+export MULTI_CLUSTER="${MULTI_CLUSTER:-}"
+export CTX1="${CTX1:-}"
+export CTX2="${CTX2:-}"
 
 export NOT_INJECTED="True"
 # deploy alertmanager related resources
-NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager
-kubectl apply -f ./alertmanager/prometheusrule.yaml
+NAMESPACE="istio-prometheus" "${WD}"/setup_test.sh alertmanager
+kubectl apply -f "${WD}/alertmanager/prometheusrule.yaml"
 
 # deploy log scanner
 kubectl create ns logs-checker || true
 kubectl create configmap logs-checker --from-file=./logs-checker/check_k8s_logs.sh -n logs-checker || true
-./setup_test.sh logs-checker
+"${WD}"/setup_test.sh logs-checker
 
 # This part would be only needed when we run the fully automated jobs on a dedicated cluster
 # It would upgrade control plane and data plane to newer dev release every 48h.
 # deploy canary upgrader
 kubectl create ns canary-upgrader || true
 kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh -n canary-upgrader || true
-./setup_test.sh canary-upgrader
+"${WD}"/setup_test.sh canary-upgrader
 
 # Setup workloads
-pushd "${ROOT}/load"
 # shellcheck disable=SC1091
-source "./common.sh"
-START_NUM=13
+source "./setup_workload.sh"
 export START_NUM="${START_NUM:-0}"
 export DELETE=""
 export CMD=""
@@ -71,4 +60,3 @@ else
  # run on two cluster
  CTX1=${CTX1} CTX=${CTX2} start_servicegraphs_multicluster "${NAMESPACE_NUM}" "${START_NUM}"
 fi
-popd

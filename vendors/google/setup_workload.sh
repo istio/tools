@@ -14,6 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Mirrors the script at /tools/perf/load/common.sh for ASM specific
+set -ex
+
+WD=$(dirname "$0")
+WD=$(cd "$WD"; pwd)
+ROOT=$(dirname "$WD")
+
+# shellcheck disable=SC1090
+TOOLS_PATH="${ROOT}/../perf/load"
 if [[ -z "${GATEWAY_URL:-}" ]];then
   GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
 fi
@@ -54,19 +63,30 @@ function run_test() {
   fi
 }
 
-function start_servicegraphs() {
+# This function assumes preconfigured ASM multi clusters ready.
+# Here is a simple setup guide for example: https://cloud.google.com/service-mesh/docs/gke-install-multi-cluster
+function start_servicegraphs_multicluster() {
   local nn=${1:?"number of namespaces"}
   local min=${2:-"0"}
-
+  if [[ -z "${CTX1}" ]] || [[ -z "${CTX2}" ]];then
+     echo "Required to set CTX1 and CTX2 env variables first for two clusters"
+     exit 1
+  fi
    # shellcheck disable=SC2004
    for ((ii=$min; ii<$nn; ii++)) {
     ns=$(printf 'service-graph%.2d' "${ii}")
     prefix=$(printf 'svc%.2d-' "${ii}")
     if [[ -z "${DELETE}" ]];then
-      ${CMD} run_test "${ns}" "${prefix}"
-      ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}"
+      kubectl config use-context "${CTX1}"
+      MULTI_CLUSTER="true" CLUSTER1="true" CLUSTER2="false" ${CMD} run_test "${ns}" "${prefix}"
+      ${CMD} "${TOOLS_PATH}/loadclient/setup_test.sh" "${ns}" "${prefix}"
+
+      kubectl config use-context "${CTX2}"
+      MULTI_CLUSTER="true" CLUSTER1="false" CLUSTER2="true" ${CMD} run_test "${ns}" "${prefix}"
+      ${CMD} "${TOOLS_PATH}/loadclient/setup_test.sh" "${ns}" "${prefix}"
+      kubectl config use-context "${CTX1}"
     else
-      ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}"
+      ${CMD} "${TOOLS_PATH}/loadclient/setup_test.sh" "${ns}" "${prefix}"
       ${CMD} run_test "${ns}" "${prefix}"
     fi
 

@@ -40,7 +40,7 @@ function install_istioctl() {
 
 # existing revision
 REV_LIST=$(kubectl get pods -n istio-system -lapp=istiod --sort-by=.status.startTime -o "jsonpath={.items[*].metadata.labels.istio\.io\/rev}")
-EXISTING_REV=$(echo ${REV_LIST} | cut -f1 -d' ')
+EXISTING_REV=$(echo "${REV_LIST}" | cut -f1 -d' ')
 
 download_release
 SUFFIX=$(echo "${VERSION}" | cut -f2 -d- | cut -f2 -d.)
