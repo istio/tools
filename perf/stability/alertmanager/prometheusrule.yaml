@@ -17,16 +17,21 @@ spec:
           expr: >
             sum(irate(istio_requests_total{reporter="destination", response_code=~"5.*"}[5m])) / sum(irate(istio_requests_total{reporter="destination"}[5m])) > 0.05
           for: 5m
+        - alert: LatencyHigh
+          expr: sum(irate(istio_request_duration_milliseconds_bucket{source_workload=~"svc.*"}[5m])) by (source_workload,namespace)  > 30000
+          for: 10m
+          annotations:
+            message:  "Request duration has slowed down for workload: {{`{{$labels.source_workload}}`}} in namespace: {{`{{$labels.namespace}}`}}. Response duration is {{`{{$value}}`}} seconds"
     - name: ./infra.rules
       rules:
         - alert: ContainerCPUUsageHigh
-          expr: (sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container!="POD", namespace!=""}[5m])) BY (namespace, pod, container) * 100) > 80
+          expr: (sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container=~"istio-proxy|discovery", namespace!=""}[5m])) BY (namespace, pod, container) * 100) > 80
           for: 5m
           annotations:
             summary: "Container CPU usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
             description: "Container CPU usage is above 80%\n  VALUE = {{ $value }}\n"
         - alert: ContainerMemoryUsageHigh
-          expr: (sum(container_memory_usage_bytes{namespace!="kube-system", container!="POD", namespace!=""}) BY (container, pod, namespace)  / (sum(container_spec_memory_limit_bytes{namespace!="kube-system", container!="POD"}) BY (container, pod, namespace) > 0)* 100) > 80
+          expr: (sum(container_memory_working_set_bytes{namespace!="kube-system", container=~"istio-proxy|discovery", namespace!=""}) BY (container, pod, namespace)  / (sum(container_spec_memory_limit_bytes{namespace!="kube-system", container!="POD"}) BY (container, pod, namespace) > 0)* 100) > 80
           for: 5m
           annotations:
             summary: "Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
@@ -47,48 +52,45 @@ spec:
           expr: >
             sum(irate(pilot_total_xds_rejects{app="istiod"}[5m])) / sum(irate(pilot_xds_pushes{app="istiod"}[5m])) > 0.05
           for: 5m
+        - alert: IstiodContainerNotReady
+          annotations:
+            summary: 'istiod container not ready'
+            description: 'container: discovery not running'
+          expr: >
+            kube_pod_container_status_running{namespace="istio-system", container="discovery", component=""} == 0
+          for: 5m
+        - alert: IstiodUnavailableReplica
+          annotations:
+            summary: 'Istiod unavailable pod'
+          expr: >
+            kube_deployment_status_replicas_unavailable{deployment="istiod", component=""} > 0
+          for: 5m
+        - alert: Ingress200RateLow
+          annotations:
+            summary: 'ingress gateway 200 rate drops'
+            description: 'The expected rate is 100 per ns, the limit is set based on 15ns'
+          expr: >
+            sum(rate(istio_requests_total{reporter="source", source_workload="istio-ingressgateway",response_code="200",destination_service_namespace=~"service-graph.*"}[5m])) < 1450
+          for: 5m
     - name: "istio.recording-rules"
       interval: 5s
       rules:
         - record: "workload:istio_requests_total"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_requests_total)
+            sum without(instance, namespace, pod) (istio_requests_total)
 
         - record: "workload:istio_request_duration_milliseconds_count"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_request_duration_milliseconds_count)
+            sum without(instance, namespace, pod) (istio_request_duration_milliseconds_count)
 
         - record: "workload:istio_request_duration_milliseconds_sum"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_request_duration_milliseconds_sum)
+            sum without(instance, namespace, pod) (istio_request_duration_milliseconds_sum)
 
         - record: "workload:istio_request_duration_milliseconds_bucket"
           expr: |
-            sum without(instance, namespace, pod_name) (istio_request_duration_milliseconds_bucket)
+            sum without(instance, namespace, pod) (istio_request_duration_milliseconds_bucket)
 
-        - record: "workload:istio_request_bytes_count"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_request_bytes_count)
-
-        - record: "workload:istio_request_bytes_sum"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_request_bytes_sum)
-
-        - record: "workload:istio_request_bytes_bucket"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_request_bytes_bucket)
-
-        - record: "workload:istio_response_bytes_count"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_response_bytes_count)
-
-        - record: "workload:istio_response_bytes_sum"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_response_bytes_sum)
-
-        - record: "workload:istio_response_bytes_bucket"
-          expr: |
-            sum without(instance, namespace, pod_name) (istio_response_bytes_bucket)
     - name: k8s.rules
       rules:
         - expr: |
@@ -107,49 +109,6 @@ spec:
               max by(namespace, pod, node) (kube_pod_info)
             )
           record: node_namespace_pod_container:container_memory_working_set_bytes
-        - expr: |
-            container_memory_rss{job="kubelet", metrics_path="/metrics/cadvisor", image!=""}
-            * on (namespace, pod) group_left(node) topk by(namespace, pod) (1,
-              max by(namespace, pod, node) (kube_pod_info)
-            )
-          record: node_namespace_pod_container:container_memory_rss
-        - expr: |
-            container_memory_cache{job="kubelet", metrics_path="/metrics/cadvisor", image!=""}
-            * on (namespace, pod) group_left(node) topk by(namespace, pod) (1,
-              max by(namespace, pod, node) (kube_pod_info)
-            )
-          record: node_namespace_pod_container:container_memory_cache
-        - expr: |
-            container_memory_swap{job="kubelet", metrics_path="/metrics/cadvisor", image!=""}
-            * on (namespace, pod) group_left(node) topk by(namespace, pod) (1,
-              max by(namespace, pod, node) (kube_pod_info)
-            )
-          record: node_namespace_pod_container:container_memory_swap
-        - expr: |
-            sum(container_memory_usage_bytes{job="kubelet", metrics_path="/metrics/cadvisor", image!="", container!="POD"}) by (namespace)
-          record: namespace:container_memory_usage_bytes:sum
-        - expr: |
-            sum by (namespace) (
-                sum by (namespace, pod) (
-                    max by (namespace, pod, container) (
-                        kube_pod_container_resource_requests_memory_bytes{job="kube-state-metrics"}
-                    ) * on(namespace, pod) group_left() max by (namespace, pod) (
-                        kube_pod_status_phase{phase=~"Pending|Running"} == 1
-                    )
-                )
-            )
-          record: namespace:kube_pod_container_resource_requests_memory_bytes:sum
-        - expr: |
-            sum by (namespace) (
-                sum by (namespace, pod) (
-                    max by (namespace, pod, container) (
-                        kube_pod_container_resource_requests_cpu_cores{job="kube-state-metrics"}
-                    ) * on(namespace, pod) group_left() max by (namespace, pod) (
-                      kube_pod_status_phase{phase=~"Pending|Running"} == 1
-                    )
-                )
-            )
-          record: namespace:kube_pod_container_resource_requests_cpu_cores:sum
         - expr: |
             max by (cluster, namespace, workload, pod) (
               label_replace(

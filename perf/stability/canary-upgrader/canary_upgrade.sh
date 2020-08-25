@@ -20,7 +20,8 @@ DIRNAME="/tmp"
 set -eux
 
 function download_release() {
-  VERSION=$(curl -sL https://gcsweb.istio.io/gcs/istio-build/dev/latest)
+# shellcheck disable=SC2155
+  export VERSION=$(curl -sL https://gcsweb.istio.io/gcs/istio-build/dev/latest)
   OUT_FILE="istio-${VERSION}"
   RELEASE_URL="https://storage.googleapis.com/istio-build/dev/${VERSION}/istio-${VERSION}-linux-amd64.tar.gz"
   outfile="${DIRNAME}/${OUT_FILE}"
@@ -34,17 +35,21 @@ function download_release() {
 }
 
 function install_istioctl() {
-  "${outfile}/bin/istioctl" install -d "${outfile}/manifests" --set revision="${rev}"
+  "${outfile}/bin/istioctl" install -d "${outfile}/manifests" --set revision="${NEW_REV}"
 }
 
-dtsuffix=$(date +'%Y%m%d')
-rev="canary${dtsuffix}"
+# existing revision
+REV_LIST=$(kubectl get pods -n istio-system -lapp=istiod --sort-by=.status.startTime -o "jsonpath={.items[*].metadata.labels.istio\.io\/rev}")
+EXISTING_REV=$(echo "${REV_LIST}" | cut -f1 -d' ')
+
 download_release
+SUFFIX=$(echo "${VERSION}" | cut -f2 -d- | cut -f2 -d.)
+NEW_REV="canary-${SUFFIX}"
 install_istioctl
 
 # verify whether canary one exist
-podc=$(kubectl -n istio-system get pods -l istio.io/rev="${rev}" | grep -c istiod)
-svcc=$(kubectl -n istio-system get svc -l istio.io/rev="${rev}" | grep -c istiod)
+podc=$(kubectl -n istio-system get pods -l istio.io/rev="${NEW_REV}" | grep -c istiod)
+svcc=$(kubectl -n istio-system get svc -l istio.io/rev="${NEW_REV}" | grep -c istiod)
 if [[ ${podc} == 0 ]] || [[ ${svcc} == 0 ]]; then
   echo "canary deployment not available"
   exit 1
@@ -52,10 +57,16 @@ fi
 allns=$(kubectl get ns -o jsonpath="{.items[*].metadata.name}")
 # upgrade data plane
 for testns in ${allns};do
-    if [[ ${testns} =~ "service_graph" ]];then
-        kubectl label namespace "${testns}" istio-injection- istio.io/rev="${rev}"
+    if [[ ${testns} == *"service-graph"* ]];then
+        kubectl label namespace "${testns}" istio-injection- istio.io/rev="${NEW_REV}" --overwrite
         kubectl rollout restart deployment -n "${testns}"
+        sleep 30
     # verify
     fi
 done
-# (TODO)figure out what is better way to clean up old control plane
+
+# clean up old control plane
+# This command only works for 1.7 or later
+if [[ -n ${EXISTING_REV} ]];then
+  "${outfile}/bin/istioctl" x uninstall --revision "${EXISTING_REV}"
+fi

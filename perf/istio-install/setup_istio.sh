@@ -107,22 +107,28 @@ function install_extras() {
   done
   # Redeploy, this time with the Prometheus resource created
   helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
-  # Also deploy relevant istio ServiceMonitors
-  kubectl apply -f "${release}/samples/addons/extras/prometheus-operator.yaml" -n istio-system
-  # Deploy k8s ServiceMonitors
-  kubectl apply -f "${WD}/addons/servicemonitors.yaml" -n istio-system
+  # Also deploy relevant ServiceMonitors
+  if [[ -f "${release}/samples/addons/extras/prometheus-operator.yaml" ]];then
+     kubectl apply -f "${release}/samples/addons/extras/prometheus-operator.yaml" -n istio-system
+  # for release before 1.7, run below instead
+  else
+    "${release}/bin/istioctl" manifest generate --set profile=empty --set addonComponents.prometheusOperator.enabled=true -d "${release}/manifests" | kubectl apply -f -
+  fi
   # deploy grafana
   kubectl apply -f "${release}/samples/addons/grafana.yaml" -n istio-system
 }
 
-if [[ -z "${LOCAL_ISTIO_PATH}" ]];then
-  download_release
-  install_istioctl "${DIRNAME}/${OUT_FILE}" "${@}"
+if [[ -z "${SKIP_INSTALL}" ]];then
+  if [[ -z "${LOCAL_ISTIO_PATH}" ]];then
+    download_release
+    install_istioctl "${DIRNAME}/${OUT_FILE}" "${@}"
 
-  if [[ -z "${SKIP_EXTRAS:-}" ]]; then
+    if [[ -z "${SKIP_EXTRAS:-}" ]]; then
+      install_extras
+    fi
+    # if LOCAL_ISTIO_PATH is set, we assume that Istio is preconfigured, we only install extra monitoring/alerting configs.
+  else
+    release="${LOCAL_ISTIO_PATH}"
     install_extras
   fi
-else
-  release="${LOCAL_ISTIO_PATH}"
-  install_extras
 fi

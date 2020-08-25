@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.namespace }}-account
+  namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.namespace }}-role
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - namespaces
+      - pods
+      - services
+      - serviceaccounts
+    verbs:
+      - '*'
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - '*'
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - '*'
+  - apiGroups:
+      - admissionregistration.k8s.io
+    resources:
+      - mutatingwebhookconfigurations
+      - validatingwebhookconfigurations
+    verbs:
+      - '*'
+  - apiGroups:
+      - apps
+      - extensions
+    resources:
+      - deployments
+      - deployments/finalizers
+      - replicasets
+    verbs:
+      - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Values.namespace }}-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.namespace }}-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.namespace }}-account
+    namespace: {{ .Values.namespace }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: istio-logs-checker
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: istio-logs-checker
+spec:
+  schedule: "0 0 */{{ .Values.redeployDays }} * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+          labels:
+            app: logs-checker
+        spec:
+          serviceAccountName: {{ .Values.namespace }}-account
+          containers:
+              - name: logs-checker
+                image: {{ .Values.kubectlImage }}
+                command: ["/scripts/check_k8s_logs.sh"]
+                volumeMounts:
+                  - name: logs-checker-script
+                    mountPath: /scripts
+          restartPolicy: OnFailure
+          volumes:
+            - name: logs-checker-script
+              configMap:
+                name: logs-checker
+                defaultMode: 0744

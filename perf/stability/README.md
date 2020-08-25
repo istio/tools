@@ -14,25 +14,28 @@ If you want to run against a public release(stable or dev), specify the target r
 
 For example
 
-run with istio 1.5.4:
+run with Istio 1.5.4:
 
 `VERSION=1.5.4 NAMESPACE_NUM=15 ./long_running.sh`
 
-run with istio 1.6.5 prerelease:
+run with Istio 1.6.5 prerelease:
 
 `VERSION=1.6.5 NAMESPACE_NUM=15  ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`
+
+run with Istio private release:
+
+`RELEASE_URL=gs://istio-private-prerelease/prerelease/1.5.8/istio-1.5.8-linux.tar.gz NAMESPACE_NUM=15  ./long_running.sh --set hub=gcr.io/istio-prow-build --set tag=1.5.8`
 
 If you already install specific Istio version in the cluster, you can also point to the local release bundles to install grafana, some extra prometheus configs needed, e.g.
 
 `LOCAL_ISTIO_PATH=/Users/iamwen/Downloads/istio-1.5.5 ./long_running.sh`
 
-Or you skip Istio setup completely, just deploy the workloads and alertmanager
+Or if you want to skip Istio setup completely, just deploy the workloads and alertmanager
 
 `VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh`
 
 Note:
-1. This does not support running with asm managed control plane yet.
-2. It is likely the script would fail in between because of transient issues such as node rescaling as more workloads being deployed. Just rerun the script again accordingly when that happens, for example it is likely that the scaling happen at the stage of deploying workload, you can just rerun from the failing namespace like:
+1. It is likely the script would fail in between because of transient issues such as node rescaling as more workloads being deployed. Just rerun the script again accordingly when that happens, for example it is likely that the scaling happen at the stage of deploying workload, you can just rerun from the failing namespace like:
 `VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`
 
 ## Setup Tests

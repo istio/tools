@@ -1,0 +1,11 @@
+apiVersion: v1
+name: logs-checker
+version: 1.0
+description: Helm chart for logs checker
+keywords:
+  - istio
+  - performance
+sources:
+  - http://github.com/istio/istio
+engine: gotpl
+icon: https://istio.io/favicons/android-192x192.png
