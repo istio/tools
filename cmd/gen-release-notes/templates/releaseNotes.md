@@ -14,7 +14,14 @@ This release contains bug fixes to improve robustness. This release note describ
 
 # Changes
 
-<!-- releaseNotes  -->
+<!-- releaseNotes action:Improved -->
+<!-- releaseNotes action:Added -->
+<!-- releaseNotes action:Deprecated -->
+<!-- releaseNotes action:Enabled -->
+<!-- releaseNotes action:Fixed -->
+<!-- releaseNotes action:Upgraded -->
+<!-- releaseNotes action:Removed -->
+<!-- releaseNotes action:Optimized -->
 
 # Security update
 

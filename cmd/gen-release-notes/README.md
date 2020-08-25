@@ -12,12 +12,15 @@ single release notes file.
 To generate release notes, run:
 
 ```bash
-go run ./main.go --notes <notes-dir> --templates <templates-dir>
+go run ./main.go --notes <notes-dir> --templates <templates-dir> --oldBranch
+myOldBranch --newBranch myNewBranch
 ```
 
 `--notes` and `--templates` are optional arguments indicating where release
 notes and templates should be found. By default, the generator looks for
-a `templates` and a `notes` directory in the current directory.
+a `templates` and a `notes` directory in the current directory. `--oldBranch`
+and `--newBranch` indicate which branches should be compared to find new release
+notes.
 
 ## Templates
 

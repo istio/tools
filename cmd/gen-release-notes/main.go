@@ -35,6 +35,7 @@ type ReleaseNote struct {
 	ReleaseNotes  []string      `json:"releaseNotes"`
 	UpgradeNotes  []upgradeNote `json:"upgradeNotes"`
 	SecurityNotes []string      `json:"securityNotes"`
+	File          string
 }
 
 type upgradeNote struct {
@@ -98,9 +99,7 @@ func processTemplates(templatesDir string, templateFiles []string, releaseNotes 
 	}
 }
 
-func parseReleaseNote(releaseNotes []ReleaseNote, format string) []string {
-	parsedNotes := make([]string, 0)
-
+func parseTemplateFormat(releaseNotes []ReleaseNote, format string) []string {
 	noteType := "releaseNotes"
 	if strings.Contains(format, "upgradeNotes") {
 		noteType = "upgradeNotes"
@@ -108,29 +107,58 @@ func parseReleaseNote(releaseNotes []ReleaseNote, format string) []string {
 		noteType = "securityNotes"
 	}
 
+	area := getNoteArea(format)
+	action := getActionFromFormat(format)
+	fmt.Printf("Notes format: %s type: %s area: %s action:%s\n", format, noteType, area, action)
+
+	return getNotesForTemplateFormat(releaseNotes, noteType, area, action)
+}
+
+func getNoteArea(format string) string {
 	area := ""
 	areaRegexp := regexp.MustCompile("area:[a-zA-Z-]*")
 	if match := areaRegexp.FindString(format); match != "" {
 		sections := strings.Split(match, ":")
 		area = sections[1]
 	}
-	fmt.Printf("Notes format: %s type: %s area: %s\n", format, noteType, area)
+	return area
+}
 
+func getActionFromFormat(format string) string {
+	action := ""
+	actionRegexp := regexp.MustCompile("action:[a-zA-Z]*")
+	if match := actionRegexp.FindString(format); match != "" {
+		sections := strings.Split(match, ":")
+		action = sections[1]
+	}
+	return action
+}
+
+func getNoteAction(note string) string {
+	action := ""
+	actionRegexp := regexp.MustCompile("\\*\\*[A-Z][a-zA-Z]*\\*\\*")
+	if match := actionRegexp.FindString(note); match != "" {
+		action = match[2 : len(match)-2]
+	}
+	return action
+}
+
+func getNotesForTemplateFormat(releaseNotes []ReleaseNote, noteType string, area string, action string) []string {
+	parsedNotes := make([]string, 0)
 	for _, note := range releaseNotes {
 		formatted := ""
 		if noteType == "releaseNotes" && note.ReleaseNotes != nil && (note.Area == area || area == "") {
 			for _, releaseNote := range note.ReleaseNotes {
-				formatted += fmt.Sprintf("- %s %s\n", releaseNote, issuesListToString(note.Issue))
+				if getNoteAction(releaseNote) == action || action == "" {
+					formatted += fmt.Sprintf("- %s %s\n", releaseNote, issuesListToString(note.Issue))
+				}
 			}
 		} else if noteType == "upgradeNotes" {
-
 			for _, upgradeNote := range note.UpgradeNotes {
-				if upgradeNote.Content != "" {
-					if upgradeNote.Title == "" {
-						fmt.Printf("Upgrade note is missing title. Skipping.")
-					} else {
-						formatted += fmt.Sprintf("## %s\n%s", upgradeNote.Title, upgradeNote.Content)
-					}
+				if upgradeNote.Content == "" || upgradeNote.Title == "" {
+					fmt.Printf("Upgrade note in %s is missing either content or title. Skipping.\n", note.File)
+				} else {
+					formatted += fmt.Sprintf("## %s\n%s", upgradeNote.Title, upgradeNote.Content)
 				}
 			}
 		} else if noteType == "securityNotes" && note.SecurityNotes != nil {
@@ -202,6 +230,7 @@ func parseReleaseNotesFiles(filePath string, files []string) ([]ReleaseNote, err
 		if err = yaml.Unmarshal(contents, &releaseNote); err != nil {
 			return nil, fmt.Errorf("unable to parse release note %s:%s", file, err.Error())
 		}
+		releaseNote.File = file
 		releaseNotes = append(releaseNotes, releaseNote)
 
 	}
@@ -228,7 +257,7 @@ func parseTemplate(filepath string, filename string, releaseNotes []ReleaseNote)
 	results := comment.FindAllString(string(contents), -1)
 
 	for _, result := range results {
-		contents := parseReleaseNote(releaseNotes, result)
+		contents := parseTemplateFormat(releaseNotes, result)
 		joinedContents := strings.Join(contents, "\n")
 		output = strings.Replace(output, result, joinedContents, -1)
 	}
