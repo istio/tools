@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strings"
@@ -27,143 +28,115 @@ import (
 	"github.com/russross/blackfriday/v2"
 )
 
-type ReleaseNote struct {
-	Kind          string        `json:"kind"`
-	Area          string        `json:"area"`
-	Issue         []string      `json:"issue,omitempty"`
-	ReleaseNotes  []string      `json:"releaseNotes"`
-	UpgradeNotes  []upgradeNote `json:"upgradeNotes"`
-	SecurityNotes []string      `json:"securityNotes"`
-}
-
-type upgradeNote struct {
-	Title   string `json:"title"`
-	Content string `json:"content"`
-}
-
 func main() {
-	var notesDir string
-	var templatesDir string
+	var oldBranch, newBranch, notesDir, templatesDir, notesFile string
+	var validateOnly bool
+	flag.StringVar(&oldBranch, "oldBranch", "a", "branch to compare against")
+	flag.StringVar(&newBranch, "newBranch", "b", "branch containing new files")
 	flag.StringVar(&notesDir, "notes", "./notes", "the directory containing release notes")
+	flag.StringVar(&notesFile, "notesFile", "", "a specific notes file to parse")
 	flag.StringVar(&templatesDir, "templates", "./templates", "the directory containing release note templates")
+	flag.BoolVar(&validateOnly, "validateOnly", false, "set to true to perform validation only")
 	flag.Parse()
 
-	fmt.Printf("Looking for release notes in %s.\n", notesDir)
-	releaseNoteFiles, err := getFilesWithExtension(notesDir, "yaml")
-	if err != nil {
-		fmt.Printf("failed to list files: %s", err.Error())
-		return
+	var releaseNoteFiles []string
+	if notesFile != "" {
+		fmt.Printf("Parsing %s\n", notesFile)
+		releaseNoteFiles = []string{notesFile}
+	} else {
+		fmt.Printf("Looking for release notes in %s.\n", notesDir)
+		var err error
+		releaseNoteFiles, err = getNewFilesInBranch(oldBranch, newBranch, notesDir, "releasenotes/notes")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to list files: %s\n", err.Error())
+			os.Exit(1)
+		}
+		fmt.Printf("Found %d files.\n\n", len(releaseNoteFiles))
 	}
-	fmt.Printf("Found %d files.\n", len(releaseNoteFiles))
 
-	fmt.Printf("Looking for markdown templates in %s.\n", templatesDir)
-	templateFiles, err := getFilesWithExtension(templatesDir, "md")
-	if err != nil {
-		fmt.Printf("failed to list files: %s", err.Error())
-		return
+	if len(releaseNoteFiles) < 1 {
+		fmt.Fprintf(os.Stderr, "failed to find any release notes files.\n")
+		os.Exit(1)
 	}
-	fmt.Printf("Found %d files.\n\n", len(templateFiles))
 
 	fmt.Printf("Parsing release notes\n")
 	releaseNotes, err := parseReleaseNotesFiles(notesDir, releaseNoteFiles)
 	if err != nil {
-		fmt.Printf("Unable to read release notes: %s\n", err.Error())
+		fmt.Fprintf(os.Stderr, "Unable to read release notes: %s\n", err.Error())
+		os.Exit(1)
 	}
 
-	processTemplates(templatesDir, templateFiles, releaseNotes)
-}
+	if validateOnly {
+		return
+	}
 
-//Bavery_todo: issue display formatting template
-//Bavery_TODO: find previous branch
-//Bavery_todo: diff previous branch
+	fmt.Printf("\nLooking for markdown templates in %s.\n", templatesDir)
+	templateFiles, err := getFilesWithExtension(templatesDir, "md")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to list files: %s\n", err.Error())
+		os.Exit(1)
+	}
+	fmt.Printf("Found %d files.\n\n", len(templateFiles))
 
-func processTemplates(templatesDir string, templateFiles []string, releaseNotes []ReleaseNote) {
-
-	for _, file := range templateFiles {
-		output, err := parseTemplate(templatesDir, file, releaseNotes)
+	for _, filename := range templateFiles {
+		output, err := populateTemplate(templatesDir, filename, releaseNotes)
 		if err != nil {
-			fmt.Printf("Failed to parse markdown template: %s", err.Error())
-			return
+			fmt.Fprintf(os.Stderr, "Failed to parse template: %s\n", err.Error())
+			os.Exit(1)
 		}
 
-		if err := ioutil.WriteFile(file, []byte(output), 0644); err != nil {
-			fmt.Printf("Failed to write markdown: %s", err.Error())
+		if err := writeAsMarkdown(filename, output); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to write markdown: %s\n", err.Error())
 		} else {
-			fmt.Printf("Wrote markdown to %s\n", file)
+			fmt.Printf("Wrote markdown to %s\n", filename)
 		}
 
-		if err := ioutil.WriteFile(file+".html", []byte(markdownToHTML(output)), 0644); err != nil {
-			fmt.Printf("Failed to write HTML: %s", err.Error())
+		if err := writeAsHTML(filename, output); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to write HTML: %s\n", err.Error())
 		} else {
-			fmt.Printf("Wrote markdown to %s.html\n", file)
+			fmt.Printf("Wrote markdown to %s.html\n", filename)
 		}
 	}
 }
 
-func parseReleaseNote(releaseNotes []ReleaseNote, format string) []string {
+//writeAsHTML generates HTML from markdown before writing it to a file
+func writeAsHTML(filename string, markdown string) error {
+	output := string(blackfriday.Run([]byte(markdown)))
+	if err := ioutil.WriteFile(filename+".html", []byte(output), 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
+//writeAsMarkdown writes markdown to a file
+func writeAsMarkdown(filename string, markdown string) error {
+	if err := ioutil.WriteFile(filename, []byte(markdown), 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
+func parseTemplateFormat(releaseNotes []Note, format string) ([]string, error) {
+	template, err := ParseTemplate(format)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template: %s", err.Error())
+	}
+	return getNotesForTemplateFormat(releaseNotes, template), nil
+}
+
+func getNotesForTemplateFormat(notes []Note, template Template) []string {
 	parsedNotes := make([]string, 0)
 
-	noteType := "releaseNotes"
-	if strings.Contains(format, "upgradeNotes") {
-		noteType = "upgradeNotes"
-	} else if strings.Contains(format, "securityNotes") {
-		noteType = "securityNotes"
-	}
-
-	area := ""
-	areaRegexp := regexp.MustCompile("area:[a-zA-Z-]*")
-	if match := areaRegexp.FindString(format); match != "" {
-		sections := strings.Split(match, ":")
-		area = sections[1]
-	}
-	fmt.Printf("Notes format: %s type: %s area: %s\n", format, noteType, area)
-
-	for _, note := range releaseNotes {
-		formatted := ""
-		if noteType == "releaseNotes" && note.ReleaseNotes != nil && (note.Area == area || area == "") {
-			for _, releaseNote := range note.ReleaseNotes {
-				formatted += fmt.Sprintf("- %s %s\n", releaseNote, issuesListToString(note.Issue))
-			}
-		} else if noteType == "upgradeNotes" {
-
-			for _, upgradeNote := range note.UpgradeNotes {
-				if upgradeNote.Content != "" {
-					if upgradeNote.Title == "" {
-						fmt.Printf("Upgrade note is missing title. Skipping.")
-					} else {
-						formatted += fmt.Sprintf("## %s\n%s", upgradeNote.Title, upgradeNote.Content)
-					}
-				}
-			}
-		} else if noteType == "securityNotes" && note.SecurityNotes != nil {
-			for _, securityNote := range note.SecurityNotes {
-				formatted += fmt.Sprintf("- %s", securityNote)
-			}
-		}
-
-		if formatted != "" {
-			parsedNotes = append(parsedNotes, formatted)
+	for _, note := range notes {
+		if template.Type == "releaseNotes" {
+			parsedNotes = append(parsedNotes, note.getReleaseNotes(template.Area, template.Action)...)
+		} else if template.Type == "upgradeNotes" {
+			parsedNotes = append(parsedNotes, note.getUpgradeNotes()...)
+		} else if template.Type == "securityNotes" {
+			parsedNotes = append(parsedNotes, note.getSecurityNotes()...)
 		}
 	}
-
 	return parsedNotes
-}
-
-//Bavery_TODO: rewrite
-func issuesListToString(issues []string) string {
-	issueString := ""
-	for _, issue := range issues {
-		if issueString != "" {
-			issueString += ","
-		}
-		if strings.Contains(issue, "github.com") {
-			issueNumber := path.Base(issue)
-			issueString += fmt.Sprintf("([Issue #%s](%s))", issueNumber, issue)
-		} else {
-			issueString += fmt.Sprintf("([Issue #%s](https://github.com/istio/istio/issues/%s))", issue, issue)
-		}
-	}
-	return issueString
 }
 
 //getFilesWithExtension returns the files from filePath with extension extension
@@ -191,8 +164,8 @@ func getFilesWithExtension(filePath string, extension string) ([]string, error) 
 
 }
 
-func parseReleaseNotesFiles(filePath string, files []string) ([]ReleaseNote, error) {
-	releaseNotes := make([]ReleaseNote, 0)
+func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
+	notes := make([]Note, 0)
 	for _, file := range files {
 		file = path.Join(filePath, file)
 		contents, err := ioutil.ReadFile(file)
@@ -200,23 +173,21 @@ func parseReleaseNotesFiles(filePath string, files []string) ([]ReleaseNote, err
 			return nil, fmt.Errorf("unable to open file %s: %s", file, err.Error())
 		}
 
-		var releaseNote ReleaseNote
-		if err = yaml.Unmarshal(contents, &releaseNote); err != nil {
+		var note Note
+		if err = yaml.Unmarshal(contents, &note); err != nil {
 			return nil, fmt.Errorf("unable to parse release note %s:%s", file, err.Error())
 		}
-		releaseNotes = append(releaseNotes, releaseNote)
+		note.File = file
+		notes = append(notes, note)
+		fmt.Printf("found %d upgrade notes, %d release notes, and %d security notes in %s\n", len(note.UpgradeNotes),
+			len(note.ReleaseNotes), len(note.SecurityNotes), note.File)
 
 	}
-	return releaseNotes, nil
+	return notes, nil
 
 }
 
-//markdownToHTML is a wrapper around the blackfriday library to generate HTML previews from markdown
-func markdownToHTML(markdown string) string {
-	return string(blackfriday.Run([]byte(markdown)))
-}
-
-func parseTemplate(filepath string, filename string, releaseNotes []ReleaseNote) (string, error) {
+func populateTemplate(filepath string, filename string, releaseNotes []Note) (string, error) {
 	filename = path.Join(filepath, filename)
 	fmt.Printf("Processing %s\n", filename)
 
@@ -230,10 +201,26 @@ func parseTemplate(filepath string, filename string, releaseNotes []ReleaseNote)
 	results := comment.FindAllString(string(contents), -1)
 
 	for _, result := range results {
-		contents := parseReleaseNote(releaseNotes, result)
+		contents, err := parseTemplateFormat(releaseNotes, result)
+		if err != nil {
+			return "", fmt.Errorf("unable to parse templates: %s", err.Error())
+		}
 		joinedContents := strings.Join(contents, "\n")
 		output = strings.Replace(output, result, joinedContents, -1)
 	}
 
 	return output, nil
+}
+
+func getNewFilesInBranch(oldBranch string, newBranch string, path string, notesSubpath string) ([]string, error) {
+	cmd := fmt.Sprintf("cd %s; git diff-tree -r --diff-filter=AR --name-only --relative=%s '%s' '%s'", path, notesSubpath, oldBranch, newBranch)
+	fmt.Printf("Executing: %s\n", cmd)
+
+	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	outFiles := strings.Split(string(out), "\n")
+	return outFiles[:len(outFiles)-1], nil
 }
