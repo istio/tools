@@ -1,0 +1,152 @@
+// Copyright 2020 Istio Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"path"
+	"regexp"
+	"strings"
+)
+
+type Note struct {
+	Kind          string         `json:"kind"`
+	Area          string         `json:"area"`
+	Issues        []string       `json:"issue,omitempty"`
+	ReleaseNotes  []releaseNote  `json:"releaseNotes"`
+	UpgradeNotes  []upgradeNote  `json:"upgradeNotes"`
+	SecurityNotes []securityNote `json:"securityNotes"`
+	File          string
+}
+
+func (note Note) getIssues() string {
+	issueString := ""
+	for _, issue := range note.Issues {
+		if issueString != "" {
+			issueString += ","
+		}
+		if strings.Contains(issue, "github.com") {
+			issueNumber := path.Base(issue)
+			issueString += fmt.Sprintf("([Issue #%s](%s))", issueNumber, issue)
+		} else {
+			issueString += fmt.Sprintf("([Issue #%s](https://github.com/istio/istio/issues/%s))", issue, issue)
+		}
+	}
+	return issueString
+}
+
+func (note Note) getReleaseNotes(area string, action string) []string {
+	notes := make([]string, 0)
+	for _, releaseNote := range note.ReleaseNotes {
+		if (action == "" || releaseNote.Action == action) && (area == "" || note.Area == area) {
+			notes = append(notes, fmt.Sprintf("%s %s\n", releaseNote, note.getIssues()))
+		}
+
+	}
+	return notes
+}
+
+func (note Note) getUpgradeNotes() []string {
+	notes := make([]string, 0)
+	for _, upgradeNote := range note.UpgradeNotes {
+		notes = append(notes, upgradeNote.String())
+	}
+	return notes
+}
+
+func (note Note) getSecurityNotes() []string {
+	notes := make([]string, 0)
+	for _, securityNote := range note.SecurityNotes {
+		notes = append(notes, securityNote.String())
+	}
+	return notes
+}
+
+type upgradeNote struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+func (note *upgradeNote) UnmarshalJSON(data []byte) error {
+	type noteIntType upgradeNote
+	var noteInt noteIntType
+	if err := json.Unmarshal(data, &noteInt); err != nil {
+		return err
+	}
+
+	if noteInt.Title == "" {
+		return fmt.Errorf("upgrade note title cannot be empty")
+	}
+	note.Title = noteInt.Title
+
+	if noteInt.Content == "" {
+		return fmt.Errorf("upgrade note body cannot be empty")
+	}
+	note.Content = noteInt.Content
+	return nil
+
+}
+
+func (note upgradeNote) String() string {
+	return fmt.Sprintf("## %s\n%s", note.Title, note.Content)
+}
+
+type releaseNote struct {
+	Value  string
+	Action string
+	Issues []string
+}
+
+func (note *releaseNote) UnmarshalJSON(data []byte) error {
+	//convert to string and trim quotes
+	note.Value = string(data)[1 : len(string(data))-1]
+	if note.Value == "" {
+		return fmt.Errorf("value missing for note: %s", note.Value)
+	}
+
+	note.Action = note.getAction(note.Value)
+	if note.Action == "" {
+		return fmt.Errorf("unable to determine action for note: %s", note.Value)
+	}
+
+	//TODO: Externalize this... we should validate this and action. However, they should not live in code.
+	if note.Action != "Added" && note.Action != "Deprecated" && note.Action != "Enabled" &&
+		note.Action != "Fixed" && note.Action != "Optimized" && note.Action != "Improved" &&
+		note.Action != "Removed" && note.Action != "Upgraded" && note.Action != "Updated" {
+		return fmt.Errorf("action %s is not allowed. Please reference the documentation for an allowed action", note.Action)
+	}
+
+	return nil
+}
+
+func (note releaseNote) getAction(line string) string {
+	action := ""
+	actionRegexp := regexp.MustCompile(`\*\*[A-Z][a-zA-Z]*\*\*`)
+	if match := actionRegexp.FindString(line); match != "" {
+		action = match[2 : len(match)-2]
+	}
+	return action
+}
+
+func (note releaseNote) String() string {
+	return fmt.Sprintf("- %s", note.Value)
+}
+
+type securityNote string
+
+func (note securityNote) String() string {
+	return fmt.Sprintf("- %s", string(note))
+}

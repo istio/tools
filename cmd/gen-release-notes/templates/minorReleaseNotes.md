@@ -1,7 +1,7 @@
 ---
-title:Change Notes
-description:Istio 1.6 release notes.
-weight:10
+title: Change Notes
+description: Istio 1.6 release notes.
+weight: 10
 ---
 # Release Notes
 
