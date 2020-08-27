@@ -25,6 +25,7 @@ import (
 type Note struct {
 	Kind          string         `json:"kind"`
 	Area          string         `json:"area"`
+	Docs          []string       `json:"docs,omitempty"`
 	Issues        []string       `json:"issue,omitempty"`
 	ReleaseNotes  []releaseNote  `json:"releaseNotes"`
 	UpgradeNotes  []upgradeNote  `json:"upgradeNotes"`
@@ -48,13 +49,27 @@ func (note Note) getIssues() string {
 	return issueString
 }
 
+func (note Note) getDocs() string {
+	docsString := ""
+	for _, docsEntry := range note.Docs {
+		entryParts := strings.SplitN(docsEntry[1:], "]", 2)
+		if len(entryParts) != 2 {
+			continue
+		}
+		docsString += fmt.Sprintf("([%s](%s))", entryParts[0], entryParts[1])
+	}
+	return docsString
+}
+
 func (note Note) getReleaseNotes(area string, action string) []string {
 	notes := make([]string, 0)
 	for _, releaseNote := range note.ReleaseNotes {
 		if (action == "" || releaseNote.Action == action) && (area == "" || note.Area == area) {
-			notes = append(notes, fmt.Sprintf("%s %s\n", releaseNote, note.getIssues()))
+			noteEntry := fmt.Sprintf("%s %s %s\n", releaseNote, note.getDocs(), note.getIssues())
+			if noteEntry != "" {
+				notes = append(notes, noteEntry)
+			}
 		}
-
 	}
 	return notes
 }
@@ -111,8 +126,9 @@ type releaseNote struct {
 }
 
 func (note *releaseNote) UnmarshalJSON(data []byte) error {
-	//convert to string and trim quotes
-	note.Value = string(data)[1 : len(string(data))-1]
+	if err := json.Unmarshal(data, &note.Value); err != nil {
+		return err
+	}
 	if note.Value == "" {
 		return fmt.Errorf("value missing for note: %s", note.Value)
 	}
@@ -125,7 +141,7 @@ func (note *releaseNote) UnmarshalJSON(data []byte) error {
 	//TODO: Externalize this... we should validate this and action. However, they should not live in code.
 	if note.Action != "Added" && note.Action != "Deprecated" && note.Action != "Enabled" &&
 		note.Action != "Fixed" && note.Action != "Optimized" && note.Action != "Improved" &&
-		note.Action != "Removed" && note.Action != "Upgraded" && note.Action != "Updated" {
+		note.Action != "Removed" && note.Action != "Upgraded" && note.Action != "Updated" && note.Action != "Promoted" {
 		return fmt.Errorf("action %s is not allowed. Please reference the documentation for an allowed action", note.Action)
 	}
 

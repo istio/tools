@@ -3,6 +3,11 @@ title: Change Notes
 description: Istio 1.6 release notes.
 weight: 10
 ---
+
+{{< warning >}}
+This is an automatically generated rough draft of the release notes and has not yet been reviewed.
+{{< /warning >}}
+
 # Release Notes
 
 ## Traffic Management
