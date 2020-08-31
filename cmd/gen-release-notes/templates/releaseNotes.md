@@ -1,19 +1,19 @@
 ---
-title: Announcing Istio 1.6.6
-linktitle: 1.6.6
+title: Announcing Istio x.y.z
+linktitle: x.y.z
 subtitle: Patch Release
-description: Istio 1.6.6 patch release.
+description: Istio x.y.z patch release.
 publishdate: 2020-07-29
-release: 1.6.6
+release: x.y.z
 aliases:
-    - /news/announcing-1.6.6
+    - /news/announcing-x.y.z
 ---
 
 {{< warning >}}
 This is an automatically generated rough draft of the release notes and has not yet been reviewed.
 {{< /warning >}}
 
-This release contains bug fixes to improve robustness. This release note describes what’s different between Istio 1.6.2 and Istio 1.6.3.
+This release contains bug fixes to improve robustness. This release note describes what’s different between Istio x.y.(z-1) and Istio x.y.z
 
 {{< relnote >}}
 

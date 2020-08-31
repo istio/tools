@@ -57,7 +57,7 @@ func main() {
 
 	if len(releaseNoteFiles) < 1 {
 		fmt.Fprintf(os.Stderr, "failed to find any release notes files.\n")
-		//maps to EX_NOINPUT, but more importantly lets us differntiate between no files found and other errors
+		//maps to EX_NOINPUT, but more importantly lets us differentiate between no files found and other errors
 		os.Exit(66)
 	}
 
@@ -105,8 +105,8 @@ func main() {
 }
 
 func createDirIfNotExists(path string) error {
-	err := os.Mkdir(path, 0755)
-	if err == nil || os.IsExist(err) {
+	err := os.MkdirAll(path, 0755)
+	if os.IsExist(err) {
 		return nil
 	}
 	return err
