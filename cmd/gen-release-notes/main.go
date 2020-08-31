@@ -29,13 +29,14 @@ import (
 )
 
 func main() {
-	var oldBranch, newBranch, notesDir, templatesDir, notesFile string
+	var oldBranch, newBranch, notesDir, templatesDir, outDir, notesFile string
 	var validateOnly bool
 	flag.StringVar(&oldBranch, "oldBranch", "a", "branch to compare against")
 	flag.StringVar(&newBranch, "newBranch", "b", "branch containing new files")
 	flag.StringVar(&notesDir, "notes", "./notes", "the directory containing release notes")
 	flag.StringVar(&notesFile, "notesFile", "", "a specific notes file to parse")
 	flag.StringVar(&templatesDir, "templates", "./templates", "the directory containing release note templates")
+	flag.StringVar(&outDir, "outDir", ".", "the directory containing release notes")
 	flag.BoolVar(&validateOnly, "validateOnly", false, "set to true to perform validation only")
 	flag.Parse()
 
@@ -56,7 +57,8 @@ func main() {
 
 	if len(releaseNoteFiles) < 1 {
 		fmt.Fprintf(os.Stderr, "failed to find any release notes files.\n")
-		os.Exit(1)
+		//maps to EX_NOINPUT, but more importantly lets us differentiate between no files found and other errors
+		os.Exit(66)
 	}
 
 	fmt.Printf("Parsing release notes\n")
@@ -85,18 +87,29 @@ func main() {
 			os.Exit(1)
 		}
 
-		if err := writeAsMarkdown(filename, output); err != nil {
+		if err := createDirIfNotExists(outDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create our dir: %s\n", err.Error())
+		}
+		if err := writeAsMarkdown(path.Join(outDir, filename), output); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to write markdown: %s\n", err.Error())
 		} else {
 			fmt.Printf("Wrote markdown to %s\n", filename)
 		}
 
-		if err := writeAsHTML(filename, output); err != nil {
+		if err := writeAsHTML(path.Join(outDir, filename), output); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to write HTML: %s\n", err.Error())
 		} else {
 			fmt.Printf("Wrote markdown to %s.html\n", filename)
 		}
 	}
+}
+
+func createDirIfNotExists(path string) error {
+	err := os.MkdirAll(path, 0755)
+	if os.IsExist(err) {
+		return nil
+	}
+	return err
 }
 
 //writeAsHTML generates HTML from markdown before writing it to a file
