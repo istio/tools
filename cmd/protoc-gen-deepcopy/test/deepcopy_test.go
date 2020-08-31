@@ -51,4 +51,13 @@ func TestTypeWithRepeatedField(t *testing.T) {
 	if !proto.Equal(in, out) {
 		t.Fatalf("Deepcopy of proto(DeepCopy) is not equal. got: %v, want: %v", *out, *in)
 	}
+
+	outInterface := in.DeepCopyInterface()
+	outPb, ok := outInterface.(*generated.RepeatedFieldType)
+	if !ok {
+		t.Fatalf("DeepCopyInterface was not a proto message, was %T", outInterface)
+	}
+	if !proto.Equal(in, outPb) {
+		t.Fatalf("Deepcopy of proto(DeepCopy) is not equal. got: %v, want: %v", outPb, in)
+	}
 }
