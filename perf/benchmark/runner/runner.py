@@ -132,7 +132,7 @@ class Fortio:
         self.protocol_mode = protocol_mode
         self.ns = NAMESPACE
         # bucket resolution in seconds
-        self.r = "0.00005"
+        self.r = "0.001"
         self.telemetry_mode = telemetry_mode
         self.perf_record = perf_record
         self.server = pod_info("-lapp=" + server, namespace=self.ns)
