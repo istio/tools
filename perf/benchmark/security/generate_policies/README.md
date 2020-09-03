@@ -216,12 +216,6 @@ The values which can be used to create custom RequestAuthentication are as follo
 
 For more information see [RequestAuthentication Reference](https://istio.io/latest/docs/reference/config/security/request_authentication/).
 
-## Test Cases
-
-There are 4 automated scripts that generate policies, apply those policies, runs the performance tests on them, and then fetches the data of those tests from the fortio client.
-
-The cases are as follows:
-
 ## Examples
 
 generate_policies.go also allows a user to create mutliple kinds of policies in one command.
@@ -300,50 +294,6 @@ To apply largePolicy.yaml that was just created to istio use the following comma
 
 ```bash
 kubectl apply -f largePolicy.yaml
-```
-
-## Test Cases
-
-There are 5 automated scripts that generate policies, apply those policies, runs the performance tests on them, and then fetches the data of those tests from the fortio client.
-
-Each script compares a single policy or a number of policies against another set of policies. This gives us easy access to data which we can use to compare the performance of two policies against each other. For each set of policies there are 3 different configurations of the performance tests. The first represents a small load on the system (qps=100, conn=8), the second represents a medium load (qps=500, conn=32), and finally the 3rd represents a large load (qps=1000, conn=64). 
-
-The cases are as follows:
-
-1. To get the data of having a single AuthZ policy with 10 path rules as well as running the performance tests with a single AuthZ policy with 1000 path rules.
- To run this test run the following commands
- 
-```bash
-cd testCases
-./authZPaths.sh
-```
-
-2. To get the data of having a single AuthZ policy with 10 sourceIP rules as well as running the performance tests with a single AuthZ policy with 1000 sourceIP rules.
- To run this test run the following commands in the testCases folder:
- 
-```bash
-./authZSourceIP.sh
-```
-
-3. To get the data of having 10 AuthZ policies each with 1 sourceIP rule as well as running the performance tests with 1000 AuthZ policies each with 1 sourceIP rule.
- To run this test run the following commands in the testCases folder:
- 
-```bash
-./authZSourceIPVariable.sh
-```
- 
-4. To get the data of having 10 AuthZ policies each with 1 paths rule as well as running the performance tests with 1000 AuthZ policies each with 1 path rule.
- To run this test run the following commands in the testCases folder:
- 
-```bash
-./authZPathVariable.sh
-```
-
-5. To get the data of having 10 AuthZ policies each with 1 paths rule as well as running the performance tests with 1000 AuthZ policies each with 1 path rule.
- To run this test run the following commands in the testCases folder:
- 
-```bash
-./authZPathVariable.sh
 ```
 
 ## Example 1
@@ -451,4 +401,48 @@ To remove the policies applied navigate to the generate_policies folder and run 
 
 ```bash
 kubectl delete -f largePolicy.yaml
+```
+
+## Test Cases
+
+There are 5 automated scripts that generate policies, apply those policies, runs the performance tests on them, and then fetches the data of those tests from the fortio client.
+
+Each script compares a single policy or a number of policies against another set of policies. This gives us easy access to data which we can use to compare the performance of two policies against each other. For each set of policies there are 3 different configurations of the performance tests. The first represents a small load on the system (qps=100, conn=8), the second represents a medium load (qps=500, conn=32), and finally the 3rd represents a large load (qps=1000, conn=64). 
+
+The cases are as follows:
+
+1. To get the data of having a single AuthZ policy with 10 path rules as well as running the performance tests with a single AuthZ policy with 1000 path rules.
+ To run this test run the following commands
+ 
+```bash
+cd testCases
+./authZPaths.sh
+```
+
+2. To get the data of having a single AuthZ policy with 10 sourceIP rules as well as running the performance tests with a single AuthZ policy with 1000 sourceIP rules.
+ To run this test run the following commands in the testCases folder:
+ 
+```bash
+./authZSourceIP.sh
+```
+
+3. To get the data of having 10 AuthZ policies each with 1 sourceIP rule as well as running the performance tests with 1000 AuthZ policies each with 1 sourceIP rule.
+ To run this test run the following commands in the testCases folder:
+ 
+```bash
+./authZSourceIPVariable.sh
+```
+ 
+4. To get the data of having 10 AuthZ policies each with 1 paths rule as well as running the performance tests with 1000 AuthZ policies each with 1 path rule.
+ To run this test run the following commands in the testCases folder:
+ 
+```bash
+./authZPathVariable.sh
+```
+
+5. To get the data of having 10 AuthZ policies each with 1 paths rule as well as running the performance tests with 1000 AuthZ policies each with 1 path rule.
+ To run this test run the following commands in the testCases folder:
+ 
+```bash
+./authZPathVariable.sh
 ```
