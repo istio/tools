@@ -142,7 +142,7 @@ func (note *releaseNote) UnmarshalJSON(data []byte) error {
 	if note.Action != "Added" && note.Action != "Deprecated" && note.Action != "Enabled" &&
 		note.Action != "Fixed" && note.Action != "Optimized" && note.Action != "Improved" &&
 		note.Action != "Removed" && note.Action != "Upgraded" && note.Action != "Updated" && note.Action != "Promoted" {
-		return fmt.Errorf("action %s is not allowed; reference https://github.com/istio/istio/tree/master/releasenotes#release-notes for a list of allowed actions.", note.Action)
+		return fmt.Errorf("action %s is not allowed; reference https://github.com/istio/istio/tree/master/releasenotes#release-notes for a list of allowed actions", note.Action)
 	}
 
 	return nil
