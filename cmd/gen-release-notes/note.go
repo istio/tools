@@ -135,7 +135,7 @@ func (note *releaseNote) UnmarshalJSON(data []byte) error {
 
 	note.Action = note.getAction(note.Value)
 	if note.Action == "" {
-		return fmt.Errorf("unable to determine action for note: %s; notes must start with an action and be of the form **Action** and be in the listed here: https://github.com/istio/istio/tree/master/releasenotes#release-notes", note.Value)
+		return fmt.Errorf("unable to determine action for note: %s; notes must start with an action and be of the form **Action** {text} with an action listed here: https://github.com/istio/istio/tree/master/releasenotes#release-notes", note.Value)
 	}
 
 	//TODO: Externalize this... we should validate this and action. However, they should not live in code.
