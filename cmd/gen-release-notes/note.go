@@ -135,14 +135,14 @@ func (note *releaseNote) UnmarshalJSON(data []byte) error {
 
 	note.Action = note.getAction(note.Value)
 	if note.Action == "" {
-		return fmt.Errorf("unable to determine action for note: %s", note.Value)
+		return fmt.Errorf("unable to determine action for note: %s. Each note must start with an action and be of the form **Action**. Allowed actions are listed here: https://github.com/istio/istio/tree/master/releasenotes#release-notes", note.Value)
 	}
 
 	//TODO: Externalize this... we should validate this and action. However, they should not live in code.
 	if note.Action != "Added" && note.Action != "Deprecated" && note.Action != "Enabled" &&
 		note.Action != "Fixed" && note.Action != "Optimized" && note.Action != "Improved" &&
 		note.Action != "Removed" && note.Action != "Upgraded" && note.Action != "Updated" && note.Action != "Promoted" {
-		return fmt.Errorf("action %s is not allowed. Please reference the documentation for an allowed action", note.Action)
+		return fmt.Errorf("action %s is not allowed. Please reference https://github.com/istio/istio/tree/master/releasenotes#release-notes for a list of allowed actions.", note.Action)
 	}
 
 	return nil
