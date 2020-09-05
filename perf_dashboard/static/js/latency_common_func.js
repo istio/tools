@@ -23,7 +23,6 @@ window.generateLatencyChart = function(xNum, options) {
 
   generateLatencyChartByID("latency-p90-release", xNum, p90ReleaseModesData, options)
 
-
   // p99-release
   p99ReleaseModesData = [];
   p99ReleaseModesData.push(latency_none_mtls_base_p99);
@@ -35,6 +34,18 @@ window.generateLatencyChart = function(xNum, options) {
   p99ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p99);
 
   generateLatencyChartByID("latency-p99-release", xNum, p99ReleaseModesData, options)
+
+  // p99.9-release
+  p999ReleaseModesData = [];
+  p999ReleaseModesData.push(latency_none_mtls_base_p999);
+  p999ReleaseModesData.push(latency_none_mtls_both_p999);
+  p999ReleaseModesData.push(latency_none_plaintext_both_p999);
+  p999ReleaseModesData.push(latency_v2_stats_nullvm_both_p999);
+  p999ReleaseModesData.push(latency_v2_stats_wasm_both_p999);
+  p999ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p999);
+  p999ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p999);
+
+  generateLatencyChartByID("latency-p999-release", xNum, p999ReleaseModesData, options)
 
   // p50-master
   p50ModesData = [];
@@ -60,7 +71,6 @@ window.generateLatencyChart = function(xNum, options) {
 
   generateLatencyChartByID("latency-p90-master", xNum, p90ModesData, options)
 
-
   // p99-master
   p99ModesData = [];
   p99ModesData.push(latency_none_mtls_base_p99_master);
@@ -72,6 +82,18 @@ window.generateLatencyChart = function(xNum, options) {
   p99ModesData.push(latency_v2_sd_full_nullvm_both_p99_master);
 
   generateLatencyChartByID("latency-p99-master", xNum, p99ModesData, options)
+
+  // p99.9-master
+  p999ModesData = [];
+  p999ModesData.push(latency_none_mtls_base_p999_master);
+  p999ModesData.push(latency_none_mtls_both_p999_master);
+  p999ModesData.push(latency_none_plaintext_both_p999_master);
+  p999ModesData.push(latency_v2_stats_nullvm_both_p999_master);
+  p999ModesData.push(latency_v2_stats_wasm_both_p999_master);
+  p999ModesData.push(latency_v2_sd_nologging_nullvm_both_p999_master);
+  p999ModesData.push(latency_v2_sd_full_nullvm_both_p999_master);
+
+  generateLatencyChartByID("latency-p999-master", xNum, p999ModesData, options)
 };
 
 window.generateLatencyChartByID = function(chartID, xNum, modesData, options) {

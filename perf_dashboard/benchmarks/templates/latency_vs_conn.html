@@ -81,10 +81,10 @@
                 </form>
               <div class="card">
                 <div class="card-header d-flex align-items-center">
-                  <h4>Istio-{{ current_release|first }}: P99, 1000QPS over 240 seconds</h4>
+                  <h4>Istio-{{ current_release|first }}: P99.9, 1000QPS over 240 seconds</h4>
                 </div>
                 <div class="card-body">
-                  <canvas id="latency-p99-release"></canvas>
+                  <canvas id="latency-p999-release"></canvas>
                 </div>
               </div>
             </div>
@@ -109,6 +109,26 @@
                        </div>
                     <div class="line"></div>
                 </form>
+              <div class="card">
+                <div class="card-header d-flex align-items-center">
+                  <h4>Istio-master: P99.9, 1000QPS over 240 seconds</h4>
+                </div>
+                <div class="card-body">
+                  <canvas id="latency-p999-master"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header d-flex align-items-center">
+                  <h4>Istio-{{ current_release|first }}: P99, 1000QPS over 240 seconds</h4>
+                </div>
+                <div class="card-body">
+                  <canvas id="latency-p99-release"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
               <div class="card">
                 <div class="card-header d-flex align-items-center">
                   <h4>Istio-master: P99, 1000QPS over 240 seconds</h4>
@@ -195,6 +215,14 @@
         latency_v2_sd_nologging_nullvm_both_p99 = {{ latency_v2_sd_nologging_nullvm_both_p99|safe }}
         latency_v2_sd_full_nullvm_both_p99 = {{ latency_v2_sd_full_nullvm_both_p99|safe }}
 
+        latency_none_mtls_base_p999 = {{ latency_none_mtls_base_p999|safe }}
+        latency_none_mtls_both_p999 = {{ latency_none_mtls_both_p999|safe }}
+        latency_none_plaintext_both_p999 = {{ latency_none_plaintext_both_p999|safe }}
+        latency_v2_stats_nullvm_both_p999 = {{ latency_v2_stats_nullvm_both_p999|safe }}
+        latency_v2_stats_wasm_both_p999 = {{ latency_v2_stats_wasm_both_p999|safe }}
+        latency_v2_sd_nologging_nullvm_both_p999 = {{ latency_v2_sd_nologging_nullvm_both_p999|safe }}
+        latency_v2_sd_full_nullvm_both_p999 = {{ latency_v2_sd_full_nullvm_both_p999|safe }}
+
         latency_none_mtls_base_p50_master = {{ latency_none_mtls_base_p50_master|safe }}
         latency_none_mtls_both_p50_master = {{ latency_none_mtls_both_p50_master|safe }}
         latency_none_plaintext_both_p50_master = {{ latency_none_plaintext_both_p50_master|safe }}
@@ -218,6 +246,14 @@
         latency_v2_stats_wasm_both_p99_master = {{ latency_v2_stats_wasm_both_p99_master|safe }}
         latency_v2_sd_nologging_nullvm_both_p99_master = {{ latency_v2_sd_nologging_nullvm_both_p99_master|safe }}
         latency_v2_sd_full_nullvm_both_p99_master = {{ latency_v2_sd_full_nullvm_both_p99_master|safe }}
+
+        latency_none_mtls_base_p999_master = {{ latency_none_mtls_base_p999_master|safe }}
+        latency_none_mtls_both_p999_master = {{ latency_none_mtls_both_p999_master|safe }}
+        latency_none_plaintext_both_p999_master = {{ latency_none_plaintext_both_p999_master|safe }}
+        latency_v2_stats_nullvm_both_p999_master = {{ latency_v2_stats_nullvm_both_p999_master|safe }}
+        latency_v2_stats_wasm_both_p999_master = {{ latency_v2_stats_wasm_both_p999_master|safe }}
+        latency_v2_sd_nologging_nullvm_both_p999_master = {{ latency_v2_sd_nologging_nullvm_both_p999_master|safe }}
+        latency_v2_sd_full_nullvm_both_p999_master = {{ latency_v2_sd_full_nullvm_both_p999_master|safe }}
     </script>
 {% endblock page_data %}
 
