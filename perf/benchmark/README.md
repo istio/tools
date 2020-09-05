@@ -22,7 +22,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
     export PROJECT_ID=<your-gcp-project>
     export ISTIO_VERSION=<version>
     export ZONE=<a-gcp-zone>
-    export GKE_VERSION=1.13.7-gke.xx
+    export GKE_VERSION=1.17.9-gke.xx  (note: since from Istio 1.8, the required minimum GKE_VERSION is 1.17)
     export CLUSTER_NAME=<any-name>
     ./create_cluster.sh $CLUSTER_NAME
     ```
@@ -137,6 +137,7 @@ optional arguments:
   --duration DURATION   duration in seconds of the extract
   --load_gen_type LOAD_GEN_TYPE
                         traffic load generator type, can be either Fortio or Nighthawk
+  --jitter JITTER       to enable or disable jitter for load generator
   --size SIZE           size of the payload
   --mesh MESH           istio or linkerd
   --telemetry_mode TELEMETRY_MODE
@@ -169,7 +170,7 @@ Note:
 - `runner.py` will run all combinations of the parameters given. However, in order to reduce ambiguity when generating the graph, it would be
  better to change one parameter at a time and fix other parameters
 - if you want to run with `--perf` flag to generate a flame graph, please make sure you have the permission to gather perf data, please refer to step 2 of this [README](https://github.com/istio/tools/tree/master/perf/benchmark/flame#setup-perf-tool)
-
+- to test your system's maximum qps before choosing the range of qps you want to measure by passing `--qps 0`
 For example:
 
 ### Example 1
