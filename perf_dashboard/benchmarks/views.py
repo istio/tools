@@ -242,8 +242,7 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_none_plaintext_both_p999_master = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p99.9')
         latency_v2_stats_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p99.9')
         latency_v2_stats_wasm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p99.9')
-        latency_v2_sd_nologging_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both',
-                                                                                     'p99.9')
+        latency_v2_sd_nologging_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99.9')
         latency_v2_sd_full_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99.9')
 
         other_context = {'current_release': current_release,
