@@ -928,14 +928,7 @@ def get_latency_vs_conn_y_series(df, telemetry_mode, quantiles):
     y_series_data = []
     for thread in [2, 4, 8, 16, 32, 64]:
         data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@telemetry_mode)')
-        try:
-            data[quantiles].head().empty
-        except KeyError as e:
-            print(e)
-            y_series_data.append('null')
-        else:
-            if not data[quantiles].head().empty:
-                y_series_data.append(data[quantiles].head(1).values[0] / 1000)
+        data_get_helper(data, y_series_data, quantiles)
     return y_series_data
 
 
@@ -943,14 +936,7 @@ def get_latency_vs_qps_y_series(df, telemetry_mode, quantiles):
     y_series_data = []
     for qps in [10, 100, 500, 1000, 2000, 3000]:
         data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
-        try:
-            data[quantiles].head().empty
-        except KeyError as e:
-            print(e)
-            y_series_data.append('null')
-        else:
-            if not data[quantiles].head().empty:
-                y_series_data.append(data[quantiles].head(1).values[0] / 1000)
+        data_get_helper(data, y_series_data, quantiles)
     return y_series_data
 
 
@@ -959,16 +945,7 @@ def get_cpu_vs_qps_y_series(df, telemetry_mode, cpu_metric_name):
     y_series_data = []
     for qps in [10, 100, 500, 1000, 2000, 3000]:
         data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
-        try:
-            data[cpu_metric_name].head().empty
-        except KeyError as e:
-            print(e)
-            y_series_data.append('null')
-        else:
-            if len(data[cpu_metric_name]) > 0:
-                y_series_data.append(data[cpu_metric_name].head(1).values[0])
-            else:
-                y_series_data.append('null')
+        data_get_helper(data, y_series_data, cpu_metric_name)
     return y_series_data
 
 
@@ -976,16 +953,7 @@ def get_cpu_vs_conn_y_series(df, telemetry_mode, cpu_metric_name):
     y_series_data = []
     for thread in [2, 4, 8, 16, 32, 64]:
         data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@telemetry_mode)')
-        try:
-            data[cpu_metric_name].head().empty
-        except KeyError as e:
-            print(e)
-            y_series_data.append('null')
-        else:
-            if len(data[cpu_metric_name]) > 0:
-                y_series_data.append(data[cpu_metric_name].head(1).values[0])
-            else:
-                y_series_data.append('null')
+        data_get_helper(data, y_series_data, cpu_metric_name)
     return y_series_data
 
 
@@ -994,16 +962,7 @@ def get_mem_vs_qps_y_series(df, telemetry_mode, mem_metric_name):
     y_series_data = []
     for qps in [10, 100, 500, 1000, 2000, 3000]:
         data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
-        try:
-            data[mem_metric_name].head().empty
-        except KeyError as e:
-            print(e)
-            y_series_data.append('null')
-        else:
-            if len(data[mem_metric_name]) > 0:
-                y_series_data.append(data[mem_metric_name].head(1).values[0])
-            else:
-                y_series_data.append('null')
+        data_get_helper(data, y_series_data, mem_metric_name)
     return y_series_data
 
 
@@ -1011,14 +970,16 @@ def get_mem_vs_conn_y_series(df, telemetry_mode, mem_metric_name):
     y_series_data = []
     for thread in [2, 4, 8, 16, 32, 64]:
         data = df.query('ActualQPS == 1000 and NumThreads == @thread and Labels.str.endswith(@telemetry_mode)')
-        try:
-            data[mem_metric_name].head().empty
-        except KeyError as e:
-            print(e)
-            y_series_data.append('null')
-        else:
-            if len(data[mem_metric_name]) > 0:
-                y_series_data.append(data[mem_metric_name].head(1).values[0])
-            else:
-                y_series_data.append('null')
+        data_get_helper(data, y_series_data, mem_metric_name)
     return y_series_data
+
+
+def data_get_helper(data, y_series_data, metric_name):
+    metric_data = data.get(metric_name)
+    if metric_data is None or len(metric_data) == 0:
+        y_series_data.append('null')
+    else:
+        if metric_name in ['cpu', 'mem']:
+            y_series_data.append(data[metric_name].head(1).values[0])
+        else:
+            y_series_data.append(data[metric_name].head(1).values[0]/1000)
