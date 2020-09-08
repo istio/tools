@@ -646,7 +646,7 @@ def get_parser():
         default=None)
     parser.add_argument(
         "--jitter",
-        help="to enable or disable fortio jitter",
+        help="to enable or disable jitter for load generator",
         default=False)
     parser.add_argument(
         "--load_gen_type",
