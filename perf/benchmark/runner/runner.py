@@ -272,7 +272,6 @@ class Fortio:
             "--output-format json",
             "--prefetch-connections",
             "--open-loop",
-            "--jitter-uniform {jitter_uniform}s",
             "--experimental-h1-connection-reuse-strategy lru",
             "--experimental-h2-use-multiple-connections",
             "--connections {conn}",
@@ -280,6 +279,9 @@ class Fortio:
             "--duration {duration}",
             "--request-header \"x-nighthawk-test-server-config: {{response_body_size:{size}}}\""
         ]
+
+        if jitter_uniform:
+            nighthawk_args.append("--jitter-uniform {jitter_uniform}s")
 
         # Our "gRPC" mode actually means:
         #  - https (see get_protocol_uri_fragment())
@@ -338,7 +340,9 @@ class Fortio:
             # See the comment above, we restrict execution to a single nighthawk worker for
             # now to avoid noise.
             workers = 1
-            jitter_uniform = float(0.1 * 1 / qps)
+            jitter_uniform = None
+            if self.jitter:
+                jitter_uniform = f"{float(0.1 * 1 / qps):.9f}"  # suppress scientific notation
             load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, jitter_uniform, duration, labels)
 
         if self.run_baseline:
