@@ -29,7 +29,7 @@ from subprocess import getoutput
 """
     returns data in a single line format
     Labels, StartTime, RequestedQPS, ActualQPS, NumThreads,
-    min, max, p50, p75, p90, p99, p999
+    min, max, p50, p75, p90, p99, p99.9
 """
 
 NAMESPACE = os.environ.get("NAMESPACE", "twopods-istio")
@@ -263,7 +263,7 @@ def get_parser():
     parser.add_argument(
         "--csv",
         help="columns in the csv file",
-        default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,"
+        default="StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,p99.9"
                 "cpu_mili_avg_istio_proxy_fortioclient,cpu_mili_avg_istio_proxy_fortioserver,"
                 "cpu_mili_avg_istio_proxy_istio-ingressgateway,mem_Mi_avg_istio_proxy_fortioclient,"
                 "mem_Mi_avg_istio_proxy_fortioserver,mem_Mi_avg_istio_proxy_istio-ingressgateway")
