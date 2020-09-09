@@ -22,7 +22,7 @@ go build
 * (optional) `--templates` -- indicates where templates should be found. Default: `./notes`
 * (optional) `--validateOnly` -- indicates to perform validation but not release notes generation.
 * `--oldBranch` -- indicates the branch (or tag) to compare against
-* `--(newBranch)` -- indicates the branch (or tag) containing new release notes
+* `--newBranch` -- indicates the branch (or tag) containing new release notes
 
 ## Templates
 
