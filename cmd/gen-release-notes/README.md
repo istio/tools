@@ -9,11 +9,15 @@ single release notes file.
 
 ## Generating Release Notes
 
-To generate release notes, run:
+If both Istio and tools are cloned in the same directory and you want to generate release notes for changes in the `release-1.7` branch since the `1.7.0` tag was created, you could run the following from the `tools/cmd/gen-release-notes` directory:
 
 ```bash
+pushd ../../../istio/releasenotes/notes
+git checkout release-1.7
+popd
+
 go build
-./gen-release-notes --notes <notes-dir> --templates <templates-dir> --oldBranch myOldBranch --newBranch myNewBranch
+./gen-release-notes --notes ../../../istio/releasenotes/notes --oldBranch 1.7.0 --newBranch release-1.7
 ```
 
 ### Arguments
@@ -22,7 +26,7 @@ go build
 * (optional) `--templates` -- indicates where templates should be found. Default: `./notes`
 * (optional) `--validateOnly` -- indicates to perform validation but not release notes generation.
 * `--oldBranch` -- indicates the branch (or tag) to compare against
-* `--(newBranch)` -- indicates the branch (or tag) containing new release notes
+* `--newBranch` -- indicates the branch (or tag) containing new release notes
 
 ## Templates
 
