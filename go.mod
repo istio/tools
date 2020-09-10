@@ -9,6 +9,7 @@ replace (
 )
 
 require (
+	cloud.google.com/go v0.38.0
 	cuelang.org/go v0.0.16-0.20200320220106-76252f4b7486
 	github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 // indirect
 	github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 // indirect
@@ -28,6 +29,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.5
 	github.com/google/go-cmp v0.4.0
+	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hhatto/gorst v0.0.0-20181029133204-ca9f730cac5b // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jdkato/prose v1.1.0 // indirect
@@ -37,6 +39,7 @@ require (
 	github.com/neurosnap/sentences v1.0.6 // indirect
 	github.com/pelletier/go-buffruneio v0.2.0 // indirect
 	github.com/prometheus/alertmanager v0.20.0
+	github.com/prometheus/client_golang v1.2.1
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shogo82148/go-shuffle v0.0.0-20180218125048-27e6095f230d // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect

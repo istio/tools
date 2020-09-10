@@ -4,7 +4,7 @@ kind: ServiceAccount
 metadata:
   labels:
     component: "kube-state-metrics"
-    app: prometheus
+    app: prometheus-kube-state-metrics
   name: prometheus-kube-state-metrics
   namespace: istio-prometheus
 ---
@@ -13,7 +13,7 @@ kind: ClusterRole
 metadata:
   labels:
     component: "kube-state-metrics"
-    app: prometheus
+    app: prometheus-kube-state-metrics
   name: prometheus-kube-state-metrics
 rules:
   - apiGroups:
@@ -114,7 +114,7 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     component: "kube-state-metrics"
-    app: prometheus
+    app: prometheus-kube-state-metrics
   name: prometheus-kube-state-metrics
 subjects:
   - kind: ServiceAccount
@@ -132,7 +132,7 @@ metadata:
     prometheus.io/scrape: "true"
   labels:
     component: "kube-state-metrics"
-    app: prometheus
+    app: prometheus-kube-state-metrics
   name: prometheus-kube-state-metrics
   namespace: istio-prometheus
 spec:
@@ -148,7 +148,7 @@ spec:
       targetPort: 8081
   selector:
     component: "kube-state-metrics"
-    app: prometheus
+    app: prometheus-kube-state-metrics
   type: "ClusterIP"
 ---
 apiVersion: apps/v1
@@ -156,20 +156,20 @@ kind: Deployment
 metadata:
   labels:
     component: "kube-state-metrics"
-    app: prometheus
+    app: prometheus-kube-state-metrics
   name: prometheus-kube-state-metrics
   namespace: istio-prometheus
 spec:
   selector:
     matchLabels:
       component: "kube-state-metrics"
-      app: prometheus
+      app: prometheus-kube-state-metrics
   replicas: 1
   template:
     metadata:
       labels:
         component: "kube-state-metrics"
-        app: prometheus
+        app: prometheus-kube-state-metrics
     spec:
       serviceAccountName: prometheus-kube-state-metrics
       containers:

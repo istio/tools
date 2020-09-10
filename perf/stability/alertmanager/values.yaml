@@ -55,3 +55,11 @@ baseURL: "http://localhost:9093"
 
 configFileName: alertmanager.yml
 resources: {}
+
+# for alertmanager webhook
+projectID: "mixologist-142215"
+instance: "release-qual"
+dbName: "monitorstatus"
+clusterName: "oss17"
+branch: "master"
+testID: ""
