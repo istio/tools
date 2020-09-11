@@ -1,0 +1,39 @@
+window.onload = function () {
+  // p90
+  let latency_none_mtls_both_p90_master_trending = constructDataSeries(latency_none_mtls_both_p90_master, latency_none_mtls_base_p90_master)
+  let latency_none_plaintext_both_p90_master_trending = constructDataSeries(latency_none_plaintext_both_p90_master, latency_none_mtls_base_p90_master)
+  let latency_v2_stats_nullvm_both_p90_master_trending = constructDataSeries(latency_v2_stats_nullvm_both_p90_master, latency_none_mtls_base_p90_master)
+  let latency_v2_stats_wasm_both_p90_master_trending = constructDataSeries(latency_v2_stats_wasm_both_p90_master, latency_none_mtls_base_p90_master)
+  let latency_v2_sd_nologging_nullvm_both_p90_master_trending = constructDataSeries(latency_v2_sd_nologging_nullvm_both_p90_master, latency_none_mtls_base_p90_master)
+  let latency_v2_sd_full_nullvm_both_p90_master_trending = constructDataSeries(latency_v2_sd_full_nullvm_both_p90_master, latency_none_mtls_base_p90_master)
+
+  p90ModesData = [];
+  p90ModesData.push(latency_none_mtls_both_p90_master_trending);
+  p90ModesData.push(latency_none_plaintext_both_p90_master_trending);
+  p90ModesData.push(latency_v2_stats_nullvm_both_p90_master_trending);
+  p90ModesData.push(latency_v2_stats_wasm_both_p90_master_trending);
+  p90ModesData.push(latency_v2_sd_nologging_nullvm_both_p90_master_trending);
+  p90ModesData.push(latency_v2_sd_full_nullvm_both_p90_master_trending);
+
+  generateChart("trending_p90_master", p90ModesData);
+
+  // p99
+  let latency_none_mtls_both_p99_master_trending = constructDataSeries(latency_none_mtls_both_p99_master, latency_none_mtls_base_p99_master)
+  let latency_none_plaintext_both_p99_master_trending = constructDataSeries(latency_none_plaintext_both_p99_master, latency_none_mtls_base_p99_master)
+  let latency_v2_stats_nullvm_both_p99_master_trending = constructDataSeries(latency_v2_stats_nullvm_both_p99_master, latency_none_mtls_base_p99_master)
+  let latency_v2_stats_wasm_both_p99_master_trending = constructDataSeries(latency_v2_stats_wasm_both_p99_master, latency_none_mtls_base_p99_master)
+  let latency_v2_sd_nologging_nullvm_both_p99_master_trending = constructDataSeries(latency_v2_sd_nologging_nullvm_both_p99_master, latency_none_mtls_base_p99_master)
+  let latency_v2_sd_full_nullvm_both_p99_master_trending = constructDataSeries(latency_v2_sd_full_nullvm_both_p99_master, latency_none_mtls_base_p99_master)
+
+  p99ModesData = [];
+  p99ModesData.push(latency_none_mtls_both_p99_master_trending);
+  p99ModesData.push(latency_none_plaintext_both_p99_master_trending);
+  p99ModesData.push(latency_v2_stats_nullvm_both_p99_master_trending);
+  p99ModesData.push(latency_v2_stats_wasm_both_p99_master_trending);
+  p99ModesData.push(latency_v2_sd_nologging_nullvm_both_p99_master_trending);
+  p99ModesData.push(latency_v2_sd_full_nullvm_both_p99_master_trending);
+
+  generateChart("trending_p99_master", p99ModesData);
+};
+
+

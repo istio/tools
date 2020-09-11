@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+
+{% block head_script %}
+<script src="{% static 'js/regression_common_func.js' %}"></script>
+<script src="{% static 'js/master_regression.js' %}"></script>
+{% endblock head_script %}
+
+{% block sidebar_active %}
+<ul id="side-main-menu" class="side-menu list-unstyled">
+    <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
+    <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
+    <i class="fa fa-area-chart"></i>Benchmarks</a>
+    <ul id="dropDown" class="collapse list-unstyled">
+        <li><a href="{% url 'benchmarks_overview' %}"><i class="fa fa-asterisk"></i>Configs & Measurements</a></li>
+        <li><a href="#dropDownCPU" aria-expanded="false" data-toggle="collapse">
+            <i class="fa fa-asterisk"></i>CPU Usages</a>
+            <ul id="dropDownCPU" class="collapse list-unstyled">
+                <li><a href="{% url 'cpu_conn' %}"><i class="fa fa-chevron-right"></i>CPUs vs. Conn</a></li>
+                <li><a href="{% url 'cpu_qps' %}"><i class="fa fa-chevron-right"></i>CPUs vs. QPS</a></li>
+            </ul>
+        </li>
+        <li><a href="#dropDownMem" aria-expanded="false" data-toggle="collapse">
+            <i class="fa fa-asterisk"></i>Mem Usages</a>
+            <ul id="dropDownMem" class="collapse list-unstyled">
+                <li><a href="{% url 'mem_conn' %}"><i class="fa fa-chevron-right"></i>Mem vs. Conn</a></li>
+                <li><a href="{% url 'mem_qps' %}"><i class="fa fa-chevron-right"></i>Mem vs. QPS</a></li>
+            </ul>
+        </li>
+        <li><a href="#dropDownLatency" aria-expanded="false" data-toggle="collapse">
+            <i class="fa fa-asterisk"></i>Latency Quantiles</a>
+            <ul id="dropDownLatency" class="collapse list-unstyled">
+                <li><a href="{% url 'latency_conn' %}"><i class="fa fa-chevron-right"></i>Latency vs. Conn</a></li>
+                <li><a href="{% url 'latency_qps' %}"><i class="fa fa-chevron-right"></i>Latency vs. QPS</a></li>
+            </ul>
+        </li>
+        <li><a href="{% url 'flame_graph' %}"><i class="fa fa-asterisk"></i>Flame Graph</a></li>
+        <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
+    </ul>
+    <li><a href="#alertDropDown" aria-expanded="true" data-toggle="collapse">
+    <i class="fa fa-bullhorn"></i>Regressions</a>
+    <ul id="alertDropDown" class="list-unstyled">
+        <li><a href="{% url 'monitoring_overview' %}"><i class="fa fa-asterisk"></i>Monitoring Overview</a></li>
+        <li><a href="{% url 'cur_regression' %}"><i class="fa fa-asterisk"></i>Current Regression</a></li>
+        <li class="active"><a href="{% url 'master_regression' %}"><i class="fa fa-asterisk"></i>Master Regression</a></li>
+    </ul>
+    <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
+    <li><a href="{% url 'history' %}"> <i class="fa fa-file-archive-o"></i>History</a></li>
+    <li><a href="{% url 'analyze_issues' %}"> <i class="fa fa-file-archive-o"></i>Analyze Perf & Issues</a></li>
+</ul>
+{% endblock sidebar_active %}
+
+{% block current_active %}
+<li class="breadcrumb-item">Regressions</li>
+<li class="breadcrumb-item active">master</li>
+{% endblock current_active %}
+
+{% block page_content %}
+<section class="charts">
+      <div class="container-fluid">
+        <!-- Page Header-->
+        <header>
+          <h1 class="h3 display">Istio Performance Trending</h1>
+        </header>
+        <p>Note: each trending line is calculated by subtracting baseline from its perf number.</p>
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header d-flex align-items-center">
+                <h4>Istio-master Performance Trending: P90, 1000QPS over 240 seconds (16 connections)</h4>
+              </div>
+              <div class="card-body">
+                <div id="trending_p90_master" style="height: 370px; width: 100%;">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header d-flex align-items-center">
+                <h4>Istio-master Performance Trending: P99, 1000QPS over 240 seconds (16 connections)</h4>
+              </div>
+              <div class="card-body">
+                <div id="trending_p99_master" style="height: 370px; width: 100%;">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+</section>
+{% endblock page_content %}
+
+{% block page_data %}
+    <script>
+     latency_none_mtls_base_p90_master = {{ latency_none_mtls_base_p90_master|safe }}
+     latency_none_mtls_both_p90_master = {{ latency_none_mtls_both_p90_master|safe }}
+     latency_none_plaintext_both_p90_master = {{ latency_none_plaintext_both_p90_master|safe }}
+     latency_v2_stats_nullvm_both_p90_master = {{ latency_v2_stats_nullvm_both_p90_master|safe }}
+     latency_v2_stats_wasm_both_p90_master = {{ latency_v2_stats_wasm_both_p90_master|safe }}
+     latency_v2_sd_nologging_nullvm_both_p90_master = {{ latency_v2_sd_nologging_nullvm_both_p90_master|safe }}
+     latency_v2_sd_full_nullvm_both_p90_master = {{ latency_v2_sd_full_nullvm_both_p90_master|safe }}
+
+     latency_none_mtls_base_p99_master = {{ latency_none_mtls_base_p99_master|safe }}
+     latency_none_mtls_both_p99_master = {{ latency_none_mtls_both_p99_master|safe }}
+     latency_none_plaintext_both_p99_master = {{ latency_none_plaintext_both_p99_master|safe }}
+     latency_v2_stats_nullvm_both_p99_master = {{ latency_v2_stats_nullvm_both_p99_master|safe }}
+     latency_v2_stats_wasm_both_p99_master = {{ latency_v2_stats_wasm_both_p99_master|safe }}
+     latency_v2_sd_nologging_nullvm_both_p99_master = {{ latency_v2_sd_nologging_nullvm_both_p99_master|safe }}
+     latency_v2_sd_full_nullvm_both_p99_master = {{ latency_v2_sd_full_nullvm_both_p99_master|safe }}
+    </script>
+{% endblock page_data %}

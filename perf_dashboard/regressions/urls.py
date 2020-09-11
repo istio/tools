@@ -17,6 +17,7 @@ from . import views
 
 
 urlpatterns = [
-    url('cur_pattern', views.cur_pattern, name="cur_pattern"),
-    url('master_pattern', views.master_pattern, name="master_pattern"),
+    url('monitoring_overview', views.monitoring_overview, name="monitoring_overview"),
+    url('cur_regression', views.cur_regression, name="cur_regression"),
+    url('master_regression', views.master_regression, name="master_regression"),
 ]

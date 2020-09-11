@@ -48,6 +48,8 @@ In Django, MVC is corresponding to:
 - The `perf_dashboard/perf_dashboard` repo contains all project-level settings, views and urls, which is using `perf_dashboard/templates` to render the home page.
 - All there other sidebar sections you can see in this application is created by `python manage.py startapp [app_name]`. Like currently, we have the following apps:
     - benchmarks
-    - regression_alerts
+    - analyze_perf_issues
     - artifacts
+    - regressions
+    - history
 
