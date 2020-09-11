@@ -75,7 +75,7 @@ def master_regression(request):
     latency_none_plaintext_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_plaintext_both', 'p90')
     latency_v2_stats_nullvm_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_v2-stats-nullvm_both', 'p90')
     latency_v2_stats_wasm_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_v2-stats-wasm_both', 'p90')
-    latency_v2_sd_nologging_nullvm_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_v2-sd-nologging-nullvm_both','p90')
+    latency_v2_sd_nologging_nullvm_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_v2-sd-nologging-nullvm_both', 'p90')
     latency_v2_sd_full_nullvm_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_v2-sd-full-nullvm_both', 'p90')
 
     latency_none_mtls_base_p99_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_mtls_baseline', 'p99')
@@ -134,6 +134,4 @@ def get_telemetry_mode_y_series(release_href_links, release_dates, telemetry_mod
             trending_data[i] = release_list + ["null"]
         else:
             trending_data[i] = release_list + [get_latency_y_data_point(df, telemetry_mode, quantiles)]
-
     return trending_data
-
