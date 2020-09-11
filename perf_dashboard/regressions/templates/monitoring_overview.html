@@ -1,11 +1,6 @@
 {% extends 'base.html' %}
 {% load static from staticfiles %}
 
-{% block head_script %}
-<script src="{% static 'js/pattern_common_func.js' %}"></script>
-<script src="{% static 'js/master_pattern.js' %}"></script>
-{% endblock head_script %}
-
 {% block sidebar_active %}
 <ul id="side-main-menu" class="side-menu list-unstyled">
     <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
@@ -37,11 +32,12 @@
         <li><a href="{% url 'flame_graph' %}"><i class="fa fa-asterisk"></i>Flame Graph</a></li>
         <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
-    <li><a href="#alertDropDown" aria-expanded="true" data-toggle="collapse">
-    <i class="fa fa-bullhorn"></i>Regression Pattern</a>
+    <li class="active"><a href="#alertDropDown" aria-expanded="true" data-toggle="collapse">
+    <i class="fa fa-bullhorn"></i>Regressions</a>
     <ul id="alertDropDown" class="list-unstyled">
-        <li><a href="{% url 'cur_pattern' %}"><i class="fa fa-asterisk"></i>Current Release</a></li>
-        <li class="active"><a href="{% url 'master_pattern' %}"><i class="fa fa-asterisk"></i>Master</a></li>
+        <li class="active"><a href="{% url 'monitoring_overview' %}"><i class="fa fa-asterisk"></i>Monitoring Overview</a></li>
+        <li><a href="{% url 'cur_regression' %}"><i class="fa fa-asterisk"></i>Current Regression</a></li>
+        <li><a href="{% url 'master_regression' %}"><i class="fa fa-asterisk"></i>Master Regression</a></li>
     </ul>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
     <li><a href="{% url 'history' %}"> <i class="fa fa-file-archive-o"></i>History</a></li>
@@ -50,55 +46,31 @@
 {% endblock sidebar_active %}
 
 {% block current_active %}
-<li class="breadcrumb-item">Regression Pattern</li>
-<li class="breadcrumb-item active">master</li>
+<li class="breadcrumb-item">Regressions</li>
+<li class="breadcrumb-item active">Monitoring Overview</li>
 {% endblock current_active %}
 
 {% block page_content %}
-<section class="charts">
-      <div class="container-fluid">
-        <!-- Page Header-->
-        <header>
-          <h1 class="h3 display">Istio Performance Pattern</h1>
-        </header>
-        <div class="row">
-          <div class="col-lg-12">
-            <div class="card">
-              <div class="card-header d-flex align-items-center">
-                <h4>Istio-master Performance Pattern: P90, 1000QPS over 240 seconds (16 connections)</h4>
-              </div>
-              <div class="card-body">
-                <div id="chart_p90_master" style="height: 370px; width: 100%;">
+<!-- Header Section-->
+<section class="dashboard-header section-padding">
+   <div class="container-fluid">
+          <div class="row d-flex align-items-md-stretch">
+            <!-- List-->
+            <div class="col-lg-12 col-md-3">
+              <div class="card">
+                <div class="card-header">
+                  <h2>Performance Regression Monitoring</h2>
                 </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-12">
-            <div class="card">
-              <div class="card-header d-flex align-items-center">
-                <h4>Istio-master Performance Pattern: P99, 1000QPS over 240 seconds (16 connections)</h4>
-              </div>
-              <div class="card-body">
-                <div id="chart_p99_master" style="height: 370px; width: 100%;">
+                <div class="card-body">
+                    <placeholder>to be added</placeholder>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 </section>
 {% endblock page_content %}
 
-{% block page_data %}
-    <script>
-        mixer_both_p90_pattern_master = {{ mixer_both_p90_pattern_master|safe }}
-        none_mtls_base_p90_pattern_master = {{ none_mtls_base_p90_pattern_master|safe }}
-        none_mtls_both_p90_pattern_master = {{ none_mtls_both_p90_pattern_master|safe }}
-        v2_sd_full_nullvm_both_p90_pattern_master = {{ v2_sd_full_nullvm_both_p90_pattern_master|safe }}
-
-        mixer_both_p99_pattern_master = {{ mixer_both_p99_pattern_master|safe }}
-        none_mtls_base_p99_pattern_master = {{ none_mtls_base_p99_pattern_master|safe }}
-        none_mtls_both_p99_pattern_master = {{ none_mtls_both_p99_pattern_master|safe }}
-        v2_sd_full_nullvm_both_p99_pattern_master = {{ v2_sd_full_nullvm_both_p99_pattern_master|safe }}
-    </script>
-{% endblock page_data %}
+{% block charts_js %}
+    <script src="{% static 'js/overview.js' %}"></script>
+{% endblock charts_js %}

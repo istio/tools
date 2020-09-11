@@ -2,8 +2,8 @@
 {% load static from staticfiles %}
 
 {% block head_script %}
-<script src="{% static 'js/pattern_common_func.js' %}"></script>
-<script src="{% static 'js/cur_pattern.js' %}"></script>
+<script src="{% static 'js/regression_common_func.js' %}"></script>
+<script src="{% static 'js/cur_regression.js' %}"></script>
 {% endblock head_script %}
 
 {% block sidebar_active %}
@@ -38,10 +38,11 @@
         <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="#alertDropDown" aria-expanded="true" data-toggle="collapse">
-    <i class="fa fa-bullhorn"></i>Regression Pattern</a>
+    <i class="fa fa-bullhorn"></i>Regressions</a>
     <ul id="alertDropDown" class="list-unstyled">
-        <li class="active"><a href="{% url 'cur_pattern' %}"><i class="fa fa-asterisk"></i>Current Release</a></li>
-        <li><a href="{% url 'master_pattern' %}"><i class="fa fa-asterisk"></i>Master</a></li>
+        <li><a href="{% url 'monitoring_overview' %}"><i class="fa fa-asterisk"></i>Monitoring Overview</a></li>
+        <li class="active"><a href="{% url 'cur_regression' %}"><i class="fa fa-asterisk"></i>Current Regression</a></li>
+        <li><a href="{% url 'master_regression' %}"><i class="fa fa-asterisk"></i>Master Regression</a></li>
     </ul>
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
     <li><a href="{% url 'history' %}"> <i class="fa fa-file-archive-o"></i>History</a></li>
@@ -50,7 +51,7 @@
 {% endblock sidebar_active %}
 
 {% block current_active %}
-<li class="breadcrumb-item">Regression Pattern</li>
+<li class="breadcrumb-item">Regressions</li>
 <li class="breadcrumb-item active">{{ current_release|first }}</li>
 {% endblock current_active %}
 
@@ -59,16 +60,17 @@
       <div class="container-fluid">
         <!-- Page Header-->
         <header>
-          <h1 class="h3 display">Istio Performance Pattern</h1>
+          <h1 class="h3 display">Istio Performance Trending</h1>
         </header>
+          <p>Note: each trending line is calculated by subtracting baseline from its perf number.</p>
         <div class="row">
           <div class="col-lg-12">
             <div class="card">
               <div class="card-header d-flex align-items-center">
-                <h4>Istio-{{ current_release|first }} Performance Pattern: P90, 1000QPS over 240 seconds (16 connections)</h4>
+                <h4>Istio-{{ current_release|first }} Performance Trending: P90, 1000QPS over 240 seconds (16 connections)</h4>
               </div>
               <div class="card-body">
-                <div id="chart_p90" style="height: 370px; width: 100%;">
+                <div id="trending_p90" style="height: 370px; width: 100%;">
                 </div>
               </div>
             </div>
@@ -76,10 +78,10 @@
           <div class="col-lg-12">
             <div class="card">
               <div class="card-header d-flex align-items-center">
-                <h4>Istio-{{ current_release|first }} Performance Pattern: P99, 1000QPS over 240 seconds (16 connections)</h4>
+                <h4>Istio-{{ current_release|first }} Performance Trending: P99, 1000QPS over 240 seconds (16 connections)</h4>
               </div>
               <div class="card-body">
-                <div id="chart_p99" style="height: 370px; width: 100%;">
+                <div id="trending_p99" style="height: 370px; width: 100%;">
                 </div>
               </div>
             </div>
@@ -91,16 +93,22 @@
 
 {% block page_data %}
     <script>
-        current_release = {{ current_release|safe}}
+    current_release = {{ current_release|safe }}
 
-        mixer_both_p90_pattern = {{ mixer_both_p90_pattern|safe }}
-        none_mtls_base_p90_pattern = {{ none_mtls_base_p90_pattern|safe }}
-        none_mtls_both_p90_pattern = {{ none_mtls_both_p90_pattern|safe }}
-        v2_sd_full_nullvm_both_p90_pattern = {{ v2_sd_full_nullvm_both_p90_pattern|safe }}
+    latency_none_mtls_base_p90 = {{ latency_none_mtls_base_p90|safe }}
+    latency_none_mtls_both_p90 = {{ latency_none_mtls_both_p90|safe }}
+    latency_none_plaintext_both_p90 = {{ latency_none_plaintext_both_p90|safe }}
+    latency_v2_stats_nullvm_both_p90 = {{ latency_v2_stats_nullvm_both_p90|safe }}
+    latency_v2_stats_wasm_both_p90 = {{ latency_v2_stats_wasm_both_p90|safe }}
+    latency_v2_sd_nologging_nullvm_both_p90 = {{ latency_v2_sd_nologging_nullvm_both_p90|safe }}
+    latency_v2_sd_full_nullvm_both_p90 = {{ latency_v2_sd_full_nullvm_both_p90|safe }}
 
-        mixer_both_p99_pattern = {{ mixer_both_p99_pattern|safe }}
-        none_mtls_base_p99_pattern = {{ none_mtls_base_p99_pattern|safe }}
-        none_mtls_both_p99_pattern = {{ none_mtls_both_p99_pattern|safe }}
-        v2_sd_full_nullvm_both_p99_pattern = {{ v2_sd_full_nullvm_both_p99_pattern|safe }}
+    latency_none_mtls_base_p99 = {{ latency_none_mtls_base_p99|safe }}
+    latency_none_mtls_both_p99 = {{ latency_none_mtls_both_p99|safe }}
+    latency_none_plaintext_both_p99 = {{ latency_none_plaintext_both_p99|safe }}
+    latency_v2_stats_nullvm_both_p99 = {{ latency_v2_stats_nullvm_both_p99|safe }}
+    latency_v2_stats_wasm_both_p99 = {{ latency_v2_stats_wasm_both_p99|safe }}
+    latency_v2_sd_nologging_nullvm_both_p99 = {{ latency_v2_sd_nologging_nullvm_both_p99|safe }}
+    latency_v2_sd_full_nullvm_both_p99 = {{ latency_v2_sd_full_nullvm_both_p99|safe }}
     </script>
 {% endblock page_data %}

@@ -41,7 +41,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^artifacts/', include('artifacts.urls')),
     url(r'^analyze_perf_issues/', include('analyze_perf_issues.urls')),
-    url(r'^regression/', include('regression_pattern.urls')),
+    url(r'^regressions/', include('regressions.urls')),
     url(r'^benchmarks/', include('benchmarks.urls')),
     url(r'^history/', include('history.urls')),
 ]
