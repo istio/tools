@@ -1,7 +1,6 @@
 /* Latency Charts */
-
 // labels along the x-axis
-var connNum = ["10", "100", "500", "1000", "2000", "3000"];
+var qpsNum = ["10", "100", "200", "400", "800", "1000"];
 // x-axis and y-axis labels
 var options = {
     scales: {
@@ -22,5 +21,5 @@ var options = {
 };
 
 window.onload = function () {
-    generateLatencyChart(connNum, options)
+    generateLatencyChart(qpsNum, options)
 };
