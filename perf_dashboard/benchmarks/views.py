@@ -960,7 +960,7 @@ def get_cpu_vs_conn_y_series(df, telemetry_mode, cpu_metric_name):
 # Memory Helpers
 def get_mem_vs_qps_y_series(df, telemetry_mode, mem_metric_name):
     y_series_data = []
-    for qps in [10, 100, 500, 1000, 2000, 3000]:
+    for qps in [10, 100, 200, 400, 800, 1000]:
         data = df.query('ActualQPS == @qps and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)')
         data_get_helper(data, y_series_data, mem_metric_name)
     return y_series_data
