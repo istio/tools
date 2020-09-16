@@ -42,17 +42,20 @@ type licenseInfo struct {
 	analysis analysisResult
 }
 
-// a go module, as returned by `go list -m`
+type moduleDepInfo struct {
+	Path string `json:",omitempty"` // module path
+	Dir  string `json:",omitempty"` // directory holding local copy of files, if any
+	Main bool   `json:",omitempty"` // is this the main module?
+}
+
+// a go module, as returned by `go list -deps`
 type module struct {
-	Path      string    `json:"Path"`
-	Version   string    `json:"Version"`
-	Replace   *module   `json:"Replace"`
-	Time      time.Time `json:"Time"`
-	Main      bool      `json:"Main"`
-	Indirect  bool      `json:"Indirect"`
-	Dir       string    `json:"Dir"`
-	GoMod     string    `json:"GoMod"`
-	GoVersion string    `json:"GoVersion"`
+	Module  *moduleDepInfo `json:"Module"`
+	Path    string         `json:"Path"`
+	Version string         `json:"Version"`
+	Replace *module        `json:"Replace"`
+	Time    time.Time      `json:"Time"`
+	Dir     string         `json:"Dir"`
 }
 
 func getLicenses() ([]*moduleInfo, error) {
@@ -115,8 +118,8 @@ func getLicenses() ([]*moduleInfo, error) {
 	return result, nil
 }
 
-func getDependentModules() ([]module, error) {
-	cmd := exec.Command("go", "list", "-mod=readonly", "-m", "-json", "all")
+func getDependentModules() ([]moduleDepInfo, error) {
+	cmd := exec.Command("go", "list", "-mod=readonly", "-deps", "-test", "-json", "./...")
 
 	// Turn on Go module support
 	cmd.Env = os.Environ()
@@ -148,14 +151,17 @@ func getDependentModules() ([]module, error) {
 	}
 
 	// evict the main module since we only want dependencies
-	var result []module
+	result := map[string]moduleDepInfo{}
 	for _, m := range modules {
-		if !m.Main {
-			result = append(result, m)
+		if m.Module != nil && !m.Module.Main {
+			result[m.Module.Path] = *m.Module
 		}
 	}
-
-	return result, nil
+	l := []moduleDepInfo{}
+	for _, m := range result {
+		l = append(l, m)
+	}
+	return l, nil
 }
 
 // the set of license files we recognize
