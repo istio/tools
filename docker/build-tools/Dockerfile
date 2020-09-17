@@ -77,7 +77,7 @@ RUN mkdir -p ${OUTDIR}/usr/local
 
 # Update distro and install dependencies
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get dist-upgrade && apt-get install -y --no-install-recommends \
     apt-transport-https \
     build-essential \
     ca-certificates \
@@ -282,7 +282,7 @@ ENV LICENSEE_VERSION=9.11.0
 ENV MDL_VERSION=0.5.0
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     gnupg2 \
@@ -314,14 +314,14 @@ FROM ubuntu:bionic as python_context
 
 # Pinned versions of stuff we pull in
 ENV AUTOPEP8_VERSION=1.4.4
-ENV YAMLLINT_VERSION=1.17.0
+ENV YAMLLINT_VERSION=1.24.2
 ENV REQUESTS_VERSION=2.22.0
 ENV PYTHON_PROTOBUF_VERSION=3.11.2
 ENV PYYAML_VERSION=5.3.1
 ENV JWCRYPTO_VERSION=0.7
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     libc-dev \
@@ -356,7 +356,7 @@ ENV OUTDIR=/out
 # required for ruby: libcurl4-openssl-dev
 # required for python: python3, pkg-config
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -377,7 +377,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     daemon \
     wget \
     rpm \
-    jq
+    jq \
+    locales-all
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
@@ -497,7 +498,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 FROM ubuntu:xenial as clang_context
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
     xz-utils \
     wget \
     ca-certificates \
@@ -529,7 +530,7 @@ ENV BAZELISK_BIN="bazelisk-linux-amd64"
 ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates \
  && apt-get clean \
@@ -578,7 +579,7 @@ ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
 # required for general build: make, wget, curl, ssh
 # required for python: python3, pkg-config
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     curl \
