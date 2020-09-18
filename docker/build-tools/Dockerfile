@@ -77,7 +77,7 @@ RUN mkdir -p ${OUTDIR}/usr/local
 
 # Update distro and install dependencies
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get dist-upgrade && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
     apt-transport-https \
     build-essential \
     ca-certificates \
