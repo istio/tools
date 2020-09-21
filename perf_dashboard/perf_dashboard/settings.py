@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     'benchmarks',
     'analyze_perf_issues',
     'artifacts',
-    'regression_pattern',
+    'regressions',
     'history',
 ]
 
