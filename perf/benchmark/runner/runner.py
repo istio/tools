@@ -341,7 +341,7 @@ class Fortio:
             # now to avoid noise.
             workers = 1
             jitter_uniform = None
-            if self.jitter:
+            if self.jitter and qps > 0:
                 jitter_uniform = f"{float(0.1 * 1 / qps):.9f}"  # suppress scientific notation
             load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, jitter_uniform, duration, labels)
 
