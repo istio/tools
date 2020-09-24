@@ -40,6 +40,8 @@ spec:
             value: {{ .Values.instance }}
           - name: DBNAME
             value: {{ .Values.dbName }}
+          - name: MS_TABLE_NAME
+            value: {{ .Values.msTableName }}
           - name: BRANCH
             value: {{ .Values.branch }}
           - name: TESTID

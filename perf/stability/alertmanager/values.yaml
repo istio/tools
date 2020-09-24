@@ -57,9 +57,10 @@ configFileName: alertmanager.yml
 resources: {}
 
 # for alertmanager webhook
-projectID: "mixologist-142215"
-instance: "release-qual"
-dbName: "monitorstatus"
+projectID: "istio-testing"
+instance: "istio-policy-bot"
+dbName: "main"
+msTableName: "MonitorStatus"
 clusterName: "oss17"
 branch: "master"
 testID: ""

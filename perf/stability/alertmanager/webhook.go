@@ -39,6 +39,7 @@ var (
 	projectID   string
 	instance    string
 	dbName      string
+	mstableName string
 	clusterName string
 	branch      string
 	testID      string
@@ -73,6 +74,7 @@ func initSpanner() *spanner.Client {
 	projectID = os.Getenv("PROJECT_ID")
 	instance = os.Getenv("INSTANCE")
 	dbName = os.Getenv("DBNAME")
+	mstableName = os.Getenv("MS_TABLE_NAME")
 	clusterName = os.Getenv("CLUSTER_NAME")
 	branch = os.Getenv("BRANCH")
 	testID = os.Getenv("TESTID")
@@ -120,14 +122,14 @@ func initMonitorStatus() {
 		}
 	}
 	log.Println("writing initial monitor status to Spanner")
-	if err := writeMonitorStatusToDB(monitorList); err != nil {
+	if err := writeMonitorStatusToDB(monitorList, false); err != nil {
 		log.Fatalf("failed to initialize monitor status in Spanner: %v", err)
 	}
 }
 
 func webhook(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	log.Println("handling alert webhook")
+	log.Println("Handling new alert webhook")
 	data := template.Data{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Fatalf(err.Error())
@@ -146,7 +148,7 @@ func webhook(w http.ResponseWriter, r *http.Request) {
 	if errs != nil {
 		log.Fatalf("failed to convert prom alert to internal monitor: %v", errs)
 	}
-	if err := writeMonitorStatusToDB(monitorList); err != nil {
+	if err := writeMonitorStatusToDB(monitorList, true); err != nil {
 		log.Fatalf("failed to write alert to db: %v", err)
 	}
 	fmt.Fprint(w, "Ok!")
@@ -156,30 +158,57 @@ func healthz(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Ok!")
 }
 
-// writeMonitorStatusToDB is helper function to convert monitorStatus and write to spanner
-func writeMonitorStatusToDB(ms []SingleMonitorStatus) error {
-	ctx := context.Background()
+func writeMonitorStatusToDB(ms []SingleMonitorStatus, readwrite bool) error {
 	monitorColumns := []string{"MonitorName", "Status", "ProjectID", "ClusterName", "Branch", "UpdatedTime", "TestID"}
+	if readwrite {
+		monitorColumns = append(monitorColumns, "FiredTimes")
+	}
 	curTime := time.Now()
 	var m []*spanner.Mutation
 
-	for _, sms := range ms {
-		alertName := sms.Name
-		if alertName == "" {
-			var ok bool
-			if alertName, ok = sms.Labels["alertname"]; !ok {
-				return fmt.Errorf("no alertname found from the labels")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	_, err := client.ReadWriteTransaction(ctx, func(ctx context.Context, txn *spanner.ReadWriteTransaction) error {
+		for _, sms := range ms {
+			var monitorName string
+			if monitorName = getMonitorName(sms); monitorName == "" {
+				return fmt.Errorf("no alertname found")
+			}
+			log.Printf("Writing Alert status to Spanner: name=%s, status=%s,Labels=%v,Annotations=%v\n",
+				monitorName, sms.Status, sms.Labels, sms.Annotations)
+			if !readwrite {
+				m = append(m, spanner.InsertOrUpdate(mstableName, monitorColumns,
+					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID}))
+			} else {
+				var firedTimes int64
+				row, err := txn.ReadRow(ctx, mstableName, spanner.Key{testID, sms.Name}, []string{"firedTimes"})
+				if err != nil {
+					return err
+				}
+				if err := row.Column(0, &firedTimes); err != nil {
+					return err
+				}
+				m = append(m, spanner.InsertOrUpdate(mstableName, monitorColumns,
+					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, firedTimes + 1}))
 			}
 		}
-		log.Printf("Writing Alert status to Spanner: name=%s, status=%s,Labels=%v,Annotations=%v\n",
-			alertName, sms.Status, sms.Labels, sms.Annotations)
-		m = append(m, spanner.InsertOrUpdate(dbName, monitorColumns,
-			[]interface{}{alertName, sms.Status, projectID, clusterName, branch, curTime, testID}))
+		if err := txn.BufferWrite(m); err != nil {
+			return fmt.Errorf("failed to write to spanner db: %v", err)
+		}
+		return nil
+	})
+	return err
+}
+
+func getMonitorName(sms SingleMonitorStatus) string {
+	monitorName := sms.Name
+	if monitorName == "" {
+		var ok bool
+		if monitorName, ok = sms.Labels["alertname"]; !ok {
+			return ""
+		}
 	}
-	if _, err := client.Apply(ctx, m); err != nil {
-		return err
-	}
-	return nil
+	return monitorName
 }
 
 // convertPromAlertToInternalMonitorStatus is helper function to convert from prometheus Alert to internal SingleMonitorStatus struct.

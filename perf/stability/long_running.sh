@@ -31,7 +31,7 @@ export SKIP_ISTIO_SETUP="${SKIP_ISTIO_SETUP:-false}"
 export PROMETHEUS_NAMESPACE="${PROMETHEUS_NAMESPACE:-istio-prometheus}"
 
 # shellcheck disable=SC2153
-if [[ -z "${PROJECT_ID}" ]] || [[ -z "${CLUSTER_NAME}" ]] ;then
+if [[ -z "${PROJECT_ID:-}" ]] || [[ -z "${CLUSTER_NAME:-}" ]] ;then
   echo "You need to set PROJECT_ID and CLUSTER_NAME for where the test would be running"
   exit 1
 fi
@@ -40,7 +40,8 @@ fi
 export PROJECT_ID="${PROJECT_ID:-}"
 export CLUSTER_NAME="${CLUSTER_NAME:-}"
 export INSTANCE="${INSTANCE:-release-qual}"
-export DBNAME="${DBNAME:-monitorstatus}"
+export DBNAME="${DBNAME:-main}"
+export MS_TABLE_NAME="${MS_TABLE_NAME:-MonitorStatus}"
 export TESTID="${TESTID:-default}"
 
 # setup Istio
@@ -54,8 +55,19 @@ if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then
 fi
 
 export NOT_INJECTED="True"
+BRANCH="${TAG}"
+if [[ -z "${BRANCH}" ]];then
+  if [[ -n "${VERSION}" ]];then
+    BRANCH="${VERSION}"
+  elif [[ -n "${RELEASE_URL}" ]];then
+    BRANCH="${RELEASE_URL}"
+  fi
+fi
+
+DT=$(date +'%Y%m%d%H')
+TESTID="${DT}-${BRANCH}"
 # deploy alertmanager related resources
-HELM_ARGS="--set values.projectID=${PROJECT_ID} --set values.clusterName=${CLUSTER_NAME} --set values.branch=${TAG} --set values.instance=${INSTANCE} --set values.dbName=${DBNAME} --set values.testID=${TESTID}"
+HELM_ARGS="--set values.projectID=${PROJECT_ID} --set values.clusterName=${CLUSTER_NAME} --set values.branch=${BRANCH} --set values.instance=${INSTANCE} --set values.dbName=${DBNAME} --set values.testID=${TESTID} --set values.msTableName=${MS_TABLE_NAME}"
 NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager "${HELM_ARGS}"
 kubectl apply -f ./alertmanager/prometheusrule.yaml
 
