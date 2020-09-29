@@ -65,7 +65,7 @@ if [[ -z "${BRANCH}" ]];then
 fi
 
 DT=$(date +'%Y%m%d%H')
-TESTID="${DT}-${BRANCH}"
+TESTID="${BRANCH}-${DT}"
 # deploy alertmanager related resources
 HELM_ARGS="--set values.projectID=${PROJECT_ID} --set values.clusterName=${CLUSTER_NAME} --set values.branch=${BRANCH} --set values.instance=${INSTANCE} --set values.dbName=${DBNAME} --set values.testID=${TESTID} --set values.msTableName=${MS_TABLE_NAME}"
 NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager "${HELM_ARGS}"

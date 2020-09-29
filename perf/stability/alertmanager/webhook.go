@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/spanner"
-	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/alertmanager/template"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -92,7 +91,16 @@ func initSpanner() *spanner.Client {
 
 // initMonitorStatus writes initial MonitorStatus to spanner db.
 func initMonitorStatus() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ms := queryMonitorStatus()
+	log.Println("writing initial monitor status to Spanner")
+	if err := writeMonitorStatusToDB(ms, false); err != nil {
+		log.Fatalf("failed to initialize monitor status in Spanner: %v", err)
+	}
+}
+
+// queryMonitorStatus is a helper function to query prometheus API for alert status.
+func queryMonitorStatus() []SingleMonitorStatus {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	log.Println("checking prometheus rules")
 	rules, err := v1api.Rules(ctx)
@@ -106,7 +114,7 @@ func initMonitorStatus() {
 			case v1.RecordingRule:
 				continue
 			case v1.AlertingRule:
-				fmt.Printf("adding alerting rule: %s\n", v.Name)
+				fmt.Printf("checking rule: %s\n", v.Name)
 				status := healthyStatus
 				if len(v.Alerts) != 0 {
 					status = alertingStatus
@@ -121,35 +129,37 @@ func initMonitorStatus() {
 			}
 		}
 	}
-	log.Println("writing initial monitor status to Spanner")
-	if err := writeMonitorStatusToDB(monitorList, false); err != nil {
-		log.Fatalf("failed to initialize monitor status in Spanner: %v", err)
-	}
+	return monitorList
+}
+
+func checkMonitorStatus(done chan bool) {
+	ticker := time.NewTicker(15 * time.Minute)
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case t := <-ticker.C:
+				fmt.Println("Checking monitor status at", t)
+				ms := queryMonitorStatus()
+				if err := writeMonitorStatusToDB(ms, true); err != nil {
+					log.Fatalf("failed to update monitor status in Spanner: %v", err)
+				}
+			}
+		}
+	}()
 }
 
 func webhook(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	log.Println("Handling new alert webhook")
+	log.Println("Handling new alert")
 	data := template.Data{}
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Fatalf(err.Error())
 	}
-	log.Printf("alerts: GroupLabels=%v, CommonLabels=%v", data.GroupLabels, data.CommonLabels)
-	var monitorList []SingleMonitorStatus
-	var errs error
+	log.Printf("Got group alerts: GroupLabels=%v, CommonLabels=%v", data.GroupLabels, data.CommonLabels)
 	for _, alert := range data.Alerts {
-		ms, err := convertPromAlertToInternalMonitorStatus(alert)
-		if err != nil {
-			errs = multierror.Append(errs, err)
-		} else {
-			monitorList = append(monitorList, ms)
-		}
-	}
-	if errs != nil {
-		log.Fatalf("failed to convert prom alert to internal monitor: %v", errs)
-	}
-	if err := writeMonitorStatusToDB(monitorList, true); err != nil {
-		log.Fatalf("failed to write alert to db: %v", err)
+		fmt.Printf("Got alert: %v\n", alert)
 	}
 	fmt.Fprint(w, "Ok!")
 }
@@ -188,8 +198,11 @@ func writeMonitorStatusToDB(ms []SingleMonitorStatus, readwrite bool) error {
 				if err := row.Column(0, &firedTimes); err != nil {
 					return err
 				}
+				if sms.Status == alertingStatus {
+					firedTimes++
+				}
 				m = append(m, spanner.InsertOrUpdate(mstableName, monitorColumns,
-					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, firedTimes + 1}))
+					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, firedTimes}))
 			}
 		}
 		if err := txn.BufferWrite(m); err != nil {
@@ -231,6 +244,9 @@ func main() {
 	defer client.Close()
 	initPromClient(prometheusAddr)
 	initMonitorStatus()
+	done := make(chan bool)
+	checkMonitorStatus(done)
+
 	http.HandleFunc("/healthz", healthz)
 	http.HandleFunc("/webhook", webhook)
 	listenAddress := ":5001"

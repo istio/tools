@@ -20,7 +20,19 @@ ROOT=$(dirname "$WD")
 
 set -eux
 
+# envs for spanner connection
+export PROJECT_ID="${PROJECT_ID:-}"
+export CLUSTER_NAME="${CLUSTER_NAME:-}"
+export INSTANCE="${INSTANCE:-release-qual}"
+export DBNAME="${DBNAME:-main}"
+export MS_TABLE_NAME="${MS_TABLE_NAME:-MonitorStatus}"
+export TESTID="${TESTID:-default}"
+
 # below envs are for ASM installation
+export TAG="${TAG:-}"
+export VERSION="${VERSION:-}"
+export RELEASE_URL="${RELEASE_URL:-}"
+export NAMESPACE_NUM="${NAMESPACE_NUM:-15}"
 export INSTALL_ASM="${INSTALL_ASM:-}"
 export PROJECT_ID="${PROJECT_ID:-}"
 export CLUSTER_NAME="${CLUSTER_NAME:-}"
@@ -31,8 +43,20 @@ export CTX1="${CTX1:-}"
 export CTX2="${CTX2:-}"
 
 export NOT_INJECTED="True"
+BRANCH="${TAG}"
+if [[ -z "${BRANCH}" ]];then
+  if [[ -n "${VERSION}" ]];then
+    BRANCH="${VERSION}"
+  elif [[ -n "${RELEASE_URL}" ]];then
+    BRANCH="${RELEASE_URL}"
+  fi
+fi
+
 # deploy alertmanager related resources
-NAMESPACE="istio-prometheus" "${WD}"/setup_test.sh alertmanager
+DT=$(date +'%Y%m%d%H')
+TESTID="${DT}-${BRANCH}"
+HELM_ARGS="--set values.projectID=${PROJECT_ID} --set values.clusterName=${CLUSTER_NAME} --set values.branch=${BRANCH} --set values.instance=${INSTANCE} --set values.dbName=${DBNAME} --set values.testID=${TESTID} --set values.msTableName=${MS_TABLE_NAME}"
+NAMESPACE="istio-prometheus" "${WD}"/setup_test.sh alertmanager "${HELM_ARGS}"
 kubectl apply -f "${WD}/alertmanager/prometheusrule.yaml"
 
 # deploy log scanner

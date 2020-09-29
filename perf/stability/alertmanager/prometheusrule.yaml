@@ -24,18 +24,30 @@ spec:
             message:  "Request duration has slowed down for workload: {{`{{$labels.source_workload}}`}} in namespace: {{`{{$labels.namespace}}`}}. Response duration is {{`{{$value}}`}} seconds"
     - name: ./infra.rules
       rules:
-        - alert: ContainerCPUUsageHigh
-          expr: (sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container=~"istio-proxy|discovery", namespace!=""}[5m])) BY (namespace, pod, container) * 100) > 80
+        - alert: ProxyContainerCPUUsageHigh
+          expr: (sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container=~"istio-proxy", namespace!=""}[5m])) BY (namespace, pod, container) * 100) > 80
           for: 5m
           annotations:
-            summary: "Container CPU usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
-            description: "Container CPU usage is above 80%\n  VALUE = {{ $value }}\n"
-        - alert: ContainerMemoryUsageHigh
-          expr: (sum(container_memory_working_set_bytes{namespace!="kube-system", container=~"istio-proxy|discovery", namespace!=""}) BY (container, pod, namespace)  / (sum(container_spec_memory_limit_bytes{namespace!="kube-system", container!="POD"}) BY (container, pod, namespace) > 0)* 100) > 80
+            summary: "Proxy Container CPU usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
+            description: "Proxy Container CPU usage is above 80%\n  VALUE = {{ $value }}\n"
+        - alert: ProxyContainerMemoryUsageHigh
+          expr: (sum(container_memory_working_set_bytes{namespace!="kube-system", container=~"istio-proxy", namespace!=""}) BY (container, pod, namespace)  / (sum(container_spec_memory_limit_bytes{namespace!="kube-system", container!="POD"}) BY (container, pod, namespace) > 0)* 100) > 80
           for: 5m
           annotations:
-            summary: "Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
-            description: "Container Memory usage is above 80%\n  VALUE = {{ $value }}\n"
+            summary: "Proxy Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
+            description: "Proxy Container Memory usage is above 80%\n  VALUE = {{ $value }}\n"
+        - alert: IstiodContainerCPUUsageHigh
+          expr: (sum(rate(container_cpu_usage_seconds_total{namespace="istio-system", container="discovery"}[5m])) BY (pod) * 100) > 80
+          for: 5m
+          annotations:
+            summary: "Istiod Container CPU usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
+            description: "Isitod Container CPU usage is above 80%\n  VALUE = {{ $value }}\n"
+        - alert: IstiodMemoryUsageHigh
+          expr: (sum(container_memory_working_set_bytes{namespace="istio-system", container="discovery"}) BY (pod)  / (sum(container_spec_memory_limit_bytes{namespace="istio-system", container="discovery"}) BY (pod) > 0)* 100) > 80
+          for: 5m
+          annotations:
+            summary: "Istiod Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
+            description: "Istiod Container Memory usage is above 80%\n  VALUE = {{ $value }}\n"
     - name: ./controlplane.rules
       rules:
         - alert: IstiodxdsPushErrorsHigh
