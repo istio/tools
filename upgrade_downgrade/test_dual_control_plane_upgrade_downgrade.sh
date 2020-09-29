@@ -20,6 +20,7 @@ set -x
 
 WD=$(dirname "$0")
 WD=$(cd "$WD" || exit; pwd)
+ROOT=$(dirname "$WD")
 
 command -v helm >/dev/null 2>&1 || { echo >&2 "helm must be installed, aborting."; exit 1; }
 
@@ -86,6 +87,7 @@ else
   echo "supported: dual-control-plane-upgrade, dual-control-plane-upgrade-downgrade"
 fi
 
+source "${ROOT}/upgrade_downgrade/common.sh"
 
 FROM_ISTIOCTL="${FROM_PATH}/bin/istioctl"
 if [[ ! -f "${FROM_ISTIOCTL}" ]]; then
