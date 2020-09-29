@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
 set -o pipefail
 set -x
 
@@ -75,11 +74,13 @@ while (( "$#" )); do
   shift
 done
 
+# Check if required parameters are passed
 if [[ -z "${FROM_HUB}" || -z "${FROM_TAG}" || -z "${FROM_PATH}" || -z "${TO_HUB}" || -z "${TO_TAG}" || -z "${TO_PATH}" ]]; then
   echo "Error: from_hub, from_tag, from_path, to_hub, to_tag, to_path must all be set."
   exit 1
 fi
 
+# Check if scenario is a valid one
 if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]];then
   echo "The current test scenario is ${TEST_SCENARIO}."
 else
@@ -89,24 +90,13 @@ fi
 
 source "${ROOT}/upgrade_downgrade/common.sh"
 
+# Check if istioctl is present in both "from" and "to" versions
 FROM_ISTIOCTL="${FROM_PATH}/bin/istioctl"
-if [[ ! -f "${FROM_ISTIOCTL}" ]]; then
-  echo "istioctl not found in ${FROM_PATH}/bin directory"
-  exit 1
-fi
-
 TO_ISTIOCTL="${TO_PATH}/bin/istioctl"
-if [[ ! -f "${TO_ISTIOCTL}" ]]; then
-  echo "istioctl not found in ${TO_PATH}/bin directory"
+if [[ ! -f "${FROM_ISTIOCTL}" || ! -f "${TO_ISTIOCTL}" ]]; then
+  echo "istioctl not found in either ${FROM_PATH}/bin or ${TO_PATH}/bin directory"
   exit 1
 fi
-
-copy_test_files() {
-    rm -Rf ${TMP_DIR}
-    mkdir -p ${TMP_DIR}
-    echo "${WD}"
-    cp -f "${WD}"/templates/* "${TMP_DIR}"/.
-}
 
 TMP_DIR=/tmp/istio_upgrade_test
 POD_FORTIO_LOG=${TMP_DIR}/fortio_pod.log
@@ -117,57 +107,29 @@ TEST_NAMESPACE="test"
 FROM_REVISION=$(echo "${FROM_TAG}" | tr '.' '-')
 TO_REVISION=$(echo "${TO_TAG}" | tr '.' '-')
 
+writeMsg "Reset cluster"
 copy_test_files
+resetCluster
 
+writeMsg "Deploy Istio(minimal) ${FROM_TAG}"
 ${FROM_ISTIOCTL} install -y --set profile=minimal
-kubectl wait --all --for=condition=Ready pods -n istio-system --timeout=5m
+waitForPodsReady "${ISTIO_NAMESPACE}"
 
-# Deploy sample application
-kubectl create namespace "${TEST_NAMESPACE}"
-kubectl label namespace "${TEST_NAMESPACE}" istio-injection=enabled
-
-echo "Deploying Echo v1 and v2"
+writeMsg "Deploy Echo v1 and v2"
 kubectl apply -f "${TMP_DIR}/fortio.yaml" -n "${TEST_NAMESPACE}"
-kubectl wait --all --for=condition=Ready pods -n "${TEST_NAMESPACE}" --timeout=5m
+waitForPodsReady "${TEST_NAMESPACE}"
 
-echo "Generate internal traffic for echo v1 and v2"
+writeMsg "Generate internal traffic for echo v1 and v2"
 kubectl apply -f "${TMP_DIR}/fortio-cli.yaml" -n "${TEST_NAMESPACE}"
 
 # Install Istio 1.8 minimal profile with canary revision
-echo "Installng Istio[canary] ${TO_TAG}"
+writeMsg "Deploy Istio(minimal) ${TO_TAG}"
 ${TO_ISTIOCTL} install -y --set profile=minimal --set revision="${TO_REVISION}"
 kubectl wait --all --for=condition=Ready pods -n istio-system --timeout=5m
 
 # Relabel namespace before restarting each service
-echo "Relabel namespace to inject ${TO_TAG} proxy"
+writeMsg "Relabel namespace to inject ${TO_TAG} proxy"
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- istio.io/rev="${TO_REVISION}"
-
-function rolloutDeployment() {
-  local ns="$1"
-  local name="$2"
-  local max_attempts=${3:-30}
-  local cur_attempt=1
-
-  local total_replicas=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.spec.replicas}')
-  kubectl rollout restart deployment "${name}" -n "${ns}"
-
-  while (( $cur_attempt <= $max_attempts )); do
-    local ready=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.readyReplicas}')
-    local updated=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.updatedReplicas}')
-    local available=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.availableReplicas}')
-    
-    echo "attempt: ${cur_attempt}/${max_attempts} ==> ready=${ready}, updated=${updated}, available=${available}"
-    if ((updated == total_replicas && available == total_replicas)); then
-      echo "rollout complete"
-      return 0
-    fi
-    sleep 10
-    cur_attempt=$(( $cur_attempt+1 ))
-  done
-
-  echo "timed out waiting for full rollout"
-  return 1
-}
 
 function verifyIstiod() {
   local ns="$1"
@@ -176,77 +138,48 @@ function verifyIstiod() {
   local istioctl_path="$4"
   local expected="$5"
 
-  local cur_attempt=1
-  local max_attempts=5
-  
-  while (( $cur_attempt <= $max_attempts )); do
-    local mismatch=0
-    echo "attempt ${cur_attempt}/${max_attempts}"
-    for pod in $(kubectl get pod -lapp="$app" -lversion="$version" -n "$ns" -o name); do
-      local istiod=$(${istioctl_path} proxy-config endpoint "$pod.test" --cluster xds-grpc -o json | jq -r '.[].hostStatuses[].hostname')
-      echo "  $pod ==> ${istiod}"
-      if [[ "$istiod" != *"$expected"* ]]; then
-        mismatch=$(( $mismatch+1 ))
-      fi
-    done
+  local mismatch=0
 
-    if (($mismatch == 0)); then
-      return 0
+  for pod in $(kubectl get pod -lapp="$app" -lversion="$version" -n "$ns" -o name); do
+    local istiod=$(${istioctl_path} proxy-config endpoint "$pod.$ns" --cluster xds-grpc -o json | jq -r '.[].hostStatuses[].hostname')
+    echo "  $pod ==> ${istiod}"
+    if [[ "$istiod" != *"$expected"* ]]; then
+      mismatch=$(( $mismatch+1 ))
     fi
-    sleep 20
-    cur_attempt=$(($cur_attempt+1))
-    echo '=========='
   done
 
-  echo "timeout out while trying to match istiod=$expected"
+  if (($mismatch == 0)); then
+    return 0
+  fi
   return 1
 }
 
-function waitForJob() {
-  local ns="$1"
-  local job="$2"
-  until kubectl get jobs -n "${ns}" "${job}" -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' | grep True ; do
-    sleep 5;
-  done
-  echo "job ${job}.${ns} done...."
-}
+kubectl rollout restart deployment echosrv-deployment-v1 -n "${TEST_NAMESPACE}"
+withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v1
+withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
+  "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
+withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
+  "${TO_ISTIOCTL}" "istiod.istio-system.svc"
 
-rolloutDeployment "${TEST_NAMESPACE}" echosrv-deployment-v1
-verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
-verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" "${TO_ISTIOCTL}" "istiod.istio-system.svc"
-
-rolloutDeployment "${TEST_NAMESPACE}" echosrv-deployment-v2
-verifyIstiod "test" "echosrv-deployment-v2" "v2" "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
+kubectl rollout restart deployment echosrv-deployment-v2 -n "${TEST_NAMESPACE}"
+withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v2
+withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
+  "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
 
 # List all objects in istio-system namespace
 # It should have istiod and istiod-canary
+writeMsg "Uninstall old version of control plane (${FROM_TAG})"
 ${FROM_ISTIOCTL} experimental uninstall --filename "${FROM_PATH}/manifests/profiles/minimal.yaml"
 kubectl get all -n istio-system
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
-waitForJob "${TEST_NAMESPACE}" cli-fortio
+waitForJob cli-fortio "${TEST_NAMESPACE}"
+
+writeMsg "Verify results"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
 pod_log_str=$(grep "Code 200"  "${POD_FORTIO_LOG}")
 
 cat ${POD_FORTIO_LOG}
-
-# Return 1 if the specific error code percentage exceed corresponding threshold
-errorPercentBelow() {
-  local LOG=${1}
-  local ERR_CODE=${2}
-  local LIMIT=${3}
-  local s
-  s=$(grep "Code ${ERR_CODE}" "${LOG}")
-  local regex="Code ${ERR_CODE} : [0-9]+ \\(([0-9]+)\\.[0-9]+ %\\)"
-  if [[ ${s} =~ ${regex} ]]; then
-    local pctErr="${BASH_REMATCH[1]}"
-    if (( pctErr > LIMIT )); then
-      return 1
-    fi
-    echo "Errors percentage is within threshold"
-  fi
-  return 0
-}
 
 if [[ ${pod_log_str} != *"Code 200"* ]];then
   echo "=== No Code 200 found in internal traffic log ==="

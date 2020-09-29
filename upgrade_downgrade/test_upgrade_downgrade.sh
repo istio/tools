@@ -251,7 +251,7 @@ _sendInternalRequestTraffic() {
     deleteWithWait job "${job_name}" "${TEST_NAMESPACE}"
     start_time=${SECONDS}
     withRetries 10 60 kubectl apply -n "${TEST_NAMESPACE}" -f "${TMP_DIR}/fortio-cli.yaml"
-    waitForJob "${job_name}"
+    waitForJob "${job_name}" "${TEST_NAMESPACE}"
     # Any timeouts typically occur in the first 20s
     if (( SECONDS - start_time < 100 )); then
         echo "${job_name} failed"
@@ -324,58 +324,6 @@ checkEchosrv() {
     withRetriesMaxTime 300 10 _checkEchosrv
 }
 
-waitForJob() {
-    echo "Waiting for job ${1} to complete..."
-    local start_time=${SECONDS}
-    until kubectl get jobs -n "${TEST_NAMESPACE}" "${1}" -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' | grep True ; do
-        sleep 1 ;
-    done
-    run_time=0
-    (( run_time = SECONDS - start_time ))
-    echo "Job ${1} ran for ${run_time} seconds."
-}
-
-resetCluster() {
-    echo "Cleaning cluster by removing namespaces ${ISTIO_NAMESPACE} and ${TEST_NAMESPACE}"
-    deleteWithWait namespace "${ISTIO_NAMESPACE}"
-    deleteWithWait namespace "${TEST_NAMESPACE}"
-    echo "All namespaces deleted. Recreating ${ISTIO_NAMESPACE} and ${TEST_NAMESPACE}"
-
-    echo_and_run_or_die kubectl create namespace "${ISTIO_NAMESPACE}"
-    echo_and_run_or_die kubectl create namespace "${TEST_NAMESPACE}"
-    echo_and_run_or_die kubectl label namespace "${TEST_NAMESPACE}" istio-injection=enabled
-}
-
-# Return 1 if the specific error code percentage exceed corresponding threshold
-errorPercentBelow() {
-     local LOG=${1}
-     local ERR_CODE=${2}
-     local LIMIT=${3}
-     local s
-     s=$(grep "Code ${ERR_CODE}" "${LOG}")
-     local regex="Code ${ERR_CODE} : [0-9]+ \\(([0-9]+)\\.[0-9]+ %\\)"
-     if [[ ${s} =~ ${regex} ]]; then
-          local pctErr="${BASH_REMATCH[1]}"
-          if (( pctErr > LIMIT )); then
-             return 1
-          fi
-             echo "Errors percentage is within threshold"
-     fi
-     return 0
-}
-
-die() {
-    echo "$*" 1>&2 ; exit 1;
-}
-
-# Make a copy of test manifests in case either to/from branch doesn't contain them.
-copy_test_files() {
-    rm -Rf ${TMP_DIR}
-    mkdir -p ${TMP_DIR}
-    echo "${WD}"
-    cp -f "${WD}"/templates/* "${TMP_DIR}"/.
-}
-
 copy_test_files
 
 # create cluster admin role binding
@@ -416,9 +364,9 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrad
   restartDataPlane echosrv-deployment-v1
   # echosrv-deployment-v2 is for mTLS traffic
   restartDataPlane echosrv-deployment-v2
-  # No way to tell when rolling restart completes because it's async. Make sure this is long enough to cover all the
-  # pods in the deployment at the minReadySeconds setting (should be > num pods x minReadySeconds + few extra seconds).
-  sleep 140
+  
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v1
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v2
 fi
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
@@ -428,7 +376,9 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
   restartDataPlane echosrv-deployment-v1
   # echosrv-deployment-v2 is for mTLS traffic
   restartDataPlane echosrv-deployment-v2
-  sleep 140
+  
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v1
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v2
 
   istioInstallOptions
   waitForPodsReady "${ISTIO_NAMESPACE}"
@@ -441,7 +391,7 @@ fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
 echo "Traffic client pod is ${cli_pod_name}, waiting for traffic to complete..."
-waitForJob cli-fortio
+waitForJob cli-fortio "${TEST_NAMESPACE}"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
 waitForExternalRequestTraffic
 
