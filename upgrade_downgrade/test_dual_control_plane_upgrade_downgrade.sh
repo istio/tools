@@ -18,20 +18,12 @@ set -e
 set -o pipefail
 set -x
 
-# TODO: Remove hardcoded versions and pass it from run_upgrade_downgrade_test
-# as command-line arguments like test_upgrade_downgrade.sh
-FROM_VERSION="istio-1.7-alpha.a8c04f92e236676977b3ed58132437d9fafc9aed"
-TO_VERSION="istio-1.8-alpha.f0f221ae1024fb2d4a93b355546f094376fb2e47"
-ISTIOPATH="$GOPATH/src/istio.io"
+WD=$(dirname "$0")
+WD=$(cd "$WD" || exit; pwd)
 
-FROM_DIR="${ISTIOPATH}/tools/upgrade_downgrade/from_dir.g9xSYb/${FROM_VERSION}"
-TO_DIR="${ISTIOPATH}/tools/upgrade_downgrade/to_dir.MrCCp4/${TO_VERSION}"
-TMP_DIR="${ISTIOPATH}/tools/upgrade_downgrade/templates"
-POD_FORTIO_LOG="${TMP_DIR}/fortio.log"
+command -v helm >/dev/null 2>&1 || { echo >&2 "helm must be installed, aborting."; exit 1; }
 
-FROM_ISTIOCTL="${FROM_DIR}/bin/istioctl"
-TO_ISTIOCTL="${TO_DIR}/bin/istioctl"
-
+ISTIO_NAMESPACE="istio-system"
 # Maximum % of 503 response that cannot exceed
 MAX_503_PCT_FOR_PASS="15"
 # Maximum % of connection refused that cannot exceed
@@ -40,32 +32,113 @@ MAX_CONNECTION_ERR_FOR_PASS="30"
 SERVICE_UNAVAILABLE_CODE="503"
 CONNECTION_ERROR_CODE="-1"
 
+while (( "$#" )); do
+  PARAM=$(echo "${1}" | awk -F= '{print $1}')
+  eval VALUE="$(echo "${1}" | awk -F= '{print $2}')"
+  case "${PARAM}" in
+    --namespace)
+        ISTIO_NAMESPACE=${VALUE}
+        ;;
+    --skip_cleanup)
+        SKIP_CLEANUP=true
+        ;;
+    --auth_enable)
+        AUTH_ENABLE=true
+            ;;
+    --from_hub)
+        FROM_HUB=${VALUE}
+        ;;
+    --from_tag)
+        FROM_TAG=${VALUE}
+        ;;
+    --from_path)
+        FROM_PATH=${VALUE}
+        ;;
+    --to_hub)
+        TO_HUB=${VALUE}
+        ;;
+    --to_tag)
+        TO_TAG=${VALUE}
+        ;;
+    --to_path)
+        TO_PATH=${VALUE}
+        ;;
+    --cloud)
+        CLOUD=${VALUE}
+        ;;
+    *)
+        echo "ERROR: unknown parameter \"$PARAM\""
+        exit 1
+        ;;
+  esac
+  shift
+done
 
-# Install Istio 1.7 minimal profile (only istiod)
-echo "Installing Istio ${FROM_VERSION}"
+if [[ -z "${FROM_HUB}" || -z "${FROM_TAG}" || -z "${FROM_PATH}" || -z "${TO_HUB}" || -z "${TO_TAG}" || -z "${TO_PATH}" ]]; then
+  echo "Error: from_hub, from_tag, from_path, to_hub, to_tag, to_path must all be set."
+  exit 1
+fi
+
+if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]];then
+  echo "The current test scenario is ${TEST_SCENARIO}."
+else
+  echo "Invalid scenario: ${TEST_SCENARIO}"
+  echo "supported: dual-control-plane-upgrade, dual-control-plane-upgrade-downgrade"
+fi
+
+
+FROM_ISTIOCTL="${FROM_PATH}/bin/istioctl"
+if [[ ! -f "${FROM_ISTIOCTL}" ]]; then
+  echo "istioctl not found in ${FROM_PATH}/bin directory"
+  exit 1
+fi
+
+TO_ISTIOCTL="${TO_PATH}/bin/istioctl"
+if [[ ! -f "${TO_ISTIOCTL}" ]]; then
+  echo "istioctl not found in ${TO_PATH}/bin directory"
+  exit 1
+fi
+
+copy_test_files() {
+    rm -Rf ${TMP_DIR}
+    mkdir -p ${TMP_DIR}
+    echo "${WD}"
+    cp -f "${WD}"/templates/* "${TMP_DIR}"/.
+}
+
+TMP_DIR=/tmp/istio_upgrade_test
+POD_FORTIO_LOG=${TMP_DIR}/fortio_pod.log
+TEST_NAMESPACE="test"
+
+# Needed because --revision cannot have dots. That
+# causes issues while installing
+FROM_REVISION=$(echo "${FROM_TAG}" | tr '.' '-')
+TO_REVISION=$(echo "${TO_TAG}" | tr '.' '-')
+
+copy_test_files
+
 ${FROM_ISTIOCTL} install -y --set profile=minimal
 kubectl wait --all --for=condition=Ready pods -n istio-system --timeout=5m
 
 # Deploy sample application
-kubectl create namespace test
-kubectl label namespace test istio-injection=enabled
+kubectl create namespace "${TEST_NAMESPACE}"
+kubectl label namespace "${TEST_NAMESPACE}" istio-injection=enabled
 
 echo "Deploying Echo v1 and v2"
-kubectl apply -f "${TMP_DIR}/fortio.yaml" -n test
-kubectl wait --all --for=condition=Ready pods -n test --timeout=5m
+kubectl apply -f "${TMP_DIR}/fortio.yaml" -n "${TEST_NAMESPACE}"
+kubectl wait --all --for=condition=Ready pods -n "${TEST_NAMESPACE}" --timeout=5m
 
 echo "Generate internal traffic for echo v1 and v2"
-kubectl apply -f "${TMP_DIR}/fortio-cli.yaml" -n test
+kubectl apply -f "${TMP_DIR}/fortio-cli.yaml" -n "${TEST_NAMESPACE}"
 
 # Install Istio 1.8 minimal profile with canary revision
-echo "Installng Istio-canary ${TO_VERSION}"
-${TO_ISTIOCTL} install -y --set profile=minimal --set revision=canary
+echo "Installng Istio[canary] ${TO_TAG}"
+${TO_ISTIOCTL} install -y --set profile=minimal --set revision="${TO_REVISION}"
 kubectl wait --all --for=condition=Ready pods -n istio-system --timeout=5m
 
 # Relabel namespace before restarting each service
-echo "Relabel namespace to inject canary-release proxy"
-kubectl label namespace test istio-injection-
-kubectl label namespace test istio.io/rev=canary
+echo "Relabel namespace to inject ${TO_TAG} proxy"
+kubectl label namespace "${TEST_NAMESPACE}" istio-injection- istio.io/rev="${TO_REVISION}"
 
 function rolloutDeployment() {
   local ns="$1"
@@ -136,20 +209,21 @@ function waitForJob() {
   echo "job ${job}.${ns} done...."
 }
 
-rolloutDeployment test echosrv-deployment-v1
-verifyIstiod "test" "echosrv-deployment-v1" "v1" "${TO_ISTIOCTL}" "istiod-canary.istio-system.svc"
+rolloutDeployment "${TEST_NAMESPACE}" echosrv-deployment-v1
+verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
+verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" "${TO_ISTIOCTL}" "istiod.istio-system.svc"
 
-rolloutDeployment test echosrv-deployment-v2
-verifyIstiod "test" "echosrv-deployment-v2" "v2" "${TO_ISTIOCTL}" "istiod-canary.istio-system.svc"
+rolloutDeployment "${TEST_NAMESPACE}" echosrv-deployment-v2
+verifyIstiod "test" "echosrv-deployment-v2" "v2" "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
 
 # List all objects in istio-system namespace
 # It should have istiod and istiod-canary
-${FROM_ISTIOCTL} experimental uninstall --filename "${FROM_DIR}/manifests/profiles/minimal.yaml"
+${FROM_ISTIOCTL} experimental uninstall --filename "${FROM_PATH}/manifests/profiles/minimal.yaml"
 kubectl get all -n istio-system
 
-cli_pod_name=$(kubectl -n test get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
-waitForJob test cli-fortio
-kubectl logs -f -n test -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
+cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
+waitForJob "${TEST_NAMESPACE}" cli-fortio
+kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
 pod_log_str=$(grep "Code 200"  "${POD_FORTIO_LOG}")
 
 cat ${POD_FORTIO_LOG}

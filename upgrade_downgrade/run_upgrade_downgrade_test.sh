@@ -31,7 +31,7 @@ ROOT=$(dirname "$WD")
 # These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade and downgrade jobs
 export SOURCE_HUB=${SOURCE_HUB:-"gcr.io/istio-testing"}
 export TARGET_HUB=${TARGET_HUB:-"gcr.io/istio-testing"}
-export SOURCE_TAG=${SOURCE_TAG:-"1.7-dev"}
+export SOURCE_TAG=${SOURCE_TAG:-"1.7_latest"}
 export TARGET_TAG=${TARGET_TAG:-"master"}
 export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
@@ -126,7 +126,16 @@ fi
 go get fortio.org/fortio
 
 # Kick off tests
-"${WD}/test_upgrade_downgrade.sh" \
-  --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
-  --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
-  --install_options="${INSTALL_OPTIONS}" --cloud="GKE"
+if [[ "${TEST_SCENARIO}" == *"dual-control-plane"* ]]; then
+  "${WD}/test_dual_control_plane_upgrade_downgrade.sh" \
+    --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" \
+    --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" \
+    --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
+    --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
+    --cloud="GKE"
+else
+  "${WD}/test_upgrade_downgrade.sh" \
+    --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
+    --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
+    --install_options="${INSTALL_OPTIONS}" --cloud="GKE"
+fi
