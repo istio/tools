@@ -21,7 +21,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/spanner"
@@ -56,6 +55,7 @@ type SingleMonitorStatus struct {
 	Status      string
 	Labels      map[string]string
 	Annotations string
+	Description string
 }
 
 func initPromClient(host string) {
@@ -119,8 +119,10 @@ func queryMonitorStatus() []SingleMonitorStatus {
 				if len(v.Alerts) != 0 {
 					status = alertingStatus
 				}
+				des := v.Annotations["description"]
 				monitorList = append(monitorList, SingleMonitorStatus{
 					Annotations: v.Annotations.String(),
+					Description: string(des),
 					Name:        v.Name,
 					Status:      status,
 				})
@@ -169,7 +171,7 @@ func healthz(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeMonitorStatusToDB(ms []SingleMonitorStatus, readwrite bool) error {
-	monitorColumns := []string{"MonitorName", "Status", "ProjectID", "ClusterName", "Branch", "UpdatedTime", "TestID"}
+	monitorColumns := []string{"MonitorName", "Status", "ProjectID", "ClusterName", "Branch", "UpdatedTime", "TestID", "Description"}
 	if readwrite {
 		monitorColumns = append(monitorColumns, "FiredTimes")
 	}
@@ -184,11 +186,11 @@ func writeMonitorStatusToDB(ms []SingleMonitorStatus, readwrite bool) error {
 			if monitorName = getMonitorName(sms); monitorName == "" {
 				return fmt.Errorf("no alertname found")
 			}
-			log.Printf("Writing Alert status to Spanner: name=%s, status=%s,Labels=%v,Annotations=%v\n",
-				monitorName, sms.Status, sms.Labels, sms.Annotations)
+			log.Printf("Writing Alerts status to Spanner: name=%s, status=%s, Labels=%v, Annotations=%v, Description=%v\n",
+				monitorName, sms.Status, sms.Labels, sms.Annotations, sms.Description)
 			if !readwrite {
 				m = append(m, spanner.InsertOrUpdate(mstableName, monitorColumns,
-					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID}))
+					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, sms.Description}))
 			} else {
 				var firedTimes int64
 				row, err := txn.ReadRow(ctx, mstableName, spanner.Key{testID, sms.Name}, []string{"firedTimes"})
@@ -202,7 +204,7 @@ func writeMonitorStatusToDB(ms []SingleMonitorStatus, readwrite bool) error {
 					firedTimes++
 				}
 				m = append(m, spanner.InsertOrUpdate(mstableName, monitorColumns,
-					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, firedTimes}))
+					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, sms.Description, firedTimes}))
 			}
 		}
 		if err := txn.BufferWrite(m); err != nil {
@@ -225,19 +227,19 @@ func getMonitorName(sms SingleMonitorStatus) string {
 }
 
 // convertPromAlertToInternalMonitorStatus is helper function to convert from prometheus Alert to internal SingleMonitorStatus struct.
-func convertPromAlertToInternalMonitorStatus(alert template.Alert) (SingleMonitorStatus, error) {
-	var sms SingleMonitorStatus
-	labels := alert.Labels
-	alertName, ok := labels["alertname"]
-	if !ok {
-		return sms, fmt.Errorf("no alertname found from the labels")
-	}
-	sms.Name = alertName
-	sms.Status = alert.Status
-	sms.Labels = alert.Labels
-	sms.Annotations = strings.Join(alert.Annotations.Values(), ", ")
-	return sms, nil
-}
+//func convertPromAlertToInternalMonitorStatus(alert template.Alert) (SingleMonitorStatus, error) {
+//	var sms SingleMonitorStatus
+//	labels := alert.Labels
+//	alertName, ok := labels["alertname"]
+//	if !ok {
+//		return sms, fmt.Errorf("no alertname found from the labels")
+//	}
+//	sms.Name = alertName
+//	sms.Status = alert.Status
+//	sms.Labels = alert.Labels
+//	sms.Annotations = strings.Join(alert.Annotations.Values(), ", ")
+//	return sms, nil
+//}
 
 func main() {
 	client := initSpanner()
