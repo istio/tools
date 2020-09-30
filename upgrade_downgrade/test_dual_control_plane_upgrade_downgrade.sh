@@ -15,7 +15,6 @@
 # limitations under the License.
 
 set -o pipefail
-set -x
 
 WD=$(dirname "$0")
 WD=$(cd "$WD" || exit; pwd)
@@ -98,8 +97,10 @@ POD_FORTIO_LOG=${TMP_DIR}/fortio_pod.log
 TEST_NAMESPACE="test"
 
 # Needed because --revision cannot have dots. That
-# causes issues while installing
-TO_REVISION=$(echo "${TO_TAG}" | tr '.' '-')
+# causes issues while installing. Also we need to truncate
+# to 60 chars for this to work with 1.7 and below. But for
+# our purposes we don't need those many.
+TO_REVISION=$(echo "${TO_TAG}" | tr '.' '-' | cut -c -20)
 
 user="cluster-admin"
 if [[ "${CLOUD}" == "GKE" ]];then
@@ -142,8 +143,10 @@ function verifyIstiod() {
   local mismatch=0
 
   for pod in $(kubectl get pod -lapp="$app" -lversion="$version" -n "$ns" -o name); do
-    local istiod 
-    istiod=$(${istioctl_path} proxy-config endpoint "$pod.$ns" --cluster xds-grpc -o json | jq -r '.[].hostStatuses[].hostname')
+    local istiod
+    local podname
+    podname=$(echo "$pod" | cut -d'/' -f2)
+    istiod=$(${istioctl_path} proxy-config endpoint "$podname.$ns" --cluster xds-grpc -o json | jq -r '.[].hostStatuses[].hostname')
     echo "  $pod ==> ${istiod}"
     if [[ "$istiod" != *"$expected"* ]]; then
       mismatch=$(( mismatch+1 ))

@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -x
-
 die() {
   echo "$*" 1>&2 ; exit 1;
 }

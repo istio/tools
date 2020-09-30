@@ -29,7 +29,6 @@
 # Dependencies that must be preinstalled: helm, fortio.
 #
 
-set -x
 set -o pipefail
 
 WD=$(dirname "$0")
