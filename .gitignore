@@ -136,3 +136,6 @@ tools.code-workspace
 .DS_Store
 **/palette.map
 **/flameoutput/
+
+**/from_dir**
+**/to_dir**
