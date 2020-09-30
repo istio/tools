@@ -81,7 +81,7 @@ if [[ -z "${FROM_HUB}" || -z "${FROM_TAG}" || -z "${FROM_PATH}" || -z "${TO_HUB}
 fi
 
 # Check if scenario is a valid one
-if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]];then
+if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" || "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]];then
   echo "The current test scenario is ${TEST_SCENARIO}."
 else
   echo "Invalid scenario: ${TEST_SCENARIO}"
@@ -161,16 +161,23 @@ withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
 withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
   "${TO_ISTIOCTL}" "istiod.istio-system.svc"
 
-kubectl rollout restart deployment echosrv-deployment-v2 -n "${TEST_NAMESPACE}"
-withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v2
-withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
-  "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
+if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
+  kubectl rollout restart deployment echosrv-deployment-v2 -n "${TEST_NAMESPACE}"
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" "echosrv-deployment-v2"
+  withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
+    "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
+  writeMsg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
+  ${FROM_ISTIOCTL} experimental uninstall --filename -y "${FROM_PATH}/manifests/profiles/minimal.yaml"
 
-# List all objects in istio-system namespace
-# It should have istiod and istiod-canary
-writeMsg "Uninstall old version of control plane (${FROM_TAG})"
-${FROM_ISTIOCTL} experimental uninstall --filename "${FROM_PATH}/manifests/profiles/minimal.yaml"
-kubectl get all -n istio-system
+elif [[ "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]]; then
+  kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev- istio-injection=enabled
+  kubectl rollout restart deployment echosrv-deployment-v1 -n "${TEST_NAMESPACE}"
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" "echosrv-deployment-v1"
+  withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
+    "${TO_ISTIOCTL}" "istiod.istio-system.svc"
+  writeMsg "ROLLBACK: Uninstall new version of control plane (${TO_TAG})"
+  ${TO_ISTIOCTL} experimental uninstall --revision "${TO_REVISION}" -y
+fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
 waitForJob cli-fortio "${TEST_NAMESPACE}"
