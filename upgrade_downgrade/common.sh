@@ -133,10 +133,15 @@ checkDeploymentRolledOut() {
   local ns="$1"
   local name="$2"
   
-  local total_replicas=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.spec.replicas}')
-  local ready=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.readyReplicas}')
-  local updated=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.updatedReplicas}')
-  local available=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.availableReplicas}')
+  local total_replicas
+  local ready
+  local updated
+  local available
+
+  total_replicas=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.spec.replicas}')
+  ready=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.readyReplicas}')
+  updated=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.updatedReplicas}')
+  available=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.availableReplicas}')
 
   echo "ready=${ready}, updated=${updated}, available=${available}"
   if ((updated == total_replicas && available == total_replicas)); then
@@ -165,8 +170,8 @@ errorPercentBelow() {
 
 # Make a copy of test manifests in case either to/from branch doesn't contain them.
 copy_test_files() {
-  rm -Rf ${TMP_DIR}
-  mkdir -p ${TMP_DIR}
+  rm -Rf "${TMP_DIR}"
+  mkdir -p "${TMP_DIR}"
   echo "${WD}"
   cp -f "${WD}"/templates/* "${TMP_DIR}"/.
 }

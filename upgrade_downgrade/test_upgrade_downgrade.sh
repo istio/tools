@@ -152,6 +152,7 @@ TRAFFIC_RUNTIME_SEC=500
 # Used to signal that background external process is done.
 EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
 
+# shellcheck disable=SC1090
 source "${ROOT}/upgrade_downgrade/common.sh"
 
 installIstioAtVersionUsingHelm() {

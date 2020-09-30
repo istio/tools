@@ -39,12 +39,6 @@ while (( "$#" )); do
     --namespace)
         ISTIO_NAMESPACE=${VALUE}
         ;;
-    --skip_cleanup)
-        SKIP_CLEANUP=true
-        ;;
-    --auth_enable)
-        AUTH_ENABLE=true
-            ;;
     --from_hub)
         FROM_HUB=${VALUE}
         ;;
@@ -88,6 +82,7 @@ else
   echo "supported: dual-control-plane-upgrade, dual-control-plane-upgrade-downgrade"
 fi
 
+# shellcheck disable=SC1090
 source "${ROOT}/upgrade_downgrade/common.sh"
 
 # Check if istioctl is present in both "from" and "to" versions
@@ -104,8 +99,14 @@ TEST_NAMESPACE="test"
 
 # Needed because --revision cannot have dots. That
 # causes issues while installing
-FROM_REVISION=$(echo "${FROM_TAG}" | tr '.' '-')
 TO_REVISION=$(echo "${TO_TAG}" | tr '.' '-')
+
+user="cluster-admin"
+if [[ "${CLOUD}" == "GKE" ]];then
+  user="$(gcloud config get-value core/account)"
+fi
+kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="${user}" || echo "clusterrolebinding already created."
+
 
 writeMsg "Reset cluster"
 copy_test_files
@@ -141,14 +142,15 @@ function verifyIstiod() {
   local mismatch=0
 
   for pod in $(kubectl get pod -lapp="$app" -lversion="$version" -n "$ns" -o name); do
-    local istiod=$(${istioctl_path} proxy-config endpoint "$pod.$ns" --cluster xds-grpc -o json | jq -r '.[].hostStatuses[].hostname')
+    local istiod 
+    istiod=$(${istioctl_path} proxy-config endpoint "$pod.$ns" --cluster xds-grpc -o json | jq -r '.[].hostStatuses[].hostname')
     echo "  $pod ==> ${istiod}"
     if [[ "$istiod" != *"$expected"* ]]; then
-      mismatch=$(( $mismatch+1 ))
+      mismatch=$(( mismatch+1 ))
     fi
   done
 
-  if (($mismatch == 0)); then
+  if ((mismatch == 0)); then
     return 0
   fi
   return 1
