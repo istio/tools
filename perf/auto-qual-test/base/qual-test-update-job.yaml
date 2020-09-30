@@ -28,7 +28,7 @@ spec:
           volumes:
           - configMap:
               name: qual-test-deployer
-              defaultMode: 0777
+              defaultMode: 0o777
             name: scripts
           restartPolicy: Never
           serviceAccountName: testrunner
