@@ -53,7 +53,7 @@ to configure this test scenario:
 * When TEST_SCENARIO is configured as *dual-control-plane-upgrade*,
 Istio will first install control plane specified by SOURCE_TAG, then
 install control plane setting revision to TARGET_TAG. It will restart
-deployments one by one to point to the control plane with TARGET TAG
+deployments one by one to point to the control plane with TARGET_TAG
 before uninstalling the one with SOURCE_TAG
 
     ```bash
