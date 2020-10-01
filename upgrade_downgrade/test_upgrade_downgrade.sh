@@ -333,7 +333,7 @@ if [[ $CLOUD == "GKE" ]];then
 fi
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="${user}" || echo "clusterrolebinding already created."
 
-resetCluster
+resetCluster "${TO_PATH}/bin/istioctl"
 
 istioInstallOptions
 waitForIngress

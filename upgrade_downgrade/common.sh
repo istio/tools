@@ -175,6 +175,13 @@ copy_test_files() {
 }
 
 resetCluster() {
+  echo "Removing Istio CRDs"
+  
+  # Ideally we should use `istioctl x uninstall --purge -y`
+  # But istioctl < 1.7 does not seem to support it. In order
+  # not to make things complicated, I'm removing CRDs
+  ${istioctl} x uninstall --purge -y
+  
   echo "Cleaning cluster by removing namespaces ${ISTIO_NAMESPACE} and ${TEST_NAMESPACE}"
   deleteWithWait namespace "${ISTIO_NAMESPACE}"
   deleteWithWait namespace "${TEST_NAMESPACE}"

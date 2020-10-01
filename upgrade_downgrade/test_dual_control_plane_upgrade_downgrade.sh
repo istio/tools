@@ -111,7 +111,7 @@ kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-ad
 
 writeMsg "Reset cluster"
 copy_test_files
-resetCluster
+resetCluster "${TO_ISTIOCTL}"
 
 writeMsg "Deploy Istio(minimal) ${FROM_TAG}"
 ${FROM_ISTIOCTL} install -y --set profile=minimal
