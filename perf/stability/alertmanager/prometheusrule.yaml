@@ -13,7 +13,7 @@ spec:
         - alert: HTTP5xxRateHigh
           annotations:
             summary: '5xx rate too high'
-            description: 'The HTTP 5xx errors rate unusually high in 5 mins'
+            description: 'The HTTP 5xx errors rate higher than 0.05 in 5 mins'
           expr: >
             sum(irate(istio_requests_total{reporter="destination", response_code=~"5.*"}[5m])) / sum(irate(istio_requests_total{reporter="destination"}[5m])) > 0.05
           for: 5m
@@ -21,34 +21,47 @@ spec:
           expr: sum(irate(istio_request_duration_milliseconds_bucket{source_workload=~"svc.*"}[5m])) by (source_workload,namespace)  > 30000
           for: 10m
           annotations:
+            description: 'The workload request latency > 30s '
             message:  "Request duration has slowed down for workload: {{`{{$labels.source_workload}}`}} in namespace: {{`{{$labels.namespace}}`}}. Response duration is {{`{{$value}}`}} seconds"
     - name: ./infra.rules
       rules:
-        - alert: ContainerCPUUsageHigh
-          expr: (sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container=~"istio-proxy|discovery", namespace!=""}[5m])) BY (namespace, pod, container) * 100) > 80
+        - alert: ProxyContainerCPUUsageHigh
+          expr: (sum(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container=~"istio-proxy", namespace!=""}[5m])) BY (namespace, pod, container) * 100) > 80
           for: 5m
           annotations:
-            summary: "Container CPU usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
-            description: "Container CPU usage is above 80%\n  VALUE = {{ $value }}\n"
-        - alert: ContainerMemoryUsageHigh
-          expr: (sum(container_memory_working_set_bytes{namespace!="kube-system", container=~"istio-proxy|discovery", namespace!=""}) BY (container, pod, namespace)  / (sum(container_spec_memory_limit_bytes{namespace!="kube-system", container!="POD"}) BY (container, pod, namespace) > 0)* 100) > 80
+            summary: "Proxy Container CPU usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})  VALUE = {{ $value }}\n"
+            description: "Proxy Container CPU usage is above 80%"
+        - alert: ProxyContainerMemoryUsageHigh
+          expr: (sum(container_memory_working_set_bytes{namespace!="kube-system", container=~"istio-proxy", namespace!=""}) BY (container, pod, namespace)  / (sum(container_spec_memory_limit_bytes{namespace!="kube-system", container!="POD"}) BY (container, pod, namespace) > 0)* 100) > 80
           for: 5m
           annotations:
-            summary: "Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})"
-            description: "Container Memory usage is above 80%\n  VALUE = {{ $value }}\n"
+            summary: "Proxy Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})  VALUE = {{ $value }}\n"
+            description: "Proxy Container Memory usage is above 80%"
+        - alert: IstiodContainerCPUUsageHigh
+          expr: (sum(rate(container_cpu_usage_seconds_total{namespace="istio-system", container="discovery"}[5m])) BY (pod) * 100) > 80
+          for: 5m
+          annotations:
+            summary: "Istiod Container CPU usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }}) VALUE = {{ $value }}\n"
+            description: "Isitod Container CPU usage is above 80%"
+        - alert: IstiodMemoryUsageHigh
+          expr: (sum(container_memory_working_set_bytes{namespace="istio-system", container="discovery"}) BY (pod)  / (sum(container_spec_memory_limit_bytes{namespace="istio-system", container="discovery"}) BY (pod) > 0)* 100) > 80
+          for: 5m
+          annotations:
+            summary: "Istiod Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }}) VALUE = {{ $value }}\n"
+            description: "Istiod Container Memory usage is above 80%"
     - name: ./controlplane.rules
       rules:
         - alert: IstiodxdsPushErrorsHigh
           annotations:
             summary: 'istiod push errors is too high'
-            description: 'istiod push errors is too high during the last 5m'
+            description: 'istiod push error rate is higher than 0.05'
           expr: >
             sum(irate(pilot_xds_push_errors{app="istiod"}[5m])) / sum(irate(pilot_xds_pushes{app="istiod"}[5m])) > 0.05
           for: 5m
         - alert: IstiodxdsRejectHigh
           annotations:
             summary: 'istiod rejects rate is too high'
-            description: 'istiod rejects rate is too high during the last 5m'
+            description: 'istiod rejects rate is higher than 0.05'
           expr: >
             sum(irate(pilot_total_xds_rejects{app="istiod"}[5m])) / sum(irate(pilot_xds_pushes{app="istiod"}[5m])) > 0.05
           for: 5m
@@ -62,6 +75,7 @@ spec:
         - alert: IstiodUnavailableReplica
           annotations:
             summary: 'Istiod unavailable pod'
+            description: 'Istiod unavailable replica > 0'
           expr: >
             kube_deployment_status_replicas_unavailable{deployment="istiod", component=""} > 0
           for: 5m
@@ -70,8 +84,8 @@ spec:
             summary: 'ingress gateway 200 rate drops'
             description: 'The expected rate is 100 per ns, the limit is set based on 15ns'
           expr: >
-            sum(rate(istio_requests_total{reporter="source", source_workload="istio-ingressgateway",response_code="200",destination_service_namespace=~"service-graph.*"}[5m])) < 1450
-          for: 5m
+            sum(rate(istio_requests_total{reporter="source", source_workload="istio-ingressgateway",response_code="200",destination_service_namespace=~"service-graph.*"}[5m])) < 1490
+          for: 30m
     - name: "istio.recording-rules"
       interval: 5s
       rules:

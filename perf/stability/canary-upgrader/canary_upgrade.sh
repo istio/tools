@@ -35,7 +35,7 @@ function download_release() {
 }
 
 function install_istioctl() {
-  "${outfile}/bin/istioctl" install -d "${outfile}/manifests" --set revision="${NEW_REV}"
+  "${outfile}/bin/istioctl" install -d "${outfile}/manifests" --set revision="${NEW_REV}" --skip-confirmation
 }
 
 # existing revision
@@ -70,3 +70,6 @@ done
 if [[ -n ${EXISTING_REV} ]];then
   "${outfile}/bin/istioctl" x uninstall --revision "${EXISTING_REV}"
 fi
+
+# update sha for the spanner table
+kubectl set env deployment/am-webhook -n istio-prometheus BRANCH="${VERSION}"

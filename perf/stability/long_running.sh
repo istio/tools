@@ -28,20 +28,47 @@ export DNS_DOMAIN="fake-dns.org"
 export LOCAL_ISTIO_PATH="${LOCAL_ISTIO_PATH:-}"
 export NAMESPACE_NUM="${NAMESPACE_NUM:-15}"
 export SKIP_ISTIO_SETUP="${SKIP_ISTIO_SETUP:-false}"
+export PROMETHEUS_NAMESPACE="${PROMETHEUS_NAMESPACE:-istio-prometheus}"
+
+# shellcheck disable=SC2153
+if [[ -z "${PROJECT_ID:-}" ]] || [[ -z "${CLUSTER_NAME:-}" ]] ;then
+  echo "You need to set PROJECT_ID and CLUSTER_NAME for where the test would be running"
+  exit 1
+fi
+
+# envs for spanner connection
+export PROJECT_ID="${PROJECT_ID:-}"
+export CLUSTER_NAME="${CLUSTER_NAME:-}"
+export INSTANCE="${INSTANCE:-release-qual}"
+export DBNAME="${DBNAME:-main}"
+export MS_TABLE_NAME="${MS_TABLE_NAME:-MonitorStatus}"
+export TESTID="${TESTID:-default}"
 
 # setup Istio
 if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then
 # shellcheck disable=SC2199
-  if [[ -n "${@}" ]];then
-    "${ROOT}"/istio-install/setup_istio.sh "${@}"
-  else
+  if [[ -z "${@-}" ]];then
     "${ROOT}"/istio-install/setup_istio.sh
+  else
+    "${ROOT}"/istio-install/setup_istio.sh "${@}"
   fi
 fi
 
 export NOT_INJECTED="True"
+BRANCH="${TAG}"
+if [[ -z "${BRANCH}" ]];then
+  if [[ -n "${VERSION}" ]];then
+    BRANCH="${VERSION}"
+  elif [[ -n "${RELEASE_URL}" ]];then
+    BRANCH="${RELEASE_URL}"
+  fi
+fi
+
+DT=$(date +'%Y%m%d%H')
+TESTID="${BRANCH}-${DT}"
 # deploy alertmanager related resources
-NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager
+HELM_ARGS="--set projectID=${PROJECT_ID} --set clusterName=${CLUSTER_NAME} --set branch=${BRANCH} --set instance=${INSTANCE} --set dbName=${DBNAME} --set testID=${TESTID} --set msTableName=${MS_TABLE_NAME}"
+NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager "${HELM_ARGS}"
 kubectl apply -f ./alertmanager/prometheusrule.yaml
 
 # deploy log scanner
@@ -60,12 +87,12 @@ kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgr
 pushd "${ROOT}/load"
 # shellcheck disable=SC1091
 source "./common.sh"
-START_NUM=13
+START_NUM=0
 export START_NUM="${START_NUM:-0}"
 export DELETE=""
 export CMD=""
 export WD="${ROOT}/load"
-if [[ -z ${MULTI_CLUSTER} ]];then
+if [[ -z "${MULTI_CLUSTER-}" ]];then
   start_servicegraphs "${NAMESPACE_NUM}" "${START_NUM}"
 else
  # run on two cluster

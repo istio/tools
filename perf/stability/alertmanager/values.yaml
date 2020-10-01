@@ -55,3 +55,12 @@ baseURL: "http://localhost:9093"
 
 configFileName: alertmanager.yml
 resources: {}
+
+# for alertmanager webhook
+projectID: "istio-testing"
+instance: "istio-policy-bot"
+dbName: "main"
+msTableName: "MonitorStatus"
+clusterName: "release-qual"
+branch: "master"
+testID: ""

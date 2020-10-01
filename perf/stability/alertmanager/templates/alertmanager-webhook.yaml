@@ -26,11 +26,26 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 10m
-              memory: 30Mi
+              cpu: 100m
+              memory: 300Mi
             requests:
-              cpu: 10m
-              memory: 30Mi
+              cpu: 100m
+              memory: 300Mi
+          env:
+          - name: PROJECT_ID
+            value: {{ .Values.projectID }}
+          - name: CLUSTER_NAME
+            value: {{ .Values.clusterName }}
+          - name: INSTANCE
+            value: {{ .Values.instance }}
+          - name: DBNAME
+            value: {{ .Values.dbName }}
+          - name: MS_TABLE_NAME
+            value: {{ .Values.msTableName }}
+          - name: BRANCH
+            value: {{ .Values.branch }}
+          - name: TESTID
+            value: {{ .Values.testID }}
 ---
 apiVersion: v1
 kind: Service

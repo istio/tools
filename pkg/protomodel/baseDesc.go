@@ -50,7 +50,7 @@ func newBaseDesc(file *FileDescriptor, path pathVector, qualifiedName []string) 
 		if com != "" {
 			cl, newCom = getClass(com)
 			if cl != "" {
-				clone := *loc
+				clone := *loc //nolint: govet
 				clone.LeadingComments = &newCom
 				loc = &clone
 			}
@@ -59,7 +59,7 @@ func newBaseDesc(file *FileDescriptor, path pathVector, qualifiedName []string) 
 			if com != "" {
 				cl, newCom = getClass(com)
 				if cl != "" {
-					clone := *loc
+					clone := *loc //nolint: govet
 					clone.TrailingComments = &newCom
 					loc = &clone
 				}
