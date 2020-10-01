@@ -25,7 +25,7 @@
 # Binary tools
 ################
 
-FROM golang:1.14.7 as binary_tools_context
+FROM golang:1.14.9 as binary_tools_context
 
 # Istio tools SHA that we use for this image
 ARG ISTIO_TOOLS_SHA
