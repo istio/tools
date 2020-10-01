@@ -47,7 +47,7 @@ func extractParams(parameter string) map[string]string {
 	return m
 }
 
-func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
+func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) { //nolint: govet
 	mode := htmlPage
 	genWarnings := true
 	emitYAML := false

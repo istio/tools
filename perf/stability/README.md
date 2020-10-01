@@ -7,11 +7,13 @@ The intent of these tests is to be run continuously for extend periods of time, 
 ## Release Qualification Test
 
 ### Introduction
+
 The long running test script would deploy service graphs application with 15 namespaces in the cluster and run continuously. Prometheus/Alertmanager related resources, monitors and alerting rules would be deployed and managed by Prometheus Operator, Grafana would be installed via sample addon config yaml.
 
 Abnormal metrics breaking SLO would be recorded in the alertmanager-webhook pod. Optionally, corresponding alertmanager notification can be pushed to slack channel, checkout the example config for [slack webhook](https://github.com/istio/tools/blob/master/perf/stability/alertmanager/values.yaml#L21). Suspicious logs would be scanned and recorded in the istio-logs-checker Cronjob.
 
 ### Run the script
+
 If you want to run against a public release(stable or dev), specify the target release TAG/VERSION/RELEASE_URL and you can pass extra arguments to istioctl install, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio). You can specify the namespace number of the servicegraph workloads by setting NAMESPACE_NUM var.
 
 For example
@@ -41,13 +43,17 @@ Note:
 `VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`
 
 ### Monitor List
+
 The monitors are configured via PrometheusRule CR managed by prometheus operator. Check the [list of provided monitors](https://github.com/istio/tools/blob/master/perf/stability/alertmanager/prometheusrule.yaml) and update correspondingly based on your requirements.
 
 ### Dashboard
+
 The pipeline is configured to publish data to spanner table `MonitorStatus` under istio-testing project, and render on [eng.istio.io](http://eng.istio.io/releasequal). The related params of spanner table are defined in env variables of the [webhook deployment]((https://github.com/istio/tools/blob/master/perf/stability/alertmanager/templates/alertmanager-webhook.yaml))
 
 ### Upgrade
+
 There is an optional cronjob deployed to do a canary upgrade to the latest dev build of specific branch, to disable that just comment out [canary_upgrader_job](https://github.com/istio/tools/blob/master/perf/stability/long_running.sh#L55-L57)
+
 ## Setup Tests
 
 To run the tests, run `make stability`. To delete them, run `make clean-stability`.

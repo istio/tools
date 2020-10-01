@@ -38,7 +38,7 @@ func Generate(fn GenerateFn) {
 		fatal("Unable to parse input proto: %v\n", err)
 	}
 
-	response, err := fn(request)
+	response, err := fn(request) //nolint: govet
 	if err != nil {
 		fatal("%v\n", err)
 	}

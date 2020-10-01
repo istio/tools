@@ -93,7 +93,7 @@ func initSpanner() *spanner.Client {
 func initMonitorStatus() {
 	ms := queryMonitorStatus()
 	log.Println("writing initial monitor status to Spanner")
-	if err := writeMonitorStatusToDB(ms, false); err != nil {
+	if err := writeMonitorStatusToDB(ms, true); err != nil {
 		log.Fatalf("failed to initialize monitor status in Spanner: %v", err)
 	}
 }
@@ -144,7 +144,7 @@ func checkMonitorStatus(done chan bool) {
 			case t := <-ticker.C:
 				fmt.Println("Checking monitor status at", t)
 				ms := queryMonitorStatus()
-				if err := writeMonitorStatusToDB(ms, true); err != nil {
+				if err := writeMonitorStatusToDB(ms, false); err != nil {
 					log.Fatalf("failed to update monitor status in Spanner: %v", err)
 				}
 			}
@@ -170,11 +170,8 @@ func healthz(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Ok!")
 }
 
-func writeMonitorStatusToDB(ms []SingleMonitorStatus, readwrite bool) error {
-	monitorColumns := []string{"MonitorName", "Status", "ProjectID", "ClusterName", "Branch", "UpdatedTime", "TestID", "Description"}
-	if readwrite {
-		monitorColumns = append(monitorColumns, "FiredTimes")
-	}
+func writeMonitorStatusToDB(ms []SingleMonitorStatus, init bool) error {
+	monitorColumns := []string{"MonitorName", "Status", "ProjectID", "ClusterName", "Branch", "UpdatedTime", "TestID", "Description", "FiredTimes"}
 	curTime := time.Now()
 	var m []*spanner.Mutation
 
@@ -188,11 +185,9 @@ func writeMonitorStatusToDB(ms []SingleMonitorStatus, readwrite bool) error {
 			}
 			log.Printf("Writing Alerts status to Spanner: name=%s, status=%s, Labels=%v, Annotations=%v, Description=%v\n",
 				monitorName, sms.Status, sms.Labels, sms.Annotations, sms.Description)
-			if !readwrite {
-				m = append(m, spanner.InsertOrUpdate(mstableName, monitorColumns,
-					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, sms.Description}))
-			} else {
-				var firedTimes int64
+
+			var firedTimes int64
+			if !init {
 				row, err := txn.ReadRow(ctx, mstableName, spanner.Key{testID, sms.Name}, []string{"firedTimes"})
 				if err != nil {
 					return err
@@ -203,9 +198,9 @@ func writeMonitorStatusToDB(ms []SingleMonitorStatus, readwrite bool) error {
 				if sms.Status == alertingStatus {
 					firedTimes++
 				}
-				m = append(m, spanner.InsertOrUpdate(mstableName, monitorColumns,
-					[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, sms.Description, firedTimes}))
 			}
+			m = append(m, spanner.InsertOrUpdate(mstableName, monitorColumns,
+				[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, sms.Description, firedTimes}))
 		}
 		if err := txn.BufferWrite(m); err != nil {
 			return fmt.Errorf("failed to write to spanner db: %v", err)
