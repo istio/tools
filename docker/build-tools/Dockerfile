@@ -38,7 +38,6 @@ ENV GCR_AUTH_VERSION=1.5.0
 ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=af01ea7f8024089b458d804d5cdf190f962a9a0c
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
-ENV GOGO_PROTOBUF_VERSION=v1.3.0
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV GOLANG_PROTOBUF_VERSION=v1.3.1
@@ -56,7 +55,7 @@ ENV KUBECTL_VERSION=1.15.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.1
 ENV PROTOC_GEN_VALIDATE_VERSION=d6164de4910977d3c3c8dbd9299b5064ea9e7c2b
-ENV PROTOC_VERSION=3.9.2
+ENV PROTOC_VERSION=3.13.0
 ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=7df3b957ffe3d09dc57fe4e1eb96694614db8c7a
 ENV SHELLCHECK_VERSION=v0.7.1
@@ -99,10 +98,6 @@ RUN mv /tmp/go/bin/gobin /usr/local/go/bin
 
 # Build and install a bunch of Go tools
 RUN gobin github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
-RUN gobin github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
-RUN gobin github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
-RUN gobin github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
-RUN gobin github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
 RUN gobin github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
 RUN gobin github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
 RUN gobin golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
