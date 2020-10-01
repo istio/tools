@@ -33,6 +33,7 @@ set -o pipefail
 
 WD=$(dirname "$0")
 WD=$(cd "$WD" || exit; pwd)
+ROOT=$(dirname "$WD")
 
 command -v helm >/dev/null 2>&1 || { echo >&2 "helm must be installed, aborting."; exit 1; }
 command -v fortio >/dev/null 2>&1 || { echo >&2 "fortio must be installed, aborting."; exit 1; }
@@ -150,72 +151,8 @@ TRAFFIC_RUNTIME_SEC=500
 # Used to signal that background external process is done.
 EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
 
-echo_and_run() { echo "# RUNNING $*" ; "$@" ; }
-echo_and_run_quiet() { echo "# RUNNING(quiet) $*" ; "$@" > /dev/null 2>&1 ; }
-echo_and_run_or_die() { echo "# RUNNING $*" ; "$@" || die "failed!" ; }
-
-# withRetries retries the given command ${1} times with ${2} sleep between retries
-# e.g. withRetries 10 60 myFunc param1 param2
-#   runs "myFunc param1 param2" up to 10 times with 60 sec sleep in between.
-withRetries() {
-    local max_retries=${1}
-    local sleep_sec=${2}
-    local n=0
-    shift
-    shift
-    while (( n < max_retries )); do
-      echo "RUNNING $*" ; "${@}" && break
-      echo "Failed, sleeping ${sleep_sec} seconds and retrying..."
-      ((n++))
-      sleep "${sleep_sec}"
-    done
-
-    if (( n == max_retries )); then die "$* failed after retrying ${max_retries} times."; fi
-    echo "Succeeded."
-}
-
-# withRetriesMaxTime retries the given command repeatedly with ${2} sleep between retries until ${1} seconds have elapsed.
-# e.g. withRetries 300 60 myFunc param1 param2
-#   runs "myFunc param1 param2" for up 300 seconds with 60 sec sleep in between.
-withRetriesMaxTime() {
-    local total_time_max=${1}
-    local sleep_sec=${2}
-    local start_time=${SECONDS}
-    shift
-    shift
-    while (( SECONDS - start_time <  total_time_max )); do
-      echo "RUNNING $*" ; "${@}" && break
-      echo "Failed, sleeping ${sleep_sec} seconds and retrying..."
-      sleep "${sleep_sec}"
-    done
-
-    if (( SECONDS - start_time >=  total_time_max )); then die "$* failed after retrying for ${total_time_max} seconds."; fi
-    echo "Succeeded."
-}
-
-# checkIfDeleted checks if a resource has been deleted, returns 1 if it has not.
-# e.g. checkIfDeleted ConfigMap my-config-map istio-system
-#   OR checkIfDeleted namespace istio-system
-checkIfDeleted() {
-    local resp
-    if [[ -n "${3}" ]]; then
-        resp=$( kubectl get "${1}" -n "${3}" "${2}" 2>&1 )
-    else
-        resp=$( kubectl get "${1}" "${2}" 2>&1 )
-    fi
-    if [[ "${resp}" == *"Error from server (NotFound)"* ]]; then
-        return 0
-    fi
-    echo "Response from server for kubectl get: "
-    echo "${resp}"
-    return 1
-}
-
-deleteWithWait() {
-    # Don't complain if resource is already deleted.
-    echo_and_run_quiet kubectl delete "${1}" -n "${3}" "${2}"
-    withRetries 60 10 checkIfDeleted "${1}" "${2}" "${3}"
-}
+# shellcheck disable=SC1090
+source "${ROOT}/upgrade_downgrade/common.sh"
 
 installIstioAtVersionUsingHelm() {
     writeMsg "helm templating then applying new yaml using version ${2} from ${3}."
@@ -314,7 +251,7 @@ _sendInternalRequestTraffic() {
     deleteWithWait job "${job_name}" "${TEST_NAMESPACE}"
     start_time=${SECONDS}
     withRetries 10 60 kubectl apply -n "${TEST_NAMESPACE}" -f "${TMP_DIR}/fortio-cli.yaml"
-    waitForJob "${job_name}"
+    waitForJob "${job_name}" "${TEST_NAMESPACE}"
     # Any timeouts typically occur in the first 20s
     if (( SECONDS - start_time < 100 )); then
         echo "${job_name} failed"
@@ -359,10 +296,6 @@ resetConfigMap() {
     kubectl create -n "${ISTIO_NAMESPACE}" -f "${2}"
 }
 
-writeMsg() {
-    printf "\\n\\n****************\\n\\n%s\\n\\n****************\\n\\n" "${1}"
-}
-
 _waitForIngress() {
     INGRESS_HOST=$(kubectl -n "${ISTIO_NAMESPACE}" get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     INGRESS_PORT=$(kubectl -n "${ISTIO_NAMESPACE}" get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
@@ -374,34 +307,6 @@ waitForIngress() {
     echo "Waiting for ingress-gateway addr..."
     withRetriesMaxTime 300 10 _waitForIngress
     echo "Got ingress-gateway addr: ${INGRESS_ADDR}"
-}
-
-
-_waitForPodsReady() {
-    pods_str=$(kubectl -n "${1}" get pods | tail -n +2 )
-    arr=()
-    while read -r line; do
-       arr+=("$line")
-    done <<< "$pods_str"
-
-    ready="true"
-    for line in "${arr[@]}"; do
-        if [[ ${line} != *"Running"* && ${line} != *"Completed"* ]]; then
-            ready="false"
-        fi
-    done
-    if [[  "${ready}" = "true" ]]; then
-        return 0
-    fi
-
-    echo "${pods_str}"
-    return 1
-}
-
-waitForPodsReady() {
-    echo "Waiting for pods to be ready in ${1}..."
-    withRetriesMaxTime 600 10 _waitForPodsReady "${1}"
-    echo "All pods ready."
 }
 
 _checkEchosrv() {
@@ -419,58 +324,6 @@ checkEchosrv() {
     withRetriesMaxTime 300 10 _checkEchosrv
 }
 
-waitForJob() {
-    echo "Waiting for job ${1} to complete..."
-    local start_time=${SECONDS}
-    until kubectl get jobs -n "${TEST_NAMESPACE}" "${1}" -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' | grep True ; do
-        sleep 1 ;
-    done
-    run_time=0
-    (( run_time = SECONDS - start_time ))
-    echo "Job ${1} ran for ${run_time} seconds."
-}
-
-resetCluster() {
-    echo "Cleaning cluster by removing namespaces ${ISTIO_NAMESPACE} and ${TEST_NAMESPACE}"
-    deleteWithWait namespace "${ISTIO_NAMESPACE}"
-    deleteWithWait namespace "${TEST_NAMESPACE}"
-    echo "All namespaces deleted. Recreating ${ISTIO_NAMESPACE} and ${TEST_NAMESPACE}"
-
-    echo_and_run_or_die kubectl create namespace "${ISTIO_NAMESPACE}"
-    echo_and_run_or_die kubectl create namespace "${TEST_NAMESPACE}"
-    echo_and_run_or_die kubectl label namespace "${TEST_NAMESPACE}" istio-injection=enabled
-}
-
-# Return 1 if the specific error code percentage exceed corresponding threshold
-errorPercentBelow() {
-     local LOG=${1}
-     local ERR_CODE=${2}
-     local LIMIT=${3}
-     local s
-     s=$(grep "Code ${ERR_CODE}" "${LOG}")
-     local regex="Code ${ERR_CODE} : [0-9]+ \\(([0-9]+)\\.[0-9]+ %\\)"
-     if [[ ${s} =~ ${regex} ]]; then
-          local pctErr="${BASH_REMATCH[1]}"
-          if (( pctErr > LIMIT )); then
-             return 1
-          fi
-             echo "Errors percentage is within threshold"
-     fi
-     return 0
-}
-
-die() {
-    echo "$*" 1>&2 ; exit 1;
-}
-
-# Make a copy of test manifests in case either to/from branch doesn't contain them.
-copy_test_files() {
-    rm -Rf ${TMP_DIR}
-    mkdir -p ${TMP_DIR}
-    echo "${WD}"
-    cp -f "${WD}"/templates/* "${TMP_DIR}"/.
-}
-
 copy_test_files
 
 # create cluster admin role binding
@@ -480,7 +333,7 @@ if [[ $CLOUD == "GKE" ]];then
 fi
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="${user}" || echo "clusterrolebinding already created."
 
-resetCluster
+resetCluster "${TO_PATH}/bin/istioctl"
 
 istioInstallOptions
 waitForIngress
@@ -511,9 +364,9 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrad
   restartDataPlane echosrv-deployment-v1
   # echosrv-deployment-v2 is for mTLS traffic
   restartDataPlane echosrv-deployment-v2
-  # No way to tell when rolling restart completes because it's async. Make sure this is long enough to cover all the
-  # pods in the deployment at the minReadySeconds setting (should be > num pods x minReadySeconds + few extra seconds).
-  sleep 140
+  
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v1
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v2
 fi
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
@@ -523,7 +376,9 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
   restartDataPlane echosrv-deployment-v1
   # echosrv-deployment-v2 is for mTLS traffic
   restartDataPlane echosrv-deployment-v2
-  sleep 140
+  
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v1
+  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v2
 
   istioInstallOptions
   waitForPodsReady "${ISTIO_NAMESPACE}"
@@ -536,7 +391,7 @@ fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
 echo "Traffic client pod is ${cli_pod_name}, waiting for traffic to complete..."
-waitForJob cli-fortio
+waitForJob cli-fortio "${TEST_NAMESPACE}"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
 waitForExternalRequestTraffic
 
