@@ -980,5 +980,3 @@ def get_data_helper(df, query_list, query_str, telemetry_mode, metric_name):
                     else:
                         y_series_data.append(data[metric_name].head(1).values[0] / 1000)
     return y_series_data
-
-
