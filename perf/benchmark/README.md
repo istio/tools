@@ -249,7 +249,7 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
     Otherwise your Prometheus maybe in a different namespace and differently named.
 
     ```bash
-    kubectl -n istio-system port-forward svc/prometheus 9090:9090 &
+    kubectl -n istio-prometheus port-forward svc/istio-prometheus 9090:9090 &
     export PROMETHEUS_URL=http://localhost:9090
     ```
 
