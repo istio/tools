@@ -64,11 +64,11 @@ def download_benchmark_csv(days):
                     download_prefix = "https://storage.googleapis.com/istio-build/perf/"
                     download_filename = "benchmark.csv"
                     download_url = download_prefix + benchmark_test_id + "/" + download_filename
-                    # TODO: this will make all filename to be empty but without this check will slow down the page rendering
-                    # local_filename = benchmark_test_id + "_" + download_filename
-                    # if check_exist(local_filename):
-                    #     continue
-                    dump_to_filepath = perf_data_path + benchmark_test_id + "_" + download_filename
+
+                    dump_filename = benchmark_test_id + "_" + download_filename
+                    dump_to_filepath = perf_data_path + dump_filename
+                    isExist = check_exist(dump_filename)
+
                     if test_branch == "master":
                         master_href_links.insert(0, href_str)
                         master_release_names.insert(0, release_name)
@@ -78,6 +78,8 @@ def download_benchmark_csv(days):
                         cur_release_names.insert(0, release_name)
                         cur_release_dates.insert(0, test_date)
                     try:
+                        if isExist:
+                            continue
                         wget.download(download_url, dump_to_filepath)
                     except Exception as e:
                         if test_branch == "master":
@@ -91,6 +93,8 @@ def download_benchmark_csv(days):
                         print(e)
             else:
                 continue
+
+    delete_outdated_files(download_dateset)
     return cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates
 
 
@@ -103,12 +107,13 @@ def get_download_dateset(days):
     return download_dateset
 
 
-def delete_outdated_files(release_names):
+def delete_outdated_files(download_dateset):
     filenames = ['master_temp.csv', 'cur_temp.csv']
-    for release in release_names:
-        filenames.append(release + ".csv")
     for f in os.listdir(perf_data_path):
-        if f not in filenames:
+        if f in filenames:
+            continue
+        f_prefix = f.split("_")[0]
+        if f_prefix not in download_dateset:
             os.remove(perf_data_path + f)
 
 
