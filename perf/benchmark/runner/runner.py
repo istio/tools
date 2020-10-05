@@ -441,7 +441,6 @@ def fortio_from_config_file(args):
         fortio.duration = job_config.get('duration', 240)
         fortio.load_gen_type = os.environ.get("LOAD_GEN_TYPE", "fortio")
         fortio.telemetry_mode = job_config.get('telemetry_mode', 'v2-stats-nullvm')
-        fortio.metrics = job_config.get('metrics', 'p90')
         fortio.size = job_config.get('size', 1024)
         fortio.perf_record = job_config.get('perf_record', False)
         fortio.run_serversidecar = job_config.get('run_serversidecar', False)

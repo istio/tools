@@ -12,9 +12,6 @@ qps:
     - 1000
 duration: 240
 size: 1024
-metrics:
-    - cpu
-    - mem
 perf_record: true
 run_bothsidecar: true
 run_serversidecar: false

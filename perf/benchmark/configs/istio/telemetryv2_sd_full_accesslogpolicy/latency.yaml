@@ -13,10 +13,6 @@ qps:
     - 1000
 duration: 240
 size: 1024
-metrics:
-    - p50
-    - p90
-    - p99
 perf_record: true
 run_bothsidecar: true
 run_serversidecar: false
