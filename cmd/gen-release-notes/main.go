@@ -226,7 +226,7 @@ func populateTemplate(filepath string, filename string, releaseNotes []Note) (st
 }
 
 func getNewFilesInBranch(oldBranch string, newBranch string, path string, notesSubpath string) ([]string, error) {
-	cmd := fmt.Sprintf("cd %s; git diff-tree -r --diff-filter=AR --name-only --relative=%s '%s' '%s'", path, notesSubpath, oldBranch, newBranch)
+	cmd := fmt.Sprintf("cd %s; git diff-tree -r --diff-filter=AMR --name-only --relative=%s '%s' '%s'", path, notesSubpath, oldBranch, newBranch)
 	fmt.Printf("Executing: %s\n", cmd)
 
 	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
