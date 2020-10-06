@@ -38,15 +38,19 @@ var (
 	instance    string
 	dbName      string
 	mstableName string
+	tmtableName string
 	clusterName string
 	branch      string
 	testID      string
+	domain      string
 )
 
 const (
-	prometheusAddr = "http://istio-prometheus.istio-prometheus:9090"
-	healthyStatus  = "HEALTHY"
-	alertingStatus = "ALERTING"
+	prometheusAddr     = "http://istio-prometheus.istio-prometheus:9090"
+	healthyStatus      = "HEALTHY"
+	alertingStatus     = "ALERTING"
+	defaultMSTableName = "MonitorStatus"
+	defaultTMTableName = "ReleaseQualTestMetadata"
 )
 
 // SingleMonitorStatus represents the status of one single monitor
@@ -69,15 +73,26 @@ func initPromClient(host string) {
 	v1api = v1.NewAPI(promclient)
 }
 
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
 func initSpanner() *spanner.Client {
 	projectID = os.Getenv("PROJECT_ID")
 	instance = os.Getenv("INSTANCE")
 	dbName = os.Getenv("DBNAME")
-	mstableName = os.Getenv("MS_TABLE_NAME")
+	mstableName = getEnv("MS_TABLE_NAME", defaultMSTableName)
+	tmtableName = getEnv("TM_TABLE_NAME", defaultTMTableName)
 	clusterName = os.Getenv("CLUSTER_NAME")
 	branch = os.Getenv("BRANCH")
 	testID = os.Getenv("TESTID")
-
+	domain = os.Getenv("DOMAIN")
+	if domain == "" {
+		log.Println("dns domain to access telemetry addon is empty")
+	}
 	ctx := context.Background()
 	var err error
 	db := fmt.Sprintf("projects/%s/instances/%s/databases/%s", projectID, instance, dbName)
@@ -89,13 +104,33 @@ func initSpanner() *spanner.Client {
 	return client
 }
 
-// initMonitorStatus writes initial MonitorStatus to spanner db.
-func initMonitorStatus() {
+// initTestStatus writes initial Test Info and MonitorStatus to spanner db.
+func initTestStatus() {
 	ms := queryMonitorStatus()
-	log.Println("writing initial monitor status to Spanner")
+	log.Println("writing initial monitor status and test info to Spanner")
 	if err := writeMonitorStatusToDB(ms, true); err != nil {
 		log.Fatalf("failed to initialize monitor status in Spanner: %v", err)
 	}
+	if err := writeTestInfoToDB(); err != nil {
+		log.Fatalf("failed to initialize test info in Spanner: %v", err)
+	}
+}
+
+func writeTestInfoToDB() error {
+	tmColumns := []string{"ProjectID", "ClusterName", "Branch", "TestID", "StartTime", "GrafanaLink", "PrometheusLink"}
+	curTime := time.Now()
+	grafanaLink := fmt.Sprintf("http://grafana.%s", domain)
+	promLink := fmt.Sprintf("http://prom.%s", domain)
+	
+	m := []*spanner.Mutation{
+		spanner.InsertOrUpdate(tmtableName, tmColumns,
+			[]interface{}{projectID, clusterName, branch, testID, curTime, grafanaLink, promLink}),
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	_, err := client.Apply(ctx, m)
+	return err
 }
 
 // queryMonitorStatus is a helper function to query prometheus API for alert status.
@@ -171,8 +206,9 @@ func healthz(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeMonitorStatusToDB(ms []SingleMonitorStatus, init bool) error {
-	monitorColumns := []string{"MonitorName", "Status", "ProjectID", "ClusterName", "Branch", "UpdatedTime", "TestID", "Description", "FiredTimes"}
+	monitorColumns := []string{"MonitorName", "Status", "UpdatedTime", "TestID", "Description", "FiredTimes", "LastFiredTime"}
 	curTime := time.Now()
+	lastFiredTime := time.Time{}
 	var m []*spanner.Mutation
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -197,10 +233,11 @@ func writeMonitorStatusToDB(ms []SingleMonitorStatus, init bool) error {
 				}
 				if sms.Status == alertingStatus {
 					firedTimes++
+					lastFiredTime = curTime
 				}
 			}
 			m = append(m, spanner.InsertOrUpdate(mstableName, monitorColumns,
-				[]interface{}{monitorName, sms.Status, projectID, clusterName, branch, curTime, testID, sms.Description, firedTimes}))
+				[]interface{}{monitorName, sms.Status, curTime, testID, sms.Description, firedTimes, lastFiredTime}))
 		}
 		if err := txn.BufferWrite(m); err != nil {
 			return fmt.Errorf("failed to write to spanner db: %v", err)
@@ -240,7 +277,7 @@ func main() {
 	client := initSpanner()
 	defer client.Close()
 	initPromClient(prometheusAddr)
-	initMonitorStatus()
+	initTestStatus()
 	done := make(chan bool)
 	checkMonitorStatus(done)
 

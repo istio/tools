@@ -42,10 +42,14 @@ spec:
             value: {{ .Values.dbName }}
           - name: MS_TABLE_NAME
             value: {{ .Values.msTableName }}
+          - name: TM_TABLE_NAME
+            value: {{ .Values.tmTableName }}
           - name: BRANCH
             value: {{ .Values.branch }}
           - name: TESTID
             value: {{ .Values.testID }}
+          - name: DOMAIN
+            value: {{ .Values.domain }}
 ---
 apiVersion: v1
 kind: Service

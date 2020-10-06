@@ -24,7 +24,7 @@ set -eux
 export TAG="${TAG:-}"
 export VERSION="${VERSION:-}"
 export RELEASE_URL="${RELEASE_URL:-}"
-export DNS_DOMAIN="fake-dns.org"
+export DNS_DOMAIN="${DNS_DOMAIN:-release-qual.qualistio.org}"
 export LOCAL_ISTIO_PATH="${LOCAL_ISTIO_PATH:-}"
 export NAMESPACE_NUM="${NAMESPACE_NUM:-15}"
 export SKIP_ISTIO_SETUP="${SKIP_ISTIO_SETUP:-false}"
@@ -67,7 +67,8 @@ fi
 DT=$(date +'%Y%m%d%H')
 TESTID="${BRANCH}-${DT}"
 # deploy alertmanager related resources
-HELM_ARGS="--set projectID=${PROJECT_ID} --set clusterName=${CLUSTER_NAME} --set branch=${BRANCH} --set instance=${INSTANCE} --set dbName=${DBNAME} --set testID=${TESTID} --set msTableName=${MS_TABLE_NAME}"
+HELM_ARGS="--set projectID=${PROJECT_ID} --set clusterName=${CLUSTER_NAME} --set branch=${BRANCH} --set instance=${INSTANCE}\
+             --set dbName=${DBNAME} --set testID=${TESTID} --set msTableName=${MS_TABLE_NAME} --set domain=${DNS_DOMAIN}"
 NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager "${HELM_ARGS}"
 kubectl apply -f ./alertmanager/prometheusrule.yaml
 
