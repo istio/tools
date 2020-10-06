@@ -11,4 +11,5 @@ spec:
         stackdriver:
           enabled: true
           topology: true
-          logging: true
+          inboundAccessLogging: "FULL"
+          outboundAccessLogging: "ERRORS_ONLY"
