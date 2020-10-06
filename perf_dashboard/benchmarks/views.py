@@ -35,6 +35,12 @@ mem_master_selected_release = []
 mem_client_metric_name = 'mem_Mi_avg_istio_proxy_fortioclient'
 mem_server_metric_name = 'mem_Mi_avg_istio_proxy_fortioserver'
 
+conn_query_list = [2, 4, 8, 16, 32, 64]
+conn_query_str = 'ActualQPS == 1000 and NumThreads == @ql and Labels.str.endswith(@telemetry_mode)'
+
+qps_query_list = [10, 100, 200, 400, 800, 1000]
+qps_query_str = 'ActualQPS == @ql and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)'
+
 
 def benchmarks_overview(request):
     return render(request, "benchmarks_overview.html")
@@ -925,41 +931,29 @@ def micro_benchmarks(request):
 
 # Latency Helpers
 def get_latency_vs_conn_y_series(df, telemetry_mode, quantiles):
-    query_list = [2, 4, 8, 16, 32, 64]
-    query_str = 'ActualQPS == 1000 and NumThreads == @ql and Labels.str.endswith(@telemetry_mode)'
-    return get_data_helper(df, query_list, query_str, telemetry_mode, quantiles)
+    return get_data_helper(df, conn_query_list, conn_query_str, telemetry_mode, quantiles)
 
 
 def get_latency_vs_qps_y_series(df, telemetry_mode, quantiles):
-    query_list = [10, 100, 500, 1000, 2000, 3000]
-    query_str = 'ActualQPS == @ql and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)'
-    return get_data_helper(df, query_list, query_str, telemetry_mode, quantiles)
+    return get_data_helper(df, qps_query_list, qps_query_str, telemetry_mode, quantiles)
 
 
 # CPU Helpers
 def get_cpu_vs_conn_y_series(df, telemetry_mode, cpu_metric_name):
-    query_list = [2, 4, 8, 16, 32, 64]
-    query_str = 'ActualQPS == 1000 and NumThreads == @ql and Labels.str.endswith(@telemetry_mode)'
-    return get_data_helper(df, query_list, query_str, telemetry_mode, cpu_metric_name)
+    return get_data_helper(df, conn_query_list, conn_query_str, telemetry_mode, cpu_metric_name)
 
 
 def get_cpu_vs_qps_y_series(df, telemetry_mode, cpu_metric_name):
-    query_list = [10, 100, 500, 1000, 2000, 3000]
-    query_str = 'ActualQPS == @ql and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)'
-    return get_data_helper(df, query_list, query_str, telemetry_mode, cpu_metric_name)
+    return get_data_helper(df, qps_query_list, qps_query_str, telemetry_mode, cpu_metric_name)
 
 
 # Memory Helpers
 def get_mem_vs_conn_y_series(df, telemetry_mode, mem_metric_name):
-    query_list = [2, 4, 8, 16, 32, 64]
-    query_str = 'ActualQPS == 1000 and NumThreads == @ql and Labels.str.endswith(@telemetry_mode)'
-    return get_data_helper(df, query_list, query_str, telemetry_mode, mem_metric_name)
+    return get_data_helper(df, conn_query_list, conn_query_str, telemetry_mode, mem_metric_name)
 
 
 def get_mem_vs_qps_y_series(df, telemetry_mode, mem_metric_name):
-    query_list = [10, 100, 500, 1000, 2000, 3000]
-    query_str = 'ActualQPS == @ql and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)'
-    return get_data_helper(df, query_list, query_str, telemetry_mode, mem_metric_name)
+    return get_data_helper(df, qps_query_list, qps_query_str, telemetry_mode, mem_metric_name)
 
 
 def get_data_helper(df, query_list, query_str, telemetry_mode, metric_name):
