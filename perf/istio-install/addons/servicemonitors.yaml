@@ -45,6 +45,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: kube-state-metrics
+  namespace: istio-prometheus
   labels:
     k8s-app: kube-state-metrics
 spec:
@@ -55,9 +56,10 @@ spec:
   namespaceSelector:
     matchNames:
       - istio-system
+      - istio-prometheus
   endpoints:
-    - port: metrics
-      scheme: https
+    - port: http-metric
+      scheme: http
       interval: 15s
       honorLabels: true
       bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token

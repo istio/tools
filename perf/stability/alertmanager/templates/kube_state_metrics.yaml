@@ -133,16 +133,17 @@ metadata:
   labels:
     component: "kube-state-metrics"
     app: prometheus-kube-state-metrics
+    k8s-app: kube-state-metrics
   name: prometheus-kube-state-metrics
   namespace: istio-prometheus
 spec:
   clusterIP: None
   ports:
-    - name: http
+    - name: http-metric
       port: 80
       protocol: TCP
       targetPort: 8080
-    - name: telemetry
+    - name: http-telemetry
       port: 81
       protocol: TCP
       targetPort: 8081

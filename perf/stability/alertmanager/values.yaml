@@ -56,11 +56,20 @@ baseURL: "http://localhost:9093"
 configFileName: alertmanager.yml
 resources: {}
 
-# for alertmanager webhook
+# Below are configs for spanner connection.
 projectID: "istio-testing"
-instance: "istio-policy-bot"
-dbName: "main"
-msTableName: "MonitorStatus"
 clusterName: "release-qual"
+# spanner instance name
+instance: "istio-policy-bot"
+# spanner db name
+dbName: "main"
+# spanner table name for storing monitor status
+msTableName: "MonitorStatus"
+# spanner table name for storing release qualification test metadata
+tmTableName: "ReleaseQualTestMetadata"
+# branch/tag/SHA of the Istio installed initially
 branch: "master"
+# testID is the unique ID to identify a specific release qualification test run.
 testID: ""
+# prometheus/grafana and other telemetry addon would be accessible from this domain
+domain: "release-qual.qualistio.org"
