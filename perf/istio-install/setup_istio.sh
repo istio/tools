@@ -111,7 +111,7 @@ function install_extras() {
   if [[ -f "${release}/samples/addons/extras/prometheus-operator.yaml" ]];then
      kubectl apply -f "${release}/samples/addons/extras/prometheus-operator.yaml" -n istio-system
       # Deploy k8s ServiceMonitors
-     kubectl apply -f "${WD}/addons/servicemonitors.yaml" -n istio-system
+     kubectl apply -f "${WD}/addons/servicemonitors.yaml"
   # for release before 1.7, run below instead
   else
     "${release}/bin/istioctl" manifest generate --set profile=empty --set addonComponents.prometheusOperator.enabled=true -d "${release}/manifests" | kubectl apply -f -
