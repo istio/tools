@@ -121,7 +121,7 @@ func writeTestInfoToDB() error {
 	curTime := time.Now()
 	grafanaLink := fmt.Sprintf("http://grafana.%s", domain)
 	promLink := fmt.Sprintf("http://prom.%s", domain)
-	
+
 	m := []*spanner.Mutation{
 		spanner.InsertOrUpdate(tmtableName, tmColumns,
 			[]interface{}{projectID, clusterName, branch, testID, curTime, grafanaLink, promLink}),
