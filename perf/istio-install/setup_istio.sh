@@ -118,6 +118,7 @@ function install_extras() {
   fi
   # deploy grafana
   kubectl apply -f "${release}/samples/addons/grafana.yaml" -n istio-system
+  kubectl apply -f "${WD}/addons/grafana-cm.yaml" -n istio-system
 }
 
 if [[ -z "${SKIP_INSTALL}" ]];then
