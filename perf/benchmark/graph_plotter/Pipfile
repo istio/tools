@@ -6,7 +6,8 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-requests = "*"
-pandas = "==0.24.2"
-numpy = "*"
+pandas = "*"
+matplotlib = "*"
 
+[requires]
+python_version = "3.8"

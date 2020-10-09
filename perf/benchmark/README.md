@@ -261,13 +261,9 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 
     This script will generate two output files (one JSON, one CSV), both containing the same result metrics: Queries Per Second (QPS) attained, latency, and CPU/Memory usage.
 
-## Visualize Results
+## Visualize CSV Results
 
-WIP...
-
-Example Output:
-
-![graphoutput](graphoutput/istio_p90.png)
+Please refer to [graph_plotter README](graph_plotter/README.md)
 
 ## Add new config to benchmark pipeline
 
