@@ -263,8 +263,7 @@ Once `runner.py` has completed, extract the results from Fortio and Prometheus.
 
 ## Visualize CSV Results
 
-Please refer to [graph_plotter README](graph_plotter/README.md) 
-
+Please refer to [graph_plotter README](graph_plotter/README.md)
 
 ## Add new config to benchmark pipeline
 

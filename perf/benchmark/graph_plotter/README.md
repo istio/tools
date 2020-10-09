@@ -1,15 +1,16 @@
-# Graph Plotter 
+# Graph Plotter
 
-[Graph Plotter](graph_plotter.py) is to help you visualize the CSV file you got from the 
+[Graph Plotter](graph_plotter.py) is to help you visualize the CSV file you got from the
 Istio performance benchmark.
 
 ## Usage and Example Plot
 
 ### Arguments
+
 There are several required arguments that you need to specify:
 
-```
---graph_type GRAPH_TYPE   
+```bash
+--graph_type GRAPH_TYPE
 Choose from one of them: [latency-p50, latency-p90, latency-p99, latency-p999, cpu-client, cpu-server, mem-client, mem-server].
 
 --x_axis X_AXIS
@@ -20,18 +21,18 @@ This is a list of perf test labels, currently it can be any combinations from th
 [none_mtls_baseline, none_mtls_both, v2-sd-full-nullvm_both, v2-stats-nullvm_both, v2-stats-wasm_both, v2-sd-nologging-nullvm_both].
 
 --query_list QUERY_LIST
-Specify the qps or conn range you want to plot based on the CSV file. 
+Specify the qps or conn range you want to plot based on the CSV file.
 For example, conn_query_list=[2, 4, 8, 16, 32, 64], qps_query_list=[10, 100, 200, 400, 800, 1000].
 
 --query_str QUERY_STR
 Specify the qps or conn query_str that will be used to query your y-axis data based on the CSV file.
 For example: conn_query_str=ActualQPS==1000, qps_query_str=NumThreads==16.
 
---csv_filepath CSV_FILEPATH 
+--csv_filepath CSV_FILEPATH
 The path of the CSV file.
 
 --graph_title GRAPH_TITLE
-The graph title.                            
+The graph title.                     
 ```
 
 ## Plotting
