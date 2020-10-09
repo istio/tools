@@ -41,7 +41,7 @@ You can use the example [benchmark.csv](example_plot/benchmark.csv) file to plot
 the following command:
 
 ```bash
-python3 ./graph_plotter.py --graph_type=latency-p50 --x_axis=conn --telemetry_modes=none_mtls_baseline,none_mtls_both,v2-sd-full-nullvm_both,v2-stats-nullvm_both --query_list=2,4,8,16,32,64 --query_str=ActualQPS==1000 --csv_filepath=./example_plot/benchmark.csv --fig_title=./example_plot/plotter_output.png
+python3 ./graph_plotter.py --graph_type=latency-p50 --x_axis=conn --telemetry_modes=none_mtls_baseline,none_mtls_both,v2-sd-full-nullvm_both,v2-stats-nullvm_both --query_list=2,4,8,16,32,64 --query_str=ActualQPS==1000 --csv_filepath=./example_plot/benchmark.csv --graph_title=./example_plot/plotter_output.png
 ```
 
 Example Output:
