@@ -83,7 +83,7 @@ environment variable to your desired one.
 
 ## Prepare Python Environment
 
-Here, `pipenv shell` will create a local Python3 virtual environment, and `pipenv install` will install all the Python 
+Here, `pipenv shell` will create a local Python3 virtual environment, and `pipenv install` will install all the Python
 packages needed to run the benchmarking scripts and [graph_plotter](graph_plotter) via [Pipfile](Pipfile)
 
 ```bash
