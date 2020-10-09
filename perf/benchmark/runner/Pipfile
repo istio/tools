@@ -7,9 +7,6 @@ verify_ssl = true
 
 [packages]
 requests = "*"
-pytz = "*"
-bokeh = "*"
 pandas = "==0.24.2"
 numpy = "*"
-pyyaml = "*"
 
