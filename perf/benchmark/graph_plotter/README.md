@@ -32,7 +32,7 @@ For example: conn_query_str=ActualQPS==1000, qps_query_str=NumThreads==16.
 The path of the CSV file.
 
 --graph_title GRAPH_TITLE
-The graph title.                     
+The graph title.
 ```
 
 ## Plotting
