@@ -83,21 +83,16 @@ environment variable to your desired one.
 
 ## Prepare Python Environment
 
-Here, `pipenv shell` will create a local Python3 virtual environment, and `pipenv install` will install all the Python packages needed to run the benchmarking scripts (see `runner/Pipfile`).
+Here, `pipenv shell` will create a local Python3 virtual environment, and `pipenv install` will install all the Python 
+packages needed to run the benchmarking scripts and [graph_plotter](graph_plotter) via [Pipfile](Pipfile)
 
 ```bash
-cd runner
+cd perf/benchmark
 pipenv --three
 # or
-pipenv --python 3.6
+pipenv --python 3.8
 pipenv shell
 pipenv install
-```
-
-Install Python libraries
-
-```bash
-sudo pip3 install pandas bokeh
 ```
 
 ## Run performance tests

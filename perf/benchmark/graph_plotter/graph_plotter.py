@@ -65,10 +65,10 @@ def check_if_args_provided(args):
 
 def check_args_consistency(args):
     if args.x_axis == "conn" and not args.query_str.startswith("ActualQPS=="):
-        print("Warning: your specified query_str is not match with the x_axis definition.")
+        print("Warning: your specified query_str does not match with the x_axis definition.")
         return False
     if args.x_axis == "qps" and not args.query_str.startswith("NumThreads=="):
-        print("Warning: your specified query_str is not match with the x_axis definition.")
+        print("Warning: your specified query_str does not match with the x_axis definition.")
         return False
     return True
 
