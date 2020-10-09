@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 pandas = "*"
 matplotlib = "*"
+PyYAML = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"

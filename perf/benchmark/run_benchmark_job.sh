@@ -90,7 +90,7 @@ if [[ $(command -v pipenv) == "" ]];then
 fi
 
 # Install dependencies
-cd "${WD}/runner"
+cd "${WD}"
 pipenv install
 
 # Step 5: setup perf data local output directory
