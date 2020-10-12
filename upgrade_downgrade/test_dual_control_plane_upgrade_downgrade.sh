@@ -172,7 +172,16 @@ if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
   withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
     "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
   writeMsg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
-  ${TO_ISTIOCTL} experimental uninstall --filename "${FROM_PATH}/manifests/profiles/minimal.yaml" -y --force
+  
+  # This test is for istio >= 1.6. So only 1.6 needs special handling
+  # else clause handles istio >= 1.7 which supports uninstall command
+  # (although still experimental)
+  PROFILE_MANIFEST_YAML="${FROM_PATH}/manifests/profiles/minimal.yaml"
+  if [[ "${FROM_ISTIOCTL}" == *"1.6"* ]]; then
+    ${FROM_ISTIOCTL} manifest generate -f "${PROFILE_MANIFEST_YAML}" | kubectl delete -f -
+  else
+    ${FROM_ISTIOCTL} experimental uninstall -f "${PROFILE_MANIFEST_YAML}" -y --force
+  fi
 
 elif [[ "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]]; then
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev- istio-injection=enabled
