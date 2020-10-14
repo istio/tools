@@ -69,7 +69,7 @@ metadata:
   labels:
     app: istio-logs-checker
 spec:
-  schedule: "0 0 */{{ .Values.redeployDays }} * *"
+  schedule: "30 0 * * *"
   jobTemplate:
     spec:
       template:

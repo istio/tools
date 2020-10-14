@@ -17,12 +17,18 @@ spec:
           expr: >
             sum(irate(istio_requests_total{reporter="destination", response_code=~"5.*"}[5m])) / sum(irate(istio_requests_total{reporter="destination"}[5m])) > 0.05
           for: 5m
-        - alert: LatencyHigh
-          expr: sum(irate(istio_request_duration_milliseconds_bucket{source_workload=~"svc.*"}[5m])) by (source_workload,namespace)  > 30000
+        - alert: WorkloadLatencyP99High
+          expr: histogram_quantile(0.99, sum(irate(istio_request_duration_milliseconds_bucket{source_workload=~"svc.*"}[5m])) by (source_workload,namespace, le)) > 160
           for: 10m
           annotations:
-            description: 'The workload request latency > 30s '
-            message:  "Request duration has slowed down for workload: {{`{{$labels.source_workload}}`}} in namespace: {{`{{$labels.namespace}}`}}. Response duration is {{`{{$value}}`}} seconds"
+            description: 'The workload request latency P99 > 160ms '
+            message:  "Request duration has slowed down for workload: {{`{{$labels.source_workload}}`}} in namespace: {{`{{$labels.namespace}}`}}. Response duration is {{`{{$value}}`}} milliseconds"
+        - alert: IngressLatencyP99High
+          expr: histogram_quantile(0.99, sum(irate(istio_request_duration_milliseconds_bucket{source_workload=~"istio.*"}[5m])) by (source_workload,namespace, le)) > 250
+          for: 10m
+          annotations:
+            description: 'The ingress latency P99 > 250ms '
+            message:  "Request duration has slowed down for ingress: {{`{{$labels.source_workload}}`}} in namespace: {{`{{$labels.namespace}}`}}. Response duration is {{`{{$value}}`}} milliseconds"
     - name: ./infra.rules
       rules:
         - alert: ProxyContainerCPUUsageHigh
