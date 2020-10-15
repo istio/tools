@@ -31,7 +31,7 @@ This is the default test flow. The following is an example command
 to configure this test scenario:
 
     ```bash
-    export TEST_SCENARIO=upgrade-downgrade; export SOURCE_TAG=1.5_latest; export TARGET_TAG=master; export INSTALL_OPTIONS=istioctl; export UPGRADE_TEST_LOCAL=true;
+    export TEST_SCENARIO=upgrade-downgrade; export SOURCE_TAG=1.5_latest; export TARGET_TAG=master; export INSTALL_OPTIONS=istioctl; export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
     ```
 
 * When TEST_SCENARIO is configured as *upgrade*,
@@ -39,7 +39,7 @@ Istio will be upgraded. The following is an example command
 to configure this test scenario:
 
     ```bash
-    export TEST_SCENARIO=upgrade; export SOURCE_TAG=1.5_latest; export TARGET_TAG=master; export INSTALL_OPTIONS=istioctl; export UPGRADE_TEST_LOCAL=true;
+    export TEST_SCENARIO=upgrade; export SOURCE_TAG=1.5_latest; export TARGET_TAG=master; export INSTALL_OPTIONS=istioctl; export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
     ```
 
 * When TEST_SCENARIO is configured as *downgrade*,
@@ -47,7 +47,7 @@ Istio will be downgraded. The following is an example command
 to configure this test scenario:
 
     ```bash
-    export TEST_SCENARIO=downgrade; export SOURCE_TAG=master; export TARGET_TAG=1.5_latest; export INSTALL_OPTIONS=istioctl; export UPGRADE_TEST_LOCAL=true;
+    export TEST_SCENARIO=downgrade; export SOURCE_TAG=master; export TARGET_TAG=1.5_latest; export INSTALL_OPTIONS=istioctl; export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
     ```
 
 * When TEST_SCENARIO is configured as *dual-control-plane-upgrade*,
@@ -60,7 +60,7 @@ before uninstalling the one with SOURCE_TAG
     export TEST_SCENARIO=dual-control-plane-upgrade
     export SOURCE_TAG=1.7_latest
     export TARGET_TAG=master
-    export UPGRADE_TEST_LOCAL=true
+    export UPGRADE_DOWNGRADE_TEST_LOCAL=true
     ```
 
 * When TEST_SCENARIO is configured as *dual-control-plane-rollback*
@@ -74,7 +74,7 @@ the control plane running version TARGET_TAG is uninstalled
     export TEST_SCENARIO=dual-control-plane-rollback
     export SOURCE_TAG=1.7_latest
     export TARGET_TAG=master
-    export UPGRADE_TEST_LOCAL=true
+    export UPGRADE_DOWNGRADE_TEST_LOCAL=true
     ```
 
 ## Run the upgrade or downgrade test
