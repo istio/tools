@@ -96,6 +96,7 @@ RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 # Install gh
 ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.deb /tmp/
 RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_amd64.deb
+RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
 # Install gobin. We use gobin to build all of our tools such that their
 # dependencies remain independent of each other
