@@ -41,6 +41,7 @@ ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOGO_PROTOBUF_VERSION=v1.3.0
 ENV GOIMPORTS_VERSION=379209517ffe
 ENV BENCHSTAT_VERSION=9c9101da8316
+ENV GH_VERSION=1.1.0
 ENV GOLANG_PROTOBUF_VERSION=v1.3.1
 ENV GOLANGCI_LINT_VERSION=v1.30.0
 ENV HADOLINT_VERSION=v1.17.2
@@ -91,6 +92,10 @@ RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install
 ADD https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip /tmp/
 RUN unzip /tmp/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 RUN mv /tmp/bin/protoc ${OUTDIR}/usr/bin
+
+# Install gh
+ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.deb /tmp/
+RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_amd64.deb
 
 # Install gobin. We use gobin to build all of our tools such that their
 # dependencies remain independent of each other

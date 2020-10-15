@@ -43,7 +43,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shogo82148/go-shuffle v0.0.0-20180218125048-27e6095f230d // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.4.0
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/xanzy/ssh-agent v0.2.0 // indirect
@@ -59,12 +59,13 @@ require (
 	gopkg.in/src-d/go-license-detector.v2 v2.0.0-20180510072912-da552ecf050b
 	gopkg.in/src-d/go-siva.v1 v1.3.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.3.0
 	istio.io/api v0.0.0-20200723170824-3c2193e74947
 	istio.io/gogo-genproto v0.0.0-20191009201739-17d570f95998
 	k8s.io/apiextensions-apiserver v0.18.2
-	k8s.io/apimachinery v0.18.2
+	k8s.io/apimachinery v0.18.8
 	k8s.io/gengo v0.0.0-20190822140433-26a664648505
 	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
 	sigs.k8s.io/controller-tools v0.3.0
+	sigs.k8s.io/kind v0.9.0 // indirect
 )
