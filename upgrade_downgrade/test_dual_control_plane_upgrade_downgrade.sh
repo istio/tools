@@ -152,7 +152,7 @@ function verifyIstiod() {
       # Try once more. Peek into to pod spec and check
       # if discovery address is set correctly. This is
       # because of an error in 1.7 -> 1.8 test
-      line_count=$(kubectl get pod "$podname" -n "$ns" -o json | grep "discoveryAddress.*$expected" | wc -l)
+      line_count=$(kubectl get pod "$podname" -n "$ns" -o json | grep -c "discoveryAddress.*$expected")
       if ((line_count == 0)); then
         mismatch=$(( mismatch+1 ))
       fi
