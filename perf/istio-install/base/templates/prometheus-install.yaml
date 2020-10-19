@@ -25,14 +25,16 @@ spec:
     matchLabels:
       role: prometheus-example-rules
       prometheus: prometheus
-  image: "docker.io/prom/prometheus:v2.19.0"
-  version: v2.19.0
+  image: "docker.io/prom/prometheus:v2.22.0"
+  version: v2.22.0
   retention: 72h
   scrapeInterval: 15s
   serviceAccountName: prometheus
   enableAdminAPI: false
   serviceMonitorNamespaceSelector: {}
   serviceMonitorSelector: {}
+  podMonitorNamespaceSelector: {}
+  podMonitorSelector: {}
   podMetadata:
     labels:
       app: prometheus
