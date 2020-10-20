@@ -1,0 +1,49 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: letsencrypt-staging
+  namespace: istio-system
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: {{.Values.certManager.email}}
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+    - selector: {}
+      http01:
+        ingress:
+          class: istio
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: letsencrypt-prod
+  namespace: istio-system
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: {{.Values.certManager.email}}
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - selector: {}
+      http01:
+        ingress:
+          class: istio
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: tls
+  namespace: istio-system
+spec:
+  secretName: tls-cert
+  issuerRef:
+    name: letsencrypt-{{.Values.certManager.server}}
+  dnsNames:
+  # We could do wildcard, but requires DNS01 validation and we want to test the http solver
+  - prom.{{.Values.domain}}
+  - tracing.{{.Values.domain}}
+  - grafana.{{.Values.domain}}
+  - kiali.{{.Values.domain}}

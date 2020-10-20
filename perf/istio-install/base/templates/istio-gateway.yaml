@@ -9,15 +9,14 @@ spec:
   selector:
     istio: ingressgateway
   servers:
-{{- if $.Values.certManager }}
+{{- if $.Values.certManager.enabled }}
   - port:
       number: 443
       name: https-default
       protocol: HTTPS
     tls:
       mode: SIMPLE
-      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
-      privateKey: /etc/istio/ingressgateway-certs/tls.key
+      credentialName: tls-cert
     hosts:
     - "*"
 {{- end }}
@@ -32,6 +31,8 @@ spec:
     - "grafana.local"
     - "kiali.{{ .Values.domain }}"
     - "kiali.local"
+    - "tracing.{{ .Values.domain }}"
+    - "tracing.local"
     - "*"
 ---
 apiVersion: networking.istio.io/v1alpha3
@@ -146,29 +147,3 @@ spec:
   trafficPolicy:
     tls:
       mode: DISABLE
----
-{{- if $.Values.certManager }}
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: Certificate
-metadata:
-  name: ist
-  namespace: istio-system
-spec:
-  secretName: istio-ingressgateway-certs
-  issuerRef:
-    name: letsencrypt
-    kind: ClusterIssuer
-  commonName: prom.{{ .Values.domain }}
-  dnsNames:
-  - prom.{{ .Values.domain }}
-  - grafana.{{ .Values.domain }}
-  - kiali.{{ .Values.domain }}
-  acme:
-    config:
-    - http01:
-        ingressClass: istio
-      domains:
-      - prom.{{ .Values.domain }}
-      - grafana.{{ .Values.domain }}
-      - kiali.{{ .Values.domain }}
-{{- end }}
