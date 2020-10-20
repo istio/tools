@@ -17,6 +17,7 @@ package protomodel
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
@@ -58,6 +59,13 @@ func newPackageDescriptor(name string, desc []*descriptor.FileDescriptorProto, p
 			}
 		}
 	}
+
+	// Make the documenting file first. This ensures its messages show up first on the output
+	// If we need more granularity with explicitly multiple file ordering, we can add some sort of annotation,
+	// but or now this is sufficient.
+	sort.SliceStable(p.Files, func(i, j int) bool {
+		return p.Files[i] == p.file
+	})
 
 	return p
 }
