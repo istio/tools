@@ -83,7 +83,8 @@ function install_istioctl() {
 }
 
 function install_extras() {
-  local domain=${DNS_DOMAIN:-"DNS_DOMAIN like v104.qualistio.org"}
+  local domain=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org"}
+  local certmanagerEmail=${CERTMANAGER_EMAIL:-""}
   kubectl create namespace istio-prometheus || true
   # Deploy the gateways and prometheus operator.
   # We install the prometheus operator first, then deploy the CR, to wait for the CRDs to get created
@@ -105,8 +106,13 @@ function install_extras() {
       exit 1
     fi
   done
+
   # Redeploy, this time with the Prometheus resource created
-  helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
+  if [[ "${certmanagerEmail:-}" != "" ]]; then
+    helm template --set domain="${domain}" --set certManager.email="${certmanagerEmail}" --set certManager.enabled=true "${WD}/base" | kubectl apply -f -
+  else
+    helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
+  fi
   # Also deploy relevant ServiceMonitors
   if [[ -f "${release}/samples/addons/extras/prometheus-operator.yaml" ]];then
      kubectl apply -f "${release}/samples/addons/extras/prometheus-operator.yaml" -n istio-system
@@ -119,6 +125,7 @@ function install_extras() {
   # deploy grafana
   kubectl apply -f "${release}/samples/addons/grafana.yaml" -n istio-system
   kubectl apply -f "${WD}/addons/grafana-cm.yaml" -n istio-system
+  kubectl apply -f "${WD}/addons/cert-manager.yaml"
 }
 
 if [[ -z "${SKIP_INSTALL}" ]];then

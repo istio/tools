@@ -4,7 +4,11 @@ prometheus:
 
 domain: v103.qualistio.org
 
-certManager: false
+certManager:
+  enabled: false
+  # Can be prod/staging
+  server: prod
+  email: ""
 
 als:
   enabled: false
