@@ -25,7 +25,7 @@ CONTAINER_CLI=${CONTAINER_CLI:-docker}
 CONTAINER_BUILDER=${CONTAINER_BUILDER:-"buildx build"}
 HUB=${HUB:-gcr.io/istio-testing}
 DATE=$(date +%Y-%m-%dT%H-%M-%S)
-BRANCH=master
+BRANCH=release-1.8
 VERSION="${BRANCH}-${DATE}"
 SHA="${BRANCH}"
 
