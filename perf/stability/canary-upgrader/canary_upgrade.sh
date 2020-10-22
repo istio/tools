@@ -58,7 +58,7 @@ allns=$(kubectl get ns -o jsonpath="{.items[*].metadata.name}")
 # upgrade data plane
 for testns in ${allns};do
     if [[ ${testns} == *"service-graph"* ]];then
-        kubectl label namespace "${testns}" istio-injection- istio.io/rev="${NEW_REV}" --overwrite
+        kubectl label namespace "${testns}" istio-injection- istio.io/rev="${NEW_REV}" --overwrite || true
         kubectl rollout restart deployment -n "${testns}"
         sleep 30
     # verify

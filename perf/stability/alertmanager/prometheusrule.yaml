@@ -43,6 +43,12 @@ spec:
           annotations:
             summary: "Proxy Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }})  VALUE = {{ $value }}\n"
             description: "Proxy Container Memory usage is above 80%"
+        - alert: IngressMemoryUsageIncreaseRateHigh
+          expr: avg(deriv(container_memory_working_set_bytes{container=~"istio-proxy",namespace="istio-system"}[60m])) > 200
+          for: 180m
+          annotations:
+            summary: "Ingress proxy Memory change rate, VALUE = {{ $value }}\n"
+            description: "Ingress proxy Memory Usage increases more than 200 Bytes/sec"
         - alert: IstiodContainerCPUUsageHigh
           expr: (sum(rate(container_cpu_usage_seconds_total{namespace="istio-system", container="discovery"}[5m])) BY (pod) * 100) > 80
           for: 5m
@@ -55,6 +61,12 @@ spec:
           annotations:
             summary: "Istiod Container Memory usage (namespace {{ $labels.namespace }}) (pod {{ $labels.pod }}) (container {{ $labels.container }}) VALUE = {{ $value }}\n"
             description: "Istiod Container Memory usage is above 80%"
+        - alert: IstiodMemoryUsageIncreaseRateHigh
+          expr: sum(deriv(container_memory_working_set_bytes{namespace="istio-system",pod=~"istiod-.*"}[60m])) > 1000
+          for: 300m
+          annotations:
+            summary: "Istiod Container Memory usage increase rate high, VALUE = {{ $value }}\n"
+            description: "Istiod Container Memory usage increases more than 1k Bytes/sec"
     - name: ./controlplane.rules
       rules:
         - alert: IstiodxdsPushErrorsHigh
@@ -92,6 +104,13 @@ spec:
           expr: >
             sum(rate(istio_requests_total{reporter="source", source_workload="istio-ingressgateway",response_code="200",destination_service_namespace=~"service-graph.*"}[5m])) < 1490
           for: 30m
+        - alert: IngressTrafficMissing
+          annotations:
+            summary: 'ingress gateway traffic missing'
+            description: 'ingress gateway traffic missing, check client logs'
+          expr: >
+            absent(istio_requests_total{destination_service_namespace=~"service-graph.*",reporter="source",source_workload="istio-ingressgateway"})==1
+          for: 5m
     - name: "istio.recording-rules"
       interval: 5s
       rules:
