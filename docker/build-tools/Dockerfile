@@ -164,6 +164,13 @@ RUN mv /tmp/upx-${UPX_VERSION}-amd64_linux/upx /usr/bin
 RUN upx --lzma /tmp/go/bin/*
 RUN mv /tmp/go/bin/* ${OUTDIR}/usr/bin
 
+# Add gen-release-notes templates to filesystem
+RUN mkdir -p ${OUTDIR}/usr/share/gen-release-notes
+ADD https://raw.githubusercontent.com/istio/tools/master/cmd/gen-release-notes/templates/minorReleaseNotes.md ${OUTDIR}/usr/share/gen-release-notes
+ADD https://raw.githubusercontent.com/istio/tools/master/cmd/gen-release-notes/templates/releaseNotes.md ${OUTDIR}/usr/share/gen-release-notes
+ADD https://raw.githubusercontent.com/istio/tools/master/cmd/gen-release-notes/templates/upgradeNotes.md ${OUTDIR}/usr/share/gen-release-notes
+RUN chmod -R 555 ${OUTDIR}/usr/share/gen-release-notes
+
 # ShellCheck linter
 ADD https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz /tmp
 RUN tar -xJf /tmp/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz -C /tmp
