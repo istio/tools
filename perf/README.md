@@ -10,3 +10,4 @@ This folder contains tests for performance and stability. There are different ty
     The intent of these tests is to be run continuously for extend periods of time, which differentiates them from integration tests.
 1. [/benchmark](./benchmark) provides a test to measure the latency and metrics of traffic between pods in various setups.
 1. [/load](./load) provides tools to generate large services to test Istio under heavy load.
+1. [/meshery](https://github.com/layer5io/meshery) provides benchmarking and management for Istio.
