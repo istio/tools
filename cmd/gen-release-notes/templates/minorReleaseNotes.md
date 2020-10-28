@@ -1,6 +1,6 @@
 ---
 title: Change Notes
-description: Istio x.y release notes.
+description: Istio <!--newRelease--> release notes.
 weight: 10
 ---
 

@@ -29,7 +29,7 @@ import (
 )
 
 func main() {
-	var oldBranch, newBranch, notesDir, templatesDir, outDir, notesFile string
+	var oldBranch, newBranch, notesDir, templatesDir, outDir, notesFile, oldRelease, newRelease string
 	var validateOnly bool
 	flag.StringVar(&oldBranch, "oldBranch", "a", "branch to compare against")
 	flag.StringVar(&newBranch, "newBranch", "b", "branch containing new files")
@@ -38,6 +38,8 @@ func main() {
 	flag.StringVar(&templatesDir, "templates", "./templates", "the directory containing release note templates")
 	flag.StringVar(&outDir, "outDir", ".", "the directory containing release notes")
 	flag.BoolVar(&validateOnly, "validateOnly", false, "set to true to perform validation only")
+	flag.StringVar(&oldRelease, "oldRelease", "x.y.(z-1)", "old release")
+	flag.StringVar(&newRelease, "newRelease", "x.y.z", "new release")
 	flag.Parse()
 
 	var releaseNoteFiles []string
@@ -81,7 +83,7 @@ func main() {
 	fmt.Printf("Found %d files.\n\n", len(templateFiles))
 
 	for _, filename := range templateFiles {
-		output, err := populateTemplate(templatesDir, filename, releaseNotes)
+		output, err := populateTemplate(templatesDir, filename, releaseNotes, oldRelease, newRelease)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to parse template: %s\n", err.Error())
 			os.Exit(1)
@@ -200,7 +202,7 @@ func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
 
 }
 
-func populateTemplate(filepath string, filename string, releaseNotes []Note) (string, error) {
+func populateTemplate(filepath string, filename string, releaseNotes []Note, oldRelease string, newRelease string) (string, error) {
 	filename = path.Join(filepath, filename)
 	fmt.Printf("Processing %s\n", filename)
 
@@ -211,7 +213,11 @@ func populateTemplate(filepath string, filename string, releaseNotes []Note) (st
 
 	comment := regexp.MustCompile("<!--(.*)-->")
 	output := string(contents)
-	results := comment.FindAllString(string(contents), -1)
+
+	output = strings.Replace(output, "<!--oldRelease-->", oldRelease, -1)
+	output = strings.Replace(output, "<!--newRelease-->", newRelease, -1)
+
+	results := comment.FindAllString(output, -1)
 
 	for _, result := range results {
 		contents, err := parseTemplateFormat(releaseNotes, result)

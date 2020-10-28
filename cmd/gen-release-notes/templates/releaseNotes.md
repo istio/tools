@@ -1,19 +1,19 @@
 ---
-title: Announcing Istio x.y.z
-linktitle: x.y.z
+title: Announcing Istio <!--newRelease-->
+linktitle: <!--newRelease-->
 subtitle: Patch Release
-description: Istio x.y.z patch release.
+description: Istio <!--newRelease--> patch release.
 publishdate: 2020-07-29
-release: x.y.z
+release: <!--newRelease-->
 aliases:
-    - /news/announcing-x.y.z
+    - /news/announcing-<!--newRelease-->
 ---
 
 {{< warning >}}
 This is an automatically generated rough draft of the release notes and has not yet been reviewed.
 {{< /warning >}}
 
-This release contains bug fixes to improve robustness. This release note describes what’s different between Istio x.y.(z-1) and Istio x.y.z
+This release contains bug fixes to improve robustness. This release note describes what’s different between Istio <!--oldRelease--> and Istio <!--newRelease-->
 
 {{< relnote >}}
 
