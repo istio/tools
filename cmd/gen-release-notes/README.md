@@ -27,6 +27,8 @@ go build
 * (optional) `--validateOnly` -- indicates to perform validation but not release notes generation.
 * `--oldBranch` -- indicates the branch (or tag) to compare against
 * `--newBranch` -- indicates the branch (or tag) containing new release notes
+* `--oldRelease` -- indicates the name of the release being upgrade from
+* `--newRelease` -- indicates the name of the new release. 
 
 ## Templates
 
