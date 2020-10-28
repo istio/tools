@@ -116,5 +116,4 @@ spec:
             - name: canary-script
               configMap:
                 name: canary-script
-                defaultMode: 0744
-
+                defaultMode: 511
