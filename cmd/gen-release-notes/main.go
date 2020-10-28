@@ -41,7 +41,7 @@ func (flagString *flagStrings) Set(value string) error {
 }
 
 func main() {
-	var oldBranch, newBranch, templatesDir, outDir, notesFile, oldRelease, newRelease string
+	var oldBranch, newBranch, templatesDir, outDir, oldRelease, newRelease string
 	var validateOnly bool
 	var notesDirs flagStrings
 
