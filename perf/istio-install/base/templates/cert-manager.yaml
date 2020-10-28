@@ -1,3 +1,4 @@
+{{- if $.Values.certManager.enabled }}
 apiVersion: cert-manager.io/v1alpha2
 kind: Issuer
 metadata:
@@ -47,3 +48,4 @@ spec:
   - tracing.{{.Values.domain}}
   - grafana.{{.Values.domain}}
   - kiali.{{.Values.domain}}
+{{- end }}
