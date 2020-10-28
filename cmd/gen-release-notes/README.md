@@ -28,7 +28,7 @@ go build
 * `--oldBranch` -- indicates the branch (or tag) to compare against
 * `--newBranch` -- indicates the branch (or tag) containing new release notes
 * `--oldRelease` -- indicates the name of the release being upgrade from
-* `--newRelease` -- indicates the name of the new release. 
+* `--newRelease` -- indicates the name of the new release.
 
 ## Templates
 
