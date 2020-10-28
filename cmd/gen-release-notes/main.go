@@ -28,13 +28,26 @@ import (
 	"github.com/russross/blackfriday/v2"
 )
 
+//golang flags don't accept arrays by default. This adds it.
+type flagStrings []string
+
+func (flagString *flagStrings) String() string {
+	return strings.Join(*flagString, ",")
+}
+
+func (flagString *flagStrings) Set(value string) error {
+	*flagString = append(*flagString, value)
+	return nil
+}
+
 func main() {
-	var oldBranch, newBranch, notesDir, templatesDir, outDir, notesFile, oldRelease, newRelease string
+	var oldBranch, newBranch, templatesDir, outDir, oldRelease, newRelease string
 	var validateOnly bool
+	var notesDirs flagStrings
+
 	flag.StringVar(&oldBranch, "oldBranch", "a", "branch to compare against")
 	flag.StringVar(&newBranch, "newBranch", "b", "branch containing new files")
-	flag.StringVar(&notesDir, "notes", "./notes", "the directory containing release notes")
-	flag.StringVar(&notesFile, "notesFile", "", "a specific notes file to parse")
+	flag.Var(&notesDirs, "notes", "the directory containing release notes. Repeat for multiple notes directories")
 	flag.StringVar(&templatesDir, "templates", "./templates", "the directory containing release note templates")
 	flag.StringVar(&outDir, "outDir", ".", "the directory containing release notes")
 	flag.BoolVar(&validateOnly, "validateOnly", false, "set to true to perform validation only")
@@ -42,11 +55,10 @@ func main() {
 	flag.StringVar(&newRelease, "newRelease", "x.y.z", "new release")
 	flag.Parse()
 
-	var releaseNoteFiles []string
-	if notesFile != "" {
-		fmt.Printf("Parsing %s\n", notesFile)
-		releaseNoteFiles = []string{notesFile}
-	} else {
+	var releaseNotes []Note
+	for _, notesDir := range notesDirs {
+		var releaseNoteFiles []string
+
 		fmt.Printf("Looking for release notes in %s.\n", notesDir)
 		var err error
 		releaseNoteFiles, err = getNewFilesInBranch(oldBranch, newBranch, notesDir, "releasenotes/notes")
@@ -55,19 +67,20 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Printf("Found %d files.\n\n", len(releaseNoteFiles))
+
+		fmt.Printf("Parsing release notes\n")
+		releaseNotesEntries, err := parseReleaseNotesFiles(notesDir, releaseNoteFiles)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to read release notes: %s\n", err.Error())
+			os.Exit(1)
+		}
+		releaseNotes = append(releaseNotes, releaseNotesEntries...)
 	}
 
-	if len(releaseNoteFiles) < 1 {
-		fmt.Fprintf(os.Stderr, "failed to find any release notes files.\n")
+	if len(releaseNotes) < 1 {
+		fmt.Fprintf(os.Stderr, "failed to find any release notes.\n")
 		//maps to EX_NOINPUT, but more importantly lets us differentiate between no files found and other errors
 		os.Exit(66)
-	}
-
-	fmt.Printf("Parsing release notes\n")
-	releaseNotes, err := parseReleaseNotesFiles(notesDir, releaseNoteFiles)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to read release notes: %s\n", err.Error())
-		os.Exit(1)
 	}
 
 	if validateOnly {
