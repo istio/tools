@@ -630,6 +630,7 @@ COPY prow-entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
 # CMake
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
 RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
 
@@ -655,7 +656,6 @@ COPY --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
 COPY --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
 COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
 
