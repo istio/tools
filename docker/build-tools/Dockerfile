@@ -612,6 +612,7 @@ RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install
     daemon \
     wget \
     jq \
+    tshark \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
