@@ -187,7 +187,8 @@ RUN mv /tmp/helm2/linux-amd64/helm ${OUTDIR}/usr/bin
 ADD https://get.helm.sh/helm-${HELM3_VERSION}-linux-amd64.tar.gz /tmp
 RUN mkdir /tmp/helm3
 RUN tar -xf /tmp/helm-${HELM3_VERSION}-linux-amd64.tar.gz -C /tmp/helm3
-RUN mv /tmp/helm3/linux-amd64/helm ${OUTDIR}/usr/bin/helm3
+RUN cp /tmp/helm3/linux-amd64/helm ${OUTDIR}/usr/bin/helm3
+RUN mv /tmp/helm3/linux-amd64/helm ${OUTDIR}/usr/bin/helm
 
 # yq doesn't support go modules, so install the binary instead
 ADD https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 /tmp
