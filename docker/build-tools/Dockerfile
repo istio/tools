@@ -629,6 +629,10 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
+# CMake
+RUN curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
+RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+
 # binary dependencies to build envoy at v1.12.0
 # https://github.com/envoyproxy/envoy/blob/v1.12.0/bazel/README.md
 # hadolint ignore=DL3008
