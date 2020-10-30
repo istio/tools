@@ -135,9 +135,9 @@ func AllResourceTypes() []string {
 }`
 
 	htmlOutputTemplate = `---
-title: Resource {{ .CollectionPlural }} 
+title: Resource {{ .Collection.NamePlural }} 
 description: Resource {{ .Collection.NameLowercasePlural }} used by Istio.
-location: {{ .HTMLLocation }}
+location: {{ .Collection.Link }}
 weight: 60
 ---
 <p>
