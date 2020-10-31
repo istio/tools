@@ -135,7 +135,7 @@ func AllResourceTypes() []string {
 }`
 
 	htmlOutputTemplate = `---
-title: Resource {{ .Collection.NamePlural }} 
+title: Resource {{ .Collection.NamePlural }}
 description: Resource {{ .Collection.NameLowercasePlural }} used by Istio.
 location: {{ .Collection.Link }}
 weight: 60
@@ -204,7 +204,7 @@ var (
 		NamePlural:          "Annotations",
 		NameLowercase:       "annotation",
 		NameLowercasePlural: "annotations",
-		Link:                "https://istio.io/latest/docs/reference/config/annotations/",
+		Link:                "https://istio.io/docs/reference/config/annotations/",
 		ConceptLink:         "https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/",
 	}
 
