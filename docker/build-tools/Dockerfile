@@ -589,6 +589,9 @@ ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
 
+# Avoid interactive input when installing tshark
+ENV DEBIAN_FRONTEND=noninteractive
+
 # required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
 # required for general build: make, wget, curl, ssh
 # required for python: python3, pkg-config
