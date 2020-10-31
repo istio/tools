@@ -31,7 +31,7 @@ ROOT=$(dirname "$WD")
 # These environment variables are passed by /istio/test-infra/prow/cluster/jobs istio periodic upgrade and downgrade jobs
 export SOURCE_HUB=${SOURCE_HUB:-"gcr.io/istio-testing"}
 export TARGET_HUB=${TARGET_HUB:-"gcr.io/istio-testing"}
-export SOURCE_TAG=${SOURCE_TAG:-"1.7_latest"}
+export SOURCE_TAG=${SOURCE_TAG:-"1.8_latest"}
 export TARGET_TAG=${TARGET_TAG:-"master"}
 export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}

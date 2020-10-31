@@ -284,13 +284,6 @@ sendExternalRequestTraffic() {
     runFortioLoadCommand "${1}"
 }
 
-restartDataPlane() {
-    # Apply label within deployment spec.
-    # This is a hack to force a rolling restart without making any material changes to spec.
-    writeMsg "Restarting deployment ${1}, patching label to force restart."
-    echo_and_run_or_die kubectl patch deployment "${1}" -n "${TEST_NAMESPACE}" -p'{"spec":{"template":{"spec":{"containers":[{"name":"echosrv","env":[{"name":"RESTART_'"$(date +%s)"'","value":"1"}]}]}}}}'
-}
-
 resetConfigMap() {
     deleteWithWait ConfigMap "${1}" "${ISTIO_NAMESPACE}"
     kubectl create -n "${ISTIO_NAMESPACE}" -f "${2}"
@@ -361,24 +354,18 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrad
   # In principle it should be possible to restart data plane immediately, but being conservative here.
   sleep 60
 
-  restartDataPlane echosrv-deployment-v1
-  # echosrv-deployment-v2 is for mTLS traffic
-  restartDataPlane echosrv-deployment-v2
-  
-  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v1
-  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v2
+  restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
+  restartDataPlane echosrv-deployment-v2 "${TEST_NAMESPACE}"
 fi
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
   # Now do a rollback. In a rollback, we update the data plane first.
   writeMsg "Starting rollback - first, rolling back data plane to ${FROM_PATH}"
   resetConfigMap istio-sidecar-injector "${TMP_DIR}"/sidecar-injector-configmap.yaml
-  restartDataPlane echosrv-deployment-v1
-  # echosrv-deployment-v2 is for mTLS traffic
-  restartDataPlane echosrv-deployment-v2
   
-  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v1
-  withRetries 30 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v2
+  # echosrv-deployment-v2 is for mTLS traffic
+  restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
+  restartDataPlane echosrv-deployment-v2 "${TEST_NAMESPACE}"
 
   istioInstallOptions
   waitForPodsReady "${ISTIO_NAMESPACE}"

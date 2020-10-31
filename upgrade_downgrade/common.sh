@@ -127,27 +127,14 @@ waitForJob() {
   echo "Job ${1} ran for ${run_time} seconds."
 }
 
-checkDeploymentRolledOut() {
-  local ns="$1"
-  local name="$2"
-  
-  local total_replicas
-  local ready
-  local updated
-  local available
-
-  total_replicas=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.spec.replicas}')
-  ready=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.readyReplicas}')
-  updated=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.updatedReplicas}')
-  available=$(kubectl get deployment "${name}" -n "${ns}" -o jsonpath='{.status.availableReplicas}')
-
-  echo "ready=${ready}, updated=${updated}, available=${available}"
-  if ((updated == total_replicas && available == total_replicas)); then
-    echo "rollout complete"
-    return 0
-  fi
-  return 1
+restartDataPlane() {
+  local name="$1"
+  local namespace="$2"
+  writeMsg "Restarting deployment ${namespace}/${name}"
+  echo_and_run_or_die kubectl rollout restart deployment "${name}" -n "${namespace}"
+  echo_and_run_or_die kubectl rollout status deployment "${name}" -n "${namespace}" --timeout=30m  
 }
+
 # Return 1 if the specific error code percentage exceed corresponding threshold
 errorPercentBelow() {
   local LOG=${1}
