@@ -45,7 +45,6 @@ ENV GH_VERSION=1.1.0
 ENV GOLANG_PROTOBUF_VERSION=v1.3.1
 ENV GOLANGCI_LINT_VERSION=v1.30.0
 ENV HADOLINT_VERSION=v1.17.2
-ENV HELM2_VERSION=v2.16.1
 ENV HELM3_VERSION=v3.1.2
 ENV HUGO_VERSION=0.61.0
 ENV JB_VERSION=v0.3.1
@@ -180,12 +179,6 @@ RUN chmod 555 ${OUTDIR}/usr/bin/hadolint
 ADD https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz /tmp
 RUN tar -xzvf /tmp/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -C /tmp
 RUN mv /tmp/hugo ${OUTDIR}/usr/bin
-
-# Helm version 2
-ADD https://storage.googleapis.com/kubernetes-helm/helm-${HELM2_VERSION}-linux-amd64.tar.gz /tmp
-RUN mkdir /tmp/helm2
-RUN tar -xf /tmp/helm-${HELM2_VERSION}-linux-amd64.tar.gz -C /tmp/helm2
-RUN mv /tmp/helm2/linux-amd64/helm ${OUTDIR}/usr/bin
 
 # Helm version 3
 ADD https://get.helm.sh/helm-${HELM3_VERSION}-linux-amd64.tar.gz /tmp
