@@ -55,7 +55,6 @@ export TRIALRUN=${TRIALRUN:-"False"}
 CLEANUP_PIDS=()
 
 # Step 1: setup cluster
-helm init --client-only
 # shellcheck disable=SC1090
 source "${ROOT}/../bin/setup_cluster.sh"
 setup_e2e_cluster

@@ -226,7 +226,6 @@ installIstioAtVersionUsingHelm() {
     release_path="${3}"/install/kubernetes/helm/istio
 
     # See https://preliminary.istio.io/docs/setup/kubernetes/helm-install/
-    helm init --client-only
     for i in "${3}"/install/kubernetes/helm/istio-init/files/crd*yaml; do
         echo_and_run kubectl apply -f "${i}"
     done
