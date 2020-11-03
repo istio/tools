@@ -124,7 +124,8 @@ function install_extras() {
   fi
   # deploy grafana
   kubectl apply -f "${release}/samples/addons/grafana.yaml" -n istio-system
-  kubectl apply -f "${WD}/addons/grafana-cm.yaml" -n istio-system
+  kubectl apply -f "${WD}/addons/grafana-cm.yaml" -n istio-system # override just the configmap
+  kubectl rollout restart deployment grafana -n istio-system # restart to ensure it picks up our new configmap
   kubectl apply -f "${WD}/addons/cert-manager.yaml"
 }
 
