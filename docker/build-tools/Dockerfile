@@ -136,6 +136,10 @@ RUN rm -rf /tmp/go/pkg/mod/cache/download/k8s.io
 # Install istio/test-infra tools
 RUN gobin istio.io/test-infra/boskos/cmd/mason_client
 RUN gobin k8s.io/test-infra/robots/pr-creator
+RUN gobin sigs.k8s.io/kubetest2
+RUN gobin sigs.k8s.io/kubetest2/kubetest2-gke
+RUN gobin sigs.k8s.io/kubetest2/kubetest2-tester-exec
+RUN gobin sigs.k8s.io/boskos/cmd/boskosctl
 
 # gobin does not seem to be compatible with this pesky code-generator repo
 # Install the code generator tools, and hopefully only these tools, this way
