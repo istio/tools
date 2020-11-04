@@ -146,8 +146,7 @@ function verifyIstiod() {
     local istiod
     local podname
     podname=$(echo "$pod" | cut -d'/' -f2)
-    istiod=$(${istioctl_path} proxy-config endpoint "$podname.$ns" --cluster xds-grpc -o json | jq -r '.[].hostStatuses[].hostname')
-    echo "  $pod ==> ${istiod}"
+    istiod=$(${istioctl_path} proxy-config bootstrap "$podname.$ns" | jq -r '.bootstrap.node.metadata.PROXY_CONFIG.discoveryAddress')
     if [[ "$istiod" != *"$expected"* ]]; then
       # Try once more. Peek into to pod spec and check
       # if discovery address is set correctly. This is
@@ -165,16 +164,14 @@ function verifyIstiod() {
   return 1
 }
 
-kubectl rollout restart deployment echosrv-deployment-v1 -n "${TEST_NAMESPACE}"
-withRetries 45 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" echosrv-deployment-v1
+restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
 withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
   "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
 withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
   "${TO_ISTIOCTL}" "istiod.istio-system.svc"
 
 if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
-  kubectl rollout restart deployment echosrv-deployment-v2 -n "${TEST_NAMESPACE}"
-  withRetries 45 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" "echosrv-deployment-v2"
+  restartDataPlane echosrv-deployment-v2 "${TEST_NAMESPACE}"
   withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
     "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
   writeMsg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
@@ -191,8 +188,7 @@ if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
 
 elif [[ "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]]; then
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev- istio-injection=enabled
-  kubectl rollout restart deployment echosrv-deployment-v1 -n "${TEST_NAMESPACE}"
-  withRetries 45 10 checkDeploymentRolledOut "${TEST_NAMESPACE}" "echosrv-deployment-v1"
+  restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
   withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
     "${TO_ISTIOCTL}" "istiod.istio-system.svc"
   writeMsg "ROLLBACK: Uninstall new version of control plane (${TO_TAG})"
