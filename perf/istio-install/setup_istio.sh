@@ -109,6 +109,7 @@ function install_extras() {
 
   # Redeploy, this time with the Prometheus resource created
   if [[ "${certmanagerEmail:-}" != "" ]]; then
+    kubectl apply -f "${WD}/addons/cert-manager.yaml"
     helm template --set domain="${domain}" --set certManager.email="${certmanagerEmail}" --set certManager.enabled=true "${WD}/base" | kubectl apply -f -
   else
     helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
@@ -126,7 +127,6 @@ function install_extras() {
   kubectl apply -f "${release}/samples/addons/grafana.yaml" -n istio-system
   kubectl apply -f "${WD}/addons/grafana-cm.yaml" -n istio-system # override just the configmap
   kubectl rollout restart deployment grafana -n istio-system # restart to ensure it picks up our new configmap
-  kubectl apply -f "${WD}/addons/cert-manager.yaml"
 }
 
 if [[ -z "${SKIP_INSTALL}" ]];then
