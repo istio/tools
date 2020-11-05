@@ -179,3 +179,48 @@ resetCluster() {
   echo_and_run_or_die kubectl create namespace "${TEST_NAMESPACE}"
   echo_and_run_or_die kubectl label namespace "${TEST_NAMESPACE}" istio-injection=enabled
 }
+
+function getIstiod() {
+  local istioctl_path="${1}"
+  local podname="${2}"
+  local ns="${3}"
+  ${istioctl_path} proxy-config bootstrap "$podname.$ns" | jq -r '.bootstrap.node.metadata.PROXY_CONFIG.discoveryAddress')
+}
+
+function verifyIstiod() {
+  local ns="$1"
+  local app="$2"
+  local version="$3"
+  local istioctl_path="$4"
+  local expected="$5"
+
+  local mismatch=0
+
+  for pod in $(kubectl get pod -lapp="$app" -lversion="$version" -n "$ns" -o name); do
+    local istiod
+    local podname
+    podname=$(echo "$pod" | cut -d'/' -f2)
+    istiod=$(getIstiod "${istioctl_path}" "${podname}" "${ns}")
+    if [[ "$istiod" != *"$expected"* ]]; then
+      mismatch=$(( mismatch+1 ))
+    fi
+  done
+
+  if ((mismatch == 0)); then
+    return 0
+  fi
+  return 1
+}
+
+_waitForIngress() {
+    INGRESS_HOST=$(kubectl -n "${ISTIO_NAMESPACE}" get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    INGRESS_PORT=$(kubectl -n "${ISTIO_NAMESPACE}" get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
+    INGRESS_ADDR=${INGRESS_HOST}:${INGRESS_PORT}
+    if [[ -z "${INGRESS_HOST}" ]]; then return 1; fi
+}
+
+waitForIngress() {
+    echo "Waiting for ingress-gateway addr..."
+    withRetriesMaxTime 300 10 _waitForIngress
+    echo "Got ingress-gateway addr: ${INGRESS_ADDR}"
+}

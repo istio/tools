@@ -133,37 +133,6 @@ kubectl wait --all --for=condition=Ready pods -n istio-system --timeout=5m
 writeMsg "Relabel namespace to inject ${TO_TAG} proxy"
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- istio.io/rev="${TO_REVISION}"
 
-function verifyIstiod() {
-  local ns="$1"
-  local app="$2"
-  local version="$3"
-  local istioctl_path="$4"
-  local expected="$5"
-
-  local mismatch=0
-
-  for pod in $(kubectl get pod -lapp="$app" -lversion="$version" -n "$ns" -o name); do
-    local istiod
-    local podname
-    podname=$(echo "$pod" | cut -d'/' -f2)
-    istiod=$(${istioctl_path} proxy-config bootstrap "$podname.$ns" | jq -r '.bootstrap.node.metadata.PROXY_CONFIG.discoveryAddress')
-    if [[ "$istiod" != *"$expected"* ]]; then
-      # Try once more. Peek into to pod spec and check
-      # if discovery address is set correctly. This is
-      # because of an error in 1.7 -> 1.8 test
-      line_count=$(kubectl get pod "$podname" -n "$ns" -o json | grep -c "discoveryAddress.*$expected")
-      if ((line_count == 0)); then
-        mismatch=$(( mismatch+1 ))
-      fi
-    fi
-  done
-
-  if ((mismatch == 0)); then
-    return 0
-  fi
-  return 1
-}
-
 restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
 withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
   "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"

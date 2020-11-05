@@ -288,19 +288,6 @@ resetConfigMap() {
     kubectl create -n "${ISTIO_NAMESPACE}" -f "${2}"
 }
 
-_waitForIngress() {
-    INGRESS_HOST=$(kubectl -n "${ISTIO_NAMESPACE}" get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    INGRESS_PORT=$(kubectl -n "${ISTIO_NAMESPACE}" get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
-    INGRESS_ADDR=${INGRESS_HOST}:${INGRESS_PORT}
-    if [[ -z "${INGRESS_HOST}" ]]; then return 1; fi
-}
-
-waitForIngress() {
-    echo "Waiting for ingress-gateway addr..."
-    withRetriesMaxTime 300 10 _waitForIngress
-    echo "Got ingress-gateway addr: ${INGRESS_ADDR}"
-}
-
 _checkEchosrv() {
     resp=$( curl -o /dev/null -s -w "%{http_code}\\n" -HHost:echosrv.${TEST_NAMESPACE}.svc.cluster.local "http://${INGRESS_ADDR}/echo" || echo $? )
     if [[ "${resp}" = *"200"* ]]; then

@@ -133,6 +133,13 @@ if [[ "${TEST_SCENARIO}" == *"dual-control-plane"* ]]; then
     --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
     --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
     --cloud="GKE"
+elif [[ "${TEST_SCENARIO}" == *"boutique"* ]]; then
+  "${WD}/test_dual_control_plane_upgrade_boutique.sh" \
+    --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" \
+    --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" \
+    --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
+    --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
+    --cloud="GKE"
 else
   "${WD}/test_upgrade_downgrade.sh" \
     --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
