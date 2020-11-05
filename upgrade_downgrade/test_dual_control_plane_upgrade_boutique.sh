@@ -179,21 +179,27 @@ waitForPodsReady "${ISTIO_NAMESPACE}"
 # But **DO NOT** restart loadgenerator. We need that to run
 # continuously during upgrade so that we can see how many
 # requests fail during data plane restart after upgrade.
+kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev-
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${TO_REVISION}"
 for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
-  restartDataPlane "$d" "${TEST_NAMESPACE}"
-  app_label=$(kubectl get "$d" -n "${TEST_NAMESPACE}" -o jsonpath='{.spec.selector.matchLabels.app}')  
+  deployment=$(echo "$d" | cut -d'/' -f2)
+  restartDataPlane "$deployment" "${TEST_NAMESPACE}"
+done
+
+waitForPodsReady "${TEST_NAMESPACE}"
+
+for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
+  app_label=$(kubectl get deployment "$deployment" -n "${TEST_NAMESPACE}" -o jsonpath='{.spec.selector.matchLabels.app}')  
   for pod in $(kubectl get pods -lapp="${app_label}" -n "${TEST_NAMESPACE}" -o name); do
     istiod=$(getIstiod "${TO_ISTIOCTL}" "${pod}" "${TEST_NAMESPACE}")
     expected_istiod="istiod-${TO_REVISION}.${ISTIO_NAMESPACE}"
-    if [[ istiod != *"istiod-${TO_REVISION}.${ISTIO_NAMESPACE}"* ]]; then
-      echo "$pod is not pointing to right istiod. Expected $expected_istiod, but got $istiod"
+    if [[ "$istiod" != *"${expected_istiod}"* ]]; then
+      echo "$pod is not pointing to right istiod. Expected **$expected_istiod**, but got $istiod"
       exit 1
     fi
   done
 done
 
-waitForPodsReady "${TEST_NAMESPACE}"
 waitForExternalRequestTraffic
 
 # Finally it is time to look at the statistics

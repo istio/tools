@@ -112,7 +112,7 @@ _waitForPodsReady() {
 
 waitForPodsReady() {
   echo "Waiting for pods to be ready in ${1}..."
-  withRetriesMaxTime 600 10 _waitForPodsReady "${1}"
+  withRetriesMaxTime 900 10 _waitForPodsReady "${1}"
   echo "All pods ready."
 }
 
@@ -180,14 +180,14 @@ resetCluster() {
   echo_and_run_or_die kubectl label namespace "${TEST_NAMESPACE}" istio-injection=enabled
 }
 
-function getIstiod() {
+getIstiod() {
   local istioctl_path="${1}"
   local podname="${2}"
   local ns="${3}"
-  ${istioctl_path} proxy-config bootstrap "$podname.$ns" | jq -r '.bootstrap.node.metadata.PROXY_CONFIG.discoveryAddress')
+  ${istioctl_path} proxy-config bootstrap "$podname.$ns" | jq -r '.bootstrap.node.metadata.PROXY_CONFIG.discoveryAddress'
 }
 
-function verifyIstiod() {
+verifyIstiod() {
   local ns="$1"
   local app="$2"
   local version="$3"
