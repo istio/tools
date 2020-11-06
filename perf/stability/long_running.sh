@@ -39,7 +39,7 @@ fi
 # envs for spanner connection
 export PROJECT_ID="${PROJECT_ID:-}"
 export CLUSTER_NAME="${CLUSTER_NAME:-}"
-export INSTANCE="${INSTANCE:-release-qual}"
+export INSTANCE="${INSTANCE:-istio-policy-bot}"
 export DBNAME="${DBNAME:-main}"
 export MS_TABLE_NAME="${MS_TABLE_NAME:-MonitorStatus}"
 export TESTID="${TESTID:-default}"

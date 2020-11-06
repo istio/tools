@@ -14,17 +14,17 @@ Abnormal metrics breaking SLO would be recorded in the alertmanager-webhook pod.
 
 ### Run the script
 
-If you want to run against a public release(stable or dev), specify the target release TAG/VERSION/RELEASE_URL and you can pass extra arguments to istioctl install, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio). You can specify the namespace number of the servicegraph workloads by setting NAMESPACE_NUM var.
+If you want to run against a public release(stable or dev), specify the target release TAG/VERSION/RELEASE_URL and you can pass extra arguments to istioctl install, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio). You can specify the namespace number of the servicegraph workloads by setting NAMESPACE_NUM var. Set the DNS_DOMAIN so that prometheus/grafana can be exposed and accessed.
 
 For example
 
-run with Istio 1.5.4:
+run with Istio 1.7.0:
 
-`VERSION=1.5.4 NAMESPACE_NUM=15 ./long_running.sh`
+`DNS_DOMAIN=release-qual-17.qualistio.org VERSION=1.7.0 NAMESPACE_NUM=15 ./long_running.sh`
 
-run with Istio 1.6.5 prerelease:
+run with Istio 1.7.1 prerelease:
 
-`VERSION=1.6.5 NAMESPACE_NUM=15  ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`
+`DNS_DOMAIN=release-qual-17.qualistio.org VERSION=1.7.1 NAMESPACE_NUM=15  ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`
 
 run with Istio private release:
 

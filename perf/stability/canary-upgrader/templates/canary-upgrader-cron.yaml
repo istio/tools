@@ -111,10 +111,13 @@ spec:
               volumeMounts:
                 - name: canary-script
                   mountPath: /scripts
+                - mountPath: /tmp/envoy
+                  name: envoy-data
           restartPolicy: OnFailure
           volumes:
             - name: canary-script
               configMap:
                 name: canary-script
-                defaultMode: 0744
-
+                defaultMode: 511
+            - name: envoy-data
+              emptyDir: {}

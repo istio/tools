@@ -58,7 +58,7 @@ allns=$(kubectl get ns -o jsonpath="{.items[*].metadata.name}")
 # upgrade data plane
 for testns in ${allns};do
     if [[ ${testns} == *"service-graph"* ]];then
-        kubectl label namespace "${testns}" istio-injection- istio.io/rev="${NEW_REV}" --overwrite
+        kubectl label namespace "${testns}" istio-injection- istio.io/rev="${NEW_REV}" --overwrite || true
         kubectl rollout restart deployment -n "${testns}"
         sleep 30
     # verify
@@ -72,4 +72,22 @@ if [[ -n ${EXISTING_REV} ]];then
 fi
 
 # update sha for the spanner table
+# for ingress, /var/lib/istio/data is valid only for 1.8
 kubectl set env deployment/am-webhook -n istio-prometheus BRANCH="${VERSION}"
+
+# get memory profile
+# shellcheck disable=SC2155
+export POD=$(kubectl get pod -l app=istio-ingressgateway -o jsonpath="{.items[0].metadata.name}" -n istio-system)
+export NS=istio-system
+kubectl exec "${POD}" -n "${NS}" -c istio-proxy -- curl -X POST -s "http://localhost:15000/heapprofiler?enable=y"
+sleep 15
+kubectl exec "${POD}" -n "${NS}" -c istio-proxy -- curl -X POST -s "http://localhost:15000/heapprofiler?enable=n"
+
+sleep 15
+# get cpu profile
+kubectl -n ${NS} exec "${POD}" -c istio-proxy -- sh -c 'sudo mkdir -p /var/log/envoy && sudo chmod 777 /var/log/envoy && curl -X POST -s "http://localhost:15000/cpuprofiler?enable=y"'
+sleep 15
+kubectl -n ${NS} exec "${POD}" -c istio-proxy -- sh -c 'curl -X POST -s "http://localhost:15000/cpuprofiler?enable=n"'
+kubectl -n ${NS} cp "${POD}":/var/lib/istio/data /tmp/envoy -c istio-proxy
+kubectl -n ${NS} cp "${POD}":/lib/x86_64-linux-gnu /tmp/envoy/lib -c istio-proxy
+kubectl -n ${NS} cp "${POD}":/usr/local/bin/envoy /tmp/envoy/lib/envoy -c istio-proxy
