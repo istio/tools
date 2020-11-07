@@ -38,7 +38,7 @@ To support large performance testing, many things need to be specially tuned.
 
 - Run `./load-test.py`, this polling the stats from Prometheus and prints out the number of the
 workloads seeing "svc-0" in their outbound CDS.
-- In a seperate terminal, delete svc-0, `kubectl delete  deployment/svc-0 svc/svc-0 -npilot-load`.
+- In a separate terminal, delete svc-0, `kubectl delete  deployment/svc-0 svc/svc-0 -npilot-load`.
 - Observe the time elapsed for the `svc-0` to disappear.
 
 ## Notes and TODO

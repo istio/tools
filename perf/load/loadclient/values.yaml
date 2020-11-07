@@ -1,5 +1,5 @@
 # ingress: 192.168.0.1  point to the external ingress IP
-# This should be done on the command line by --set ingress=<ip_addres>
+# This should be done on the command line by --set ingress=<ip_address>
 
 connections: 8
 qps: 50

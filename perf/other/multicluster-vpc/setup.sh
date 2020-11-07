@@ -218,7 +218,7 @@ function deploy_bookinfo() {
 function get_verify_url() {
 	kubectl config use-context "gke_${proj}_${zone}_${cluster1}"
 	host=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-	echo "visting http://${host}/productpage several times to verify all versions reviews services are available."
+	echo "visiting http://${host}/productpage several times to verify all versions reviews services are available."
 }
 
 # TODO: bookinfo is not mentioned in the new guide.

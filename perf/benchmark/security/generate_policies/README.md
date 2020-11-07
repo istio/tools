@@ -218,7 +218,7 @@ For more information see [RequestAuthentication Reference](https://istio.io/late
 
 ## Examples
 
-generate_policies.go also allows a user to create mutliple kinds of policies in one command.
+generate_policies.go also allows a user to create multiple kinds of policies in one command.
 To generate 1 AuthorizationPolicy with a principals rule and 1 PeerAuthorization policy with STRICT mtlsMode, create a json file called twoPolicies.json with the following data and then run the following command:
 
 ```json
