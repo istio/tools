@@ -1021,7 +1021,7 @@ nav.navbar a.menu-btn:hover {
 
 /*
 * ==========================================================
-*      DAILY FEEDS AND ACTIVITES WIDGETS
+*      DAILY FEEDS AND ACTIVITIES WIDGETS
 * ==========================================================
 */
 /*  Daily Feeds ------------------- */
@@ -1716,8 +1716,8 @@ STYLE SWITCHER FOR DEMO
   color: #495057;
 }
 
-/* ========================================= 
-   THEMING OF BOOTSTRAP COMPONENTS           
+/* =========================================
+   THEMING OF BOOTSTRAP COMPONENTS
    ========================================= */
 /*
  * 1. NAVBAR
@@ -2402,7 +2402,7 @@ STYLE SWITCHER FOR DEMO
 }
 
 /*
- * 3. TYPE  
+ * 3. TYPE
  */
 body {
   font-family: "Roboto", sans-serif;

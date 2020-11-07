@@ -98,7 +98,7 @@ def port_forward(label_key: str, label_value: str, target_port: int,
         # proc.communicate waits until the process terminates or timeout.
         _, stderr_bytes = proc.communicate(timeout=1)
 
-        # If proc terminates after 1 second, assume that an error occured.
+        # If proc terminates after 1 second, assume that an error occurred.
         stderr = stderr_bytes.decode('utf-8') if stderr_bytes else ''
         info = ': {}'.format(stderr) if stderr else ''
         msg = 'could not port-forward to {}:{} on local port {}{}'.format(

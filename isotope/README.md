@@ -16,7 +16,7 @@ various service graph topologies.
 
 ## Topology Converter
 
-The topology converter, located under the convert/ directory, is a Go Utility for simulating real world microservice topologies in Kubernetes.  The converter accepts a yaml file which describes one or more microservices as a workflow graph (ie service A waits 100 ms, then calls services B and C in paralell, each of which return a 1MB payload, etc).  `converter kubernetes` processes a yaml file, producing kubernetes manifests, as described below.  `converter graphviz` produces a visualization of your microservice architecture specified in service-graph.yaml.
+The topology converter, located under the convert/ directory, is a Go Utility for simulating real world microservice topologies in Kubernetes.  The converter accepts a yaml file which describes one or more microservices as a workflow graph (ie service A waits 100 ms, then calls services B and C in parallel, each of which return a 1MB payload, etc).  `converter kubernetes` processes a yaml file, producing kubernetes manifests, as described below.  `converter graphviz` produces a visualization of your microservice architecture specified in service-graph.yaml.
 
 ### service-graph.yaml
 

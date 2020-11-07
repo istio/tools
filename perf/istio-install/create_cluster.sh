@@ -71,7 +71,7 @@ else
   if [[ -z "$(gcloud compute zones list --filter="name=('${ZONE}')" --format="csv[no-heading](name)")"  ]]; then
     echo "No such zone: ${ZONE}. Exiting."
     exit 1
-  fi  
+  fi
 fi
 
 # Specify GCP_SA to create and use a specific service account.
@@ -308,10 +308,10 @@ export KUBECONFIG="${WD}/tmp/${CLUSTER_NAME}/kube.yaml"
 gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone "${ZONE}"
 
 # The gcloud key create command requires you dump its service account
-# credentials to a file. Let that happen, then pull the contents into a varaible
+# credentials to a file. Let that happen, then pull the contents into a variable
 # and delete the file.
 CLOUDKEY=""
-if [[ "${CLUSTER_NAME}" != "" ]]; then 
+if [[ "${CLUSTER_NAME}" != "" ]]; then
   if ! kubectl -n kube-system get secret google-cloud-key >/dev/null 2>&1 || ! kubectl -n istio-system get secret google-cloud-key > /dev/null 2>&1; then
     gcloud iam service-accounts keys create "${WD}/tmp/${CLUSTER_NAME}/${CLUSTER_NAME}-cloudkey.json" --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
     # Read from the named pipe into the CLOUDKEY variable
@@ -321,14 +321,14 @@ if [[ "${CLUSTER_NAME}" != "" ]]; then
   fi
 fi
 
-if ! kubectl get clusterrolebinding cluster-admin-binding > /dev/null 2>&1; then 
+if ! kubectl get clusterrolebinding cluster-admin-binding > /dev/null 2>&1; then
   kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
     --user="$(gcloud config get-value core/account)"
 fi
 
 # Update the cluster with the GCP-specific configmaps
-if ! kubectl -n kube-system get secret google-cloud-key > /dev/null 2>&1; then 
+if ! kubectl -n kube-system get secret google-cloud-key > /dev/null 2>&1; then
   kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json=<(echo "${CLOUDKEY}")
 fi
 kubectl -n kube-system apply -f <(echo "${CONFIGMAP_NEG}")
@@ -336,7 +336,7 @@ kubectl -n kube-system apply -f <(echo "${CONFIGMAP_NEG}")
 if ! kubectl get ns istio-system > /dev/null; then
   kubectl create ns istio-system
 fi
-if ! kubectl -n istio-system get secret google-cloud-key > /dev/null 2>&1; then 
+if ! kubectl -n istio-system get secret google-cloud-key > /dev/null 2>&1; then
   kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json=<(echo "${CLOUDKEY}")
 fi
 kubectl -n istio-system apply -f <(echo "${CONFIGMAP_GALLEY}")

@@ -18,7 +18,7 @@
 # The container is built using different contexts, one per execution environment (plain binaries, Ruby, nodejs), and
 # then combined into the final image.
 #
-# We pin versions of stuff we install. Modify the various XXX_VERSION variables within the indivudual build contexts
+# We pin versions of stuff we install. Modify the various XXX_VERSION variables within the individual build contexts
 # in order to control these versions.
 
 ################
