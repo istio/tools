@@ -221,8 +221,6 @@ ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-
 RUN tar -xzvf /tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz -C ${OUTDIR}/usr/local
 # Install gcloud beta components
 RUN ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta --quiet
-# DO NOT SUBMIT: check gcloud version
-RUN ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud version
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
