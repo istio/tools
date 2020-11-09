@@ -27,6 +27,7 @@ ISTIO_NAMESPACE="istio-system"
 MAX_5XX_PCT_FOR_PASS="15"
 # Maximum % of connection refused that cannot exceed
 # Set it to high value so it fails for explicit sidecar issues
+MAX_503_PCT_FOR_PASS="15"
 MAX_CONNECTION_ERR_FOR_PASS="30"
 SERVICE_UNAVAILABLE_CODE="503"
 CONNECTION_ERROR_CODE="-1"
@@ -122,7 +123,42 @@ waitForPodsReady "${ISTIO_NAMESPACE}"
 kubectl create namespace "${TEST_NAMESPACE}"
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- || echo "istio-injection label removed"
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
-kubectl apply -f "${REPO_PATH}/release/kubernetes-manifests.yaml" -n "${TEST_NAMESPACE}"
+
+# It is not as simple as throwing YAML at it. Problem is, there are dependencies between
+# services and loadgenerator should not start before others as it will fall into CrashLoopBackoff
+# So we have to make sure that if something has fallen into CrashLoopBackoff then keep restarting
+# the deployment so that the timeout wouldn't be too long.
+function deploy_boutique_shop_app() {
+  local test_ns="$1"
+  kubectl apply -f "${REPO_PATH}/release/kubernetes-manifests.yaml" -n "${test_ns}"
+  while true; do
+    local pod_count=0
+    local run_count=0
+    for p in $(kubectl get pods -n "${test_ns}" -o name); do
+      pod_count=$((pod_count+1))
+      local pod_line=$(kubectl get "$p" -n "${test_ns}")
+      if [[ "${pod_line}" == *"Running"* ]]; then
+        run_count=$((run_count+1))
+        continue
+      fi
+      if [[ "$pod_line" == *CrashLoopBackOff* || "$pod_line" == *Error* ]]; then
+        # NOTE: Boutique shop app deployment YAML has a specific pattern
+        # where name of the deployment matches the value of app label. That
+        # is app=<xyz> would have its deployment name as <xyz>
+        local deployment_name=$(kubectl get "$p" -n "${test_ns}" -o jsonpath='{.metadata.labels}' | jq -r 'app')
+        echo "$p is stuck in CrashLoopBackoff or Error. So restart deployment ${deployment_name}"
+        kubectl rollout restart deployment "${deployment_name}" -n "${test_ns}"
+      fi
+    done
+    if (( run_count == pod_count )); then
+      echo "Boutique shop deployed successfully"
+      break
+    fi
+    sleep 10
+  done
+}
+
+deploy_boutique_shop_app "${TEST_NAMESPACE}"
 kubectl apply -f "${REPO_PATH}/release/istio-manifests.yaml" -n "${TEST_NAMESPACE}"
 
 # But load-generator should not have a sidecar. So patch its deployment
@@ -150,7 +186,10 @@ runFortioLoadCommand() {
 
 waitForExternalRequestTraffic() {
   echo "Waiting for external traffic to complete"
+  local attempt=0
   while [[ ! -f "${EXTERNAL_FORTIO_DONE_FILE}" ]]; do
+    echo "attempt ${attempt}"
+    attempt=$((attempt+1))
     sleep 10
   done
 }
@@ -202,17 +241,14 @@ done
 
 waitForExternalRequestTraffic
 
-# Finally it is time to look at the statistics
-# 
-# NOTE: This is not realistic as traffic is from inside cluster. In
-# real-world deployments, it should come from istio-ingressgateway. As
-# its upgrade is in-place and does NOT support revision as of writing this
-# there could be more failures.
+# Finally look at the statistics and check failure percentages
 aggregated_stats="$(kubectl logs $(kubectl get pods -lapp=loadgenerator -n ${TEST_NAMESPACE} -o name) -n ${TEST_NAMESPACE} | grep 'Aggregated' | tail -1)"
 echo "$aggregated_stats"
 
-# TODO: Find some way to use errorPercentBelow
 internal_failure_percent="$(echo $aggregated_stats | awk '{ print $3 }' | tr '()%' ' ' | cut -d' ' -f2)"
+if [[ $(python -c "print($internal_failure_percent > ${MAX_503_PCT_FOR_PASS})") == *True* ]]; then
+  failed=true
+fi
 
 # Now get fortio logs for the process running outside cluster
 local_log_str=$(grep "Code 200" "${LOCAL_FORTIO_LOG}")
@@ -235,4 +271,3 @@ if [[ -n "${failed}" ]]; then
 fi
 
 echo "SUCCESS"
-

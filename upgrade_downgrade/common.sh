@@ -145,7 +145,7 @@ errorPercentBelow() {
   local regex="Code ${ERR_CODE} : [0-9]+ \\(([0-9]+)\\.[0-9]+ %\\)"
   if [[ ${s} =~ ${regex} ]]; then
     local pctErr="${BASH_REMATCH[1]}"
-    if (( pctErr > LIMIT )); then
+    if [[ $(python -c "print(${pctErr} > $LIMIT)") == *True* ]]; then
       return 1
     fi
     echo "Errors percentage is within threshold"
