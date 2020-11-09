@@ -215,20 +215,36 @@ ${TO_ISTIOCTL} install -y --revision "${TO_REVISION}"
 waitForPodsReady "${ISTIO_NAMESPACE}"
 
 # Now change labels and restart deployments one at a time
-# But **DO NOT** restart loadgenerator. We need that to run
-# continuously during upgrade so that we can see how many
-# requests fail during data plane restart after upgrade.
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev-
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${TO_REVISION}"
-for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
-  deployment=$(echo "$d" | cut -d'/' -f2)
-  restartDataPlane "$deployment" "${TEST_NAMESPACE}"
+
+# Upgrade select micro-services in the first round
+first_round=( "frontend" "redis-cart" "paymentservice" )
+for d in ${first_round[@]}; do
+  restartDataPlane "$d" "${TEST_NAMESPACE}"
 done
+
+# **DO NOT** restart loadgenerator. We need that to run
+# continuously during upgrade so that we can see how many
+# requests fail during data plane restart after upgrade.
+#
+# TODO(su225): make a forbidden list so that we can skip restarting it
+if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
+  for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
+    deployment=$(echo "$d" | cut -d'/' -f2)
+    if [[ ! "${first_round[@]}" =~ "$deployment" ]]; then
+      restartDataPlane "$deployment" "${TEST_NAMESPACE}"
+    fi
+  done
+fi
 
 waitForPodsReady "${TEST_NAMESPACE}"
 
-for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
-  app_label=$(kubectl get deployment "$deployment" -n "${TEST_NAMESPACE}" -o jsonpath='{.spec.selector.matchLabels.app}')  
+# TODO(su225): This thing is repeating a lot. Refactor this into a function which
+# takes reasonable number of parameters. We can assume some defaults. Like TEST_NAMESPACE=test
+# and ISTIO_NAMESPACE=istio-system and for pods we can look at app label, or more generally
+# allow callers to pass arguments.
+for d in ${first_round[@]}; do
   for pod in $(kubectl get pods -lapp="${app_label}" -n "${TEST_NAMESPACE}" -o name); do
     istiod=$(getIstiod "${TO_ISTIOCTL}" "${pod}" "${TEST_NAMESPACE}")
     expected_istiod="istiod-${TO_REVISION}.${ISTIO_NAMESPACE}"
@@ -238,6 +254,52 @@ for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v load
     fi
   done
 done
+
+if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
+  for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
+    app_label=$(kubectl get deployment "$deployment" -n "${TEST_NAMESPACE}" -o jsonpath='{.spec.selector.matchLabels.app}')  
+    if [[ "${first_round[@]}" =~ "${app_label}" ]]; then
+      continue
+    fi
+    for pod in $(kubectl get pods -lapp="${app_label}" -n "${TEST_NAMESPACE}" -o name); do
+      istiod=$(getIstiod "${TO_ISTIOCTL}" "${pod}" "${TEST_NAMESPACE}")
+      expected_istiod="istiod-${TO_REVISION}.${ISTIO_NAMESPACE}"
+      if [[ "$istiod" != *"${expected_istiod}"* ]]; then
+        echo "$pod is not pointing to right istiod. Expected **$expected_istiod**, but got $istiod"
+        exit 1
+      fi
+    done
+  done
+
+  writeMsg "uninstalling ${FROM_REVISION}"
+  "${FROM_ISTIOCTL}" experimental uninstall --revision "${FROM_REVISION}" -y
+else
+  kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev-
+  kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
+
+  for d in ${first_round[@]}; do
+    restartDataPlane "$d" "${TEST_NAMESPACE}"
+  done
+  waitForPodsReady "${TEST_NAMESPACE}"
+
+  # TODO(su225): Find some way to get rid of duplicate code. Given a deployment name
+  # and selector labels, locate pods and verify Istiod they are pointing to and compare
+  # them with the expected Istiod that they should point to.
+  for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
+    app_label=$(kubectl get deployment "$deployment" -n "${TEST_NAMESPACE}" -o jsonpath='{.spec.selector.matchLabels.app}')
+    for pod in $(kubectl get pods -lapp="${app_label}" -n "${TEST_NAMESPACE}" -o name); do
+      istiod=$(getIstiod "${FROM_ISTIOCTL}" "${pod}" "${TEST_NAMESPACE}")
+      expected_istiod="istiod-${FROM_REVISION}.${ISTIO_NAMESPACE}"
+      if [[ "$istiod" != *"${expected_istiod}"* ]]; then
+        echo "$pod is not pointing to right istiod. Expected **$expected_istiod**, but got $istiod"
+        exit 1
+      fi
+    done
+  done
+
+  writeMsg "uninstalling ${TO_REVISION}"
+  "${TO_ISTIOCTL}" experimental uninstall --revision "${TO_REVISION}" -y
+fi
 
 waitForExternalRequestTraffic
 
