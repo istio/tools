@@ -61,7 +61,7 @@ ENV SHELLCHECK_VERSION=v0.7.1
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.95
 ENV YQ_VERSION=3.3.0
-ENV GCLOUD_VERSION=265.0.0
+ENV GCLOUD_VERSION=317.0.0
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -204,10 +204,11 @@ WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
 
-# TODO: the whole SDK is *huge*, but it's not clear what parts we need. We just want to be able to run auth-related gcloud
-# commands, maybe we just need the gcloud binary out of all this?
+# Install gcloud command line tool
 ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
 RUN tar -xzvf /tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz -C ${OUTDIR}/usr/local
+# Install gcloud beta components
+RUN ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta --quiet
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
