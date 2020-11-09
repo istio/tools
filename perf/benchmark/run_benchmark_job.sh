@@ -172,6 +172,10 @@ function run_benchmark_test() {
   pushd "${WD}/runner"
   CONFIG_FILE="${1}"
   pipenv run python3 runner.py --config_file "${CONFIG_FILE}"
+
+  if [[ "${TRIALRUN}" == "False" ]]; then
+    collect_metrics
+  fi
   popd
 }
 
@@ -294,9 +298,5 @@ for dir in "${CONFIG_DIR}"/*; do
 
     popd
 done
-
-if [[ "${TRIALRUN}" == "False" ]]; then
-    collect_metrics
-fi
 
 echo "Istio performance benchmark test is done!"
