@@ -42,10 +42,6 @@ qps_query_list = [10, 100, 200, 400, 800, 1000]
 qps_query_str = 'ActualQPS == @ql and NumThreads == 16 and Labels.str.endswith(@telemetry_mode)'
 
 
-def benchmarks_overview(request):
-    return render(request, "benchmarks_overview.html")
-
-
 # Create your views here.
 def latency_vs_conn(request, uploaded_csv_url=None):
     if uploaded_csv_url is not None:
@@ -372,7 +368,6 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
                           'cpu_server_v2_sd_nologging_nullvm_both_master': cpu_server_v2_sd_nologging_nullvm_both_master,
                           'cpu_server_v2_sd_full_nullvm_both_master': cpu_server_v2_sd_full_nullvm_both_master,
                           }
-
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
         return render(request, "cpu_vs_qps.html", context=context)
 
