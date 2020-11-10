@@ -141,16 +141,15 @@ errorPercentBelow() {
   local ERR_CODE=${2}
   local LIMIT=${3}
   local s
-  s=$(grep "Code ${ERR_CODE}" "${LOG}")
-  local regex="Code ${ERR_CODE} : [0-9]+ \\(([0-9]+)\\.[0-9]+ %\\)"
-  if [[ ${s} =~ ${regex} ]]; then
-    local pctErr="${BASH_REMATCH[1]}"
-    if [[ $(python -c "print(${pctErr} > $LIMIT)") == *True* ]]; then
+  local pct
+  s=$(grep "Code.*${ERR_CODE}" "${LOG}" | tr 'A-Za-z%:()' ' ' | sed "s/ \+/ /g")
+  if [[ -n "${s}" ]]; then
+    pct=$(echo "$s" | cut -d' ' -f4)
+    if [[ $(python -c "print($pct > $LIMIT)") == *True* ]]; then
       return 1
     fi
-    echo "Errors percentage is within threshold"
+    echo "errors encountered ($pct) are within threshold ($LIMIT)"
   fi
-  return 0
 }
 
 # Make a copy of test manifests in case either to/from branch doesn't contain them.
