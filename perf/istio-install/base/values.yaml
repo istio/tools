@@ -1,6 +1,11 @@
 prometheus:
   enabled: true
   deploy: true
+  memory: 32Gi
+  storage: 500Gi
+
+storageclass:
+  deploy: true
 
 domain: v103.qualistio.org
 
