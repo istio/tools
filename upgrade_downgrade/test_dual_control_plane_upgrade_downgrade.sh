@@ -20,8 +20,6 @@ WD=$(dirname "$0")
 WD=$(cd "$WD" || exit; pwd)
 ROOT=$(dirname "$WD")
 
-command -v helm >/dev/null 2>&1 || { echo >&2 "helm must be installed, aborting."; exit 1; }
-
 ISTIO_NAMESPACE="istio-system"
 # Maximum % of 503 response that cannot exceed
 MAX_503_PCT_FOR_PASS="15"
