@@ -22,7 +22,7 @@ ROOT=$(dirname "$WD")
 
 ISTIO_NAMESPACE="istio-system"
 # Maximum % of 503 response that cannot exceed
-MAX_503_PCT_FOR_PASS="15"
+MAX_503_PCT_FOR_PASS="5"
 # Maximum % of connection refused that cannot exceed
 # Set it to high value so it fails for explicit sidecar issues
 MAX_CONNECTION_ERR_FOR_PASS="30"
