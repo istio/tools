@@ -1,4 +1,5 @@
 {{- if .Values.prometheus.deploy }}
+{{- if .Values.storageclass.deploy }}
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -8,6 +9,7 @@ parameters:
 provisioner: kubernetes.io/gce-pd
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
+{{- end}}
 ---
 # Source: prometheus-operator/templates/prometheus.yaml
 apiVersion: monitoring.coreos.com/v1
@@ -42,7 +44,7 @@ spec:
       sidecar.istio.io/inject: "false"
   resources:
     requests:
-      memory: 32Gi
+      memory: {{ $.Values.prometheus.memory }}
   securityContext:
     fsGroup: 2000
     runAsNonRoot: true
@@ -54,7 +56,7 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 500Gi
+            storage: {{ $.Values.prometheus.storage }}
         storageClassName: ssd
 ---
 apiVersion: rbac.authorization.k8s.io/v1
