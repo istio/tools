@@ -134,15 +134,9 @@ writeMsg "Relabel namespace to inject ${TO_TAG} proxy"
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- istio.io/rev="${TO_REVISION}"
 
 restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
-withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
-  "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
-withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
-  "${TO_ISTIOCTL}" "istiod.istio-system.svc"
 
 if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
   restartDataPlane echosrv-deployment-v2 "${TEST_NAMESPACE}"
-  withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
-    "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
   writeMsg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
   
   # This test is for istio >= 1.6. So only 1.6 needs special handling
@@ -158,8 +152,6 @@ if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
 elif [[ "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]]; then
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev- istio-injection=enabled
   restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
-  withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
-    "${TO_ISTIOCTL}" "istiod.istio-system.svc"
   writeMsg "ROLLBACK: Uninstall new version of control plane (${TO_TAG})"
   ${TO_ISTIOCTL} experimental uninstall --revision "${TO_REVISION}" -y
 fi

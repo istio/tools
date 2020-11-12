@@ -83,6 +83,8 @@ fi
 
 # shellcheck disable=SC1090
 source "${ROOT}/upgrade_downgrade/common.sh"
+# shellcheck disable=SC1090
+source "${ROOT}/upgrade_downgrade/fortio_utils.sh"
 
 # Check if istioctl is present in both "from" and "to" versions
 FROM_ISTIOCTL="${FROM_PATH}/bin/istioctl"
@@ -107,10 +109,6 @@ writeMsg "Reset cluster"
 copy_test_files
 resetCluster "${TO_ISTIOCTL}"
 
-# Clone the repository
-REPO_PATH=$(mktemp -d "microservices-demo-XXXXX")
-git clone https://github.com/GoogleCloudPlatform/microservices-demo.git "${REPO_PATH}" --depth=1
-
 # Install Initial version of Istio
 writeMsg "Deploy Istio ${FROM_TAG}"
 ${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${FROM_REVISION}"
@@ -129,7 +127,7 @@ kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 # the deployment so that the timeout wouldn't be too long.
 function deploy_boutique_shop_app() {
   local test_ns="$1"
-  kubectl apply -f "${REPO_PATH}/release/kubernetes-manifests.yaml" -n "${test_ns}"
+  kubectl apply -f "https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/master/release/kubernetes-manifests.yaml" -n "${test_ns}"
   while true; do
     local pod_count=0
     local run_count=0
@@ -160,7 +158,7 @@ function deploy_boutique_shop_app() {
 }
 
 deploy_boutique_shop_app "${TEST_NAMESPACE}"
-kubectl apply -f "${REPO_PATH}/release/istio-manifests.yaml" -n "${TEST_NAMESPACE}"
+kubectl apply -f "https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/master/release/istio-manifests.yaml" -n "${TEST_NAMESPACE}"
 
 # But load-generator should not have a sidecar. So patch its deployment
 # and restart deployment
@@ -177,32 +175,18 @@ TRAFFIC_RUNTIME_SEC=800
 LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
 EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
 
-# TODO(su225): Move it to common as it is generic enoug
-# or probably fortio_helper.sh?
-runFortioLoadCommand() {
-  withRetries 10 10  echo_and_run fortio load -c 32 -t "${TRAFFIC_RUNTIME_SEC}"s -qps 10 -timeout 30s\
-    "http://${1}/" &> "${LOCAL_FORTIO_LOG}"
-  echo "done" >> "${EXTERNAL_FORTIO_DONE_FILE}"
-}
-
-waitForExternalRequestTraffic() {
-  echo "Waiting for external traffic to complete"
-  local attempt=0
-  while [[ ! -f "${EXTERNAL_FORTIO_DONE_FILE}" ]]; do
-    echo "attempt ${attempt}"
-    attempt=$((attempt+1))
-    sleep 10
-  done
-}
-
-# Sends external traffic from machine test is running on through external IP and ingress gateway LB.
-sendExternalRequestTraffic() {
-  writeMsg "Sending external traffic"
-  runFortioLoadCommand "${1}"
-}
-
 # Start sending traffic from outside the cluster
-sendExternalRequestTraffic "${INGRESS_ADDR}" &
+function send_external_request_traffic() {
+  local ingress_addr="${1}"
+  if [[ -z "${ingress_addr}" ]]; then
+    echo "fatal: cannot send traffic. INGRESS_ADDR is either not set or invalid"
+    exit 1
+  fi
+  writeMsg "Sending external traffic"
+  local http_url="http://${ingress_addr}"
+  withRetries 10 10 run_fortio_load_command "${http_url}"
+}
+send_external_request_traffic "${INGRESS_ADDR}" &
 
 # Wait for some time
 # Represents stabilizing period
@@ -229,8 +213,6 @@ done
 # **DO NOT** restart loadgenerator. We need that to run
 # continuously during upgrade so that we can see how many
 # requests fail during data plane restart after upgrade.
-#
-# TODO(su225): make a forbidden list so that we can skip restarting it
 if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
   for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
     deployment=$(echo "$d" | cut -d'/' -f2)
@@ -242,39 +224,8 @@ fi
 
 waitForPodsReady "${TEST_NAMESPACE}"
 
-# TODO(su225): This thing is repeating a lot. Refactor this into a function which
-# takes reasonable number of parameters. We can assume some defaults. Like TEST_NAMESPACE=test
-# and ISTIO_NAMESPACE=istio-system and for pods we can look at app label, or more generally
-# allow callers to pass arguments.
-for d in ${first_round[*]}; do
-  for pod in $(kubectl get pods -lapp="${app_label}" -n "${TEST_NAMESPACE}" -o name); do
-    istiod=$(getIstiod "${TO_ISTIOCTL}" "${pod}" "${TEST_NAMESPACE}")
-    expected_istiod="istiod-${TO_REVISION}.${ISTIO_NAMESPACE}"
-    if [[ "$istiod" != *"${expected_istiod}"* ]]; then
-      echo "$pod is not pointing to right istiod. Expected **$expected_istiod**, but got $istiod"
-      exit 1
-    fi
-  done
-done
-
 if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
-  for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
-    app_label=$(kubectl get deployment "$deployment" -n "${TEST_NAMESPACE}" -o jsonpath='{.spec.selector.matchLabels.app}')  
-    if [[ "${first_round[*]}" =~ ${app_label} ]]; then
-      continue
-    fi
-    for pod in $(kubectl get pods -lapp="${app_label}" -n "${TEST_NAMESPACE}" -o name); do
-      istiod=$(getIstiod "${TO_ISTIOCTL}" "${pod}" "${TEST_NAMESPACE}")
-      expected_istiod="istiod-${TO_REVISION}.${ISTIO_NAMESPACE}"
-      if [[ "$istiod" != *"${expected_istiod}"* ]]; then
-        echo "$pod is not pointing to right istiod. Expected **$expected_istiod**, but got $istiod"
-        exit 1
-      fi
-    done
-  done
-
   writeMsg "uninstalling ${FROM_REVISION}"
-  
   # Currently we don't do it for gateways because gateway upgrade is still in-place :(
   # So remove only control plane with old revision.
   "${FROM_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${FROM_REVISION}" -y
@@ -287,28 +238,12 @@ else
   done
   waitForPodsReady "${TEST_NAMESPACE}"
 
-  # TODO(su225): Find some way to get rid of duplicate code. Given a deployment name
-  # and selector labels, locate pods and verify Istiod they are pointing to and compare
-  # them with the expected Istiod that they should point to.
-  for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
-    app_label=$(kubectl get deployment "$deployment" -n "${TEST_NAMESPACE}" -o jsonpath='{.spec.selector.matchLabels.app}')
-    for pod in $(kubectl get pods -lapp="${app_label}" -n "${TEST_NAMESPACE}" -o name); do
-      istiod=$(getIstiod "${FROM_ISTIOCTL}" "${pod}" "${TEST_NAMESPACE}")
-      expected_istiod="istiod-${FROM_REVISION}.${ISTIO_NAMESPACE}"
-      if [[ "$istiod" != *"${expected_istiod}"* ]]; then
-        echo "$pod is not pointing to right istiod. Expected **$expected_istiod**, but got $istiod"
-        exit 1
-      fi
-    done
-  done
-
   writeMsg "uninstalling ${TO_REVISION}"
-
   "${TO_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${TO_REVISION}" -y
   "${FROM_ISTIOCTL}" install -f "${TMP_DIR}/iop-gateways.yaml" --revision "${FROM_REVISION}" -y
 fi
 
-waitForExternalRequestTraffic
+wait_for_external_request_traffic
 
 # Finally look at the statistics and check failure percentages
 loadgen_pod="$(kubectl get pods -lapp=loadgenerator -n ${TEST_NAMESPACE} -o name)"
