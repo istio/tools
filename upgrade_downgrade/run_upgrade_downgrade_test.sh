@@ -100,6 +100,10 @@ function download_untar_istio_release() {
 
 # shellcheck disable=SC1090
 source "${ROOT}/bin/setup_cluster.sh"
+
+# shellcheck disable=SC1090
+source "${ROOT}/upgrade_downgrade/kind.sh"
+
 # Set to any non-empty value to use kubectl configured cluster instead of mason provisioned cluster.
 UPGRADE_DOWNGRADE_TEST_LOCAL="${UPGRADE_DOWNGRADE_TEST_LOCAL:-""}"
 
@@ -111,13 +115,17 @@ download_untar_istio_release "${TARGET_RELEASE_PATH}" "${TARGET_TAG}" "${TARGET_
 
 # Check https://github.com/istio/test-infra/blob/master/boskos/resources.yaml
 # for existing resources types
-if [[ "${UPGRADE_DOWNGRADE_TEST_LOCAL}" = "" ]]; then
+if [ "${UPGRADE_DOWNGRADE_TEST_LOCAL}" = "boskos" ] || [ "${UPGRADE_DOWNGRADE_TEST_LOCAL}" = "" ]; then
     export RESOURCE_TYPE="${RESOURCE_TYPE:-gke-e2e-test}"
     export OWNER='upgrade-downgrade-tests'
     export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
     export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 
     setup_e2e_cluster
+elif [[ "${UPGRADE_DOWNGRADE_TEST_LOCAL}" = "kind" ]]; then
+    echo "Spinning up kind cluster and running upgrade tests against it..."
+    setup_kind_cluster
+    metallb
 else
     echo "Running against cluster that kubectl is configured for."
 fi
