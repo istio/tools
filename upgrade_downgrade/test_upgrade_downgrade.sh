@@ -29,6 +29,7 @@
 # Dependencies that must be preinstalled: helm, fortio.
 #
 
+set -x
 set -o pipefail
 
 WD=$(dirname "$0")
@@ -153,6 +154,8 @@ EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
 
 # shellcheck disable=SC1090
 source "${ROOT}/upgrade_downgrade/common.sh"
+# shellcheck disable=SC1090
+source "${ROOT}/upgrade_downgrade/fortio_utils.sh"
 
 installIstioAtVersionUsingHelm() {
     writeMsg "helm templating then applying new yaml using version ${2} from ${3}."
@@ -263,26 +266,6 @@ sendInternalRequestTraffic() {
     withRetries 10 0 _sendInternalRequestTraffic
 }
 
-# Runs traffic from external fortio client, with retries.
-runFortioLoadCommand() {
-    withRetries 10 10  echo_and_run fortio load -c 32 -t "${TRAFFIC_RUNTIME_SEC}"s -qps 10 -timeout 30s\
-        -H "Host:echosrv.test.svc.cluster.local" "http://${1}/echo?size=200" &> "${LOCAL_FORTIO_LOG}"
-    echo "done" >> "${EXTERNAL_FORTIO_DONE_FILE}"
-}
-
-waitForExternalRequestTraffic() {
-    echo "Waiting for external traffic to complete"
-    while [[ ! -f "${EXTERNAL_FORTIO_DONE_FILE}" ]]; do
-        sleep 10
-    done
-}
-
-# Sends external traffic from machine test is running on to Fortio echosrv through external IP and ingress gateway LB.
-sendExternalRequestTraffic() {
-    writeMsg "Sending external traffic"
-    runFortioLoadCommand "${1}"
-}
-
 resetConfigMap() {
     deleteWithWait ConfigMap "${1}" "${ISTIO_NAMESPACE}"
     kubectl create -n "${ISTIO_NAMESPACE}" -f "${2}"
@@ -329,7 +312,9 @@ checkEchosrv
 
 # Run internal traffic in the background since we may have to relaunch it if the job fails.
 sendInternalRequestTraffic &
-sendExternalRequestTraffic "${INGRESS_ADDR}" &
+
+writeMsg "sending external traffic. Ingress=${INGRESS_ADDR}"
+send_external_request_traffic "http://${INGRESS_ADDR}/echo?size=200" -H "Host:echosrv.test.svc.cluster.local" &
 # Let traffic clients establish all connections. There's some small startup delay, this covers it.
 echo "Waiting for traffic to settle..."
 sleep 20

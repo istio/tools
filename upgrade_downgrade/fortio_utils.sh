@@ -16,9 +16,9 @@
 
 set -x
 
-run_fortio_load_command() {
+function run_fortio_load_command() {
   local url="$1"
-  local extra_args="$2"
+  shift
   if [[ -z "${TRAFFIC_RUNTIME_SEC}" ]]; then
     echo "TRAFFIC_RUNTIME_SEC is not defined. Setting it to 500s"
     TRAFFIC_RUNTIME_SEC=500
@@ -31,12 +31,11 @@ run_fortio_load_command() {
     echo "fatal: URL is not specified"
     exit 1
   fi
-  local args="${extra_args} ${url}"
-  fortio load -c 32 -t "${TRAFFIC_RUNTIME_SEC}"s -qps 10 -timeout 30s "${args}" &> "${LOCAL_FORTIO_LOG}"
+  fortio load -c 32 -t "${TRAFFIC_RUNTIME_SEC}"s -qps 10 -timeout 30s $@ "${url}" &> "${LOCAL_FORTIO_LOG}"
   echo "done" >> "${EXTERNAL_FORTIO_DONE_FILE}"
 }
 
-wait_for_external_request_traffic() {
+function wait_for_external_request_traffic() {
   if [[ -z "${EXTERNAL_FORTIO_DONE_FILE}" ]]; then
     echo "fatal: EXTERNAL_FORTIO_DONE_FILE is not defined"
     exit 1
@@ -48,4 +47,15 @@ wait_for_external_request_traffic() {
     attempt=$((attempt+1))
     sleep 10
   done
+}
+
+function send_external_request_traffic() {
+  local addr="${1}"
+  shift
+  if [[ -z "${addr}" ]]; then
+    echo "fatal: cannot send traffic. INGRESS_ADDR is not set"
+    exit 1
+  fi
+  echo "Sending external traffic"
+  run_fortio_load_command "${addr}" "${@}"
 }

@@ -117,7 +117,7 @@ waitForPodsReady "${ISTIO_NAMESPACE}"
 
 # 1. Create namespace and label for automatic injection
 # 2. Deploy online boutique application and Istio configuration
-kubectl create namespace "${TEST_NAMESPACE}"
+kubectl get namespace "${TEST_NAMESPACE}" || kubectl create namespace "${TEST_NAMESPACE}"
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- || echo "istio-injection label removed"
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 
@@ -144,7 +144,7 @@ function deploy_boutique_shop_app() {
         # where name of the deployment matches the value of app label. That
         # is app=<xyz> would have its deployment name as <xyz>
         local deployment_name
-        deployment_name=$(kubectl get "$p" -n "${test_ns}" -o jsonpath='{.metadata.labels}' | jq -r 'app')
+        deployment_name=$(kubectl get "$p" -n "${test_ns}" -o jsonpath='{.metadata.labels}' | jq -r '.app')
         echo "$p is stuck in CrashLoopBackoff or Error. So restart deployment ${deployment_name}"
         kubectl rollout restart deployment "${deployment_name}" -n "${test_ns}"
       fi
@@ -176,17 +176,7 @@ LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
 EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
 
 # Start sending traffic from outside the cluster
-function send_external_request_traffic() {
-  local ingress_addr="${1}"
-  if [[ -z "${ingress_addr}" ]]; then
-    echo "fatal: cannot send traffic. INGRESS_ADDR is either not set or invalid"
-    exit 1
-  fi
-  writeMsg "Sending external traffic"
-  local http_url="http://${ingress_addr}"
-  withRetries 10 10 run_fortio_load_command "${http_url}"
-}
-send_external_request_traffic "${INGRESS_ADDR}" &
+send_external_request_traffic "http://${INGRESS_ADDR}" &
 
 # Wait for some time
 # Represents stabilizing period

@@ -85,7 +85,12 @@ checkIfDeleted() {
 
 deleteWithWait() {
   # Don't complain if resource is already deleted.
-  echo_and_run_quiet kubectl delete "${1}" -n "${3}" "${2}"
+  if [[ -n "${3}" ]]; then
+    echo_and_run_quiet kubectl delete "${1}" -n "${3}" "${2}"
+  else
+    # Useful for cluster scoped resources
+    echo_and_run_quiet kubectl delete "${1}" "${2}"
+  fi
   withRetries 60 10 checkIfDeleted "${1}" "${2}" "${3}"
 }
 
