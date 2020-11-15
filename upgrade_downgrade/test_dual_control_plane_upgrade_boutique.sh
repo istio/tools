@@ -105,15 +105,15 @@ if [[ "${CLOUD}" == "GKE" ]];then
 fi
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="${user}" || echo "clusterrolebinding already created."
 
-writeMsg "Reset cluster"
+write_msg "Reset cluster"
 copy_test_files
-resetCluster "${TO_ISTIOCTL}"
+reset_cluster "${TO_ISTIOCTL}"
 
 # Install Initial version of Istio
-writeMsg "Deploy Istio ${FROM_TAG}"
+write_msg "Deploy Istio ${FROM_TAG}"
 ${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${FROM_REVISION}"
 ${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${FROM_REVISION}" 
-waitForPodsReady "${ISTIO_NAMESPACE}"
+wait_for_pods_ready "${ISTIO_NAMESPACE}"
 
 # 1. Create namespace and label for automatic injection
 # 2. Deploy online boutique application and Istio configuration
@@ -164,12 +164,12 @@ kubectl apply -f "https://raw.githubusercontent.com/GoogleCloudPlatform/microser
 # and restart deployment
 kubectl patch deployment loadgenerator -n "${TEST_NAMESPACE}" --patch '{"spec":{"template":{"metadata":{"annotations": {"sidecar.istio.io/inject": "false"}}}}}'
 kubectl rollout restart deployment loadgenerator -n "${TEST_NAMESPACE}"
-waitForPodsReady "${TEST_NAMESPACE}"
+wait_for_pods_ready "${TEST_NAMESPACE}"
 
 # Start external traffic from fortio
 # 1. First get ingress address
 # 2. Next, use that address to fire requests at boutique shop app
-waitForIngress
+wait_for_ingress
 
 TRAFFIC_RUNTIME_SEC=800
 LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
@@ -181,14 +181,14 @@ send_external_request_traffic "http://${INGRESS_ADDR}" &
 # Wait for some time
 # Represents stabilizing period
 STABILIZING_PERIOD=60
-writeMsg "Wait for $STABILIZING_PERIOD seconds"
+write_msg "Wait for $STABILIZING_PERIOD seconds"
 sleep "${STABILIZING_PERIOD}"
 
 # Install Target revision of Istio
-writeMsg "Deploy Istio ${TO_TAG}"
+write_msg "Deploy Istio ${TO_TAG}"
 ${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${TO_REVISION}"
 ${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${TO_REVISION}"
-waitForPodsReady "${ISTIO_NAMESPACE}"
+wait_for_pods_ready "${ISTIO_NAMESPACE}"
 
 # Now change labels and restart deployments one at a time
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev-
@@ -197,7 +197,7 @@ kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${TO_REVISION}"
 # Upgrade select micro-services in the first round
 first_round=( "frontend" "redis-cart" "paymentservice" )
 for d in "${first_round[@]}"; do
-  restartDataPlane "$d" "${TEST_NAMESPACE}"
+  restart_data_plane "$d" "${TEST_NAMESPACE}"
 done
 
 # **DO NOT** restart loadgenerator. We need that to run
@@ -207,15 +207,15 @@ if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
   for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
     deployment=$(echo "$d" | cut -d'/' -f2)
     if [[ ! "${first_round[*]}" =~ $deployment ]]; then
-      restartDataPlane "$deployment" "${TEST_NAMESPACE}"
+      restart_data_plane "$deployment" "${TEST_NAMESPACE}"
     fi
   done
 fi
 
-waitForPodsReady "${TEST_NAMESPACE}"
+wait_for_pods_ready "${TEST_NAMESPACE}"
 
 if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
-  writeMsg "uninstalling ${FROM_REVISION}"
+  write_msg "uninstalling ${FROM_REVISION}"
   # Currently we don't do it for gateways because gateway upgrade is still in-place :(
   # So remove only control plane with old revision.
   "${FROM_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${FROM_REVISION}" -y
@@ -224,11 +224,11 @@ else
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 
   for d in "${first_round[@]}"; do
-    restartDataPlane "$d" "${TEST_NAMESPACE}"
+    restart_data_plane "$d" "${TEST_NAMESPACE}"
   done
-  waitForPodsReady "${TEST_NAMESPACE}"
+  wait_for_pods_ready "${TEST_NAMESPACE}"
 
-  writeMsg "uninstalling ${TO_REVISION}"
+  write_msg "uninstalling ${TO_REVISION}"
   "${TO_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${TO_REVISION}" -y
   "${FROM_ISTIOCTL}" install -f "${TMP_DIR}/iop-gateways.yaml" --revision "${FROM_REVISION}" -y
 fi
@@ -251,10 +251,10 @@ cat ${LOCAL_FORTIO_LOG}
 if [[ ${local_log_str} != *"Code 200"* ]];then
   echo "=== No Code 200 found in external traffic log ==="
   failed=true
-elif ! errorPercentBelow "${LOCAL_FORTIO_LOG}" "${SERVICE_UNAVAILABLE_CODE}" ${MAX_5XX_PCT_FOR_PASS}; then
+elif ! error_percent_below "${LOCAL_FORTIO_LOG}" "${SERVICE_UNAVAILABLE_CODE}" ${MAX_5XX_PCT_FOR_PASS}; then
   echo "=== Code 503 Errors found in external traffic exceeded ${MAX_5XX_PCT_FOR_PASS}% threshold ==="
   failed=true
-elif ! errorPercentBelow "${LOCAL_FORTIO_LOG}" "${CONNECTION_ERROR_CODE}" ${MAX_CONNECTION_ERR_FOR_PASS}; then
+elif ! error_percent_below "${LOCAL_FORTIO_LOG}" "${CONNECTION_ERROR_CODE}" ${MAX_CONNECTION_ERR_FOR_PASS}; then
   echo "=== Connection Errors found in external traffic exceeded ${MAX_CONNECTION_ERR_FOR_PASS}% threshold ==="
   failed=true
 else

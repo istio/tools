@@ -35,7 +35,6 @@ export SOURCE_TAG=${SOURCE_TAG:-"1.8_latest"}
 export TARGET_TAG=${TARGET_TAG:-"master"}
 export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
-export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"istioctl"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
 export SOURCE_LINUX_TAR_SUFFIX=${SOURCE_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
@@ -144,5 +143,5 @@ else
   "${WD}/test_upgrade_downgrade.sh" \
     --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
     --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
-    --install_options="${INSTALL_OPTIONS}" --cloud="GKE"
+    --cloud="GKE"
 fi

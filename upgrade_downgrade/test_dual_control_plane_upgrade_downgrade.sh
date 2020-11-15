@@ -109,35 +109,35 @@ fi
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="${user}" || echo "clusterrolebinding already created."
 
 
-writeMsg "Reset cluster"
+write_msg "Reset cluster"
 copy_test_files
-resetCluster "${TO_ISTIOCTL}"
+reset_cluster "${TO_ISTIOCTL}"
 
-writeMsg "Deploy Istio(minimal) ${FROM_TAG}"
+write_msg "Deploy Istio(minimal) ${FROM_TAG}"
 ${FROM_ISTIOCTL} install -y --set profile=minimal
-waitForPodsReady "${ISTIO_NAMESPACE}"
+wait_for_pods_ready "${ISTIO_NAMESPACE}"
 
-writeMsg "Deploy Echo v1 and v2"
+write_msg "Deploy Echo v1 and v2"
 kubectl apply -f "${TMP_DIR}/fortio.yaml" -n "${TEST_NAMESPACE}"
-waitForPodsReady "${TEST_NAMESPACE}"
+wait_for_pods_ready "${TEST_NAMESPACE}"
 
-writeMsg "Generate internal traffic for echo v1 and v2"
+write_msg "Generate internal traffic for echo v1 and v2"
 kubectl apply -f "${TMP_DIR}/fortio-cli.yaml" -n "${TEST_NAMESPACE}"
 
 # Install Istio 1.8 minimal profile with canary revision
-writeMsg "Deploy Istio(minimal) ${TO_TAG}"
+write_msg "Deploy Istio(minimal) ${TO_TAG}"
 ${TO_ISTIOCTL} install -y --set profile=minimal --set revision="${TO_REVISION}"
 kubectl wait --all --for=condition=Ready pods -n istio-system --timeout=5m
 
 # Relabel namespace before restarting each service
-writeMsg "Relabel namespace to inject ${TO_TAG} proxy"
+write_msg "Relabel namespace to inject ${TO_TAG} proxy"
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- istio.io/rev="${TO_REVISION}"
 
-restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
+restart_data_plane echosrv-deployment-v1 "${TEST_NAMESPACE}"
 
 if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
-  restartDataPlane echosrv-deployment-v2 "${TEST_NAMESPACE}"
-  writeMsg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
+  restart_data_plane echosrv-deployment-v2 "${TEST_NAMESPACE}"
+  write_msg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
   
   # This test is for istio >= 1.6. So only 1.6 needs special handling
   # else clause handles istio >= 1.7 which supports uninstall command
@@ -151,15 +151,15 @@ if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
 
 elif [[ "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]]; then
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev- istio-injection=enabled
-  restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
-  writeMsg "ROLLBACK: Uninstall new version of control plane (${TO_TAG})"
+  restart_data_plane echosrv-deployment-v1 "${TEST_NAMESPACE}"
+  write_msg "ROLLBACK: Uninstall new version of control plane (${TO_TAG})"
   ${TO_ISTIOCTL} experimental uninstall --revision "${TO_REVISION}" -y
 fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
-waitForJob cli-fortio "${TEST_NAMESPACE}"
+wait_for_job cli-fortio "${TEST_NAMESPACE}"
 
-writeMsg "Verify results"
+write_msg "Verify results"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
 pod_log_str=$(grep "Code 200"  "${POD_FORTIO_LOG}")
 
@@ -168,10 +168,10 @@ cat ${POD_FORTIO_LOG}
 if [[ ${pod_log_str} != *"Code 200"* ]];then
   echo "=== No Code 200 found in internal traffic log ==="
   failed=true
-elif ! errorPercentBelow "${POD_FORTIO_LOG}" "${SERVICE_UNAVAILABLE_CODE}" ${MAX_503_PCT_FOR_PASS}; then
+elif ! error_percent_below "${POD_FORTIO_LOG}" "${SERVICE_UNAVAILABLE_CODE}" ${MAX_503_PCT_FOR_PASS}; then
   echo "=== Code 503 Errors found in internal traffic exceeded ${MAX_503_PCT_FOR_PASS}% threshold ==="
   failed=true
-elif ! errorPercentBelow "${POD_FORTIO_LOG}" "${CONNECTION_ERROR_CODE}" ${MAX_CONNECTION_ERR_FOR_PASS}; then
+elif ! error_percent_below "${POD_FORTIO_LOG}" "${CONNECTION_ERROR_CODE}" ${MAX_CONNECTION_ERR_FOR_PASS}; then
   echo "=== Connection Errors found in internal traffic exceeded ${MAX_CONNECTION_ERR_FOR_PASS}% threshold ==="
   failed=true
 else
