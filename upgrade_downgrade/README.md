@@ -16,7 +16,7 @@ Enter the directory containing the tests.
     ```
 
 You may choose three types of test scenarios for in-place upgrades (i.e., *upgrade-downgrade*, *upgrade*, and *downgrade*)
-and two types of test scenarios for dual control-plane upgrades (i.e., *dual-control-plane-upgrade*, *dual-control-plane-rollback*)
+and four types of test scenarios for dual control-plane upgrades (i.e., *dual-control-plane-upgrade*, *dual-control-plane-rollback*, *boutique-upgrade* and *boutique-rollback*)
 by configuring the TEST_SCENARIO variable. In the following example commands,
 *SOURCE_TAG* specifies the
 version of Istio to be upgraded/downgraded and *TARGET_TAG* specifies the
@@ -31,7 +31,10 @@ This is the default test flow. The following is an example command
 to configure this test scenario:
 
     ```bash
-    export TEST_SCENARIO=upgrade-downgrade; export SOURCE_TAG=1.5_latest; export TARGET_TAG=master; export INSTALL_OPTIONS=istioctl; export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
+    export TEST_SCENARIO=upgrade-downgrade; 
+    export SOURCE_TAG=1.8_latest; 
+    export TARGET_TAG=master;  
+    export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
     ```
 
 * When TEST_SCENARIO is configured as *upgrade*,
@@ -39,7 +42,10 @@ Istio will be upgraded. The following is an example command
 to configure this test scenario:
 
     ```bash
-    export TEST_SCENARIO=upgrade; export SOURCE_TAG=1.5_latest; export TARGET_TAG=master; export INSTALL_OPTIONS=istioctl; export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
+    export TEST_SCENARIO=upgrade; 
+    export SOURCE_TAG=1.8_latest; 
+    export TARGET_TAG=master; 
+    export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
     ```
 
 * When TEST_SCENARIO is configured as *downgrade*,
@@ -47,7 +53,10 @@ Istio will be downgraded. The following is an example command
 to configure this test scenario:
 
     ```bash
-    export TEST_SCENARIO=downgrade; export SOURCE_TAG=master; export TARGET_TAG=1.5_latest; export INSTALL_OPTIONS=istioctl; export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
+    export TEST_SCENARIO=downgrade; 
+    export SOURCE_TAG=master; 
+    export TARGET_TAG=1.8_latest;  
+    export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
     ```
 
 * When TEST_SCENARIO is configured as *dual-control-plane-upgrade*,
@@ -58,7 +67,7 @@ before uninstalling the one with SOURCE_TAG
 
     ```bash
     export TEST_SCENARIO=dual-control-plane-upgrade
-    export SOURCE_TAG=1.7_latest
+    export SOURCE_TAG=1.8_latest
     export TARGET_TAG=master
     export UPGRADE_DOWNGRADE_TEST_LOCAL=true
     ```
@@ -72,7 +81,29 @@ the control plane running version TARGET_TAG is uninstalled
 
     ```bash
     export TEST_SCENARIO=dual-control-plane-rollback
-    export SOURCE_TAG=1.7_latest
+    export SOURCE_TAG=1.8_latest
+    export TARGET_TAG=master
+    export UPGRADE_DOWNGRADE_TEST_LOCAL=true
+    ```
+
+* Scenario *boutique-upgrade* is very similar to *dual-control-plane-upgrade*,
+except that it installs [Online Boutique (Hipster shop app)](https://github.com/GoogleCloudPlatform/microservices-demo)
+instead of echo. This is intended to test with complex setup
+
+    ```bash
+    export TEST_SCENARIO=boutique-upgrade
+    export SOURCE_TAG=1.8_latest
+    export TARGET_TAG=master
+    export UPGRADE_DOWNGRADE_TEST_LOCAL=true
+    ```
+
+* Scenario *boutique-rollback* is very similar to *dual-control-plane-rollback*,
+except that it install [Online Boutique (Hipster shop app)](https://github.com/GoogleCloudPlatform/microservices-demo)
+instead of echo. This is intended to test with complex setup
+
+    ```bash
+    export TEST_SCENARIO=boutique-rollback
+    export SOURCE_TAG=1.8_latest
     export TARGET_TAG=master
     export UPGRADE_DOWNGRADE_TEST_LOCAL=true
     ```
