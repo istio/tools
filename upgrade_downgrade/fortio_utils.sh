@@ -16,6 +16,21 @@
 
 set -x
 
+function cmp_float_le() {
+  local x="${1}"
+  local y="${2}"
+  if [[ -z "${x}" || -z "${y}" ]]; then
+    return 1
+  fi
+  if res=$(python -c "print($x <= $y)"); then
+    if [[ "${res}" == *False* ]]; then
+      return 1
+    fi
+  else
+    return 1
+  fi
+}
+
 # Return 1 if the specific error code percentage exceed corresponding threshold
 function error_percent_below() {
   local LOG=${1}
@@ -26,7 +41,7 @@ function error_percent_below() {
   s=$(grep "Code.*${ERR_CODE}" "${LOG}" | tr 'A-Za-z%:()' ' ' | sed "s/ \+/ /g")
   if [[ -n "${s}" ]]; then
     pct=$(echo "$s" | cut -d' ' -f4)
-    if [[ $(python -c "print($pct > $LIMIT)") == *True* ]]; then
+    if ! cmp_float_le "${pct}" "${LIMIT}"; then
       return 1
     fi
     echo "errors encountered ($pct) are within threshold ($LIMIT)"

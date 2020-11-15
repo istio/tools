@@ -237,7 +237,7 @@ aggregated_stats=$(kubectl logs "${loadgen_pod}"  -n ${TEST_NAMESPACE} | grep 'A
 echo "$aggregated_stats"
 
 internal_failure_percent=$(echo "${aggregated_stats}" | awk '{ print $3 }' | tr '()%' ' ' | cut -d' ' -f2)
-if [[ $(python -c "print($internal_failure_percent > ${MAX_5XX_PCT_FOR_PASS})") == *True* ]]; then
+if ! cmp_float_le "${internal_failure_percent}" "${MAX_5XX_PCT_FOR_PASS}"; then
   failed=true
 fi
 
