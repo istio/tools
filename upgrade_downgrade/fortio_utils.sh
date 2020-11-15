@@ -48,6 +48,7 @@ function run_fortio_load_command() {
     echo "fatal: URL is not specified"
     exit 1
   fi
+  # shellcheck disable=SC2068
   fortio load -c 32 -t "${TRAFFIC_RUNTIME_SEC}"s -qps 10 -timeout 30s $@ "${url}" &> "${LOCAL_FORTIO_LOG}"
   echo "done" >> "${EXTERNAL_FORTIO_DONE_FILE}"
 }
@@ -95,13 +96,13 @@ function analyze_fortio_logs() {
   local code_200_line
   code_200_line=$(grep "Code 200" "${fortio_log_file}")
 
-  if [[ ${code_200_line} != *"Code 200"* ]];then
+  if [[ "${code_200_line}" != *"Code 200"* ]];then
     echo "=== No Code 200 found in log ==="
     failed=true
-  elif ! error_percent_below "${fortio_log_file}" "503" ${status_503_threshold}; then
+  elif ! error_percent_below "${fortio_log_file}" "503" "${status_503_threshold}"; then
     echo "=== Code 503 Errors found in traffic exceeded ${status_503_threshold}% threshold ==="
     failed=true
-  elif ! error_percent_below "${fortio_log_file}" "-1" ${conn_error_threshold}; then
+  elif ! error_percent_below "${fortio_log_file}" "-1" "${conn_error_threshold}"; then
     echo "=== Connection Errors found in internal traffic exceeded ${conn_error_threshold}% threshold ==="
     failed=true
   else

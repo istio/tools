@@ -134,10 +134,10 @@ TEST_NAMESPACE="test"
 
 # This must be at least as long as the script execution time.
 # Edit fortio-cli.yaml to the same value when changing this.
-TRAFFIC_RUNTIME_SEC=500
+export TRAFFIC_RUNTIME_SEC=500
 
 # Used to signal that background external process is done.
-EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
+export EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
 
 # shellcheck disable=SC1090
 source "${ROOT}/upgrade_downgrade/common.sh"
@@ -225,7 +225,7 @@ kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-ad
 
 reset_cluster "${TO_PATH}/bin/istioctl"
 
-istio_install_options
+istio_install_options || die "istio installation failed"
 wait_for_ingress
 wait_for_pods_ready "${ISTIO_NAMESPACE}"
 
@@ -248,7 +248,7 @@ echo "Waiting for traffic to settle..."
 sleep 20
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrade" || "${TEST_SCENARIO}" == "downgrade" ]];then
-  istio_upgrade_options
+  istio_upgrade_options || die "upgrade failed"
   wait_for_pods_ready "${ISTIO_NAMESPACE}"
   # In principle it should be possible to restart data plane immediately, but being conservative here.
   sleep 60
@@ -266,7 +266,7 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
   restart_data_plane echosrv-deployment-v1 "${TEST_NAMESPACE}"
   restart_data_plane echosrv-deployment-v2 "${TEST_NAMESPACE}"
 
-  istio_install_options
+  istio_install_options || echo "istio installation failed"
   wait_for_pods_ready "${ISTIO_NAMESPACE}"
 fi
 

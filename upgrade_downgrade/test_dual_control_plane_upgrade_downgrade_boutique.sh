@@ -105,8 +105,8 @@ reset_cluster "${TO_ISTIOCTL}"
 
 # Install Initial version of Istio
 write_msg "Deploy Istio ${FROM_TAG}"
-${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${FROM_REVISION}"
-${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${FROM_REVISION}" 
+${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${FROM_REVISION}" || die "control plane installation failed"
+${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${FROM_REVISION}" || die "gateway installation failed"
 wait_for_pods_ready "${ISTIO_NAMESPACE}"
 
 # 1. Create namespace and label for automatic injection
@@ -165,9 +165,9 @@ wait_for_pods_ready "${TEST_NAMESPACE}"
 # 2. Next, use that address to fire requests at boutique shop app
 wait_for_ingress
 
-TRAFFIC_RUNTIME_SEC=800
-LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
-EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
+export TRAFFIC_RUNTIME_SEC=800
+export LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
+export EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
 
 # Start sending traffic from outside the cluster
 send_external_request_traffic "http://${INGRESS_ADDR}" &
@@ -180,8 +180,8 @@ sleep "${STABILIZING_PERIOD}"
 
 # Install Target revision of Istio
 write_msg "Deploy Istio ${TO_TAG}"
-${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${TO_REVISION}"
-${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${TO_REVISION}"
+${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${TO_REVISION}" || die "installing ${TO_REVISION} control plane failed"
+${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${TO_REVISION}" || die "installing ${TO_REVISION} gateways failed"
 wait_for_pods_ready "${ISTIO_NAMESPACE}"
 
 # Now change labels and restart deployments one at a time
@@ -212,7 +212,7 @@ if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
   write_msg "uninstalling ${FROM_REVISION}"
   # Currently we don't do it for gateways because gateway upgrade is still in-place :(
   # So remove only control plane with old revision.
-  "${FROM_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${FROM_REVISION}" -y
+  "${FROM_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${FROM_REVISION}" -y || die "uninstalling control plane ${FROM REVISION} failed"
 else
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev-
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
@@ -223,13 +223,15 @@ else
   wait_for_pods_ready "${TEST_NAMESPACE}"
 
   write_msg "uninstalling ${TO_REVISION}"
-  "${TO_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${TO_REVISION}" -y
-  "${FROM_ISTIOCTL}" install -f "${TMP_DIR}/iop-gateways.yaml" --revision "${FROM_REVISION}" -y
+  "${TO_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${TO_REVISION}" -y || die "uninstalling control plane ${TO_REVISION} failed"
+  "${FROM_ISTIOCTL}" install -f "${TMP_DIR}/iop-gateways.yaml" --revision "${FROM_REVISION}" -y || die "installing ${FROM_REVISION} gateways failed"
 fi
 
 wait_for_external_request_traffic
 
 # Finally look at the statistics and check failure percentages
+MAX_5XX_PCT_FOR_PASS="15"
+MAX_CONNECTION_ERR_FOR_PASS="30"
 loadgen_pod="$(kubectl get pods -lapp=loadgenerator -n ${TEST_NAMESPACE} -o name)"
 aggregated_stats=$(kubectl logs "${loadgen_pod}"  -n ${TEST_NAMESPACE} | grep 'Aggregated' | tail -1)
 echo "$aggregated_stats"
@@ -239,12 +241,9 @@ if [[ $(python -c "print($internal_failure_percent > ${MAX_5XX_PCT_FOR_PASS})") 
   failed=true
 fi
 
-MAX_5XX_PCT_FOR_PASS="15"
-MAX_CONNECTION_ERR_FOR_PASS="30"
-
 # Now get fortio logs for the process running outside cluster
 write_msg "Analyze external fortio log file ${LOCAL_FORTIO_LOG}"
-if ! analyze_fortio_logs "${LOCAL_FORTIO_LOG}" "${MAX_503_PCT_FOR_PASS}" "${MAX_CONNECTION_ERR_FOR_PASS}"; then
+if ! analyze_fortio_logs "${LOCAL_FORTIO_LOG}" "${MAX_5XX_PCT_FOR_PASS}" "${MAX_CONNECTION_ERR_FOR_PASS}"; then
   failed=true
 fi
 

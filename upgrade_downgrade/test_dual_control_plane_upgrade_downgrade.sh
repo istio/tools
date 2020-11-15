@@ -29,8 +29,6 @@ MAX_503_PCT_FOR_PASS="15"
 # Maximum % of connection refused that cannot exceed
 # Set it to high value so it fails for explicit sidecar issues
 MAX_CONNECTION_ERR_FOR_PASS="30"
-SERVICE_UNAVAILABLE_CODE="503"
-CONNECTION_ERROR_CODE="-1"
 
 while (( "$#" )); do
   PARAM=$(echo "${1}" | awk -F= '{print $1}')
