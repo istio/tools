@@ -124,24 +124,21 @@ fi
 # Install fortio which is needed by the upgrade and downgrade test.
 go get fortio.org/fortio
 
-# Kick off tests
+# Pick the test file based on scenario
 if [[ "${TEST_SCENARIO}" == *"dual-control-plane"* ]]; then
-  "${WD}/test_dual_control_plane_upgrade_downgrade.sh" \
-    --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" \
-    --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" \
-    --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
-    --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
-    --cloud="GKE"
+  TEST_FILE="${WD}/test_dual_control_plane_upgrade_downgrade.sh"
 elif [[ "${TEST_SCENARIO}" == *"boutique"* ]]; then
-  "${WD}/test_dual_control_plane_upgrade_boutique.sh" \
-    --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" \
-    --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" \
-    --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
-    --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
-    --cloud="GKE"
+  TEST_FILE="${WD}/test_dual_control_plane_upgrade_downgrade_boutique.sh"
 else
-  "${WD}/test_upgrade_downgrade.sh" \
-    --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
-    --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
-    --cloud="GKE"
+  TEST_FILE="${WD}/test_upgrade_downgrade.sh"
 fi
+
+# Kick off tests
+"${TEST_FILE}" \
+  --from_hub="${SOURCE_HUB}" \
+  --from_tag="${SOURCE_TAG}" \
+  --to_hub="${TARGET_HUB}" \
+  --to_tag="${TARGET_TAG}" \
+  --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
+  --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
+  --cloud="GKE"
