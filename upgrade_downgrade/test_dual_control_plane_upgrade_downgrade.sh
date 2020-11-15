@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -x
 set -o pipefail
 
 WD=$(dirname "$0")
@@ -83,6 +84,8 @@ fi
 
 # shellcheck disable=SC1090
 source "${ROOT}/upgrade_downgrade/common.sh"
+# shellcheck disable=SC1090
+source "${ROOT}/upgrade_downgrade/fortio_utils.sh"
 
 # Check if istioctl is present in both "from" and "to" versions
 FROM_ISTIOCTL="${FROM_PATH}/bin/istioctl"
@@ -107,7 +110,6 @@ if [[ "${CLOUD}" == "GKE" ]];then
   user="$(gcloud config get-value core/account)"
 fi
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="${user}" || echo "clusterrolebinding already created."
-
 
 write_msg "Reset cluster"
 copy_test_files
@@ -138,16 +140,8 @@ restart_data_plane echosrv-deployment-v1 "${TEST_NAMESPACE}"
 if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
   restart_data_plane echosrv-deployment-v2 "${TEST_NAMESPACE}"
   write_msg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
-  
-  # This test is for istio >= 1.6. So only 1.6 needs special handling
-  # else clause handles istio >= 1.7 which supports uninstall command
-  # (although still experimental)
   PROFILE_MANIFEST_YAML="${FROM_PATH}/manifests/profiles/minimal.yaml"
-  if [[ "${FROM_ISTIOCTL}" == *"1.6"* ]]; then
-    ${FROM_ISTIOCTL} manifest generate -f "${PROFILE_MANIFEST_YAML}" | kubectl delete -f -
-  else
-    ${FROM_ISTIOCTL} experimental uninstall -f "${PROFILE_MANIFEST_YAML}" -y --force
-  fi
+  ${FROM_ISTIOCTL} experimental uninstall -f "${PROFILE_MANIFEST_YAML}" -y --force
 
 elif [[ "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]]; then
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev- istio-injection=enabled
@@ -161,21 +155,8 @@ wait_for_job cli-fortio "${TEST_NAMESPACE}"
 
 write_msg "Verify results"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
-pod_log_str=$(grep "Code 200"  "${POD_FORTIO_LOG}")
-
-cat ${POD_FORTIO_LOG}
-
-if [[ ${pod_log_str} != *"Code 200"* ]];then
-  echo "=== No Code 200 found in internal traffic log ==="
+if ! analyze_fortio_logs "${POD_FORTIO_LOG}" "${MAX_503_PCT_FOR_PASS}" "${MAX_CONNECTION_ERR_FOR_PASS}"; then
   failed=true
-elif ! error_percent_below "${POD_FORTIO_LOG}" "${SERVICE_UNAVAILABLE_CODE}" ${MAX_503_PCT_FOR_PASS}; then
-  echo "=== Code 503 Errors found in internal traffic exceeded ${MAX_503_PCT_FOR_PASS}% threshold ==="
-  failed=true
-elif ! error_percent_below "${POD_FORTIO_LOG}" "${CONNECTION_ERROR_CODE}" ${MAX_CONNECTION_ERR_FOR_PASS}; then
-  echo "=== Connection Errors found in internal traffic exceeded ${MAX_CONNECTION_ERR_FOR_PASS}% threshold ==="
-  failed=true
-else
-  echo "=== Errors found in internal traffic is within threshold ==="
 fi
 
 if [[ -n "${failed}" ]]; then

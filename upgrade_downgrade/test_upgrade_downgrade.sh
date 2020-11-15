@@ -272,7 +272,7 @@ fi
 
 echo "Test ran for ${SECONDS} seconds."
 if (( SECONDS > TRAFFIC_RUNTIME_SEC )); then
-    echo "WARNING: test duration was ${SECONDS} but traffic only ran for ${TRAFFIC_RUNTIME_SEC}"
+  echo "WARNING: test duration was ${SECONDS} but traffic only ran for ${TRAFFIC_RUNTIME_SEC}"
 fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
@@ -281,22 +281,17 @@ wait_for_job cli-fortio "${TEST_NAMESPACE}"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
 wait_for_external_request_traffic
 
-# Maximum % of 503 response that cannot exceed
 MAX_503_PCT_FOR_PASS="15"
-# Maximum % of connection refused that cannot exceed
-# Set it to high value so it fails for explicit sidecar issues
 MAX_CONNECTION_ERR_FOR_PASS="30"
 
 if ! analyze_fortio_logs "${POD_FORTIO_LOG}" "${MAX_503_PCT_FOR_PASS}" "${MAX_CONNECTION_ERR_FOR_PASS}"; then
   failed=true
-fi
-
-if ! analyze_fortio_logs "${LOCAL_FORTIO_LOG}" "${MAX_503_PCT_FOR_PASS}" "${MAX_CONNECTION_ERR_FOR_PASS}"; then
+elif ! analyze_fortio_logs "${LOCAL_FORTIO_LOG}" "${MAX_503_PCT_FOR_PASS}" "${MAX_CONNECTION_ERR_FOR_PASS}"; then
   failed=true
 fi
 
 if [[ -n "${failed}" ]]; then
-    exit 1
+  exit 1
 fi
 
 echo "SUCCESS"

@@ -24,12 +24,6 @@ ROOT=$(dirname "$WD")
 command -v fortio >/dev/null 2>&1 || { echo >&2 "fortio must be installed, aborting."; exit 1; }
 
 ISTIO_NAMESPACE="istio-system"
-MAX_5XX_PCT_FOR_PASS="15"
-# Maximum % of connection refused that cannot exceed
-# Set it to high value so it fails for explicit sidecar issues
-MAX_CONNECTION_ERR_FOR_PASS="30"
-SERVICE_UNAVAILABLE_CODE="503"
-CONNECTION_ERROR_CODE="-1"
 
 while (( "$#" )); do
   PARAM=$(echo "${1}" | awk -F= '{print $1}')
@@ -245,20 +239,13 @@ if [[ $(python -c "print($internal_failure_percent > ${MAX_5XX_PCT_FOR_PASS})") 
   failed=true
 fi
 
+MAX_5XX_PCT_FOR_PASS="15"
+MAX_CONNECTION_ERR_FOR_PASS="30"
+
 # Now get fortio logs for the process running outside cluster
-local_log_str=$(grep "Code 200" "${LOCAL_FORTIO_LOG}")
-cat ${LOCAL_FORTIO_LOG}
-if [[ ${local_log_str} != *"Code 200"* ]];then
-  echo "=== No Code 200 found in external traffic log ==="
+write_msg "Analyze external fortio log file ${LOCAL_FORTIO_LOG}"
+if ! analyze_fortio_logs "${LOCAL_FORTIO_LOG}" "${MAX_503_PCT_FOR_PASS}" "${MAX_CONNECTION_ERR_FOR_PASS}"; then
   failed=true
-elif ! error_percent_below "${LOCAL_FORTIO_LOG}" "${SERVICE_UNAVAILABLE_CODE}" ${MAX_5XX_PCT_FOR_PASS}; then
-  echo "=== Code 503 Errors found in external traffic exceeded ${MAX_5XX_PCT_FOR_PASS}% threshold ==="
-  failed=true
-elif ! error_percent_below "${LOCAL_FORTIO_LOG}" "${CONNECTION_ERROR_CODE}" ${MAX_CONNECTION_ERR_FOR_PASS}; then
-  echo "=== Connection Errors found in external traffic exceeded ${MAX_CONNECTION_ERR_FOR_PASS}% threshold ==="
-  failed=true
-else
-  echo "=== Errors found in external traffic is within threshold ==="
 fi
 
 if [[ -n "${failed}" ]]; then
