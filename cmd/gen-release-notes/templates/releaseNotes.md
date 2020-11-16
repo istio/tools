@@ -19,6 +19,7 @@ This release contains bug fixes to improve robustness. This release note describ
 
 # Changes
 
+<!-- releaseNotes action:Promoted -->
 <!-- releaseNotes action:Improved -->
 <!-- releaseNotes action:Updated -->
 <!-- releaseNotes action:Added -->
