@@ -391,6 +391,7 @@ RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install
     wget \
     rpm \
     jq \
+    gettext-base \
     locales-all
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
@@ -614,7 +615,6 @@ RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install
     wget \
     jq \
     tshark \
-    gettext-base \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
