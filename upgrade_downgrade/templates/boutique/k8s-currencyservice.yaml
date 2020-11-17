@@ -19,6 +19,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: currencyservice
+  namespace: test
+  labels:
+    app: currencyservice 
 spec:
   selector:
     matchLabels:
@@ -57,6 +60,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: currencyservice
+  namespace: test
 spec:
   type: ClusterIP
   selector:

@@ -19,6 +19,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
   name: frontend-gateway
+  namespace: test
 spec:
   selector:
     istio: ingressgateway # use Istio default gateway implementation
@@ -34,6 +35,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: frontend-ingress
+  namespace: test
 spec:
   hosts:
   - "*"
@@ -50,6 +52,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: frontend
+  namespace: test
 spec:
   hosts:
   - "frontend.default.svc.cluster.local"

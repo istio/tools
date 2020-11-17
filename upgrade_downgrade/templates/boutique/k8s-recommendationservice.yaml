@@ -19,6 +19,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: recommendationservice
+  namespace: test
+  labels:
+    app: recommendationservice
 spec:
   selector:
     matchLabels:
@@ -59,6 +62,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: recommendationservice
+  namespace: test
 spec:
   type: ClusterIP
   selector:
