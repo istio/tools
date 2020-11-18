@@ -277,7 +277,7 @@ fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
 echo "Traffic client pod is ${cli_pod_name}, waiting for traffic to complete..."
-wait_for_job cli-fortio "${TEST_NAMESPACE}"
+kubectl wait --for=condition=complete --timeout=30m job/cli-fortio -n "${TEST_NAMESPACE}"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
 wait_for_external_request_traffic
 

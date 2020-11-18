@@ -108,7 +108,7 @@ reset_cluster "${TO_ISTIOCTL}"
 write_msg "Deploy Istio ${FROM_TAG}"
 ${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${FROM_REVISION}" || die "control plane installation failed"
 ${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${FROM_REVISION}" || die "gateway installation failed"
-wait_for_pods_ready "${ISTIO_NAMESPACE}"
+kubectl wait --for=condition=ready pod --all -n "${ISTIO_NAMESPACE}" --timeout=30m
 
 # Create namespace and label for automatic injection
 kubectl get namespace "${TEST_NAMESPACE}" || kubectl create namespace "${TEST_NAMESPACE}"
@@ -116,33 +116,39 @@ kubectl get namespace "${LOADGEN_NAMESPACE}" || kubectl create namespace "${LOAD
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- || echo "istio-injection label removed"
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 
+function deploy_and_wait_for_services() {
+  local -n services="$1"
+  for svc in "${services[@]}"; do
+    SERVICE_MANIFEST_FILE="${TMP_DIR}/boutique/k8s-${svc}.yaml"
+    if [[ ! -f "${SERVICE_MANIFEST_FILE}" ]]; then
+      echo "Failed to deploy: Kubernetes manifest file for ${svc} not found - ${SERVICE_MANIFEST_FILE}"
+      return 1
+    fi
+    kubectl apply -f "${SERVICE_MANIFEST_FILE}" # Namespace is already defined in manifest
+  done
+  kubectl wait --for=condition=ready pod --all -n "${TEST_NAMESPACE}" --timeout=30m
+}
+
 # Setup boutique shop app. Namespace is specified in YAML.
-# This is written in topological order. Do not change it.
 # Link to architecture diagram:
 # https://github.com/GoogleCloudPlatform/microservices-demo/blob/master/docs/img/architecture-diagram.png 
-services=( "redis-cart" \
-           "productcatalogservice" \
-           "currencyservice" \
-           "shippingservice" \
-           "paymentservice" \
-           "emailservice" \
-           "adservice" \
+base_services=( "redis-cart" \
+                "productcatalogservice" \
+                "currencyservice" \
+                "shippingservice" \
+                "paymentservice" \
+                "emailservice" \
+                "adservice" )
+
+services=( "cartservice" \
            "checkoutservice" \
-           "cartservice" \
            "recommendationservice" \
            "frontend" )
-for svc in "${services[@]}"; do
-  SERVICE_MANIFEST_FILE="${TMP_DIR}/boutique/k8s-${svc}.yaml"
-  if [[ ! -f "${SERVICE_MANIFEST_FILE}" ]]; then
-    echo "Failed to deploy: Kubernetes manifest file for ${svc} not found - ${SERVICE_MANIFEST_FILE}"
-    exit 1
-  fi
-  kubectl apply -f "${TMP_DIR}/boutique/k8s-${svc}.yaml"
-  kubectl wait --for=condition=ready pod -lapp="${svc}" -n "${TEST_NAMESPACE}" --timeout=30m
-done
-kubectl apply -f "${TMP_DIR}/boutique/istio-manifests.yaml"
-kubectl wait --for=condition=ready pod -n "${TEST_NAMESPACE}" --timeout=30m
 
+if ! deploy_and_wait_for_services base_services; then exit 1; fi
+if ! deploy_and_wait_for_services services; then exit 1; fi
+
+kubectl apply -f "${TMP_DIR}/boutique/istio-manifests.yaml"
 kubectl apply -f "${TMP_DIR}/boutique/k8s-loadgenerator.yaml"
 kubectl wait --for=condition=ready pod -n "${LOADGEN_NAMESPACE}" --timeout=30m
 
@@ -168,7 +174,7 @@ sleep "${STABILIZING_PERIOD}"
 write_msg "Deploy Istio ${TO_TAG}"
 ${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${TO_REVISION}" || die "installing ${TO_REVISION} control plane failed"
 ${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${TO_REVISION}" || die "installing ${TO_REVISION} gateways failed"
-wait_for_pods_ready "${ISTIO_NAMESPACE}"
+kubectl wait --for=condition=ready pod --all -n "${ISTIO_NAMESPACE}" --timeout=30m
 
 # Now change labels and restart deployments one at a time
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev-
@@ -194,7 +200,7 @@ if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
   done
 fi
 
-wait_for_pods_ready "${TEST_NAMESPACE}"
+kubectl wait --for=condition=ready pod --all -n "${TEST_NAMESPACE}" --timeout=30m
 
 if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
   write_msg "uninstalling ${FROM_REVISION}"
@@ -206,7 +212,7 @@ else
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 
   restart_first_round
-  wait_for_pods_ready "${TEST_NAMESPACE}"
+  kubectl wait --for=condition=ready pod --all -n "${TEST_NAMESPACE}" --timeout=30m
 
   write_msg "uninstalling ${TO_REVISION}"
   "${TO_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${TO_REVISION}" -y || die "uninstalling control plane ${TO_REVISION} failed"

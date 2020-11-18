@@ -121,17 +121,6 @@ function wait_for_pods_ready() {
   echo "All pods ready."
 }
 
-function wait_for_job() {
-  echo "Waiting for job ${1} to complete..."
-  local start_time=${SECONDS}
-  until kubectl get jobs -n "${2}" "${1}" -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' | grep True ; do
-      sleep 1 ;
-  done
-  run_time=0
-  (( run_time = SECONDS - start_time ))
-  echo "Job ${1} ran for ${run_time} seconds."
-}
-
 function restart_data_plane() {
   local name="$1"
   local namespace="$2"

@@ -74,10 +74,7 @@ function wait_for_external_request_traffic() {
     exit 1
   fi
   echo "Waiting for external traffic to complete"
-  local attempt=0
   while [[ ! -f "${EXTERNAL_FORTIO_DONE_FILE}" ]]; do
-    echo "attempt ${attempt}"
-    attempt=$((attempt+1))
     sleep 10
   done
 }

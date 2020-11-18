@@ -149,7 +149,7 @@ elif [[ "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]]; then
 fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
-wait_for_job cli-fortio "${TEST_NAMESPACE}"
+kubectl wait --for=condition=complete --timeout=30m job/cli-fortio -n "${TEST_NAMESPACE}"
 
 write_msg "Verify results"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
