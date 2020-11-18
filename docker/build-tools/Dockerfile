@@ -64,6 +64,8 @@ ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.96
 ENV YQ_VERSION=3.3.0
 ENV GCLOUD_VERSION=317.0.0
+ENV KUBETEST2_VERSION=e1cd98a0e7e2e6b1e2706e55d685e7c91f4e77de
+ENV BOSKOSCTL_VERSION=c6d730e323f06da1b56dfa14bdab6d7d5dc22e2a
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -146,10 +148,10 @@ RUN gobin istio.io/test-infra/boskos/cmd/mason_client
 RUN gobin k8s.io/test-infra/robots/pr-creator
 RUN gobin k8s.io/test-infra/prow/cmd/peribolos
 RUN gobin k8s.io/test-infra/pkg/benchmarkjunit
-RUN gobin sigs.k8s.io/kubetest2
-RUN gobin sigs.k8s.io/kubetest2/kubetest2-gke
-RUN gobin sigs.k8s.io/kubetest2/kubetest2-tester-exec
-RUN gobin sigs.k8s.io/boskos/cmd/boskosctl
+RUN gobin sigs.k8s.io/kubetest2@${KUBETEST2_VERSION}
+RUN gobin sigs.k8s.io/kubetest2/kubetest2-gke@${KUBETEST2_VERSION}
+RUN gobin sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
+RUN gobin sigs.k8s.io/boskos/cmd/boskosctl@${BOSKOSCTL_VERSION}
 
 # gobin does not seem to be compatible with this pesky code-generator repo
 # Install the code generator tools, and hopefully only these tools, this way
