@@ -90,6 +90,7 @@ fi
 
 TMP_DIR=/tmp/istio_upgrade_test
 TEST_NAMESPACE="test"
+LOADGEN_NAMESPACE="loadgen"
 FROM_REVISION=$(echo "${FROM_TAG}" | tr '.' '-' | cut -c -20)
 TO_REVISION=$(echo "${TO_TAG}" | tr '.' '-' | cut -c -20)
 
@@ -109,56 +110,41 @@ ${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "$
 ${FROM_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${FROM_REVISION}" || die "gateway installation failed"
 wait_for_pods_ready "${ISTIO_NAMESPACE}"
 
-# 1. Create namespace and label for automatic injection
-# 2. Deploy online boutique application and Istio configuration
+# Create namespace and label for automatic injection
 kubectl get namespace "${TEST_NAMESPACE}" || kubectl create namespace "${TEST_NAMESPACE}"
+kubectl get namespace "${LOADGEN_NAMESPACE}" || kubectl create namespace "${LOADGEN_NAMESPACE}"
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- || echo "istio-injection label removed"
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 
-# It is not as simple as throwing YAML at it. Problem is, there are dependencies between
-# services and loadgenerator should not start before others as it will fall into CrashLoopBackoff
-# So we have to make sure that if something has fallen into CrashLoopBackoff then keep restarting
-# the deployment so that the timeout wouldn't be too long.
-function deploy_boutique_shop_app() {
-  local test_ns="$1"
-  kubectl apply -f "https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/master/release/kubernetes-manifests.yaml" -n "${test_ns}"
-  while true; do
-    local pod_count=0
-    local run_count=0
-    for p in $(kubectl get pods -n "${test_ns}" -o name); do
-      pod_count=$((pod_count+1))
-      local pod_line
-      pod_line=$(kubectl get "$p" -n "${test_ns}")
-      if [[ "${pod_line}" == *"Running"* ]]; then
-        run_count=$((run_count+1))
-        continue
-      fi
-      if [[ "$pod_line" == *CrashLoopBackOff* || "$pod_line" == *Error* ]]; then
-        # NOTE: Boutique shop app deployment YAML has a specific pattern
-        # where name of the deployment matches the value of app label. That
-        # is app=<xyz> would have its deployment name as <xyz>
-        local deployment_name
-        deployment_name=$(kubectl get "$p" -n "${test_ns}" -o jsonpath='{.metadata.labels}' | jq -r '.app')
-        echo "$p is stuck in CrashLoopBackoff or Error. So restart deployment ${deployment_name}"
-        kubectl rollout restart deployment "${deployment_name}" -n "${test_ns}"
-      fi
-    done
-    if (( run_count == pod_count )); then
-      echo "Boutique shop deployed successfully"
-      break
-    fi
-    sleep 10
-  done
-}
+# Setup boutique shop app. Namespace is specified in YAML.
+# This is written in topological order. Do not change it.
+# Link to architecture diagram:
+# https://github.com/GoogleCloudPlatform/microservices-demo/blob/master/docs/img/architecture-diagram.png 
+services=( "redis-cart" \
+           "productcatalogservice" \
+           "currencyservice" \
+           "shippingservice" \
+           "paymentservice" \
+           "emailservice" \
+           "adservice" \
+           "checkoutservice" \
+           "cartservice" \
+           "recommendationservice" \
+           "frontend" )
+for svc in "${services[@]}"; do
+  SERVICE_MANIFEST_FILE="${TMP_DIR}/boutique/k8s-${svc}.yaml"
+  if [[ ! -f "${SERVICE_MANIFEST_FILE}" ]]; then
+    echo "Failed to deploy: Kubernetes manifest file for ${svc} not found - ${SERVICE_MANIFEST_FILE}"
+    exit 1
+  fi
+  kubectl apply -f "${TMP_DIR}/boutique/k8s-${svc}.yaml"
+  kubectl wait --for=condition=ready pod -lapp="${svc}" -n "${TEST_NAMESPACE}" --timeout=30m
+done
+kubectl apply -f "${TMP_DIR}/boutique/istio-manifests.yaml"
+kubectl wait --for=condition=ready pod -n "${TEST_NAMESPACE}" --timeout=30m
 
-deploy_boutique_shop_app "${TEST_NAMESPACE}"
-kubectl apply -f "https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/master/release/istio-manifests.yaml" -n "${TEST_NAMESPACE}"
-
-# But load-generator should not have a sidecar. So patch its deployment
-# and restart deployment
-kubectl patch deployment loadgenerator -n "${TEST_NAMESPACE}" --patch '{"spec":{"template":{"metadata":{"annotations": {"sidecar.istio.io/inject": "false"}}}}}'
-kubectl rollout restart deployment loadgenerator -n "${TEST_NAMESPACE}"
-wait_for_pods_ready "${TEST_NAMESPACE}"
+kubectl apply -f "${TMP_DIR}/boutique/k8s-loadgenerator.yaml"
+kubectl wait --for=condition=ready pod -n "${LOADGEN_NAMESPACE}" --timeout=30m
 
 # Start external traffic from fortio
 # 1. First get ingress address
@@ -190,16 +176,18 @@ kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${TO_REVISION}"
 
 # Upgrade select micro-services in the first round
 first_round=( "frontend" "redis-cart" "paymentservice" )
-for d in "${first_round[@]}"; do
-  restart_data_plane "$d" "${TEST_NAMESPACE}"
-done
+function restart_first_round() {
+  for d in "${first_round[@]}"; do
+    restart_data_plane "$d" "${TEST_NAMESPACE}"
+  done
+}
 
-# **DO NOT** restart loadgenerator. We need that to run
-# continuously during upgrade so that we can see how many
-# requests fail during data plane restart after upgrade.
+restart_first_round
+
 if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
-  for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name | grep -v loadgenerator); do
+  for d in $(kubectl get deployments -n "${TEST_NAMESPACE}" -o name); do
     deployment=$(echo "$d" | cut -d'/' -f2)
+    # If it is restarted in the first round, then don't restart again.
     if [[ ! "${first_round[*]}" =~ $deployment ]]; then
       restart_data_plane "$deployment" "${TEST_NAMESPACE}"
     fi
@@ -217,9 +205,7 @@ else
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev-
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 
-  for d in "${first_round[@]}"; do
-    restart_data_plane "$d" "${TEST_NAMESPACE}"
-  done
+  restart_first_round
   wait_for_pods_ready "${TEST_NAMESPACE}"
 
   write_msg "uninstalling ${TO_REVISION}"
@@ -232,8 +218,8 @@ wait_for_external_request_traffic
 # Finally look at the statistics and check failure percentages
 MAX_5XX_PCT_FOR_PASS="15"
 MAX_CONNECTION_ERR_FOR_PASS="30"
-loadgen_pod="$(kubectl get pods -lapp=loadgenerator -n ${TEST_NAMESPACE} -o name)"
-aggregated_stats=$(kubectl logs "${loadgen_pod}"  -n ${TEST_NAMESPACE} | grep 'Aggregated' | tail -1)
+loadgen_pod="$(kubectl get pods -lapp=loadgenerator -n ${LOADGEN_NAMESPACE} -o name)"
+aggregated_stats=$(kubectl logs "${loadgen_pod}"  -n ${LOADGEN_NAMESPACE} | grep 'Aggregated' | tail -1)
 echo "$aggregated_stats"
 
 internal_failure_percent=$(echo "${aggregated_stats}" | awk '{ print $3 }' | tr '()%' ' ' | cut -d' ' -f2)

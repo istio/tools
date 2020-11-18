@@ -19,7 +19,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: loadgenerator
-  namespace: test
+  namespace: loadgen
   labels:
     app: loadgenerator
 spec:
@@ -43,7 +43,7 @@ spec:
         image: gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.1
         env:
         - name: FRONTEND_ADDR
-          value: "frontend:80"
+          value: "frontend.test:80"
         - name: USERS
           value: "10"
         resources:

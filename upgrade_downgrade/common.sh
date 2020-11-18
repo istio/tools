@@ -145,7 +145,7 @@ function copy_test_files() {
   rm -Rf "${TMP_DIR}"
   mkdir -p "${TMP_DIR}"
   echo "${WD}"
-  cp -f "${WD}"/templates/* "${TMP_DIR}"/.
+  cp -f -a "${WD}"/templates/* "${TMP_DIR}"/.
 }
 
 function reset_cluster() {
@@ -156,14 +156,20 @@ function reset_cluster() {
   # not to make things complicated, I'm removing CRDs
   local istioctl=${1}
   "${istioctl}" x uninstall --purge -y
+
+  ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
+  TEST_NAMESPACE="${TEST_NAMESPACE:-test}"
+  LOADGEN_NAMESPACE="${LOADGEN_NAMESPACE:-loadgen}"
   
-  echo "Cleaning cluster by removing namespaces ${ISTIO_NAMESPACE} and ${TEST_NAMESPACE}"
+  echo "Cleaning cluster by removing namespaces ${ISTIO_NAMESPACE}, ${TEST_NAMESPACE} and ${LOADGEN_NAMESPACE}"
   delete_with_wait namespace "${ISTIO_NAMESPACE}"
   delete_with_wait namespace "${TEST_NAMESPACE}"
-  echo "All namespaces deleted. Recreating ${ISTIO_NAMESPACE} and ${TEST_NAMESPACE}"
+  delete_with_wait namespace "${LOADGEN_NAMESPACE}"
+  echo "All namespaces deleted. Recreating ${ISTIO_NAMESPACE}, ${TEST_NAMESPACE} and ${LOADGEN_NAMESPACE}"
 
   echo_and_run_or_die kubectl create namespace "${ISTIO_NAMESPACE}"
   echo_and_run_or_die kubectl create namespace "${TEST_NAMESPACE}"
+  echo_and_run_or_die kubectl create namespace "${LOADGEN_NAMESPACE}"
   echo_and_run_or_die kubectl label namespace "${TEST_NAMESPACE}" istio-injection=enabled
 }
 
