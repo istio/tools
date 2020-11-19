@@ -16,32 +16,41 @@
 
 set -x
 
+# Output a message, with a timestamp matching istio log format
+function log() {
+  echo -e "$(date -u '+%Y-%m-%dT%H:%M:%S.%NZ')\t$*"
+}
+
 # optionally enable ipv6 docker
 export DOCKER_IN_DOCKER_IPV6_ENABLED=${DOCKER_IN_DOCKER_IPV6_ENABLED:-false}
 if [[ "${DOCKER_IN_DOCKER_IPV6_ENABLED}" == "true" ]]; then
   # enable ipv6
   sysctl net.ipv6.conf.all.disable_ipv6=0
   sysctl net.ipv6.conf.all.forwarding=1
-  echo "Done enabling IPv6 in Docker config."
+  log "Done enabling IPv6 in Docker config."
 fi
 
 # Start docker daemon and wait for dockerd to start
 service docker start
 
-echo "Waiting for dockerd to start..."
+log "Waiting for dockerd to start..."
 while :
 do
-  echo "Checking for running docker daemon."
+  log "Checking for running docker daemon."
   if docker ps -q > /dev/null 2>&1; then
-    echo "The docker daemon is running."
+    log "The docker daemon is running."
     break
   fi
   sleep 1
 done
 
 function cleanup() {
+  log "Starting cleanup..."
   # Cleanup all docker artifacts
+  # shellcheck disable=SC2046
+  docker kill $(docker ps -q) || true
   docker system prune -af || true
+  log "Cleanup complete"
 }
 
 trap cleanup EXIT
@@ -60,7 +69,6 @@ set -x
 
 # We cleanup in the trap as well, but just in case try to clean up here as well
 # shellcheck disable=SC2046
-docker kill $(docker ps -q) || true
-docker system prune -af || true
+cleanup
 
 exit "${EXIT_VALUE}"
