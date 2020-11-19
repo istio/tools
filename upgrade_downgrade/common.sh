@@ -94,33 +94,6 @@ function delete_with_wait() {
   with_retries 60 10 check_if_deleted "${1}" "${2}" "${3}"
 }
 
-function _wait_for_pods_ready() {
-  pods_str=$(kubectl -n "${1}" get pods | tail -n +2 )
-  arr=()
-  while read -r line; do
-    arr+=("$line")
-  done <<< "$pods_str"
-
-  ready="true"
-  for line in "${arr[@]}"; do
-    if [[ ${line} != *"Running"* && ${line} != *"Completed"* ]]; then
-      ready="false"
-    fi
-  done
-  if [[  "${ready}" = "true" ]]; then
-    return 0
-  fi
-
-  echo "${pods_str}"
-  return 1
-}
-
-function wait_for_pods_ready() {
-  echo "Waiting for pods to be ready in ${1}..."
-  with_retries_max_time 900 10 _wait_for_pods_ready "${1}"
-  echo "All pods ready."
-}
-
 function restart_data_plane() {
   local name="$1"
   local namespace="$2"

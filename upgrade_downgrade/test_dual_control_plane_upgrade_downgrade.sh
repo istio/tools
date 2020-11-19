@@ -115,11 +115,11 @@ reset_cluster "${TO_ISTIOCTL}"
 
 write_msg "Deploy Istio(minimal) ${FROM_TAG}"
 ${FROM_ISTIOCTL} install -y --set profile=minimal
-wait_for_pods_ready "${ISTIO_NAMESPACE}"
+kubectl wait --for=condition=ready --timeout=10m pod --all -n "${ISTIO_NAMESPACE}"
 
 write_msg "Deploy Echo v1 and v2"
 kubectl apply -f "${TMP_DIR}/fortio.yaml" -n "${TEST_NAMESPACE}"
-wait_for_pods_ready "${TEST_NAMESPACE}"
+kubectl wait --for=condition=ready --timeout=10m pod --all -n "${TEST_NAMESPACE}"
 
 write_msg "Generate internal traffic for echo v1 and v2"
 kubectl apply -f "${TMP_DIR}/fortio-cli.yaml" -n "${TEST_NAMESPACE}"

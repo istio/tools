@@ -227,7 +227,7 @@ reset_cluster "${TO_PATH}/bin/istioctl"
 
 istio_install_options || die "istio installation failed"
 wait_for_ingress
-wait_for_pods_ready "${ISTIO_NAMESPACE}"
+kubectl wait --for=condition=ready --timeout=10m pod --all -n "${ISTIO_NAMESPACE}"
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
   # Make a copy of the "from" sidecar injector ConfigMap so that we can restore the sidecar independently later.
@@ -235,7 +235,7 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
 fi
 
 install_test
-wait_for_pods_ready "${TEST_NAMESPACE}"
+kubectl wait --for=condition=ready --timeout=10m pod --all -n "${TEST_NAMESPACE}"
 check_echosrv
 
 # Run internal traffic in the background since we may have to relaunch it if the job fails.
@@ -249,7 +249,7 @@ sleep 20
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrade" || "${TEST_SCENARIO}" == "downgrade" ]];then
   istio_upgrade_options || die "upgrade failed"
-  wait_for_pods_ready "${ISTIO_NAMESPACE}"
+  kubectl wait --for=condition=ready --timeout=10m pod --all -n "${ISTIO_NAMESPACE}"
   # In principle it should be possible to restart data plane immediately, but being conservative here.
   sleep 60
 
@@ -267,7 +267,7 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
   restart_data_plane echosrv-deployment-v2 "${TEST_NAMESPACE}"
 
   istio_install_options || echo "istio installation failed"
-  wait_for_pods_ready "${ISTIO_NAMESPACE}"
+  kubectl wait --for=condition=ready --timeout=10m pod --all -n "${ISTIO_NAMESPACE}"
 fi
 
 echo "Test ran for ${SECONDS} seconds."
