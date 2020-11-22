@@ -28,31 +28,31 @@ def download_benchmark_csv(days):
     if not os.path.exists(perf_data_path):
         os.makedirs(perf_data_path)
 
+    download_dateset = get_download_dateset(days)
+
     url_prefix = "https://gcsweb.istio.io/gcs/"
     gcs_bucket_name = "istio-build/perf"
-    url = url_prefix + gcs_bucket_name
-    try:
-        page = request.urlopen(url)
-    except Exception as e:
-        print(e)
-        exit(1)
-
+    soup = get_page_soup(url_prefix + gcs_bucket_name)
     cur_href_links = []
     cur_release_names = []
     cur_release_dates = []
     master_href_links = []
     master_release_names = []
     master_release_dates = []
-    soup = BeautifulSoup(page, 'html.parser')
-    download_dateset = get_download_dateset(days)
+    process_current_page(download_dateset, soup, cur_href_links, cur_release_names, cur_release_dates,
+                         master_href_links, master_release_names, master_release_dates)
 
+    delete_outdated_files(download_dateset)
+    return cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates
+
+
+def process_current_page(download_dateset, soup, cur_href_links, cur_release_names, cur_release_dates,
+                         master_href_links, master_release_names, master_release_dates):
     for link in soup.find_all('a'):
         href_str = link.get('href')
         if href_str == "/gcs/istio-build/":
             continue
-        # TODO:
-        #  - add "nighthawk" check later like: or "nighthawk" in href_str
-        #  - maybe only need one href_link list (refactor later when other pages being fixed)
+        current_page_test_dates = set()
         if "fortio" in href_str:
             href_parts = href_str.split("/")
             # an example benchmark_test_id would be like:
@@ -60,14 +60,15 @@ def download_benchmark_csv(days):
             benchmark_test_id = href_parts[4]
             if current_release.split("-")[1] in benchmark_test_id or "master" in benchmark_test_id:
                 test_date, test_load_gen_type, test_branch, release_name = parse_perf_href_str(benchmark_test_id)
-                if test_date in download_dateset:
+                if test_date not in current_page_test_dates and test_date in download_dateset:
+                    current_page_test_dates.add(test_date)
                     download_prefix = "https://storage.googleapis.com/istio-build/perf/"
                     download_filename = "benchmark.csv"
                     download_url = download_prefix + benchmark_test_id + "/" + download_filename
 
                     dump_filename = benchmark_test_id + "_" + download_filename
                     dump_to_filepath = perf_data_path + dump_filename
-                    isExist = check_exist(dump_filename)
+                    is_exist = check_exist(dump_filename)
 
                     if test_branch == "master":
                         master_href_links.insert(0, href_str)
@@ -78,7 +79,7 @@ def download_benchmark_csv(days):
                         cur_release_names.insert(0, release_name)
                         cur_release_dates.insert(0, test_date)
                     try:
-                        if isExist:
+                        if is_exist:
                             continue
                         wget.download(download_url, dump_to_filepath)
                     except Exception as e:
@@ -91,11 +92,30 @@ def download_benchmark_csv(days):
                             cur_release_names.pop(0)
                             cur_release_dates.pop(0)
                         print(e)
-            else:
-                continue
+                else:
+                    continue
+    has_next_page, next_soup = if_has_next_page(soup)
+    if has_next_page:
+        process_current_page(download_dateset, next_soup, cur_href_links, cur_release_names, cur_release_dates,
+                             master_href_links, master_release_names, master_release_dates)
 
-    delete_outdated_files(download_dateset)
-    return cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates
+
+def if_has_next_page(soup):
+    for link in soup.find_all('a'):
+        if link.get('class') == ['pure-button', 'next-button']:
+            next_page_link = link.get('href')
+            next_soup = get_page_soup("https://gcsweb.istio.io/" + next_page_link)
+            return True, next_soup
+    return False, None
+
+
+def get_page_soup(url):
+    try:
+        page = request.urlopen(url)
+    except Exception as e:
+        print(e)
+        exit(1)
+    return BeautifulSoup(page, 'html.parser')
 
 
 def get_download_dateset(days):
