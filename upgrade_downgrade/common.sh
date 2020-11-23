@@ -110,14 +110,33 @@ function copy_test_files() {
   cp -f -a "${WD}"/templates/* "${TMP_DIR}"/.
 }
 
+function uninstall_istio() {
+  local istioctl="${1}"
+  local crd_yaml="${2}"
+  local revision="${3}"
+  if [[ -n "${crd_yaml}" && -n "${revision}" ]]; then
+    "${istioctl}" experimental uninstall -f "${crd_yaml}" --revision "${revision}" -y || \
+    ("${istioctl}" manifest generate -f "${crd_yaml}" --revision "${revision}" | kubectl delete -f -) 
+  elif [[ -n "${crd_yaml}" ]]; then
+    "${istioctl}" experimental uninstall -f "${crd_yaml}" -y --force ||
+    ("${istioctl}" manifest generate -f "${crd_yaml}" | kubectl delete -f -)
+  elif [[ -n "${revision}" ]]; then
+    "${istioctl}" experimental uninstall --revision "${revision}" -y || \
+    ("${istioctl}" manifest generate --revision "${revision}" | kubectl delete -f -)
+  else
+    "${istioctl}" experimental uninstall --purge -y || \
+    ("${istioctl}" manifest generate | kubectl delete -f -)
+  fi  
+}
+
 function reset_cluster() {
   echo "Removing Istio CRDs"
   
   # Ideally we should use `istioctl x uninstall --purge -y`
-  # But istioctl < 1.7 does not seem to support it. In order
-  # not to make things complicated, I'm removing CRDs
+  # But istioctl < 1.7 does not seem to support it. So we
+  # need to generate manifest and pass it to kubectl delete
   local istioctl=${1}
-  "${istioctl}" x uninstall --purge -y
+  uninstall_istio "${istioctl}"
 
   ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
   TEST_NAMESPACE="${TEST_NAMESPACE:-test}"

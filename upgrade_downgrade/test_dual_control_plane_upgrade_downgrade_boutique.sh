@@ -24,6 +24,8 @@ ROOT=$(dirname "$WD")
 command -v fortio >/dev/null 2>&1 || { echo >&2 "fortio must be installed, aborting."; exit 1; }
 
 ISTIO_NAMESPACE="istio-system"
+MAX_5XX_PCT_FOR_PASS="15"
+MAX_CONNECTION_ERR_FOR_PASS="30"
 
 while (( "$#" )); do
   PARAM=$(echo "${1}" | awk -F= '{print $1}')
@@ -94,6 +96,10 @@ LOADGEN_NAMESPACE="loadgen"
 FROM_REVISION=$(echo "${FROM_TAG}" | tr '.' '-' | cut -c -20)
 TO_REVISION=$(echo "${TO_TAG}" | tr '.' '-' | cut -c -20)
 
+export TRAFFIC_RUNTIME_SEC=800
+export LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
+export EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
+
 user="cluster-admin"
 if [[ "${CLOUD}" == "GKE" ]];then
   user="$(gcloud config get-value core/account)"
@@ -119,12 +125,12 @@ kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 function deploy_and_wait_for_services() {
   local -n services="$1"
   for svc in "${services[@]}"; do
-    SERVICE_MANIFEST_FILE="${TMP_DIR}/boutique/k8s-${svc}.yaml"
-    if [[ ! -f "${SERVICE_MANIFEST_FILE}" ]]; then
-      echo "Failed to deploy: Kubernetes manifest file for ${svc} not found - ${SERVICE_MANIFEST_FILE}"
+    local service_manifest_file="${TMP_DIR}/boutique/k8s-${svc}.yaml"
+    if [[ ! -f "${service_manifest_file}" ]]; then
+      echo "Failed to deploy: Kubernetes manifest file for ${svc} not found - ${service_manifest_file}"
       return 1
     fi
-    kubectl apply -f "${SERVICE_MANIFEST_FILE}" # Namespace is already defined in manifest
+    kubectl apply -f "${service_manifest_file}" # Namespace is already defined in manifest
   done
   kubectl wait --for=condition=ready pod --all -n "${TEST_NAMESPACE}" --timeout=30m
 }
@@ -132,6 +138,9 @@ function deploy_and_wait_for_services() {
 # Setup boutique shop app. Namespace is specified in YAML.
 # Link to architecture diagram:
 # https://github.com/GoogleCloudPlatform/microservices-demo/blob/master/docs/img/architecture-diagram.png 
+
+# Shellcheck is falsely complaining that this is not being used.
+# shellcheck disable=SC2034
 base_services=( "redis-cart" \
                 "productcatalogservice" \
                 "currencyservice" \
@@ -156,10 +165,6 @@ kubectl wait --for=condition=ready pod -n "${LOADGEN_NAMESPACE}" --timeout=30m
 # 1. First get ingress address
 # 2. Next, use that address to fire requests at boutique shop app
 wait_for_ingress
-
-export TRAFFIC_RUNTIME_SEC=800
-export LOCAL_FORTIO_LOG=${TMP_DIR}/fortio_local.log
-export EXTERNAL_FORTIO_DONE_FILE=${TMP_DIR}/fortio_done_file
 
 # Start sending traffic from outside the cluster
 send_external_request_traffic "http://${INGRESS_ADDR}" &
@@ -206,7 +211,8 @@ if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
   write_msg "uninstalling ${FROM_REVISION}"
   # Currently we don't do it for gateways because gateway upgrade is still in-place :(
   # So remove only control plane with old revision.
-  "${FROM_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${FROM_REVISION}" -y || die "uninstalling control plane ${FROM REVISION} failed"
+  uninstall_istio "${FROM_ISTIOCTL}" "${TMP_DIR}/iop-control-plane.yaml" "${FROM_REVISION}" || \
+    die "uninstalling control plane ${FROM REVISION} failed"
 else
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev-
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
@@ -215,15 +221,15 @@ else
   kubectl wait --for=condition=ready pod --all -n "${TEST_NAMESPACE}" --timeout=30m
 
   write_msg "uninstalling ${TO_REVISION}"
-  "${TO_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${TO_REVISION}" -y || die "uninstalling control plane ${TO_REVISION} failed"
+  "${TO_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${TO_REVISION}" -y
+  uninstall_istio "${TO_ISTIOCTL}" "${TMP_DIR}/iop-control-plane.yaml" "${TO_REVISION}" || \
+    die "uninstalling control plane ${TO_REVISION} failed"
   "${FROM_ISTIOCTL}" install -f "${TMP_DIR}/iop-gateways.yaml" --revision "${FROM_REVISION}" -y || die "installing ${FROM_REVISION} gateways failed"
 fi
 
 wait_for_external_request_traffic
 
 # Finally look at the statistics and check failure percentages
-MAX_5XX_PCT_FOR_PASS="15"
-MAX_CONNECTION_ERR_FOR_PASS="30"
 loadgen_pod="$(kubectl get pods -lapp=loadgenerator -n ${LOADGEN_NAMESPACE} -o name)"
 aggregated_stats=$(kubectl logs "${loadgen_pod}"  -n ${LOADGEN_NAMESPACE} | grep 'Aggregated' | tail -1)
 echo "$aggregated_stats"

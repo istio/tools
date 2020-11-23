@@ -138,14 +138,14 @@ restart_data_plane echosrv-deployment-v1 "${TEST_NAMESPACE}"
 if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
   restart_data_plane echosrv-deployment-v2 "${TEST_NAMESPACE}"
   write_msg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
-  PROFILE_MANIFEST_YAML="${FROM_PATH}/manifests/profiles/minimal.yaml"
-  ${FROM_ISTIOCTL} experimental uninstall -f "${PROFILE_MANIFEST_YAML}" -y --force
+  PROFILE_YAML="${FROM_PATH}/manifests/profiles/minimal.yaml"
+  uninstall_istio "${FROM_ISTIOCTL}" "${PROFILE_YAML}"
 
 elif [[ "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]]; then
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev- istio-injection=enabled
   restart_data_plane echosrv-deployment-v1 "${TEST_NAMESPACE}"
   write_msg "ROLLBACK: Uninstall new version of control plane (${TO_TAG})"
-  ${TO_ISTIOCTL} experimental uninstall --revision "${TO_REVISION}" -y
+  uninstall_istio "${TO_ISTIOCTL}" "" "${TO_REVISION}"
 fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
