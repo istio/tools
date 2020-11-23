@@ -31,9 +31,9 @@ This is the default test flow. The following is an example command
 to configure this test scenario:
 
     ```bash
-    export TEST_SCENARIO=upgrade-downgrade; 
-    export SOURCE_TAG=1.8_latest; 
-    export TARGET_TAG=master;  
+    export TEST_SCENARIO=upgrade-downgrade;
+    export SOURCE_TAG=1.8_latest;
+    export TARGET_TAG=master;
     export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
     ```
 
@@ -42,9 +42,9 @@ Istio will be upgraded. The following is an example command
 to configure this test scenario:
 
     ```bash
-    export TEST_SCENARIO=upgrade; 
-    export SOURCE_TAG=1.8_latest; 
-    export TARGET_TAG=master; 
+    export TEST_SCENARIO=upgrade;
+    export SOURCE_TAG=1.8_latest;
+    export TARGET_TAG=master;
     export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
     ```
 
@@ -53,9 +53,9 @@ Istio will be downgraded. The following is an example command
 to configure this test scenario:
 
     ```bash
-    export TEST_SCENARIO=downgrade; 
-    export SOURCE_TAG=master; 
-    export TARGET_TAG=1.8_latest;  
+    export TEST_SCENARIO=downgrade;
+    export SOURCE_TAG=master;
+    export TARGET_TAG=1.8_latest;
     export UPGRADE_DOWNGRADE_TEST_LOCAL=true;
     ```
 
