@@ -67,7 +67,7 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         if len(cur_selected_release) > 1:
             cur_selected_release.pop(0)
         if len(cur_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + cur_selected_release[0] + "_benchmark.csv")
 
         release_context = get_lantency_vs_conn_context(df)
 
@@ -83,7 +83,7 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         if len(master_selected_release) > 1:
             master_selected_release.pop(0)
         if len(master_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + master_selected_release[0] + "_benchmark.csv")
 
         latency_none_mtls_base_p50_master = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p50')
         latency_none_mtls_both_p50_master = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p50')
@@ -196,7 +196,7 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         if len(cur_selected_release) > 1:
             cur_selected_release.pop(0)
         if len(cur_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + cur_selected_release[0] + "_benchmark.csv")
 
         release_context = get_lantency_vs_qps_context(df)
 
@@ -212,7 +212,7 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         if len(master_selected_release) > 1:
             master_selected_release.pop(0)
         if len(master_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + master_selected_release[0] + "_benchmark.csv")
 
         latency_none_mtls_base_p50_master = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p50')
         latency_none_mtls_both_p50_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p50')
@@ -312,13 +312,13 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
         if len(cpu_cur_selected_release) > 1:
             cpu_cur_selected_release.pop(0)
         if len(cpu_cur_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + cpu_cur_selected_release[0] + "_benchmark.csv")
 
         release_context = get_cpu_vs_qps_context(df)
 
         # Parse data for the master
         if request.method == "POST" and 'master_release_name' in request.POST:
-            master_selected_release.append(request.POST['master_release_name'])
+            cpu_master_selected_release.append(request.POST['master_release_name'])
 
         df = pd.read_csv(perf_data_path + "master_temp.csv")
 
@@ -328,7 +328,7 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
         if len(cpu_master_selected_release) > 1:
             cpu_master_selected_release.pop(0)
         if len(cpu_master_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + cpu_master_selected_release[0] + "_benchmark.csv")
 
         cpu_client_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
         cpu_client_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_client_metric_name)
@@ -396,13 +396,13 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
         if len(cpu_cur_selected_release) > 1:
             cpu_cur_selected_release.pop(0)
         if len(cpu_cur_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + cpu_cur_selected_release[0] + "_benchmark.csv")
 
         release_context = get_cpu_vs_conn_context(df)
 
         # Parse data for the master
         if request.method == "POST" and 'master_release_name' in request.POST:
-            master_selected_release.append(request.POST['master_release_name'])
+            cpu_master_selected_release.append(request.POST['master_release_name'])
 
         df = pd.read_csv(perf_data_path + "master_temp.csv")
 
@@ -412,7 +412,7 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
         if len(cpu_master_selected_release) > 1:
             cpu_master_selected_release.pop(0)
         if len(cpu_master_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + cpu_master_selected_release[0] + "_benchmark.csv")
 
         cpu_client_none_mtls_base_master = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_client_metric_name)
         cpu_client_none_mtls_both_master = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_client_metric_name)
@@ -481,13 +481,13 @@ def mem_vs_qps(request, uploaded_csv_url=None):
         if len(mem_cur_selected_release) > 1:
             mem_cur_selected_release.pop(0)
         if len(mem_cur_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + mem_cur_selected_release[0] + "_benchmark.csv")
 
         release_context = get_mem_vs_qps_context(df)
 
         # Parse data for the master
         if request.method == "POST" and 'master_release_name' in request.POST:
-            master_selected_release.append(request.POST['master_release_name'])
+            mem_master_selected_release.append(request.POST['master_release_name'])
 
         df = pd.read_csv(perf_data_path + "master_temp.csv")
 
@@ -497,7 +497,7 @@ def mem_vs_qps(request, uploaded_csv_url=None):
         if len(mem_master_selected_release) > 1:
             mem_master_selected_release.pop(0)
         if len(mem_master_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + mem_master_selected_release[0] + "_benchmark.csv")
 
         mem_client_none_mtls_base_master = get_mem_vs_qps_y_series(df, '_none_mtls_baseline', mem_client_metric_name)
         mem_client_none_mtls_both_master = get_mem_vs_qps_y_series(df, '_none_mtls_both', mem_client_metric_name)
@@ -566,13 +566,13 @@ def mem_vs_conn(request, uploaded_csv_url=None):
         if len(mem_cur_selected_release) > 1:
             mem_cur_selected_release.pop(0)
         if len(mem_cur_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + cur_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + mem_cur_selected_release[0] + "_benchmark.csv")
 
         release_context = get_mem_vs_conn_context(df)
 
         # Parse data for the master
         if request.method == "POST" and 'master_release_name' in request.POST:
-            master_selected_release.append(request.POST['master_release_name'])
+            mem_master_selected_release.append(request.POST['master_release_name'])
 
         df = pd.read_csv(perf_data_path + "master_temp.csv")
 
@@ -582,7 +582,7 @@ def mem_vs_conn(request, uploaded_csv_url=None):
         if len(mem_master_selected_release) > 1:
             mem_master_selected_release.pop(0)
         if len(mem_master_selected_release) > 0:
-            df = pd.read_csv(perf_data_path + master_href_links[0].split("/")[4] + "_benchmark.csv")
+            df = pd.read_csv(perf_data_path + mem_master_selected_release[0] + "_benchmark.csv")
 
         mem_client_none_mtls_base_master = get_mem_vs_conn_y_series(df, '_none_mtls_baseline', mem_client_metric_name)
         mem_client_none_mtls_both_master = get_mem_vs_conn_y_series(df, '_none_mtls_both', mem_client_metric_name)
