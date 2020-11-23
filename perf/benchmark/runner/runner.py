@@ -93,6 +93,7 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
 class Fortio:
     ports = {
         "http": {"direct_port": 8077, "port": 8080},
+        "tcp": {"direct_port": 8078, "port": 8078},
         "grpc": {"direct_port": 8076, "port": 8079},
         "direct_envoy": {"direct_port": 8076, "port": 8079},
     }
@@ -157,14 +158,16 @@ class Fortio:
             sys.exit("invalid mesh %s, must be istio or linkerd" % mesh)
 
     def get_protocol_uri_fragment(self):
-        return "https" if self.protocol_mode == "grpc" else "http"
+        return "https" if self.protocol_mode == "grpc" else self.protocol_mode
 
     def compute_uri(self, svc, port_type):
         if self.load_gen_type == "fortio":
-            basestr = "http://{svc}:{port}/echo?size={size}"
+            basestr = "{protocol}://{svc}:{port}/echo?size={size}"
             if self.protocol_mode == "grpc":
                 basestr = "-payload-size {size} {svc}:{port}"
-            return basestr.format(svc=svc, port=self.ports[self.protocol_mode][port_type], size=self.size)
+            elif self.protocol_mode == "tcp":
+                basestr = "{protocol}://{svc}:{port}"
+            return basestr.format(svc=svc, port=self.ports[self.protocol_mode][port_type], size=self.size, protocol=self.get_protocol_uri_fragment())
         elif self.load_gen_type == "nighthawk":
             return "{protocol}://{svc}:{port}/".format(
                 svc=svc, port=self.ports[self.protocol_mode][port_type], protocol=self.get_protocol_uri_fragment())
@@ -633,7 +636,7 @@ def get_parser():
         default=None)
     parser.add_argument(
         "--protocol_mode",
-        help="http or grpc",
+        help="http, tcp or grpc",
         default="http")
     parser.add_argument(
         "--config_file",

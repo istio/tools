@@ -35,6 +35,9 @@ spec:
   - name: grpc-ping
     port: 8079
     protocol: TCP
+  - name: tcp-echo
+    port: 8078
+    protocol: TCP
   - name: http-echoa
     port: 8077
     protocol: TCP
@@ -367,8 +370,8 @@ spec:
         config.linkerd.io/skip-inbound-ports: "8077"
 {{- end }}
         # exclude inbound ports of the uncaptured container
-        traffic.sidecar.istio.io/excludeInboundPorts: "8076,8077,8078,9999"
-        traffic.sidecar.istio.io/excludeOutboundPorts: "80,8076,8077,8078"
+        traffic.sidecar.istio.io/excludeInboundPorts: "8076,8077,8078,8081,9999"
+        traffic.sidecar.istio.io/excludeOutboundPorts: "80,8076,8077,8078, 8081"
         sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
         sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
       labels:
@@ -429,6 +432,8 @@ spec:
           protocol: TCP
         - containerPort: 8079
           protocol: TCP
+        - containerPort: 8078
+          protocol: TCP
         {{- if eq $.Values.loadGenType "nighthawk" }}
         args:
         - nighthawk_test_server
@@ -486,6 +491,8 @@ spec:
         - -grpc-port
         - "8076"
         - -redirect-port
+        - "8081"
+        - -tcp-port
         - "8078"
 {{- end }}
 {{- else }}
@@ -515,8 +522,10 @@ spec:
         - "8077"
         - -grpc-port
         - "8076"
-        - -redirect-port
+        - -tcp-port
         - "8078"
+        - -redirect-port
+        - "8081"
 {{- end }}
 {{- end }}
         resources:

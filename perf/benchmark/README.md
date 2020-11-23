@@ -101,7 +101,7 @@ optional arguments:
   --extra_labels EXTRA_LABELS
                         extra labels
   --protocol_mode PROTOCOL_MODE
-                        http or grpc
+                        http, tcp or grpc
   --config_file CONFIG_FILE
                         config yaml file
   --cacert CACERT       path to the cacert for the fortio client inside the
@@ -171,6 +171,17 @@ python runner/runner.py --conn 10  --qps 100,500,1000,2000,4000 --duration 240 -
 
 This will generate corresponding `.svg` flame graph in the `perf/benchmark/flame/flameoutput` repo.
 Here is the [sample output](https://github.com/istio/tools/tree/master/perf/benchmark/flame/example_flame_graph/example_output)
+
+### Example 6
+
+```bash
+python runner/runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseline --load_gen_type=fortio --protocol_mode=tcp
+```
+
+- This will run separate tests for the `both` and `baseline` modes with fortio tcp load test
+- Separate tests for 2 to 64 concurrent connections
+- Each connection will send **1000** QPS
+- Each test will run for **240** seconds
 
 ## Gather Result Metrics
 
