@@ -115,13 +115,13 @@ def latency_vs_conn(request, uploaded_csv_url=None):
                                                                                       'p99')
         latency_v2_sd_full_nullvm_both_p99_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
-        latency_none_mtls_base_p999_master = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p99.9')
-        latency_none_mtls_both_p999_master = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p99.9')
-        latency_none_plaintext_both_p999_master = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p99.9')
-        latency_v2_stats_nullvm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p99.9')
-        latency_v2_stats_wasm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-stats-wasm_both', 'p99.9')
-        latency_v2_sd_nologging_nullvm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99.9')
-        latency_v2_sd_full_nullvm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p99.9')
+        latency_none_mtls_base_p999_master = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p999')
+        latency_none_mtls_both_p999_master = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p999')
+        latency_none_plaintext_both_p999_master = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p999')
+        latency_v2_stats_nullvm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p999')
+        latency_v2_stats_wasm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-stats-wasm_both', 'p999')
+        latency_v2_sd_nologging_nullvm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p999')
+        latency_v2_sd_full_nullvm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p999')
 
         other_context = {'current_release': current_release,
                          'cur_selected_release': cur_selected_release,
@@ -239,13 +239,13 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_v2_sd_nologging_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
         latency_v2_sd_full_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
-        latency_none_mtls_base_p999_master = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p99.9')
-        latency_none_mtls_both_p999_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p99.9')
-        latency_none_plaintext_both_p999_master = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p99.9')
-        latency_v2_stats_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p99.9')
-        latency_v2_stats_wasm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p99.9')
-        latency_v2_sd_nologging_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99.9')
-        latency_v2_sd_full_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99.9')
+        latency_none_mtls_base_p999_master = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p999')
+        latency_none_mtls_both_p999_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p999')
+        latency_none_plaintext_both_p999_master = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p999')
+        latency_v2_stats_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p999')
+        latency_v2_stats_wasm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p999')
+        latency_v2_sd_nologging_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p999')
+        latency_v2_sd_full_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p999')
 
         other_context = {'current_release': current_release,
                          'cur_selected_release': cur_selected_release,
@@ -652,13 +652,13 @@ def get_lantency_vs_conn_context(df):
     latency_v2_sd_nologging_nullvm_both_p99 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
     latency_v2_sd_full_nullvm_both_p99 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
-    latency_none_mtls_base_p999 = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p99.9')
-    latency_none_mtls_both_p999 = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p99.9')
-    latency_none_plaintext_both_p999 = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p99.9')
-    latency_v2_stats_nullvm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p99.9')
-    latency_v2_stats_wasm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-stats-wasm_both', 'p99.9')
-    latency_v2_sd_nologging_nullvm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99.9')
-    latency_v2_sd_full_nullvm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p99.9')
+    latency_none_mtls_base_p999 = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p999')
+    latency_none_mtls_both_p999 = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p999')
+    latency_none_plaintext_both_p999 = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p999')
+    latency_v2_stats_nullvm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-stats-nullvm_both', 'p999')
+    latency_v2_stats_wasm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-stats-wasm_both', 'p999')
+    latency_v2_sd_nologging_nullvm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p999')
+    latency_v2_sd_full_nullvm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p999')
 
     context = {'latency_none_mtls_base_p50': latency_none_mtls_base_p50,
                'latency_none_mtls_both_p50': latency_none_mtls_both_p50,
@@ -717,13 +717,13 @@ def get_lantency_vs_qps_context(df):
     latency_v2_sd_nologging_nullvm_both_p99 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
     latency_v2_sd_full_nullvm_both_p99 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
 
-    latency_none_mtls_base_p999 = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p99.9')
-    latency_none_mtls_both_p999 = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p99.9')
-    latency_none_plaintext_both_p999 = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p99.9')
-    latency_v2_stats_nullvm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p99.9')
-    latency_v2_stats_wasm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p99.9')
-    latency_v2_sd_nologging_nullvm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99.9')
-    latency_v2_sd_full_nullvm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99.9')
+    latency_none_mtls_base_p999 = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p999')
+    latency_none_mtls_both_p999 = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p999')
+    latency_none_plaintext_both_p999 = get_latency_vs_qps_y_series(df, '_none_plaintext_both', 'p999')
+    latency_v2_stats_nullvm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-stats-nullvm_both', 'p999')
+    latency_v2_stats_wasm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p999')
+    latency_v2_sd_nologging_nullvm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p999')
+    latency_v2_sd_full_nullvm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p999')
 
     context = {'latency_none_mtls_base_p50': latency_none_mtls_base_p50,
                'latency_none_mtls_both_p50': latency_none_mtls_both_p50,
@@ -965,7 +965,7 @@ def get_data_helper(df, query_list, query_str, telemetry_mode, metric_name):
                     y_series_data.append('null')
                 else:
                     if metric_name in ['cpu', 'mem']:
-                        y_series_data.append(data[metric_name].head(1).values[0])
+                        y_series_data.append(round(data[metric_name].head(1).values[0], 3))
                     else:
-                        y_series_data.append(data[metric_name].head(1).values[0] / 1000)
+                        y_series_data.append(round(data[metric_name].head(1).values[0] / 1000, 3))
     return y_series_data
