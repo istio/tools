@@ -111,7 +111,7 @@
                       <div class="form-group row">
                           <label class="col-sm-3 form-control-label">Istio Release Builds</label>
                           <div class="col-sm-12">
-                            <select name="current_release_name" class="form-control mb-3">
+                            <select name="master_release_name" class="form-control mb-3">
                             {% for release in master_release_names %}
                                 {% if release == mem_master_selected_release|last %}
                                 <option selected>{{ release }}</option>
