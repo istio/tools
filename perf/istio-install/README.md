@@ -7,7 +7,7 @@ This folder provides tools to setup a cluster with Istio for performance testing
 For load testing, the setup requires a very large cluster - at least 32 vCPUs reserved for Istio is recommended.
 The defaults values are 32vCP and at least 4 nodes.
 
-For testing stability and e2e behavior in small clusters - 4vCPU per node and 1 node with auto-scaling should work.
+For testing stability and e2e behavior in small clusters - 4vCPU per node and 1 node with autoscale enabled should work.
 
 ## GKE Cluster Setup
 
