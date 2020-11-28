@@ -14,58 +14,15 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 
 ## Setup
 
-1. Create a Kubernetes cluster. We provide a GKE cluster-create script in this repo.
-**Note**: The CPU requirement is very high, you may need to update your quota accordingly. If you are using your own cluster, see the install [README](https://github.com/istio/tools/tree/master/perf/istio-install#istio-setup) for machine type recommendations.
+1. Create a Kubernetes cluster.
 
-    ```bash
-    cd perf/istio-install/
-    export PROJECT_ID=<your-gcp-project>
-    export ISTIO_VERSION=<version>
-    export ZONE=<a-gcp-zone>
-    export GKE_VERSION=1.17.9-gke.xx  (note: since from Istio 1.8, the required minimum GKE_VERSION is 1.17)
-    export CLUSTER_NAME=<any-name>
-    ./create_cluster.sh $CLUSTER_NAME
-    ```
+   We provide a GKE cluster-create script in this repo, refer to [GKE Cluster Setup](../istio-install#gke-cluster-setup).
+
+   If you are using your own cluster, see [resource requirment]((../istio-install#resource-requirment)) for machine type recommendations.
 
 1. Install Istio
 
-    Option 1: Install Istio from the setup istio script:
-
-    ```bash
-    export ISTIO_RELEASE=release-1.2-latest  # or any Istio release
-    export DNS_DOMAIN=local
-    ./setup_istio.sh $ISTIO_RELEASE
-    ```
-
-   From Istio 1.4 later on, you should setup istio using the following commands:
-
-   ```bash
-   export ISTIO_RELEASE=1.4-alpha.0ef2cd46e2da64b9252c36ca4bf90aa474b73610
-   export DNS_DOMAIN=local
-   ./setup_istio_release.sh $ISTIO_RELEASE dev
-   ```
-
-   Note: The latest ISTIO_RELEASE can be queried from [istio-release](https://storage.googleapis.com/istio-build/dev/latest)
-
-   Wait for all Istio pods to be `Running` and `Ready`:
-
-   ```bash
-   kubectl get pods -n istio-system
-   ```
-
-   Option 2: Install Istio from the istioctl binary:
-
-   - To enable telemetryv2 mode (which is enabled by default from Istio 1.5), run:
-
-     ```bash
-     istioctl install
-     ```
-
-   - To run test `none` mode (no filters), run:
-
-     ```bash
-     istioctl install --set values.telemetry.enabled=false
-     ```
+   See [Setup Istio](../istio-install#istio-setup).
 
 1. Deploy the workloads to measure performance against. The test environment is two [Fortio](http://fortio.org/) pods (one client, one server), set to communicate over HTTP1, using mutual TLS authentication. By default, the client pod will make HTTP requests with a 1KB payload.
 
@@ -74,7 +31,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
     export INTERCEPTION_MODE=REDIRECT
     export ISTIO_INJECT=true
     export LOAD_GEN_TYPE=nighthawk
-    cd ../benchmark
+    export DNS_DOMAIN=v104.qualistio.org
     ./setup_test.sh
     ```
 
@@ -84,13 +41,11 @@ environment variable to your desired one.
 ## Prepare Python Environment
 
 Here, `pipenv shell` will create a local Python3 virtual environment, and `pipenv install` will install all the Python
-packages needed to run the benchmarking scripts and [graph_plotter](graph_plotter) via [Pipfile](Pipfile)
+packages needed to run the benchmarking scripts and [graph_plotter](./graph_plotter) via [Pipfile](./Pipfile):
 
 ```bash
 cd perf/benchmark
 pipenv --three
-# or
-pipenv --python 3.8
 pipenv shell
 pipenv install
 ```
@@ -99,7 +54,7 @@ pipenv install
 
 The benchmarking script is located at [runner.py](./runner/runner.py). This script runs a set of [Fortio](http://fortio.org/) or [Nighthawk](https://github.com/envoyproxy/nighthawk) performance tests depending on the kind of LOAD_GEN_TYPE you set before.
 
-The different sidecar modes and telemetry configurations of performance tests are described in the [Istio performance dashboard](https://perf.dashboard.istio.io/benchmarks/configs_measurements/) site.
+The different sidecar modes and telemetry configurations of performance tests are described in the [Istio performance dashboard](https://perf.dashboard.istio.io) site.
 
 **How to run**:
 
@@ -180,7 +135,7 @@ python runner/runner.py --config_file ./configs/istio/telemetryv2_stats/latency.
 ### Example 2
 
 ```bash
-python runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseline --load_gen_type=fortio --telemetry_mode=v2-nullvm
+python runner/runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseline --load_gen_type=fortio --telemetry_mode=v2-nullvm
 ```
 
 - This will run separate tests for the `both` and `baseline` modes with fortio as the load generator and testing telemetryv2 enabled scenario
@@ -191,7 +146,7 @@ python runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseline --lo
 ### Example 3
 
 ```bash
-python runner.py --conn 16,64 --qps 1000,4000 --duration 180 --serversidecar --baseline --load_gen_type=nighthawk --telemetry_mode=none
+python runner/runner.py --conn 16,64 --qps 1000,4000 --duration 180 --serversidecar --baseline --load_gen_type=nighthawk --telemetry_mode=none
 ```
 
 - 12 tests total, each for **180** seconds, with all combinations of:

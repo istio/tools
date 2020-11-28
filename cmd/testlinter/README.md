@@ -4,7 +4,7 @@ testlinter applies different linter rules to test files according to their categ
 It is run as part of the Istio pre-submit linter check. Allowlisting allows rule breaking exceptions, and temporarily
 opt-out.
 
-testlinter is based on [Checker](../README.md), and this package provides the [custom rules](rules) implementation.
+testlinter is based on [Checker](../../pkg/checker/README.md), and this package provides the [custom rules](rules) implementation.
 
 ## End To End Tests
 

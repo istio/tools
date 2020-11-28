@@ -48,7 +48,7 @@ The monitors are configured via PrometheusRule CR managed by prometheus operator
 
 ### Dashboard
 
-The pipeline is configured to publish data to spanner table `MonitorStatus` under istio-testing project, and render on [eng.istio.io](http://eng.istio.io/releasequal). The related params of spanner table are defined in env variables of the [webhook deployment]((https://github.com/istio/tools/blob/master/perf/stability/alertmanager/templates/alertmanager-webhook.yaml))
+The pipeline is configured to publish data to spanner table `MonitorStatus` under istio-testing project, and render on [eng.istio.io](http://eng.istio.io/releasequal). The related params of spanner table are defined in env variables of the [webhook deployment]((./alertmanager/templates/alertmanager-webhook.yaml))
 
 ### Upgrade
 
@@ -95,7 +95,7 @@ If you provided any options when setting up the tests, such as `NAMESPACE` and `
 
 The Grafana dashboards are a useful tool to analyze the performance and health of the tests.
 
-In addition, the [metrics tool](/metrics/check_metrics.py) can pull metrics from Prometheus and analyze them to determine the health of each scenario. This is especially useful for some tests, where it is unclear what "good behavior" looks like just from looking at Grafana.
+In addition, the [metrics tool](../../metrics/check_metrics.py) can pull metrics from Prometheus and analyze them to determine the health of each scenario. This is especially useful for some tests, where it is unclear what "good behavior" looks like just from looking at Grafana.
 
 ## Adding Tests
 
