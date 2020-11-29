@@ -1,17 +1,16 @@
-# Data: latency
+# Data: cpu/mem
 # Config: No telemetry
-telemetry_mode: "none"
+telemetry_mode: "none_tcp"
 conn:
-    - 2
-    - 4
-    - 8
     - 16
-    - 32
-    - 64
 qps:
+    - 10
+    - 100
+    - 200
+    - 400
+    - 800
     - 1000
 duration: 240
-size: 1024
 perf_record: true
 run_bothsidecar: true
 run_serversidecar: false
