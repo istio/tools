@@ -21,6 +21,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"time"
 
 	"cloud.google.com/go/spanner"
@@ -49,6 +50,7 @@ const (
 	prometheusAddr     = "http://istio-prometheus.istio-prometheus:9090"
 	healthyStatus      = "HEALTHY"
 	alertingStatus     = "ALERTING"
+	pendingStatus      = "PENDING"
 	defaultMSTableName = "MonitorStatus"
 	defaultTMTableName = "ReleaseQualTestMetadata"
 )
@@ -133,6 +135,12 @@ func writeTestInfoToDB() error {
 	return err
 }
 
+type alertList []*v1.Alert
+
+func (a alertList) Len() int           { return len(a) }
+func (a alertList) Less(i, j int) bool { return a[i].ActiveAt.After(a[j].ActiveAt) }
+func (a alertList) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
 // queryMonitorStatus is a helper function to query prometheus API for alert status.
 func queryMonitorStatus() []SingleMonitorStatus {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -152,8 +160,15 @@ func queryMonitorStatus() []SingleMonitorStatus {
 				fmt.Printf("checking rule: %s\n", v.Name)
 				status := healthyStatus
 				if len(v.Alerts) != 0 {
-					status = alertingStatus
+					sort.Sort(alertList(v.Alerts))
+					fmt.Printf("latest alert from the rule: %v", v.Alerts[0])
+					if v.Alerts[0].State == v1.AlertStateFiring {
+						status = alertingStatus
+					} else if v.Alerts[0].State == v1.AlertStatePending {
+						status = pendingStatus
+					}
 				}
+
 				des := v.Annotations["description"]
 				monitorList = append(monitorList, SingleMonitorStatus{
 					Annotations: v.Annotations.String(),
@@ -222,6 +237,7 @@ func writeMonitorStatusToDB(ms []SingleMonitorStatus, init bool) error {
 			}
 
 			var firedTimes int64
+			var lft time.Time
 			if !init {
 				row, err := txn.ReadRow(ctx, mstableName, spanner.Key{testID, sms.Name}, []string{"firedTimes"})
 				if err != nil {
@@ -229,6 +245,16 @@ func writeMonitorStatusToDB(ms []SingleMonitorStatus, init bool) error {
 				}
 				if err := row.Column(0, &firedTimes); err != nil {
 					return err
+				}
+				lf, err := txn.ReadRow(ctx, mstableName, spanner.Key{testID, sms.Name}, []string{"lastFiredTime"})
+				if err != nil {
+					return err
+				}
+				if err := lf.Column(0, &lft); err != nil {
+					return err
+				}
+				if !lft.IsZero() {
+					lastFiredTime = lft
 				}
 				if sms.Status == alertingStatus {
 					firedTimes++
