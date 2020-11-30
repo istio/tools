@@ -35,7 +35,6 @@ export SOURCE_TAG=${SOURCE_TAG:-"1.8_latest"}
 export TARGET_TAG=${TARGET_TAG:-"master"}
 export SOURCE_RELEASE_PATH=${SOURCE_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
 export TARGET_RELEASE_PATH=${TAGET_RELEASE_PATH:-"https://storage.googleapis.com/istio-build/dev"}
-export INSTALL_OPTIONS=${INSTALL_OPTIONS:-"istioctl"}
 export FROM_PATH=${FROM_PATH:-"$(mktemp -d from_dir.XXXXXX)"}
 export TO_PATH=${TO_PATH:-"$(mktemp -d to_dir.XXXXXX)"}
 export SOURCE_LINUX_TAR_SUFFIX=${SOURCE_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
@@ -133,17 +132,21 @@ fi
 # Install fortio which is needed by the upgrade and downgrade test.
 go get fortio.org/fortio
 
-# Kick off tests
+# Pick the test file based on scenario
 if [[ "${TEST_SCENARIO}" == *"dual-control-plane"* ]]; then
-  "${WD}/test_dual_control_plane_upgrade_downgrade.sh" \
-    --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" \
-    --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" \
-    --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
-    --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
-    --cloud="GKE"
+  TEST_FILE="${WD}/test_dual_control_plane_upgrade_downgrade.sh"
+elif [[ "${TEST_SCENARIO}" == *"boutique"* ]]; then
+  TEST_FILE="${WD}/test_dual_control_plane_upgrade_downgrade_boutique.sh"
 else
-  "${WD}/test_upgrade_downgrade.sh" \
-    --from_hub="${SOURCE_HUB}" --from_tag="${SOURCE_TAG}" --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
-    --to_hub="${TARGET_HUB}" --to_tag="${TARGET_TAG}" --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
-    --install_options="${INSTALL_OPTIONS}" --cloud="GKE"
+  TEST_FILE="${WD}/test_upgrade_downgrade.sh"
 fi
+
+# Kick off tests
+"${TEST_FILE}" \
+  --from_hub="${SOURCE_HUB}" \
+  --from_tag="${SOURCE_TAG}" \
+  --to_hub="${TARGET_HUB}" \
+  --to_tag="${TARGET_TAG}" \
+  --from_path="${FROM_PATH}/istio-${SOURCE_TAG}" \
+  --to_path="${TO_PATH}/istio-${TARGET_TAG}" \
+  --cloud="GKE"

@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -x
 set -o pipefail
 
 WD=$(dirname "$0")
@@ -26,8 +27,6 @@ MAX_503_PCT_FOR_PASS="5"
 # Maximum % of connection refused that cannot exceed
 # Set it to high value so it fails for explicit sidecar issues
 MAX_CONNECTION_ERR_FOR_PASS="30"
-SERVICE_UNAVAILABLE_CODE="503"
-CONNECTION_ERROR_CODE="-1"
 
 while (( "$#" )); do
   PARAM=$(echo "${1}" | awk -F= '{print $1}')
@@ -81,6 +80,8 @@ fi
 
 # shellcheck disable=SC1090
 source "${ROOT}/upgrade_downgrade/common.sh"
+# shellcheck disable=SC1090
+source "${ROOT}/upgrade_downgrade/fortio_utils.sh"
 
 # Check if istioctl is present in both "from" and "to" versions
 FROM_ISTIOCTL="${FROM_PATH}/bin/istioctl"
@@ -106,113 +107,52 @@ if [[ "${CLOUD}" == "GKE" ]];then
 fi
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="${user}" || echo "clusterrolebinding already created."
 
-
-writeMsg "Reset cluster"
+write_msg "Reset cluster"
 copy_test_files
-resetCluster "${TO_ISTIOCTL}"
+reset_cluster "${TO_ISTIOCTL}"
 
-writeMsg "Deploy Istio(minimal) ${FROM_TAG}"
+write_msg "Deploy Istio(minimal) ${FROM_TAG}"
 ${FROM_ISTIOCTL} install -y --set profile=minimal
-waitForPodsReady "${ISTIO_NAMESPACE}"
+kubectl wait --for=condition=ready --timeout=10m pod --all -n "${ISTIO_NAMESPACE}"
 
-writeMsg "Deploy Echo v1 and v2"
+write_msg "Deploy Echo v1 and v2"
 kubectl apply -f "${TMP_DIR}/fortio.yaml" -n "${TEST_NAMESPACE}"
-waitForPodsReady "${TEST_NAMESPACE}"
+kubectl wait --for=condition=ready --timeout=10m pod --all -n "${TEST_NAMESPACE}"
 
-writeMsg "Generate internal traffic for echo v1 and v2"
+write_msg "Generate internal traffic for echo v1 and v2"
 kubectl apply -f "${TMP_DIR}/fortio-cli.yaml" -n "${TEST_NAMESPACE}"
 
 # Install Istio 1.8 minimal profile with canary revision
-writeMsg "Deploy Istio(minimal) ${TO_TAG}"
+write_msg "Deploy Istio(minimal) ${TO_TAG}"
 ${TO_ISTIOCTL} install -y --set profile=minimal --set revision="${TO_REVISION}"
 kubectl wait --all --for=condition=Ready pods -n istio-system --timeout=5m
 
 # Relabel namespace before restarting each service
-writeMsg "Relabel namespace to inject ${TO_TAG} proxy"
+write_msg "Relabel namespace to inject ${TO_TAG} proxy"
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- istio.io/rev="${TO_REVISION}"
 
-function verifyIstiod() {
-  local ns="$1"
-  local app="$2"
-  local version="$3"
-  local istioctl_path="$4"
-  local expected="$5"
-
-  local mismatch=0
-
-  for pod in $(kubectl get pod -lapp="$app" -lversion="$version" -n "$ns" -o name); do
-    local istiod
-    local podname
-    podname=$(echo "$pod" | cut -d'/' -f2)
-    istiod=$(${istioctl_path} proxy-config bootstrap "$podname.$ns" | jq -r '.bootstrap.node.metadata.PROXY_CONFIG.discoveryAddress')
-    if [[ "$istiod" != *"$expected"* ]]; then
-      # Try once more. Peek into to pod spec and check
-      # if discovery address is set correctly. This is
-      # because of an error in 1.7 -> 1.8 test
-      line_count=$(kubectl get pod "$podname" -n "$ns" -o json | grep -c "discoveryAddress.*$expected")
-      if ((line_count == 0)); then
-        mismatch=$(( mismatch+1 ))
-      fi
-    fi
-  done
-
-  if ((mismatch == 0)); then
-    return 0
-  fi
-  return 1
-}
-
-restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
-withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
-  "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
-withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
-  "${TO_ISTIOCTL}" "istiod.istio-system.svc"
+restart_data_plane echosrv-deployment-v1 "${TEST_NAMESPACE}"
 
 if [[ "${TEST_SCENARIO}" == "dual-control-plane-upgrade" ]]; then
-  restartDataPlane echosrv-deployment-v2 "${TEST_NAMESPACE}"
-  withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v2" "v2" \
-    "${TO_ISTIOCTL}" "istiod-${TO_REVISION}.istio-system.svc"
-  writeMsg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
-  
-  # This test is for istio >= 1.6. So only 1.6 needs special handling
-  # else clause handles istio >= 1.7 which supports uninstall command
-  # (although still experimental)
-  PROFILE_MANIFEST_YAML="${FROM_PATH}/manifests/profiles/minimal.yaml"
-  if [[ "${FROM_ISTIOCTL}" == *"1.6"* ]]; then
-    ${FROM_ISTIOCTL} manifest generate -f "${PROFILE_MANIFEST_YAML}" | kubectl delete -f -
-  else
-    ${FROM_ISTIOCTL} experimental uninstall -f "${PROFILE_MANIFEST_YAML}" -y --force
-  fi
+  restart_data_plane echosrv-deployment-v2 "${TEST_NAMESPACE}"
+  write_msg "UPGRADE: Uninstall old version of control plane (${FROM_TAG})"
+  PROFILE_YAML="${FROM_PATH}/manifests/profiles/minimal.yaml"
+  uninstall_istio "${FROM_ISTIOCTL}" "${PROFILE_YAML}"
 
 elif [[ "${TEST_SCENARIO}" == "dual-control-plane-rollback" ]]; then
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev- istio-injection=enabled
-  restartDataPlane echosrv-deployment-v1 "${TEST_NAMESPACE}"
-  withRetries 5 20 verifyIstiod "${TEST_NAMESPACE}" "echosrv-deployment-v1" "v1" \
-    "${TO_ISTIOCTL}" "istiod.istio-system.svc"
-  writeMsg "ROLLBACK: Uninstall new version of control plane (${TO_TAG})"
-  ${TO_ISTIOCTL} experimental uninstall --revision "${TO_REVISION}" -y
+  restart_data_plane echosrv-deployment-v1 "${TEST_NAMESPACE}"
+  write_msg "ROLLBACK: Uninstall new version of control plane (${TO_TAG})"
+  uninstall_istio "${TO_ISTIOCTL}" "" "${TO_REVISION}"
 fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
-waitForJob cli-fortio "${TEST_NAMESPACE}"
+kubectl wait --for=condition=complete --timeout=30m job/cli-fortio -n "${TEST_NAMESPACE}"
 
-writeMsg "Verify results"
+write_msg "Verify results"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
-pod_log_str=$(grep "Code 200"  "${POD_FORTIO_LOG}")
-
-cat ${POD_FORTIO_LOG}
-
-if [[ ${pod_log_str} != *"Code 200"* ]];then
-  echo "=== No Code 200 found in internal traffic log ==="
+if ! analyze_fortio_logs "${POD_FORTIO_LOG}" "${MAX_503_PCT_FOR_PASS}" "${MAX_CONNECTION_ERR_FOR_PASS}"; then
   failed=true
-elif ! errorPercentBelow "${POD_FORTIO_LOG}" "${SERVICE_UNAVAILABLE_CODE}" ${MAX_503_PCT_FOR_PASS}; then
-  echo "=== Code 503 Errors found in internal traffic exceeded ${MAX_503_PCT_FOR_PASS}% threshold ==="
-  failed=true
-elif ! errorPercentBelow "${POD_FORTIO_LOG}" "${CONNECTION_ERROR_CODE}" ${MAX_CONNECTION_ERR_FOR_PASS}; then
-  echo "=== Connection Errors found in internal traffic exceeded ${MAX_CONNECTION_ERR_FOR_PASS}% threshold ==="
-  failed=true
-else
-  echo "=== Errors found in internal traffic is within threshold ==="
 fi
 
 if [[ -n "${failed}" ]]; then
