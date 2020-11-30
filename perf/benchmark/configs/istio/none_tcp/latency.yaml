@@ -1,6 +1,6 @@
 # Data: latency
 # Config: No telemetry
-telemetry_mode: "none"
+telemetry_mode: "none_tcp"
 conn:
     - 2
     - 4
@@ -21,4 +21,3 @@ run_baseline: true
 extra_labels: "mtls"
 
 jitter: true
-protocol_mode: tcp
