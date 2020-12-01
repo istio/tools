@@ -22,7 +22,7 @@ function cmp_float_le() {
   if [[ -z "${x}" || -z "${y}" ]]; then
     return 1
   fi
-  if res=$(python -c "print($x <= $y)"); then
+  if res=$(python3 -c "print($x <= $y)"); then
     if [[ "${res}" == *False* ]]; then
       return 1
     fi
