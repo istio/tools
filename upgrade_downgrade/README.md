@@ -110,6 +110,6 @@ instead of echo. This is intended to test with complex setup
 
 ## Run the upgrade or downgrade test
 
-    ```bash
-    ./run_upgrade_downgrade_test.sh
-    ```
+```bash
+./run_upgrade_downgrade_test.sh
+```
