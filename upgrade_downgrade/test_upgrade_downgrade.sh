@@ -174,14 +174,13 @@ function install_test() {
 }
 
 # Sends traffic from internal pod (Fortio load command) to Fortio echosrv.
-# Since this may block for some time due to restarts, it should be run in the background. Use wait_for_job to check for
-# completion.
+# Since this may block for some time due to restarts, it should be run in the background.
 function _send_internal_request_traffic() {
   local job_name=cli-fortio
   delete_with_wait job "${job_name}" "${TEST_NAMESPACE}"
   start_time=${SECONDS}
   with_retries 10 60 kubectl apply -n "${TEST_NAMESPACE}" -f "${TMP_DIR}/fortio-cli.yaml"
-  wait_for_job "${job_name}" "${TEST_NAMESPACE}"
+  kubectl wait --for=condition=complete --timeout=30m "${job_name}" -n "${TEST_NAMESPACE}"
   # Any timeouts typically occur in the first 20s
   if (( SECONDS - start_time < 100 )); then
     echo "${job_name} failed"
