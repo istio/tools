@@ -15,8 +15,9 @@
 # limitations under the License.
 
 echo "Delete the plaintext related config..."
-kubectl delete policy -n"${NAMESPACE}" default
+kubectl delete peerauthentication.security.istio.io -n"${NAMESPACE}" default
 kubectl delete DestinationRule -n"${NAMESPACE}" plaintext-dr-twopods
 echo "Restoring original Authn Policy and DestinationRule config..."
-kubectl apply -f "${LOCAL_OUTPUT_DIR}/authn-policy.yaml"
-kubectl apply -f "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
+
+[[ -s "${LOCAL_OUTPUT_DIR}/authn-policy.yaml" ]] && kubectl apply -f "${LOCAL_OUTPUT_DIR}/authn-policy.yaml"
+[[ -s "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml" ]] && kubectl apply -f "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
