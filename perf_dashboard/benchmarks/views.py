@@ -29,11 +29,13 @@ cpu_cur_selected_release = []
 cpu_master_selected_release = []
 cpu_client_metric_name = 'cpu_mili_avg_istio_proxy_fortioclient'
 cpu_server_metric_name = 'cpu_mili_avg_istio_proxy_fortioserver'
+cpu_ingressgw_metric_name = 'cpu_mili_avg_istio_proxy_istio-ingressgateway'
 
 mem_cur_selected_release = []
 mem_master_selected_release = []
 mem_client_metric_name = 'mem_Mi_avg_istio_proxy_fortioclient'
 mem_server_metric_name = 'mem_Mi_avg_istio_proxy_fortioserver'
+mem_ingressgw_metric_name = 'mem_Mi_avg_istio_proxy_istio-ingressgateway'
 
 conn_query_list = [2, 4, 8, 16, 32, 64]
 conn_query_str = 'ActualQPS == 1000 and NumThreads == @ql and Labels.str.endswith(@telemetry_mode)'
@@ -346,6 +348,14 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
         cpu_server_v2_sd_nologging_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
         cpu_server_v2_sd_full_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
 
+        cpu_ingressgw_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_ingressgw_metric_name)
+        cpu_ingressgw_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_none_plaintext_both_master = get_cpu_vs_qps_y_series(df, '_none_plaintext_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_v2_stats_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-stats-nullvm_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_v2_stats_wasm_both_master = get_cpu_vs_qps_y_series(df, '_v2-stats-wasm_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_v2_sd_nologging_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_v2_sd_full_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_ingressgw_metric_name)
+
         other_context = {'current_release': current_release,
                          'cpu_cur_selected_release': cpu_cur_selected_release,
                          'cpu_master_selected_release': cpu_master_selected_release,
@@ -367,6 +377,13 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
                           'cpu_server_v2_stats_wasm_both_master': cpu_server_v2_stats_wasm_both_master,
                           'cpu_server_v2_sd_nologging_nullvm_both_master': cpu_server_v2_sd_nologging_nullvm_both_master,
                           'cpu_server_v2_sd_full_nullvm_both_master': cpu_server_v2_sd_full_nullvm_both_master,
+                          'cpu_ingressgw_none_mtls_base_master': cpu_ingressgw_none_mtls_base_master,
+                          'cpu_ingressgw_none_mtls_both_master': cpu_ingressgw_none_mtls_both_master,
+                          'cpu_ingressgw_none_plaintext_both_master': cpu_ingressgw_none_plaintext_both_master,
+                          'cpu_ingressgw_v2_stats_nullvm_both_master': cpu_ingressgw_v2_stats_nullvm_both_master,
+                          'cpu_ingressgw_v2_stats_wasm_both_master': cpu_ingressgw_v2_stats_wasm_both_master,
+                          'cpu_ingressgw_v2_sd_nologging_nullvm_both_master': cpu_ingressgw_v2_sd_nologging_nullvm_both_master,
+                          'cpu_ingressgw_v2_sd_full_nullvm_both_master': cpu_ingressgw_v2_sd_full_nullvm_both_master,
                           }
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
         return render(request, "cpu_vs_qps.html", context=context)
@@ -430,6 +447,14 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
         cpu_server_v2_sd_nologging_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
         cpu_server_v2_sd_full_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
 
+        cpu_ingressgw_none_mtls_base_master = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_ingressgw_metric_name)
+        cpu_ingressgw_none_mtls_both_master = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_none_plaintext_both_master = get_cpu_vs_conn_y_series(df, '_none_plaintext_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_v2_stats_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-stats-nullvm_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_v2_stats_wasm_both_master = get_cpu_vs_conn_y_series(df, '_v2-stats-wasm_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_v2_sd_nologging_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_ingressgw_metric_name)
+        cpu_ingressgw_v2_sd_full_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_ingressgw_metric_name)
+
         other_context = {'current_release': current_release,
                          'cpu_cur_selected_release': cpu_cur_selected_release,
                          'cpu_master_selected_release': cpu_master_selected_release,
@@ -451,9 +476,17 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
                           'cpu_server_v2_stats_wasm_both_master': cpu_server_v2_stats_wasm_both_master,
                           'cpu_server_v2_sd_nologging_nullvm_both_master': cpu_server_v2_sd_nologging_nullvm_both_master,
                           'cpu_server_v2_sd_full_nullvm_both_master': cpu_server_v2_sd_full_nullvm_both_master,
+                          'cpu_ingressgw_none_mtls_base_master': cpu_ingressgw_none_mtls_base_master,
+                          'cpu_ingressgw_none_mtls_both_master': cpu_ingressgw_none_mtls_both_master,
+                          'cpu_ingressgw_none_plaintext_both_master': cpu_ingressgw_none_plaintext_both_master,
+                          'cpu_ingressgw_v2_stats_nullvm_both_master': cpu_ingressgw_v2_stats_nullvm_both_master,
+                          'cpu_ingressgw_v2_stats_wasm_both_master': cpu_ingressgw_v2_stats_wasm_both_master,
+                          'cpu_ingressgw_v2_sd_nologging_nullvm_both_master': cpu_ingressgw_v2_sd_nologging_nullvm_both_master,
+                          'cpu_ingressgw_v2_sd_full_nullvm_both_master': cpu_ingressgw_v2_sd_full_nullvm_both_master,
                           }
 
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
+        print(context)
         return render(request, "cpu_vs_conn.html", context=context)
 
 
@@ -515,6 +548,14 @@ def mem_vs_qps(request, uploaded_csv_url=None):
         mem_server_v2_sd_nologging_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_server_metric_name)
         mem_server_v2_sd_full_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_server_metric_name)
 
+        mem_ingressgw_none_mtls_base_master = get_mem_vs_qps_y_series(df, '_none_mtls_baseline', mem_ingressgw_metric_name)
+        mem_ingressgw_none_mtls_both_master = get_mem_vs_qps_y_series(df, '_none_mtls_both', mem_ingressgw_metric_name)
+        mem_ingressgw_none_plaintext_both_master = get_mem_vs_qps_y_series(df, '_none_plaintext_both', mem_ingressgw_metric_name)
+        mem_ingressgw_v2_stats_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-stats-nullvm_both', mem_ingressgw_metric_name)
+        mem_ingressgw_v2_stats_wasm_both_master = get_mem_vs_qps_y_series(df, '_v2-stats-wasm_both', mem_ingressgw_metric_name)
+        mem_ingressgw_v2_sd_nologging_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_ingressgw_metric_name)
+        mem_ingressgw_v2_sd_full_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_ingressgw_metric_name)
+
         other_context = {'current_release': current_release,
                          'mem_cur_selected_release': mem_cur_selected_release,
                          'mem_master_selected_release': mem_master_selected_release,
@@ -536,6 +577,13 @@ def mem_vs_qps(request, uploaded_csv_url=None):
                           'mem_server_v2_stats_wasm_both_master': mem_server_v2_stats_wasm_both_master,
                           'mem_server_v2_sd_nologging_nullvm_both_master': mem_server_v2_sd_nologging_nullvm_both_master,
                           'mem_server_v2_sd_full_nullvm_both_master': mem_server_v2_sd_full_nullvm_both_master,
+                          'mem_ingressgw_none_mtls_base_master': mem_ingressgw_none_mtls_base_master,
+                          'mem_ingressgw_none_mtls_both_master': mem_ingressgw_none_mtls_both_master,
+                          'mem_ingressgw_none_plaintext_both_master': mem_ingressgw_none_plaintext_both_master,
+                          'mem_ingressgw_v2_stats_nullvm_both_master': mem_ingressgw_v2_stats_nullvm_both_master,
+                          'mem_ingressgw_v2_stats_wasm_both_master': mem_ingressgw_v2_stats_wasm_both_master,
+                          'mem_ingressgw_v2_sd_nologging_nullvm_both_master': mem_ingressgw_v2_sd_nologging_nullvm_both_master,
+                          'mem_ingressgw_v2_sd_full_nullvm_both_master': mem_ingressgw_v2_sd_full_nullvm_both_master,
                           }
 
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
@@ -600,6 +648,14 @@ def mem_vs_conn(request, uploaded_csv_url=None):
         mem_server_v2_sd_nologging_nullvm_both_master = get_mem_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', mem_server_metric_name)
         mem_server_v2_sd_full_nullvm_both_master = get_mem_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', mem_server_metric_name)
 
+        mem_ingressgw_none_mtls_base_master = get_mem_vs_qps_y_series(df, '_none_mtls_baseline', mem_ingressgw_metric_name)
+        mem_ingressgw_none_mtls_both_master = get_mem_vs_qps_y_series(df, '_none_mtls_both', mem_ingressgw_metric_name)
+        mem_ingressgw_none_plaintext_both_master = get_mem_vs_qps_y_series(df, '_none_plaintext_both', mem_ingressgw_metric_name)
+        mem_ingressgw_v2_stats_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-stats-nullvm_both', mem_ingressgw_metric_name)
+        mem_ingressgw_v2_stats_wasm_both_master = get_mem_vs_qps_y_series(df, '_v2-stats-wasm_both', mem_ingressgw_metric_name)
+        mem_ingressgw_v2_sd_nologging_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_ingressgw_metric_name)
+        mem_ingressgw_v2_sd_full_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_ingressgw_metric_name)
+
         other_context = {'current_release': current_release,
                          'mem_cur_selected_release': mem_cur_selected_release,
                          'mem_master_selected_release': mem_master_selected_release,
@@ -621,6 +677,13 @@ def mem_vs_conn(request, uploaded_csv_url=None):
                           'mem_server_v2_stats_wasm_both_master': mem_server_v2_stats_wasm_both_master,
                           'mem_server_v2_sd_nologging_nullvm_both_master': mem_server_v2_sd_nologging_nullvm_both_master,
                           'mem_server_v2_sd_full_nullvm_both_master': mem_server_v2_sd_full_nullvm_both_master,
+                          'mem_ingressgw_none_mtls_base_master': mem_ingressgw_none_mtls_base_master,
+                          'mem_ingressgw_none_mtls_both_master': mem_ingressgw_none_mtls_both_master,
+                          'mem_ingressgw_none_plaintext_both_master': mem_ingressgw_none_plaintext_both_master,
+                          'mem_ingressgw_v2_stats_nullvm_both_master': mem_ingressgw_v2_stats_nullvm_both_master,
+                          'mem_ingressgw_v2_stats_wasm_both_master': mem_ingressgw_v2_stats_wasm_both_master,
+                          'mem_ingressgw_v2_sd_nologging_nullvm_both_master': mem_ingressgw_v2_sd_nologging_nullvm_both_master,
+                          'mem_ingressgw_v2_sd_full_nullvm_both_master': mem_ingressgw_v2_sd_full_nullvm_both_master,
                           }
 
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
@@ -774,6 +837,14 @@ def get_cpu_vs_qps_context(df):
     cpu_server_v2_sd_nologging_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
     cpu_server_v2_sd_full_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
 
+    cpu_ingressgw_none_mtls_base = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_ingressgw_metric_name)
+    cpu_ingressgw_none_mtls_both = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_none_plaintext_both = get_cpu_vs_qps_y_series(df, '_none_plaintext_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_v2_stats_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-stats-nullvm_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_v2_stats_wasm_both = get_cpu_vs_qps_y_series(df, '_v2-stats-wasm_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_v2_sd_nologging_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_v2_sd_full_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_ingressgw_metric_name)
+
     context = {'cpu_client_none_mtls_base': cpu_client_none_mtls_base,
                'cpu_client_none_mtls_both': cpu_client_none_mtls_both,
                'cpu_client_none_plaintext_both': cpu_client_none_plaintext_both,
@@ -788,6 +859,13 @@ def get_cpu_vs_qps_context(df):
                'cpu_server_v2_stats_wasm_both': cpu_server_v2_stats_wasm_both,
                'cpu_server_v2_sd_nologging_nullvm_both': cpu_server_v2_sd_nologging_nullvm_both,
                'cpu_server_v2_sd_full_nullvm_both': cpu_server_v2_sd_full_nullvm_both,
+               'cpu_ingressgw_none_mtls_base': cpu_ingressgw_none_mtls_base,
+               'cpu_ingressgw_none_mtls_both': cpu_ingressgw_none_mtls_both,
+               'cpu_ingressgw_none_plaintext_both': cpu_ingressgw_none_plaintext_both,
+               'cpu_ingressgw_v2_stats_nullvm_both': cpu_ingressgw_v2_stats_nullvm_both,
+               'cpu_ingressgw_v2_stats_wasm_both': cpu_ingressgw_v2_stats_wasm_both,
+               'cpu_ingressgw_v2_sd_nologging_nullvm_both': cpu_ingressgw_v2_sd_nologging_nullvm_both,
+               'cpu_ingressgw_v2_sd_full_nullvm_both': cpu_ingressgw_v2_sd_full_nullvm_both,
                }
     return context
 
@@ -809,6 +887,14 @@ def get_cpu_vs_conn_context(df):
     cpu_server_v2_sd_nologging_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
     cpu_server_v2_sd_full_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
 
+    cpu_ingressgw_none_mtls_base = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_ingressgw_metric_name)
+    cpu_ingressgw_none_mtls_both = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_none_plaintext_both = get_cpu_vs_conn_y_series(df, '_none_plaintext_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_v2_stats_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-stats-nullvm_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_v2_stats_wasm_both = get_cpu_vs_conn_y_series(df, '_v2-stats-wasm_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_v2_sd_nologging_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_ingressgw_metric_name)
+    cpu_ingressgw_v2_sd_full_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_ingressgw_metric_name)
+
     context = {'cpu_client_none_mtls_base': cpu_client_none_mtls_base,
                'cpu_client_none_mtls_both': cpu_client_none_mtls_both,
                'cpu_client_none_plaintext_both': cpu_client_none_plaintext_both,
@@ -823,6 +909,13 @@ def get_cpu_vs_conn_context(df):
                'cpu_server_v2_stats_wasm_both': cpu_server_v2_stats_wasm_both,
                'cpu_server_v2_sd_nologging_nullvm_both': cpu_server_v2_sd_nologging_nullvm_both,
                'cpu_server_v2_sd_full_nullvm_both': cpu_server_v2_sd_full_nullvm_both,
+               'cpu_ingressgw_none_mtls_base': cpu_ingressgw_none_mtls_base,
+               'cpu_ingressgw_none_mtls_both': cpu_ingressgw_none_mtls_both,
+               'cpu_ingressgw_none_plaintext_both': cpu_ingressgw_none_plaintext_both,
+               'cpu_ingressgw_v2_stats_nullvm_both': cpu_ingressgw_v2_stats_nullvm_both,
+               'cpu_ingressgw_v2_stats_wasm_both': cpu_ingressgw_v2_stats_wasm_both,
+               'cpu_ingressgw_v2_sd_nologging_nullvm_both': cpu_ingressgw_v2_sd_nologging_nullvm_both,
+               'cpu_ingressgw_v2_sd_full_nullvm_both': cpu_ingressgw_v2_sd_full_nullvm_both,
                }
     return context
 
@@ -844,6 +937,14 @@ def get_mem_vs_qps_context(df):
     mem_server_v2_sd_nologging_nullvm_both = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_server_metric_name)
     mem_server_v2_sd_full_nullvm_both = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_server_metric_name)
 
+    mem_ingressgw_none_mtls_base = get_mem_vs_qps_y_series(df, '_none_mtls_baseline', mem_ingressgw_metric_name)
+    mem_ingressgw_none_mtls_both = get_mem_vs_qps_y_series(df, '_none_mtls_both', mem_ingressgw_metric_name)
+    mem_ingressgw_none_plaintext_both = get_mem_vs_qps_y_series(df, '_none_plaintext_both', mem_ingressgw_metric_name)
+    mem_ingressgw_v2_stats_nullvm_both = get_mem_vs_qps_y_series(df, '_v2-stats-nullvm_both', mem_ingressgw_metric_name)
+    mem_ingressgw_v2_stats_wasm_both = get_mem_vs_qps_y_series(df, '_v2-stats-wasm_both', mem_ingressgw_metric_name)
+    mem_ingressgw_v2_sd_nologging_nullvm_both = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_ingressgw_metric_name)
+    mem_ingressgw_v2_sd_full_nullvm_both = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_ingressgw_metric_name)
+
     context = {'mem_client_none_mtls_base': mem_client_none_mtls_base,
                'mem_client_none_mtls_both': mem_client_none_mtls_both,
                'mem_client_none_plaintext_both': mem_client_none_plaintext_both,
@@ -858,6 +959,13 @@ def get_mem_vs_qps_context(df):
                'mem_server_v2_stats_wasm_both': mem_server_v2_stats_wasm_both,
                'mem_server_v2_sd_nologging_nullvm_both': mem_server_v2_sd_nologging_nullvm_both,
                'mem_server_v2_sd_full_nullvm_both': mem_server_v2_sd_full_nullvm_both,
+               'mem_ingressgw_none_mtls_base': mem_ingressgw_none_mtls_base,
+               'mem_ingressgw_none_mtls_both': mem_ingressgw_none_mtls_both,
+               'mem_ingressgw_none_plaintext_both': mem_ingressgw_none_plaintext_both,
+               'mem_ingressgw_v2_stats_nullvm_both': mem_ingressgw_v2_stats_nullvm_both,
+               'mem_ingressgw_v2_stats_wasm_both': mem_ingressgw_v2_stats_wasm_both,
+               'mem_ingressgw_v2_sd_nologging_nullvm_both': mem_ingressgw_v2_sd_nologging_nullvm_both,
+               'mem_ingressgw_v2_sd_full_nullvm_both': mem_ingressgw_v2_sd_full_nullvm_both,
                }
     return context
 
@@ -879,6 +987,14 @@ def get_mem_vs_conn_context(df):
     mem_server_v2_sd_nologging_nullvm_both = get_mem_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', mem_server_metric_name)
     mem_server_v2_sd_full_nullvm_both = get_mem_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', mem_server_metric_name)
 
+    mem_ingressgw_none_mtls_base = get_mem_vs_conn_y_series(df, '_none_mtls_baseline', mem_ingressgw_metric_name)
+    mem_ingressgw_none_mtls_both = get_mem_vs_conn_y_series(df, '_none_mtls_both', mem_ingressgw_metric_name)
+    mem_ingressgw_none_plaintext_both = get_mem_vs_conn_y_series(df, '_none_plaintext_both', mem_ingressgw_metric_name)
+    mem_ingressgw_v2_stats_nullvm_both = get_mem_vs_conn_y_series(df, '_v2-stats-nullvm_both', mem_ingressgw_metric_name)
+    mem_ingressgw_v2_stats_wasm_both = get_mem_vs_conn_y_series(df, '_v2-stats-wasm_both', mem_ingressgw_metric_name)
+    mem_ingressgw_v2_sd_nologging_nullvm_both = get_mem_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', mem_ingressgw_metric_name)
+    mem_ingressgw_v2_sd_full_nullvm_both = get_mem_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', mem_ingressgw_metric_name)
+
     context = {'mem_client_none_mtls_base': mem_client_none_mtls_base,
                'mem_client_none_mtls_both': mem_client_none_mtls_both,
                'mem_client_none_plaintext_both': mem_client_none_plaintext_both,
@@ -893,6 +1009,13 @@ def get_mem_vs_conn_context(df):
                'mem_server_v2_stats_wasm_both': mem_server_v2_stats_wasm_both,
                'mem_server_v2_sd_nologging_nullvm_both': mem_server_v2_sd_nologging_nullvm_both,
                'mem_server_v2_sd_full_nullvm_both': mem_server_v2_sd_full_nullvm_both,
+               'mem_ingressgw_none_mtls_base': mem_ingressgw_none_mtls_base,
+               'mem_ingressgw_none_mtls_both': mem_ingressgw_none_mtls_both,
+               'mem_ingressgw_none_plaintext_both': mem_ingressgw_none_plaintext_both,
+               'mem_ingressgw_v2_stats_nullvm_both': mem_ingressgw_v2_stats_nullvm_both,
+               'mem_ingressgw_v2_stats_wasm_both': mem_ingressgw_v2_stats_wasm_both,
+               'mem_ingressgw_v2_sd_nologging_nullvm_both': mem_ingressgw_v2_sd_nologging_nullvm_both,
+               'mem_ingressgw_v2_sd_full_nullvm_both': mem_ingressgw_v2_sd_full_nullvm_both,
                }
     return context
 
