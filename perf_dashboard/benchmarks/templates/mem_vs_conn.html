@@ -103,6 +103,18 @@
           </div>
         </div>
       </div>
+        <div class="row">
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header d-flex align-items-center">
+              <h4>Ingressgateway: {{ current_release|first }} Memory, 1000QPS over 240 seconds</h4>
+            </div>
+            <div class="card-body">
+              <canvas id="mem-ingressgw-conn-release"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="row">
         <div class="col-lg-12">
@@ -150,6 +162,19 @@
           </div>
         </div>
       </div>
+
+        <div class="row">
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header d-flex align-items-center">
+              <h4>Ingressgateway: Memory usage, 1000QPS over 240 seconds</h4>
+            </div>
+            <div class="card-body">
+              <canvas id="mem-ingressgw-conn-master"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 </section>
 {% endblock page_content %}
@@ -179,6 +204,14 @@
         mem_server_v2_sd_nologging_nullvm_both = {{ mem_server_v2_sd_nologging_nullvm_both|safe }}
         mem_server_v2_sd_full_nullvm_both = {{ mem_server_v2_sd_full_nullvm_both|safe }}
 
+        mem_ingressgw_none_mtls_base = {{ mem_ingressgw_none_mtls_base|safe }}
+        mem_ingressgw_none_mtls_both = {{ mem_ingressgw_none_mtls_both|safe }}
+        mem_ingressgw_none_plaintext_both = {{ mem_ingressgw_none_plaintext_both|safe }}
+        mem_ingressgw_v2_stats_nullvm_both = {{ mem_ingressgw_v2_stats_nullvm_both|safe }}
+        mem_ingressgw_v2_stats_wasm_both = {{ mem_ingressgw_v2_stats_wasm_both|safe }}
+        mem_ingressgw_v2_sd_nologging_nullvm_both = {{ mem_ingressgw_v2_sd_nologging_nullvm_both|safe }}
+        mem_ingressgw_v2_sd_full_nullvm_both = {{ mem_ingressgw_v2_sd_full_nullvm_both|safe }}
+
         mem_client_none_mtls_base_master = {{ mem_client_none_mtls_base_master|safe }}
         mem_client_none_mtls_both_master = {{ mem_client_none_mtls_both_master|safe }}
         mem_client_none_plaintext_both_master = {{ mem_client_none_plaintext_both_master|safe }}
@@ -194,6 +227,14 @@
         mem_server_v2_stats_wasm_both_master = {{ mem_server_v2_stats_wasm_both_master|safe }}
         mem_server_v2_sd_nologging_nullvm_both_master = {{ mem_server_v2_sd_nologging_nullvm_both_master| safe }}
         mem_server_v2_sd_full_nullvm_both_master = {{ mem_server_v2_sd_full_nullvm_both_master|safe }}
+
+        mem_ingressgw_none_mtls_base_master = {{ mem_ingressgw_none_mtls_base_master|safe }}
+        mem_ingressgw_none_mtls_both_master = {{ mem_ingressgw_none_mtls_both_master|safe }}
+        mem_ingressgw_none_plaintext_both_master = {{ mem_ingressgw_none_plaintext_both_master|safe }}
+        mem_ingressgw_v2_stats_nullvm_both_master = {{ mem_ingressgw_v2_stats_nullvm_both_master|safe }}
+        mem_ingressgw_v2_stats_wasm_both_master = {{ mem_ingressgw_v2_stats_wasm_both_master|safe }}
+        mem_ingressgw_v2_sd_nologging_nullvm_both_master = {{ mem_ingressgw_v2_sd_nologging_nullvm_both_master| safe }}
+        mem_ingressgw_v2_sd_full_nullvm_both_master = {{ mem_ingressgw_v2_sd_full_nullvm_both_master|safe }}
     </script>
 {% endblock page_data %}
 
