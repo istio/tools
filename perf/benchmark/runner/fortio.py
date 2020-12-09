@@ -67,9 +67,11 @@ def convert_data(data):
     if '200' in data["RetCodes"]:
         success = int(data["RetCodes"]["200"])
 
-    obj["errorPercent"] = 100 * \
-        (int(data["Sizes"]["Count"]) - success) / int(data["Sizes"]["Count"])
-    obj["Payload"] = int(data['Sizes']['Avg'])
+    # "Sizes" key is not in RunType: TCP
+    if data["RunType"] == "HTTP":
+        obj["errorPercent"] = 100 * \
+            (int(data["Sizes"]["Count"]) - success) / int(data["Sizes"]["Count"])
+        obj["Payload"] = int(data['Sizes']['Avg'])
     return obj
 
 
