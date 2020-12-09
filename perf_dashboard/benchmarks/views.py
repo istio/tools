@@ -486,7 +486,7 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
                           }
 
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
-        print(context)
+
         return render(request, "cpu_vs_conn.html", context=context)
 
 
@@ -1087,7 +1087,7 @@ def get_data_helper(df, query_list, query_str, telemetry_mode, metric_name):
                 if data[metric_name].head(1).values == ['-']:
                     y_series_data.append('null')
                 else:
-                    if metric_name in ['cpu', 'mem']:
+                    if 'cpu' in metric_name or 'mem' in metric_name:
                         y_series_data.append(round(data[metric_name].head(1).values[0], 3))
                     else:
                         y_series_data.append(round(data[metric_name].head(1).values[0] / 1000, 3))

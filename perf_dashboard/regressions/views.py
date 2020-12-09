@@ -29,7 +29,7 @@ def monitoring_overview(request):
 
 
 def cur_regression(request):
-    cur_href_links, _, cur_release_dates, _, _, _ = download.download_benchmark_csv(90)
+    cur_href_links, _, cur_release_dates, _, _, _ = download.download_benchmark_csv(60)
 
     latency_none_mtls_base_p90 = get_telemetry_mode_y_series(cur_href_links, cur_release_dates, '_none_mtls_baseline', 'p90')
     latency_none_mtls_both_p90 = get_telemetry_mode_y_series(cur_href_links, cur_release_dates, '_none_mtls_both', 'p90')
@@ -68,7 +68,7 @@ def cur_regression(request):
 
 # Create your views here.
 def master_regression(request):
-    _, _, _, master_href_links, _, master_release_dates = download.download_benchmark_csv(90)
+    _, _, _, master_href_links, _, master_release_dates = download.download_benchmark_csv(60)
 
     latency_none_mtls_base_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_mtls_baseline', 'p90')
     latency_none_mtls_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_mtls_both', 'p90')
