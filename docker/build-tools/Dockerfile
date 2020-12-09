@@ -361,8 +361,8 @@ RUN python3 -m pip install jwcrypto==${JWCRYPTO_VERSION}
 
 FROM ubuntu:bionic as base_os_context
 
-ENV DOCKER_VERSION=5:19.03.8~3-0~ubuntu-bionic
-ENV CONTAINERD_VERSION=1.2.13-1
+ENV DOCKER_VERSION=5:20.10.0~3-0~ubuntu-bionic
+ENV CONTAINERD_VERSION=1.4.3-1
 
 ENV OUTDIR=/out
 
@@ -569,8 +569,8 @@ LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
 # Docker
-ENV DOCKER_VERSION=5:19.03.6~3-0~ubuntu-xenial
-ENV CONTAINERD_VERSION=1.2.6-3
+ENV DOCKER_VERSION=5:20.10.0~3-0~ubuntu-xenial
+ENV CONTAINERD_VERSION=1.4.3-1
 
 # General
 ENV HOME=/home
