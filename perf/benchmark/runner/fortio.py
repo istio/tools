@@ -172,9 +172,10 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output="", 
             if promUrl:
                 sd = datetime.strptime(st[:19], "%Y-%m-%dT%H:%M:%S")
                 print("Fetching prometheus metrics for", sd, gd["Labels"])
-                if gd['errorPercent'] > 10:
-                    print("... Run resulted in", gd['errorPercent'], "% errors")
-                    continue
+                if data["RunType"] == "HTTP":
+                    if gd['errorPercent'] > 10:
+                        print("... Run resulted in", gd['errorPercent'], "% errors")
+                        continue
                 min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
                 if min_duration > gd['ActualDuration']:
                     print("... {} duration={}s is less than minimum {}s".format(
