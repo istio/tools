@@ -157,7 +157,7 @@ func getNotesForTemplateFormat(notes []Note, template Template) []string {
 
 	for _, note := range notes {
 		if template.Type == "releaseNotes" {
-			parsedNotes = append(parsedNotes, note.getReleaseNotes(template.Area, template.Action)...)
+			parsedNotes = append(parsedNotes, note.getReleaseNotes(template.Kind, template.Area, template.Action)...)
 		} else if template.Type == "upgradeNotes" {
 			parsedNotes = append(parsedNotes, note.getUpgradeNotes()...)
 		} else if template.Type == "securityNotes" {

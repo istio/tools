@@ -56,11 +56,32 @@ indicating where content should be substituted. These are stored in the
 
 ### Filtering notes
 
-Notes can be substituted based on fields in the release notes files.
+Templates can be populated with release notes based on HTML comments that filter
+content from the release notes files.
 
-To substitute for release notes matching the `traffic-management` area, use the
+To populate a template with release notes matching the `traffic-management` area, use the
 following comment:
 
 ```html
 <!-- releaseNotes area:traffic-management -->
 ```
+
+To populate a templates with release notes matching kind `feature`, use:
+
+```html
+<!-- releaseNotes kind:feature -->
+```
+
+To populate a template with release notes matching the action `Deprecated`, use:
+
+```html
+<!-- releaseNotes action:Deprecated -->
+```
+
+Filters also support negation of fields. To include all release notes not
+matching the action `Deprecated`, use:
+
+```html
+<!-- releaseNotes action:!Deprecated -->
+```
+
