@@ -10,7 +10,9 @@ This is an automatically generated rough draft of the release notes and has not 
 
 # Release Notes
 
-## Deprecated
+## Deprecation Notices
+
+These notices describe functionality that will be removed in a future release according to [Istio's deprecation policy](/about/feature-stages/#feature-phase-definitions). Please consider upgrading your environment to remove the deprecated functionality.
 
 <!-- releaseNotes action:Deprecated -->
 
