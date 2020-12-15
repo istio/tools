@@ -1,6 +1,5 @@
 # Istio License Linter
 
-
 This tool is used to ensure that the dependencies of a repo have acceptable licenses. The tool can be used in
 three modes:
 
