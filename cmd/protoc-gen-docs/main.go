@@ -21,11 +21,10 @@ import (
 	"strings"
 
 	"github.com/client9/gospell"
+	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 
 	"istio.io/tools/pkg/protocgen"
 	"istio.io/tools/pkg/protomodel"
-
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
 
 // Breaks the comma-separated list of key=value pairs
@@ -124,8 +123,6 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 			dictionary = v
 		} else if k == "custom_word_list" {
 			customWordList = v
-		} else {
-			return nil, fmt.Errorf("unknown argument '%s' specified", k)
 		}
 	}
 
