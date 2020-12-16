@@ -48,6 +48,12 @@ export TARGET_LINUX_TAR_SUFFIX=${TARGET_LINUX_TAR_SUFFIX:-"linux-amd64.tar.gz"}
 # to downgrade to.
 export TEST_SCENARIO=${TEST_SCENARIO:-"upgrade-downgrade"}
 
+# This is required to avoid test failure due to upgrade/downgrade failures
+# in case of unreleased versions (from master branch)
+if [[ "${TARGET_TAG}" == *'master'* || "${SOURCE_TAG}" == *'master'* ]]; then
+  export UNRELEASED_VERSION_INVOLVED=1
+fi
+
 function get_git_sha() {
   local url_path=${1}
   local tag=${2}

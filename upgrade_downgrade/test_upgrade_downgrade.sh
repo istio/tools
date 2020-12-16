@@ -247,7 +247,10 @@ echo "Waiting for traffic to settle..."
 sleep 20
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrade" || "${TEST_SCENARIO}" == "downgrade" ]];then
-  istio_upgrade_options || die "upgrade failed"
+  # We should have failed the job if it fails. However, if there is an unreleased
+  # version, then the command fails. One way to detect this is to check if 'master'
+  # is passed from run_upgrade_downgrade.sh. Currently, we pass the actual tag.
+  istio_upgrade_options || [[ -z "${UNRELEASED_VERSION_INVOLVED}" ]] && die "upgrade/downgrade failed"
   kubectl wait --for=condition=ready --timeout=10m pod --all -n "${ISTIO_NAMESPACE}"
   # In principle it should be possible to restart data plane immediately, but being conservative here.
   sleep 60
