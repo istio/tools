@@ -61,10 +61,25 @@ func (note Note) getDocs() string {
 	return docsString
 }
 
-func (note Note) getReleaseNotes(area string, action string) []string {
+func filterNote(templateFilter string, noteFilter string) bool {
+	if templateFilter == "" {
+		return true
+	} else if templateFilter == noteFilter {
+		return true
+	} else if templateFilter[0] == '!' && templateFilter[1:] != noteFilter {
+		return true
+	}
+	return false
+
+}
+
+func (note Note) getReleaseNotes(kind string, area string, action string) []string {
 	notes := make([]string, 0)
+
 	for _, releaseNote := range note.ReleaseNotes {
-		if (action == "" || releaseNote.Action == action) && (area == "" || note.Area == area) {
+		if filterNote(kind, note.Kind) &&
+			filterNote(area, note.Area) &&
+			filterNote(action, releaseNote.Action) {
 			noteEntry := fmt.Sprintf("%s %s %s\n", releaseNote, note.getDocs(), note.getIssues())
 			if noteEntry != "" {
 				notes = append(notes, noteEntry)
