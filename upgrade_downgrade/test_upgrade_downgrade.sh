@@ -174,14 +174,13 @@ function install_test() {
 }
 
 # Sends traffic from internal pod (Fortio load command) to Fortio echosrv.
-# Since this may block for some time due to restarts, it should be run in the background. Use wait_for_job to check for
-# completion.
+# Since this may block for some time due to restarts, it should be run in the background.
 function _send_internal_request_traffic() {
   local job_name=cli-fortio
   delete_with_wait job "${job_name}" "${TEST_NAMESPACE}"
   start_time=${SECONDS}
   with_retries 10 60 kubectl apply -n "${TEST_NAMESPACE}" -f "${TMP_DIR}/fortio-cli.yaml"
-  wait_for_job "${job_name}" "${TEST_NAMESPACE}"
+  kubectl wait --for=condition=complete --timeout=12m "${job_name}" -n "${TEST_NAMESPACE}"
   # Any timeouts typically occur in the first 20s
   if (( SECONDS - start_time < 100 )); then
     echo "${job_name} failed"
@@ -248,7 +247,10 @@ echo "Waiting for traffic to settle..."
 sleep 20
 
 if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrade" || "${TEST_SCENARIO}" == "downgrade" ]];then
-  istio_upgrade_options || die "upgrade failed"
+  # We should have failed the job if it fails. However, if there is an unreleased
+  # version, then the command fails. One way to detect this is to check if 'master'
+  # is passed from run_upgrade_downgrade.sh. Currently, we pass the actual tag.
+  istio_upgrade_options || [[ -z "${UNRELEASED_VERSION_INVOLVED}" ]] && die "upgrade/downgrade failed"
   kubectl wait --for=condition=ready --timeout=10m pod --all -n "${ISTIO_NAMESPACE}"
   # In principle it should be possible to restart data plane immediately, but being conservative here.
   sleep 60
