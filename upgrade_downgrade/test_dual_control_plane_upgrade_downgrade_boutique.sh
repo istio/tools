@@ -123,9 +123,12 @@ kubectl label namespace "${TEST_NAMESPACE}" istio-injection- || echo "istio-inje
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 
 function deploy_and_wait_for_services() {
-  # Do not name this services. We'll end up with a situation
+  # **WARNING**: Do not name this services. We'll end up with a situation
   # which looks like "local -n services=services". Bash complains
   # that this is a circular reference. This resulted in test failures.
+  #
+  # In general, we should not end up in a situation like this
+  # local -n svcs=svcs (happens when array passed is also named svcs)
   local -n svcs="$1"
   for svc in "${svcs[@]}"; do
     local service_manifest_file="${TMP_DIR}/boutique/k8s-${svc}.yaml"
