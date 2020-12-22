@@ -190,7 +190,7 @@ function _send_internal_request_traffic() {
 
 function send_internal_request_traffic() {
   write_msg "Sending internal traffic"
-  with_retries 10 0 _send_internal_request_traffic
+  _send_internal_request_traffic
 }
 
 function reset_config_map() {
@@ -250,9 +250,10 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" || "${TEST_SCENARIO}" == "upgrad
   # We should have failed the job if it fails. However, if there is an unreleased
   # version, then the command fails. One way to detect this is to check if 'master'
   # is passed from run_upgrade_downgrade.sh. Currently, we pass the actual tag.
-  istio_upgrade_options || [[ -z "${UNRELEASED_VERSION_INVOLVED}" ]] && die "upgrade/downgrade failed"
-  kubectl wait --for=condition=ready --timeout=10m pod --all -n "${ISTIO_NAMESPACE}"
-  # In principle it should be possible to restart data plane immediately, but being conservative here.
+  istio_upgrade_options || ([[ -z "${UNRELEASED_VERSION_INVOLVED}" ]] && die "upgrade/downgrade failed")
+  kubectl wait --for=condition=ready --timeout=10m pod -l app=istiod -n "${ISTIO_NAMESPACE}"
+
+  # Wait for some time for istiod to start before restarting data plane
   sleep 60
 
   restart_data_plane echosrv-deployment-v1 "${TEST_NAMESPACE}"
@@ -269,7 +270,7 @@ if [[ "${TEST_SCENARIO}" == "upgrade-downgrade" ]];then
   restart_data_plane echosrv-deployment-v2 "${TEST_NAMESPACE}"
 
   istio_install_options || echo "istio installation failed"
-  kubectl wait --for=condition=ready --timeout=10m pod --all -n "${ISTIO_NAMESPACE}"
+  kubectl wait --for=condition=ready --timeout=10m pod -l app=istiod -n "${ISTIO_NAMESPACE}"
 fi
 
 echo "Test ran for ${SECONDS} seconds."
@@ -279,7 +280,7 @@ fi
 
 cli_pod_name=$(kubectl -n "${TEST_NAMESPACE}" get pods -lapp=cli-fortio -o jsonpath='{.items[0].metadata.name}')
 echo "Traffic client pod is ${cli_pod_name}, waiting for traffic to complete..."
-kubectl wait --for=condition=complete --timeout=30m job/cli-fortio -n "${TEST_NAMESPACE}"
+kubectl wait --for=condition=complete --timeout=10m job/cli-fortio -n "${TEST_NAMESPACE}"
 kubectl logs -f -n "${TEST_NAMESPACE}" -c echosrv "${cli_pod_name}" &> "${POD_FORTIO_LOG}" || echo "Could not find ${cli_pod_name}"
 wait_for_external_request_traffic
 

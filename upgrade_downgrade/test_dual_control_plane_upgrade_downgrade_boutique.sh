@@ -120,7 +120,7 @@ kubectl wait --for=condition=ready pod --all -n "${ISTIO_NAMESPACE}" --timeout=3
 kubectl get namespace "${TEST_NAMESPACE}" || kubectl create namespace "${TEST_NAMESPACE}"
 kubectl get namespace "${LOADGEN_NAMESPACE}" || kubectl create namespace "${LOADGEN_NAMESPACE}"
 kubectl label namespace "${TEST_NAMESPACE}" istio-injection- || echo "istio-injection label removed"
-kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
+kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}" --overwrite
 
 function deploy_and_wait_for_services() {
   # **WARNING**: Do not name this services. We'll end up with a situation
@@ -186,7 +186,7 @@ sleep "${STABILIZING_PERIOD}"
 write_msg "Deploy Istio ${TO_TAG}"
 ${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-control-plane.yaml" -y --revision "${TO_REVISION}" || die "installing ${TO_REVISION} control plane failed"
 ${TO_ISTIOCTL} install -f "${TMP_DIR}/iop-gateways.yaml" -y --revision "${TO_REVISION}" || die "installing ${TO_REVISION} gateways failed"
-kubectl wait --for=condition=ready pod --all -n "${ISTIO_NAMESPACE}" --timeout=30m
+kubectl wait --for=condition=ready pod -l app=istiod -n "${ISTIO_NAMESPACE}" --timeout=30m
 
 # Now change labels and restart deployments one at a time
 kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev-
@@ -212,8 +212,6 @@ if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
   done
 fi
 
-kubectl wait --for=condition=ready pod --all -n "${TEST_NAMESPACE}" --timeout=30m
-
 if [[ "${TEST_SCENARIO}" == "boutique-upgrade" ]]; then
   write_msg "uninstalling ${FROM_REVISION}"
   # Currently we don't do it for gateways because gateway upgrade is still in-place :(
@@ -225,7 +223,6 @@ else
   kubectl label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
 
   restart_first_round
-  kubectl wait --for=condition=ready pod --all -n "${TEST_NAMESPACE}" --timeout=30m
 
   write_msg "uninstalling ${TO_REVISION}"
   "${TO_ISTIOCTL}" experimental uninstall -f "${TMP_DIR}/iop-control-plane.yaml" --revision "${TO_REVISION}" -y
