@@ -97,9 +97,13 @@ function delete_with_wait() {
 function restart_data_plane() {
   local name="$1"
   local namespace="$2"
+  local context="$3"
+  if [[ -z "${context}" ]]; then
+    context=$(kubectl config current-context)
+  fi
   write_msg "Restarting deployment ${namespace}/${name}"
-  echo_and_run_or_die kubectl rollout restart deployment "${name}" -n "${namespace}"
-  echo_and_run_or_die kubectl rollout status deployment "${name}" -n "${namespace}" --timeout=30m  
+  echo_and_run_or_die kubectl rollout restart deployment "${name}" -n "${namespace}" --context="${context}"
+  echo_and_run_or_die kubectl rollout status deployment "${name}" -n "${namespace}" --timeout=30m  --context="${context}"
 }
 
 # Make a copy of test manifests in case either to/from branch doesn't contain them.

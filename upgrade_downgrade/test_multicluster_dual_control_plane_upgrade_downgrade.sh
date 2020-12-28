@@ -183,30 +183,37 @@ kubectl --context="${CTX_CLUSTER2}" wait --for=condition=ready pods --all -n "${
 
 write_msg "Expose services to remote clusters"
 kubectl --context="${CTX_CLUSTER1}" apply -n "${ISTIO_NAMESPACE}" -f "${MULTICLUSTER_IOP_PATH}/../cross-network-gateway.yaml"
-"${FROM_ISTIOCTL}" x wait --for=distribution gateway cross-network-gateway.${ISTIO_NAMESPACE} --context="${CTX_CLUSTER1}"
+"${FROM_ISTIOCTL}" x wait --context="${CTX_CLUSTER1}" --for=distribution gateway "cross-network-gateway.${ISTIO_NAMESPACE}"
 
 kubectl --context="${CTX_CLUSTER2}" apply -n "${ISTIO_NAMESPACE}" -f "${MULTICLUSTER_IOP_PATH}/../cross-network-gateway.yaml"
-"${FROM_ISTIOCTL}" x wait --for=distribution gateway cross-network-gateway.${ISTIO_NAMESPACE} --context="${CTX_CLUSTER2}"
+"${FROM_ISTIOCTL}" x wait --context="${CTX_CLUSTER2}" --for=distribution gateway "cross-network-gateway.${ISTIO_NAMESPACE}"
 
 write_msg "Expose api-server for Istiod instances in remote clusters"
 "${FROM_ISTIOCTL}" x create-remote-secret --context="${CTX_CLUSTER1}" \
-    --name="kind-${CLUSTER_NAMES[0]}" | kubectl apply -f - --context="${CTX_CLUSTER2}"
+    --name="kind-${CLUSTER_NAMES[0]}" | kubectl --context="${CTX_CLUSTER2}" apply -f -
 "${FROM_ISTIOCTL}" x create-remote-secret --context="${CTX_CLUSTER2}" \
-    --name="kind-${CLUSTER_NAMES[1]}" | kubectl apply -f - --context="${CTX_CLUSTER1}"
+    --name="kind-${CLUSTER_NAMES[1]}" | kubectl --context="${CTX_CLUSTER1}" apply -f -
 
 write_msg "Install application in ${TEST_NAMESPACE} in both clusters"
-kubectl --context="${CTX_CLUSTER1}" label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
-kubectl --context="${CTX_CLUSTER2}" label namespace "${TEST_NAMESPACE}" istio.io/rev="${FROM_REVISION}"
+kubectl --context="${CTX_CLUSTER1}" label namespace "${TEST_NAMESPACE}" istio-injection- istio.io/rev="${FROM_REVISION}"
+kubectl --context="${CTX_CLUSTER2}" label namespace "${TEST_NAMESPACE}" istio-injection- istio.io/rev="${FROM_REVISION}"
 
 HELLOWORLD_URL="https://raw.githubusercontent.com/istio/istio/master/samples/helloworld/helloworld.yaml"
-kubectl apply -f "${HELLOWORLD_URL}" --context="${CTX_CLUSTER1}" -l service=helloworld -n "${TEST_NAMESPACE}"
-kubectl apply -f "${HELLOWORLD_URL}" --context="${CTX_CLUSTER2}" -l service=helloworld -n "${TEST_NAMESPACE}"
+kubectl --context="${CTX_CLUSTER1}" apply -f "${HELLOWORLD_URL}" -l service=helloworld -n "${TEST_NAMESPACE}"
+kubectl --context="${CTX_CLUSTER2}" apply -f "${HELLOWORLD_URL}" -l service=helloworld -n "${TEST_NAMESPACE}"
 
-kubectl apply -f "${HELLOWORLD_URL}" --context="${CTX_CLUSTER1}" -l version=v1 -n "${TEST_NAMESPACE}"
-kubectl wait --for=condition=ready pods --all -n "${TEST_NAMESPACE}" --context="${CTX_CLUSTER1}" --timeout=12m
+kubectl --context="${CTX_CLUSTER1}" apply -f "${HELLOWORLD_URL}" -l version=v1 -n "${TEST_NAMESPACE}"
+kubectl --context="${CTX_CLUSTER2}" apply -f "${HELLOWORLD_URL}" -l version=v2 -n "${TEST_NAMESPACE}"
 
-kubectl apply -f "${HELLOWORLD_URL}" --context="${CTX_CLUSTER2}" -l version=v2 -n "${TEST_NAMESPACE}"
-kubectl wait --for=condition=ready pods --all -n "${TEST_NAMESPACE}" --context="${CTX_CLUSTER2}" --timeout=12m
+kubectl --context="${CTX_CLUSTER1}" apply -f "${MULTICLUSTER_IOP_PATH}/../fortio-hello-gateway.yaml" -n "${ISTIO_NAMESPACE}"
+kubectl --context="${CTX_CLUSTER2}" apply -f "${MULTICLUSTER_IOP_PATH}/../fortio-hello-gateway.yaml" -n "${ISTIO_NAMESPACE}"
+
+kubectl --context="${CTX_CLUSTER1}" wait --for=condition=ready pods --all -n "${TEST_NAMESPACE}" --timeout=12m
+kubectl --context="${CTX_CLUSTER2}" wait --for=condition=ready pods --all -n "${TEST_NAMESPACE}" --timeout=12m
+"${FROM_ISTIOCTL}" x wait --context="${CTX_CLUSTER1}" --for=distribution gateway "hello-gateway.${ISTIO_NAMESPACE}"
+"${FROM_ISTIOCTL}" x wait --context="${CTX_CLUSTER2}" --for=distribution gateway "hello-gateway.${ISTIO_NAMESPACE}"
+"${FROM_ISTIOCTL}" x wait --context="${CTX_CLUSTER1}" --for=distribution virtualservice "helloworld-srv.${ISTIO_NAMESPACE}"
+"${FROM_ISTIOCTL}" x wait --context="${CTX_CLUSTER2}" --for=distribution virtualservice "helloworld-srv.${ISTIO_NAMESPACE}"
 
 write_msg "Send external traffic through fortio on ingressgateway for both clusters"
 
@@ -214,11 +221,11 @@ write_msg "Send external traffic through fortio on ingressgateway for both clust
 kubectl config use-context "${CTX_CLUSTER1}"
 wait_for_ingress
 # shellcheck disable=SC2153
-INGRESS_ADDR1="${INGRESS_ADDR}"
+export INGRESS_ADDR1="${INGRESS_ADDR}"
 
 kubectl config use-context "${CTX_CLUSTER2}"
 wait_for_ingress
-INGRESS_ADDR2="${INGRESS_ADDR}"
+export INGRESS_ADDR2="${INGRESS_ADDR}"
 
 FORTIO_LOG1="${TMP_DIR}/fortio_local_1.log"
 FORTIO_LOG2="${TMP_DIR}/fortio_local_2.log"
@@ -227,7 +234,7 @@ export TRAFFIC_RUNTIME_SEC
 export LOCAL_FORTIO_LOG
 export EXTERNAL_FORTIO_DONE_FILE
 
-TRAFFIC_RUNTIME_SEC=600
+TRAFFIC_RUNTIME_SEC=900
 LOCAL_FORTIO_LOG="${FORTIO_LOG1}"
 EXTERNAL_FORTIO_DONE_FILE="${TMP_DIR}/fortio_1_done"
 send_external_request_traffic "http://${INGRESS_ADDR1}/hello" -H "Host:helloworld.test.svc.cluster.local" &
@@ -237,24 +244,89 @@ EXTERNAL_FORTIO_DONE_FILE="${TMP_DIR}/fortio_2_done"
 send_external_request_traffic "http://${INGRESS_ADDR2}/hello" -H "Host:helloworld.test.svc.cluster.local" &
 
 # Next, send traffic through those gateways
+write_msg "Verify load balancing between clusters externally"
+[[ "${DEBUG_MODE}" == 1 ]] && bash
 
-#write_msg "Verify load balancing between clusters"
-#
-#write_msg "Install Istiod ($TO_REVISION) on cluster1"
-#
-#write_msg "Install ingress-gateway ($TO_REVISION) on cluster1"
-#
-#write_msg "Install eastwest-gateway ($TO_REVISION) on cluster1"
-#
-#write_msg "Restart data plane in cluster1 to point to $TO_REVISION"
-#
-#write_msg "Install Istiod ($TO_REVISION) on cluster2"
-#
-#write_msg "Install ingress-gateway ($TO_REVISION) on cluster2"
-#
-#write_msg "Install eastwest-gateway ($TO_REVISION) on cluster2"
-#
-#write_msg "Restart data plane in cluster2 to point to $TO_REVISION"
+function check_within_threshold() {
+  local low_count="${1}"
+  local high_count="${2}"
+  local actual_count="${3}"
+  if (( actual_count < low_count || actual_count > high_count )); then
+    return 1
+  fi
+}
+
+function verify_cluster_lb() {
+  local url="${1}"
+  local num_req="${2}"
+  local low_count="${3}"
+  local high_count="${4}"
+  shift 4
+  local v1_count=0
+  local v2_count=0
+  for _ in $(seq 1 "$num_req"); do
+    out=$(curl -H"Host:helloworld.test.svc.cluster.local" -s "$url")
+    if [[ $out == *"v1"* ]]; then
+      v1_count=$((v1_count+1))
+    elif [[ $out == *"v2"* ]]; then
+      v2_count=$((v2_count+1))
+    fi
+  done
+
+  echo "v1=$v1_count, v2=$v2_count"
+  check_within_threshold "$low_count" "$high_count" "$v1_count" && \
+  check_within_threshold "$low_count" "$high_count" "$v2_count"
+}
+
+function test_lb() {
+  verify_cluster_lb "http://${INGRESS_ADDR1}/hello" 100 45 55
+  verify_cluster_lb "http://${INGRESS_ADDR2}/hello" 100 45 55
+}
+
+test_lb || die "inter-cluster load balancing failed"
+
+write_msg "Install Istiod ($TO_REVISION) on cluster1"
+install_with_iop "${TO_ISTIOCTL}" "${MULTICLUSTER_IOP_PATH}/cluster1.yaml" "${TO_REVISION}" "${CTX_CLUSTER1}"
+
+# TODO: Fix --context parameter
+write_msg "Restart data plane in cluster1 to point to $TO_REVISION"
+kubectl --context="${CTX_CLUSTER1}" label namespace "${TEST_NAMESPACE}" istio.io/rev-
+kubectl --context="${CTX_CLUSTER1}" label namespace "${TEST_NAMESPACE}" istio.io/rev="${TO_REVISION}"
+restart_data_plane "helloworld-v1" "${TEST_NAMESPACE}" "${CTX_CLUSTER1}"
+test_lb || die "cluster load balancing failed after cluster1 data-plane upgrade"
+
+write_msg "Install eastwest-gateway ($TO_REVISION) on cluster1"
+install_with_iop "${TO_ISTIOCTL}" "${MULTICLUSTER_IOP_PATH}/eastwest1.yaml" "${TO_REVISION}" "${CTX_CLUSTER1}"
+kubectl --context="${CTX_CLUSTER1}" wait --for=condition=ready pods \
+    -l app=istio-eastwestgateway -l istio.io/rev="${TO_REVISION}" -n "${ISTIO_NAMESPACE}" --timeout=10m
+test_lb || die "cluster load balancing failed after upgrading eastwest-gateway in cluster1"
+
+write_msg "Install ingress-gateway ($TO_REVISION) on cluster1"
+install_with_iop "${TO_ISTIOCTL}" "${MULTICLUSTER_IOP_PATH}/ingress1.yaml" "${TO_REVISION}" "${CTX_CLUSTER1}"
+kubectl --context="${CTX_CLUSTER1}" wait --for=condition=ready pods \
+    -l app=istio-ingressgateway -l istio.io/rev="${TO_REVISION}" -n "${ISTIO_NAMESPACE}" --timeout=10m
+test_lb || die "cluster load balancing failed after upgrading ingress-gateway in cluster1"
+
+write_msg "Install Istiod ($TO_REVISION) on cluster2"
+install_with_iop "${TO_ISTIOCTL}" "${MULTICLUSTER_IOP_PATH}/cluster2.yaml" "${TO_REVISION}" "${CTX_CLUSTER2}"
+
+write_msg "Restart data plane in cluster2 to point to $TO_REVISION"
+kubectl --context="${CTX_CLUSTER2}" label namespace "${TEST_NAMESPACE}" istio.io/rev-
+kubectl --context="${CTX_CLUSTER2}" label namespace "${TEST_NAMESPACE}" istio.io/rev="${TO_REVISION}"
+restart_data_plane "helloworld-v2" "${TEST_NAMESPACE}" "${CTX_CLUSTER2}"
+test_lb || die "cluster load balancing failed after cluster2 data-plane upgrade"
+
+write_msg "Install eastwest-gateway ($TO_REVISION) on cluster2"
+install_with_iop "${TO_ISTIOCTL}" "${MULTICLUSTER_IOP_PATH}/eastwest2.yaml" "${TO_REVISION}" "${CTX_CLUSTER2}"
+kubectl --context="${CTX_CLUSTER2}" wait --for=condition=ready pods \
+    -l app=istio-eastwestgateway -l istio.io/rev="${TO_REVISION}" -n "${ISTIO_NAMESPACE}" --timeout=10m
+test_lb || die "cluster load balancing failed after upgrading eastwest-gateway in cluster2"
+
+write_msg "Install ingress-gateway ($TO_REVISION) on cluster2"
+install_with_iop "${TO_ISTIOCTL}" "${MULTICLUSTER_IOP_PATH}/ingress2.yaml" "${TO_REVISION}" "${CTX_CLUSTER2}"
+kubectl --context="${CTX_CLUSTER2}" wait --for=condition=ready pods \
+    -l app=istio-ingressgateway -l istio.io/rev="${TO_REVISION}" -n "${ISTIO_NAMESPACE}" --timeout=10m
+test_lb || die "cluster load balancing failed after upgrading ingress-gateway in cluster2"
 
 write_msg "Waiting for Fortio traffic to complete"
 EXTERNAL_FORTIO_DONE_FILE="${TMP_DIR}/fortio_1_done" wait_for_external_request_traffic
@@ -272,7 +344,7 @@ fi
 
 if [[ -n "${failed}" ]]; then
   echo "test failed"
-  bash
+  [[ "${DEBUG_MODE}" == 1 ]] && bash
   exit 1
 fi
 
