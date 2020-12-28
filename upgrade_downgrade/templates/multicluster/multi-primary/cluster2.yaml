@@ -1,0 +1,11 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  profile: minimal
+  values:
+    global:
+      meshID: mesh1
+      multiCluster:
+        enabled: true
+        clusterName: kind-cluster2
+      network: network2

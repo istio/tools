@@ -136,6 +136,7 @@ function reset_cluster() {
   # But istioctl < 1.7 does not seem to support it. So we
   # need to generate manifest and pass it to kubectl delete
   local istioctl=${1}
+  local kubeconfig=${2:-$(kubectl config current-context)}
   uninstall_istio "${istioctl}" || true
 
   ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
