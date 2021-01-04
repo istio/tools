@@ -41,6 +41,7 @@ new Chart(document.getElementById("mem-client-conn-release"), {
                 backgroundColor: "rgba(52, 235, 219, 0.2)",
                 borderColor: "rgba(52, 235, 219, 1)",
                 data: mem_client_none_plaintext_both,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-stats-nullvm_both",
@@ -96,6 +97,7 @@ new Chart(document.getElementById("mem-client-conn-master"), {
                 backgroundColor: "rgba(52, 235, 219, 0.2)",
                 borderColor: "rgba(52, 235, 219, 1)",
                 data: mem_client_none_plaintext_both_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-stats-nullvm_both",
@@ -151,6 +153,7 @@ new Chart(document.getElementById("mem-server-conn-release"), {
                 backgroundColor: "rgba(52, 235, 219, 0.2)",
                 borderColor: "rgba(52, 235, 219, 1)",
                 data: mem_server_none_plaintext_both,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-stats-nullvm_both",
@@ -206,6 +209,7 @@ new Chart(document.getElementById("mem-server-conn-master"), {
                 backgroundColor: "rgba(52, 235, 219, 0.2)",
                 borderColor: "rgba(52, 235, 219, 1)",
                 data: mem_server_none_plaintext_both_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-stats-nullvm_both",
@@ -261,6 +265,7 @@ new Chart(document.getElementById("mem-ingressgw-conn-release"), {
                 backgroundColor: "rgba(52, 235, 219, 0.2)",
                 borderColor: "rgba(52, 235, 219, 1)",
                 data: mem_ingressgw_none_plaintext_both,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-stats-nullvm_both",
@@ -316,6 +321,7 @@ new Chart(document.getElementById("mem-ingressgw-conn-master"), {
                 backgroundColor: "rgba(52, 235, 219, 0.2)",
                 borderColor: "rgba(52, 235, 219, 1)",
                 data: mem_ingressgw_none_plaintext_both_master,
+                hidden: true,
                 fill: false
             }, {
                 label: "v2-stats-nullvm_both",
