@@ -18,7 +18,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 
    We provide a GKE cluster-create script in this repo, refer to [GKE Cluster Setup](../istio-install#gke-cluster-setup).
 
-   If you are using your own cluster, see [resource requirment]((../istio-install#resource-requirment)) for machine type recommendations.
+   If you are using your own cluster, see [resource requirment](../istio-install#resource-requirment) for machine type recommendations.
 
 1. Install Istio
 
