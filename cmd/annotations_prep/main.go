@@ -104,11 +104,11 @@ type Instance struct {
 var (
 {{ range .Variables }}
 	{{ .GoName }} = Instance {
-		Name: "{{ .Name }}",
-		Description: {{ wordWrap .Description 24 }},
+		Name:          "{{ .Name }}",
+		Description:   {{ processGoDescription .Description 24 }},
 		FeatureStatus: {{ .FeatureStatus }},
-		Hidden: {{ .Hidden }},
-		Deprecated: {{ .Deprecated }},
+		Hidden:        {{ .Hidden }},
+		Deprecated:    {{ .Deprecated }},
 		Resources: []ResourceTypes{
 			{{- range .Resources }}
 			{{ . }},
@@ -132,7 +132,8 @@ func AllResourceTypes() []string {
 		"{{ . }}",
 		{{- end }}
 	}
-}`
+}
+`
 
 	htmlOutputTemplate = `---
 title: Resource {{ .Collection.NamePlural }}
@@ -169,7 +170,7 @@ Istio supports to control its behavior.
 					<td>{{ .FeatureStatus }}</td>
 				{{ end }}
 					<td>{{ .Resources }}</td>
-					<td>{{ .Description }}</td>
+					<td>{{ processHTMLDescription .Description }}</td>
 				</tr>
 			{{ end }}
 		{{ end }}
@@ -251,14 +252,27 @@ var (
 			}
 
 			// Unmarshal the file.
-			var cfg Configuration
-			if err = yaml.Unmarshal(yamlContent, &cfg); err != nil {
-				log.Fatalf("error parsing input YAML file: %v", err)
+			var variables []Variable
+			switch collectionType {
+			case annotations.NameLowercase:
+				var cfg AnnotationConfiguration
+				if err = yaml.Unmarshal(yamlContent, &cfg); err != nil {
+					log.Fatalf("error parsing input YAML file: %v", err)
+				}
+				variables = cfg.Variables
+			case labels.NameLowercase:
+				var cfg LabelConfiguration
+				if err = yaml.Unmarshal(yamlContent, &cfg); err != nil {
+					log.Fatalf("error parsing input YAML file: %v", err)
+				}
+				variables = cfg.Variables
+			default:
+				log.Fatalf("invalid value for collection_type: %s", collectionType)
 			}
 
 			// Find all the known resource types
 			m := make(map[string]bool)
-			for _, a := range cfg.Variables {
+			for _, a := range variables {
 				for _, r := range a.Resources {
 					m[r] = true
 				}
@@ -270,30 +284,24 @@ var (
 			sort.Strings(knownTypes)
 
 			// Process/cleanup the values read in from YAML.
-			for i := range cfg.Variables {
-				if cfg.Variables[i].Name == "" {
+			for i := range variables {
+				if variables[i].Name == "" {
 					log.Fatalf("variable %d in input YAML file missing name", i)
 				}
 
-				// Generate variable names if not provided in the yaml.
-				if cfg.Variables[i].GoName == "" {
-					cfg.Variables[i].GoName = generateVariableName(cfg.Variables[i].Name)
-				}
-
-				// Use a sensible default for feature status.
-				if cfg.Variables[i].FeatureStatus == "" {
-					cfg.Variables[i].FeatureStatus = string(generateFeatureStatus(cfg.Variables[i]))
-				}
+				// Generate sensible defaults for values if not provided in the yaml.
+				variables[i].GoName = generateVariableName(variables[i])
+				variables[i].FeatureStatus = generateFeatureStatus(variables[i])
 			}
 
 			// sort by name
-			sort.Slice(cfg.Variables, func(i, j int) bool {
-				return strings.Compare(cfg.Variables[i].Name, cfg.Variables[j].Name) < 0
+			sort.Slice(variables, func(i, j int) bool {
+				return strings.Compare(variables[i].Name, variables[j].Name) < 0
 			})
 
 			// Create the output file template.
 			t, err := template.New("varTemplate").Funcs(template.FuncMap{
-				"wordWrap": wordWrap, "add": add,
+				"processGoDescription": processGoDescription, "add": add,
 			}).Parse(outputTemplate)
 			if err != nil {
 				log.Fatalf("failed parsing variable template: %v", err)
@@ -304,7 +312,7 @@ var (
 			if err := t.Execute(&goSource, map[string]interface{}{
 				"Package":    getPackage(),
 				"KnownTypes": knownTypes,
-				"Variables":  cfg.Variables,
+				"Variables":  variables,
 				"Collection": collection,
 			}); err != nil {
 				log.Fatalf("failed generating output Go source code %s: %v", output, err)
@@ -317,7 +325,7 @@ var (
 			if htmlOutput != "" {
 				// Create the HTML output file template.
 				t, err = template.New("htmlOutputTemplate").Funcs(template.FuncMap{
-					"wordWrap": wordWrap,
+					"processHTMLDescription": processHTMLDescription,
 				}).Parse(htmlOutputTemplate)
 				if err != nil {
 					log.Fatalf("failed parsing HTML output template: %v", err)
@@ -327,7 +335,7 @@ var (
 				var htmlFile bytes.Buffer
 				if err := t.Execute(&htmlFile, map[string]interface{}{
 					"Package":    getPackage(),
-					"Variables":  cfg.Variables,
+					"Variables":  variables,
 					"Collection": collection,
 				}); err != nil {
 					log.Fatalf("failed generating output HTML file %s: %v", output, err)
@@ -394,9 +402,12 @@ type Variable struct {
 	Resources []string `json:"resources"`
 }
 
-type Configuration struct {
-	// TODO(nmittler): refactor this so that "annotations" or "labels" can appear in the yaml.
+type AnnotationConfiguration struct {
 	Variables []Variable `json:"annotations"`
+}
+
+type LabelConfiguration struct {
+	Variables []Variable `json:"labels"`
 }
 
 func getPackage() string {
@@ -404,9 +415,9 @@ func getPackage() string {
 	return filepath.Base(filepath.Dir(path))
 }
 
-func generateVariableName(annoName string) string {
+func generateVariableName(v Variable) string {
 	// Split the annotation name to separate the namespace/name portions.
-	parts := strings.Split(annoName, "/")
+	parts := strings.Split(v.Name, "/")
 	ns := parts[0]
 	name := parts[1]
 
@@ -440,7 +451,8 @@ func generateVariableName(annoName string) string {
 }
 
 func getFeatureStatus(fs string) (FeatureStatus, error) {
-	switch FeatureStatus(strings.ToTitle(fs)) {
+	asTitle := strings.Title(fs)
+	switch FeatureStatus(asTitle) {
 	case Alpha:
 		return Alpha, nil
 	case Beta:
@@ -448,30 +460,46 @@ func getFeatureStatus(fs string) (FeatureStatus, error) {
 	case Stable:
 		return Stable, nil
 	}
-	return "", fmt.Errorf("invalid feature status string: %s", fs)
+	return "", fmt.Errorf("invalid feature status string: `%s` (stings.Title=`%s`)", fs, asTitle)
 }
 
-func generateFeatureStatus(v Variable) FeatureStatus {
+func generateFeatureStatus(v Variable) string {
 	if len(v.FeatureStatus) > 0 {
 		fs, err := getFeatureStatus(v.FeatureStatus)
 		if err != nil {
 			log.Fatal(err)
 		}
-		return fs
+		return string(fs)
 	}
 
 	// If the name begins with the feature status, use it.
 	firstPart := strings.Split(v.Name, ".")
 	fs, err := getFeatureStatus(firstPart[0])
 	if err == nil {
-		return fs
+		return string(fs)
 	}
 
 	// Default to Alpha
-	return Alpha
+	return string(Alpha)
+}
+
+func processHTMLDescription(in string) string {
+	return strings.ReplaceAll(in, "\n", "<br>")
+}
+
+func processGoDescription(in string, indent int) string {
+	if strings.Contains(in, "\n") {
+		return lineWrap(in)
+	}
+	return wordWrap(in, indent)
 }
 
 func wordWrap(in string, indent int) string {
+	// We use double quotes (") around each line, so replace any double quotes embedded
+	// in the string with back ticks (`).
+	in = strings.ReplaceAll(in, "\"", "`")
+
+	indentPrefix := strings.Repeat(" ", indent)
 	words := strings.Split(in, " ")
 
 	maxLineLength := 80
@@ -489,12 +517,7 @@ func wordWrap(in string, indent int) string {
 			line = ""
 
 			// Wrap to the start of the next line.
-			out += "+\n"
-
-			// Indent to the start position of the next line.
-			for i := 0; i < indent; i++ {
-				out += " "
-			}
+			out += "+\n" + indentPrefix
 		}
 
 		// Add the word to the current line.
@@ -507,6 +530,23 @@ func wordWrap(in string, indent int) string {
 	// Emit the final line
 	out += "\"" + line + "\""
 
+	return out
+}
+
+func lineWrap(in string) string {
+	// We use back tick (`) around the entire string, so replace any back ticks embedded
+	// in the string with double quotes (").
+	in = strings.ReplaceAll(in, "`", "\"")
+
+	lines := strings.Split(in, "\n")
+	out := "`"
+	for i, line := range lines {
+		out += line
+		if i < len(lines)-1 {
+			out += "\n"
+		}
+	}
+	out += "`"
 	return out
 }
 
