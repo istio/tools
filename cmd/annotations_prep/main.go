@@ -416,6 +416,10 @@ func getPackage() string {
 }
 
 func generateVariableName(v Variable) string {
+	if len(v.GoName) > 0 {
+		return v.GoName
+	}
+
 	// Split the annotation name to separate the namespace/name portions.
 	parts := strings.Split(v.Name, "/")
 	ns := parts[0]
