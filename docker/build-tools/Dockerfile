@@ -25,7 +25,7 @@
 # Binary tools
 ################
 
-ARG GOLANG_IMAGE=golang:1.15.5
+ARG GOLANG_IMAGE=golang:1.16beta1
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
 
@@ -99,61 +99,53 @@ ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}
 RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_amd64.deb
 RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
-# Install gobin. We use gobin to build all of our tools such that their
-# dependencies remain independent of each other
-RUN GO111MODULE=off go get github.com/myitcv/gobin
+RUN go install github.com/myitcv/gobin@v0.0.14
 RUN mv /tmp/go/bin/gobin /usr/local/go/bin
 
 # Build and install a bunch of Go tools
-RUN gobin github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
-RUN gobin github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
-RUN gobin github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
-RUN gobin github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
-RUN gobin github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
-RUN gobin github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
-RUN gobin github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
-RUN gobin golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
-RUN gobin github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN gobin github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
-RUN gobin github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
-RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
-RUN gobin github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
-RUN gobin github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@${JB_VERSION}
-RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
-RUN gobin github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
-RUN gobin sigs.k8s.io/kind@${KIND_VERSION}
-RUN gobin github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
-RUN gobin github.com/fortio/fortio@${FORTIO_VERSION}
-RUN gobin github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
-RUN gobin golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
+RUN go install github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN go install github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
+RUN go install github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
+RUN go install github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
+RUN go install github.com/gogo/protobuf/protoc-gen-gogoslick@${GOGO_PROTOBUF_VERSION}
+RUN go install github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
+RUN go install github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
+RUN go install golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN go install github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN go install github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
+RUN go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN go install github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
+RUN go install github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@${JB_VERSION}
+RUN go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
+RUN go install github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN go install sigs.k8s.io/kind@${KIND_VERSION}
+RUN go install github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
+RUN go install github.com/fortio/fortio@${FORTIO_VERSION}
+RUN go install github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
+RUN go install golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
 
 # Install latest version of Istio-owned tools in this release
-RUN gobin istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/gen-release-notes
-RUN gobin istio.io/test-infra/toolbox/githubctl
+RUN go install istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
+RUN go install istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA}
+RUN go install istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA}
+RUN go install istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA}
+RUN go install istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA}
+RUN go install istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_SHA}
+RUN go install istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_SHA}
+RUN go install istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
+RUN go install istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
+RUN go install istio.io/tools/cmd/gen-release-notes@${ISTIO_TOOLS_SHA}
 
 # TODO(sdake/clarktm) sort out why this results in a building test-infra container
 RUN rm -rf /tmp/go/pkg/mod/cache/download/k8s.io
 
 # Install istio/test-infra tools
-RUN gobin istio.io/test-infra/boskos/cmd/mason_client
-RUN gobin k8s.io/test-infra/robots/pr-creator
-RUN gobin k8s.io/test-infra/prow/cmd/peribolos
-RUN gobin k8s.io/test-infra/pkg/benchmarkjunit
-RUN gobin sigs.k8s.io/kubetest2@${KUBETEST2_VERSION}
-RUN gobin sigs.k8s.io/kubetest2/kubetest2-gke@${KUBETEST2_VERSION}
-RUN gobin sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
-RUN gobin sigs.k8s.io/boskos/cmd/boskosctl@${BOSKOSCTL_VERSION}
+RUN go install sigs.k8s.io/kubetest2@${KUBETEST2_VERSION}
+RUN go install sigs.k8s.io/kubetest2/kubetest2-gke@${KUBETEST2_VERSION}
+RUN go install sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
 
-# gobin does not seem to be compatible with this pesky code-generator repo
+# go install does not seem to be compatible with this pesky code-generator repo
 # Install the code generator tools, and hopefully only these tools, this way
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
@@ -161,6 +153,27 @@ RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/lister-gen@
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/informer-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/deepcopy-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+
+# Go doesn't like the `replace` directives; need to do manual cloning now.
+# Should be fixed by https://github.com/kubernetes/test-infra/issues/20421
+# hadolint ignore=DL3003
+RUN git clone --depth 1 https://github.com/kubernetes/test-infra --branch master --single-branch && \
+  cd test-infra && \
+  go install ./robots/pr-creator && \
+  go install ./prow/cmd/peribolos && \
+  go install ./pkg/benchmarkjunit && \
+  cd .. && rm -rf test-infra
+# hadolint ignore=DL3003
+RUN git clone --depth 1 https://github.com/istio/test-infra --branch master --single-branch && \
+  cd test-infra && \
+  go install ./toolbox/githubctl && \
+  go install ./boskos/cmd/mason_client && \
+  cd .. && rm -rf test-infra
+# hadolint ignore=DL3003
+RUN git clone --depth 1 https://github.com/kubernetes-sigs/boskos --branch master --single-branch && \
+  cd boskos && \
+  go install ./cmd/boskosctl && \
+  cd .. && rm -rf boskos
 
 # Compress the Go tools and put them in their final location
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp
@@ -446,7 +459,6 @@ ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
-ENV GOBIN=/gobin
 ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby suppport
@@ -479,7 +491,7 @@ COPY bashrc /home/.bashrc
 # mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
-    mkdir -p /gobin && \
+    mkdir -p /goinstall && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
     mkdir -p /config/.kube && \
@@ -494,7 +506,7 @@ RUN mkdir -p /go && \
 # the directory mounted rather then overridding with the permission of the volume file.
 RUN chmod 777 /go && \
     chmod 777 /gocache && \
-    chmod 777 /gobin && \
+    chmod 777 /goinstall && \
     chmod 777 /config && \
     chmod 777 /config/.docker && \
     chmod 777 /config/.config/gcloud && \
@@ -583,8 +595,8 @@ ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
-ENV GOBIN=/gobin
-ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
+ENV GOBIN=/goinstall
+ENV PATH=/usr/local/go/bin:/goinstall:/usr/local/google-cloud-sdk/bin:$PATH
 
 # LLVM support
 ENV LLVM_DIRECTORY=/usr/lib/llvm
@@ -674,7 +686,7 @@ COPY bashrc /home/.bashrc
 # mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
-    mkdir -p /gobin && \
+    mkdir -p /goinstall && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
     mkdir -p /config/.kube && \
@@ -689,7 +701,7 @@ RUN mkdir -p /go && \
 # the directory mounted rather then overridding with the permission of the volume file.
 RUN chmod 777 /go && \
     chmod 777 /gocache && \
-    chmod 777 /gobin && \
+    chmod 777 /goinstall && \
     chmod 777 /config && \
     chmod 777 /config/.docker && \
     chmod 777 /config/.config/gcloud && \
