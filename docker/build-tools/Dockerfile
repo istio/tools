@@ -156,17 +156,20 @@ RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/go-to-proto
 
 # Go doesn't like the `replace` directives; need to do manual cloning now.
 # Should be fixed by https://github.com/kubernetes/test-infra/issues/20421
+# hadolint ignore=DL3003
 RUN git clone --depth 1 https://github.com/kubernetes/test-infra --branch master --single-branch && \
   cd test-infra && \
   go install ./robots/pr-creator && \
   go install ./prow/cmd/peribolos && \
   go install ./pkg/benchmarkjunit && \
   cd .. && rm -rf test-infra
+# hadolint ignore=DL3003
 RUN git clone --depth 1 https://github.com/istio/test-infra --branch master --single-branch && \
   cd test-infra && \
   go install ./toolbox/githubctl && \
   go install ./boskos/cmd/mason_client && \
   cd .. && rm -rf test-infra
+# hadolint ignore=DL3003
 RUN git clone --depth 1 https://github.com/kubernetes-sigs/boskos --branch master --single-branch && \
   cd boskos && \
   go install ./cmd/boskosctl && \
