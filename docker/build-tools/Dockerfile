@@ -507,54 +507,6 @@ WORKDIR /
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 
-##############
-# Clang+LLVM
-##############
-
-FROM ubuntu:xenial as clang_context
-
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
-    xz-utils \
-    wget \
-    ca-certificates \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-ENV LLVM_VERSION=10.0.1
-ENV LLVM_TARGET=x86_64-linux-gnu-ubuntu-16.04
-ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
-ENV LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-${LLVM_TARGET}
-ENV LLVM_URL=${LLVM_BASE_URL}/${LLVM_ARCHIVE}.tar.xz
-ENV LLVM_DIRECTORY=/usr/lib/llvm
-
-RUN wget ${LLVM_URL}
-RUN tar -xJf ${LLVM_ARCHIVE}.tar.xz -C /tmp
-RUN mkdir -p ${LLVM_DIRECTORY}
-RUN mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
-
-###########
-# Bazel
-###########
-
-FROM ubuntu:xenial as bazel_context
-
-ENV BAZELISK_VERSION="v1.0"
-ENV BAZELISK_BASE_URL="https://github.com/bazelbuild/bazelisk/releases/download"
-ENV BAZELISK_BIN="bazelisk-linux-amd64"
-ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
-
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
-    wget \
-    ca-certificates \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-RUN wget ${BAZELISK_URL}
-RUN chmod +x ${BAZELISK_BIN}
-RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
-
 ########################
 # Final image for proxy
 ########################
