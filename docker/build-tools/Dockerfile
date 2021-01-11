@@ -548,6 +548,7 @@ ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Add cmake repository, otherwise `apt-get update` will fail because envoy base image adds this.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
 RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
 
