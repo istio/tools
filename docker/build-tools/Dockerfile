@@ -559,7 +559,9 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:xenial
+# Use upstream envoy build image as base.
+# Latest tag could be found https://hub.docker.com/r/envoyproxy/envoy-build-ubuntu/tags
+FROM envoyproxy/envoy-build-ubuntu:11efa5680d987fff33fde4af3cc5ece105015d04
 
 # Version from build arguments
 ARG VERSION
@@ -587,11 +589,15 @@ ENV GOBIN=/gobin
 ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # LLVM support
-ENV LLVM_DIRECTORY=/usr/lib/llvm
+ENV LLVM_DIRECTORY=/opt/llvm/bin
 ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
 
 # Avoid interactive input when installing tshark
 ENV DEBIAN_FRONTEND=noninteractive
+
+# Add cmake repository, otherwise `apt-get update` will fail because envoy base image adds this.
+RUN curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
+RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
 
 # required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
 # required for general build: make, wget, curl, ssh
@@ -624,7 +630,8 @@ RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
 RUN apt-key add /tmp/docker-key
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
-RUN apt-get update && apt-get -y install --no-install-recommends \
+# Allow downgrades since envoy base image might have newer docker version.
+RUN apt-get update && apt-get -y install --allow-downgrades --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
     containerd.io="${CONTAINERD_VERSION}" \
@@ -635,35 +642,8 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
-# CMake
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
-RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
-
-# binary dependencies to build envoy at v1.12.0
-# https://github.com/envoyproxy/envoy/blob/v1.12.0/bazel/README.md
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    autoconf \
-    automake \
-    cmake \
-    libtool \
-    ninja-build \
-    python \
-    unzip \
-    virtualenv \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
-COPY --from=bazel_context /usr/local/bin /usr/local/bin
-COPY --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
-COPY --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
-COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
-
-RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
-RUN ldconfig
 
 # su-exec is used in place of complex sudo setup operations
 RUN chmod u+sx /usr/bin/su-exec
