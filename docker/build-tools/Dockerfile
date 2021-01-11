@@ -459,6 +459,7 @@ ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
+ENV GOBIN=/gobin
 ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby suppport
@@ -491,7 +492,7 @@ COPY bashrc /home/.bashrc
 # mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
-    mkdir -p /goinstall && \
+    mkdir -p /gobin && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
     mkdir -p /config/.kube && \
@@ -506,7 +507,7 @@ RUN mkdir -p /go && \
 # the directory mounted rather then overridding with the permission of the volume file.
 RUN chmod 777 /go && \
     chmod 777 /gocache && \
-    chmod 777 /goinstall && \
+    chmod 777 /gobin && \
     chmod 777 /config && \
     chmod 777 /config/.docker && \
     chmod 777 /config/.config/gcloud && \
@@ -595,8 +596,8 @@ ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
-ENV GOBIN=/goinstall
-ENV PATH=/usr/local/go/bin:/goinstall:/usr/local/google-cloud-sdk/bin:$PATH
+ENV GOBIN=/gobin
+ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # LLVM support
 ENV LLVM_DIRECTORY=/usr/lib/llvm
@@ -686,7 +687,7 @@ COPY bashrc /home/.bashrc
 # mountpoints in /config are special.
 RUN mkdir -p /go && \
     mkdir -p /gocache && \
-    mkdir -p /goinstall && \
+    mkdir -p /gobin && \
     mkdir -p /config/.docker && \
     mkdir -p /config/.config/gcloud && \
     mkdir -p /config/.kube && \
@@ -701,7 +702,7 @@ RUN mkdir -p /go && \
 # the directory mounted rather then overridding with the permission of the volume file.
 RUN chmod 777 /go && \
     chmod 777 /gocache && \
-    chmod 777 /goinstall && \
+    chmod 777 /gobin && \
     chmod 777 /config && \
     chmod 777 /config/.docker && \
     chmod 777 /config/.config/gcloud && \
