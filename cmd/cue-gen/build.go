@@ -27,7 +27,6 @@ import (
 	"cuelang.org/go/encoding/yaml"
 	"github.com/emicklei/proto"
 	"github.com/kr/pretty"
-
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/utils/pointer"
 )
@@ -100,6 +99,8 @@ type CrdGen struct {
 
 // CrdConfig contains the CRD for each proto type to be generated.
 type CrdConfig struct {
+	// Contains all directories of source schemas.
+	Directories []string
 	// Optional. Mapping of version to schema name if schema name
 	// not following the <package>.<version>.<name> format.
 	VersionToSchema map[string]string
@@ -257,6 +258,7 @@ func (c *Config) getCrdConfig(filename string) {
 						PreserveUnknownFields:    map[string][]string{},
 					}
 				}
+				c.Crd.CrdConfigs[t].Directories = append(c.Crd.CrdConfigs[t].Directories, filename)
 				d := c.Crd.CrdConfigs[t]
 				convertCrdConfig(v, t, d)
 				if crdToType == nil {
