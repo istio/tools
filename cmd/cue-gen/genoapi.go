@@ -393,7 +393,21 @@ func (x *builder) genCRD() {
 		Overlay: x.overlay,
 	}
 
-	instances := load.Instances([]string{"./..."}, cfg)
+	// Filter down to directories containing definitions for CRDs
+	dirset := map[string]struct{}{}
+	for _, v := range x.Crd.CrdConfigs {
+		for _, d := range v.Directories {
+			wd, _ := os.Getwd()
+			rp, _ := filepath.Rel(wd, filepath.Dir(d))
+			dirset["./"+rp] = struct{}{}
+		}
+	}
+	dirs := []string{}
+	for k := range dirset {
+		dirs = append(dirs, k)
+	}
+
+	instances := load.Instances(dirs, cfg)
 
 	frontMatterMap = make(map[string][]string)
 	extractFrontMatter(instances, frontMatterMap)
