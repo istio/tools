@@ -665,6 +665,9 @@ COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
 RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
 
+COPY proxy-tsan-instrumented-libcxx.sh proxy-tsan-instrumented-libcxx.sh
+RUN ./proxy-tsan-instrumented-libcxx.sh
+
 # su-exec is used in place of complex sudo setup operations
 RUN chmod u+sx /usr/bin/su-exec
 
