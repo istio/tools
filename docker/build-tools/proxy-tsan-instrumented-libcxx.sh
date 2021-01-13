@@ -1,3 +1,21 @@
+#!/usr/bin/env bash
+
+# Copyright Istio Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -eux
+
 # gcc-9, need to build instrumented LLVM libc++ for tsan testing.
 add-apt-repository -y ppa:ubuntu-toolchain-r/test
 apt-get update && apt-get install -y --no-install-recommends g++-9
@@ -14,7 +32,7 @@ LLVM_ARCHIVE_URL=https://github.com/llvm/llvm-project/archive/${LLVM_ARCHIVE}
 wget ${LLVM_ARCHIVE_URL}
 tar -xzf ${LLVM_ARCHIVE} -C /tmp
 mkdir tsan
-pushd tsan
+pushd tsan || exit
 
 cmake \
 -GNinja \
@@ -29,4 +47,4 @@ cmake \
 ninja install-cxx install-cxxabi
 
 rm -rf /opt/libcxx_tsan/include
-popd
+popd || exit
