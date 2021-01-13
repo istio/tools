@@ -20,7 +20,7 @@ require (
 	github.com/getkin/kin-openapi v0.1.1-0.20190507152207-d3180292eead
 	github.com/ghodss/yaml v1.0.0
 	github.com/gliderlabs/ssh v0.2.2 // indirect
-	github.com/gogo/protobuf v1.3.1
+	github.com/gogo/protobuf v1.3.2
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.2
@@ -40,7 +40,7 @@ require (
 	github.com/spf13/viper v1.4.0
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/xanzy/ssh-agent v0.2.0 // indirect
-	golang.org/x/tools v0.0.0-20200928201943-a0ef9b62deab
+	golang.org/x/tools v0.0.0-20210106214847-113979e3529a
 	gonum.org/v1/netlib v0.0.0-20191031114514-eccb95939662 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0 // indirect
