@@ -21,3 +21,4 @@ run_baseline: true
 extra_labels: "mtls"
 
 jitter: true
+protocol_mode: tcp
