@@ -93,7 +93,8 @@ func (g *htmlGenerator) getFileContents(file *protomodel.FileDescriptor,
 	*services = append(*services, file.Services...)
 
 	for _, m := range file.AllMessages {
-		g.includeUnsituatedDependencies(messages, enums, m)
+
+		g.includeUnsituatedDependencies(messages, enums, m, file.Matter.Mode == protomodel.ModePackage)
 	}
 }
 
@@ -126,6 +127,7 @@ func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*protomodel.FileDes
 
 func (g *htmlGenerator) generatePerPackageOutput(filesToGen map[*protomodel.FileDescriptor]bool, pkg *protomodel.PackageDescriptor,
 	response *plugin.CodeGeneratorResponse) {
+
 	// We need to produce a file for this package.
 
 	// Decide which types need to be included in the generated file.
@@ -151,22 +153,31 @@ func (g *htmlGenerator) generateOutput(filesToGen map[*protomodel.FileDescriptor
 	response := plugin.CodeGeneratorResponse{}
 
 	for _, pkg := range g.model.Packages {
+		mode := protomodel.ModeUnset
 		g.currentPackage = pkg
 		g.currentFrontMatterProvider = pkg.FileDesc()
 
 		// anything to output for this package?
 		count := 0
 		for _, file := range pkg.Files {
+			if file.Matter.Mode != protomodel.ModeUnset {
+				if mode != protomodel.ModeUnset && mode != file.Matter.Mode {
+					return nil, fmt.Errorf("all files in a package must have the same mode; have %q got %q (in %v)", mode, file.Matter.Mode, *file.Name)
+				}
+				mode = file.Matter.Mode
+			}
 			if _, ok := filesToGen[file]; ok {
 				count++
 			}
 		}
 
 		if count > 0 {
-			if g.perFile {
+			switch mode {
+			case protomodel.ModeFile, protomodel.ModeUnset:
 				g.generatePerFileOutput(filesToGen, pkg, &response)
-			} else {
+			case protomodel.ModePackage:
 				g.generatePerPackageOutput(filesToGen, pkg, &response)
+			case protomodel.ModeNone:
 			}
 		}
 	}
@@ -178,8 +189,8 @@ func (g *htmlGenerator) generateOutput(filesToGen map[*protomodel.FileDescriptor
 	return &response, nil
 }
 
-func (g *htmlGenerator) descLocation(desc protomodel.CoreDesc) string {
-	if g.perFile {
+func (g *htmlGenerator) descLocation(desc protomodel.CoreDesc, isPackage bool) string {
+	if !isPackage {
 		return desc.FileDesc().Matter.HomeLocation
 	}
 	if desc.PackageDesc().FileDesc() != nil {
@@ -199,24 +210,45 @@ func (g *htmlGenerator) hasName(descs []*protomodel.MessageDescriptor, name stri
 
 func (g *htmlGenerator) includeUnsituatedDependencies(messages *[]*protomodel.MessageDescriptor,
 	enums *[]*protomodel.EnumDescriptor,
-	msg *protomodel.MessageDescriptor) {
+	msg *protomodel.MessageDescriptor,
+	isPackage bool) {
 	for _, field := range msg.Fields {
 		switch f := field.FieldType.(type) {
 		case *protomodel.MessageDescriptor:
 			// A package without a known documentation location is included in the output.
-			if g.descLocation(field.FieldType) == "" {
+			if g.descLocation(field.FieldType, isPackage) == "" {
 				name := g.relativeName(f)
 				if !g.hasName(*messages, name) {
 					*messages = append(*messages, f)
-					g.includeUnsituatedDependencies(messages, enums, msg)
+					g.includeUnsituatedDependencies(messages, enums, msg, isPackage)
 				}
 			}
 		case *protomodel.EnumDescriptor:
-			if g.descLocation(field.FieldType) == "" {
+			if g.descLocation(field.FieldType, isPackage) == "" {
 				*enums = append(*enums, f)
 			}
 		}
 	}
+}
+
+func getName(name string, file *protomodel.FileDescriptor) string {
+	importPath := ""
+	// the relevant bits of FileDescriptor.goPackageOption(), if only it were exported
+	opt := file.GetOptions().GetGoPackage()
+	if opt != "" {
+		if sc := strings.Index(opt, ";"); sc >= 0 {
+			// A semicolon-delimited suffix delimits the import path and package name.
+			importPath = opt[:sc]
+		} else if strings.LastIndex(opt, "/") > 0 {
+			// The presence of a slash implies there's an import path.
+			importPath = opt
+		}
+	}
+
+	if importPath != "" {
+		name = path.Join(importPath, path.Base(name))
+	}
+	return name
 }
 
 // Generate a package documentation file or a collection of cross-linked files.
@@ -262,6 +294,10 @@ func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor
 		}
 
 		name := g.relativeName(enum)
+
+		if _, f := enumMap[name]; f {
+			continue
+		}
 		typeList = append(typeList, name)
 		enumMap[name] = enum
 	}
@@ -318,7 +354,7 @@ func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor
 	g.generateFileFooter()
 
 	return plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(name + ".pb.html"),
+		Name:    proto.String(getName(name, top) + ".pb.html"),
 		Content: proto.String(g.buffer.String()),
 	}
 }
