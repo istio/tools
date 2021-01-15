@@ -35,7 +35,7 @@
 # $ ISTIO_INSTALLER_PATH=~/works/installer \
 #   ISTIOCTL="go run istio.io/istio/istioctl/cmd/istioctl" \
 #   HUB=gcr.io/istio-release \
-#   TAG=master-latest-daily \
+#   TAG=release-1.9 \
 #   KUBECONTEXT1=gke_istio-test-230101_us-central1-a_mc-s \
 #   KUBECONTEXT2=gke_istio-test-230101_us-west1-a_mc-uswest \
 #   ./setup.sh
@@ -44,7 +44,7 @@
 set -e
 
 HUB="${HUB:-gcr.io/istio-release}"
-TAG="${TAG:-master-latest-daily}"
+TAG="${TAG:-release-1.9}"
 APPS_NAMESPACE="${APPS_NAMESPACE:-istio-stability-multicluster-vpn}"
 ISTIOCTL="${ISTIOCTL:-istioctl}"
 

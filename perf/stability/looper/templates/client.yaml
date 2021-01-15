@@ -14,7 +14,7 @@ spec:
       serviceAccount: looper-service-account
       containers:
       - name: client
-        image: gcr.io/istio-release/kubectl:master-latest-daily
+        image: gcr.io/istio-release/kubectl:release-1.9
         args:
           - bash
           - -c

@@ -104,7 +104,7 @@ function install_istio() {
 	pushd tmp/istio-${RELEASE}
 	# shellcheck disable=SC2086
 	for i in install/kubernetes/helm/istio-init/files/crd*yaml; do kubectl apply -f $i; done
-	helm repo add istio.io "https://storage.googleapis.com/istio-prerelease/daily-build/master-latest-daily/charts"
+	helm repo add istio.io "https://storage.googleapis.com/istio-prerelease/daily-build/release-1.9/charts"
 	helm dep update install/kubernetes/helm/istio
 	helm template install/kubernetes/helm/istio --name istio --namespace istio-system > ./istio_master.yaml
 	kubectl create ns istio-system
