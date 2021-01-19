@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -115,11 +115,9 @@ func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*protomodel.FileDes
 			services := []*protomodel.ServiceDescriptor{}
 
 			g.getFileContents(file, &messages, &enums, &services)
-			var filename = path.Base(file.GetName())
-			var extension = path.Ext(filename)
-			var name = filename[0 : len(filename)-len(extension)]
 
-			rf := g.generateFile(name, file, messages, enums, services)
+			rf := g.generateFile(file, messages, enums, services)
+			rf.Name = getPerFileName(file)
 			response.File = append(response.File, &rf)
 		}
 	}
@@ -144,7 +142,8 @@ func (g *htmlGenerator) generatePerPackageOutput(filesToGen map[*protomodel.File
 		}
 	}
 
-	rf := g.generateFile(pkg.Name, pkg.FileDesc(), messages, enums, services)
+	rf := g.generateFile(pkg.FileDesc(), messages, enums, services)
+	rf.Name = getPerPackageName(pkg.Name, pkg.FileDesc())
 	response.File = append(response.File, &rf)
 }
 
@@ -231,28 +230,16 @@ func (g *htmlGenerator) includeUnsituatedDependencies(messages *[]*protomodel.Me
 	}
 }
 
-func getName(name string, file *protomodel.FileDescriptor) string {
-	importPath := ""
-	// the relevant bits of FileDescriptor.goPackageOption(), if only it were exported
-	opt := file.GetOptions().GetGoPackage()
-	if opt != "" {
-		if sc := strings.Index(opt, ";"); sc >= 0 {
-			// A semicolon-delimited suffix delimits the import path and package name.
-			importPath = opt[:sc]
-		} else if strings.LastIndex(opt, "/") > 0 {
-			// The presence of a slash implies there's an import path.
-			importPath = opt
-		}
-	}
+func getPerFileName(file *protomodel.FileDescriptor) *string {
+	return proto.String(strings.TrimSuffix(file.GetName(), filepath.Ext(file.GetName())) + ".pb.html")
+}
 
-	if importPath != "" {
-		name = path.Join(importPath, path.Base(name))
-	}
-	return name
+func getPerPackageName(name string, file *protomodel.FileDescriptor) *string {
+	return proto.String(filepath.Join(filepath.Dir(file.GetName()), name+".pb.html"))
 }
 
 // Generate a package documentation file or a collection of cross-linked files.
-func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor, messages []*protomodel.MessageDescriptor,
+func (g *htmlGenerator) generateFile(top *protomodel.FileDescriptor, messages []*protomodel.MessageDescriptor,
 	enums []*protomodel.EnumDescriptor, services []*protomodel.ServiceDescriptor) plugin.CodeGeneratorResponse_File {
 	g.buffer.Reset()
 
@@ -354,7 +341,6 @@ func (g *htmlGenerator) generateFile(name string, top *protomodel.FileDescriptor
 	g.generateFileFooter()
 
 	return plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(getName(name, top) + ".pb.html"),
 		Content: proto.String(g.buffer.String()),
 	}
 }
