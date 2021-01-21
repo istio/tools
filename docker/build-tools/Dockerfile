@@ -234,10 +234,11 @@ RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
 
 # Install gcloud command line tool
+
 ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
-RUN tar -xzvf /tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz -C ${OUTDIR}/usr/local
-# Install gcloud beta components
-RUN ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta kpt --quiet
+RUN tar -xzvf "/tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz" -C "${OUTDIR}/usr/local" && \
+    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta kpt --quiet && \
+    rm -rf /usr/local/google-cloud-sdk/.install/.backup
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
