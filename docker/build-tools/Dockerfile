@@ -51,6 +51,7 @@ ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.15.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.18.1
+ENV K8S_TEST_INFRA_VERSION=faa9dc11170504f4e6b9e44b922cc79c7677fca2
 ENV KIND_VERSION=v0.9.0
 ENV KUBECTL_VERSION=1.15.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.1
@@ -157,8 +158,9 @@ RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/go-to-proto
 # Go doesn't like the `replace` directives; need to do manual cloning now.
 # Should be fixed by https://github.com/kubernetes/test-infra/issues/20421
 # hadolint ignore=DL3003
-RUN git clone --depth 1 https://github.com/kubernetes/test-infra --branch master --single-branch && \
+RUN git clone https://github.com/kubernetes/test-infra --branch master --single-branch && \
   cd test-infra && \
+  git checkout "${K8S_TEST_INFRA_VERSION}" && \
   go install ./robots/pr-creator && \
   go install ./prow/cmd/peribolos && \
   go install ./pkg/benchmarkjunit && \
