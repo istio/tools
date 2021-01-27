@@ -63,6 +63,7 @@ ENV SHELLCHECK_VERSION=v0.7.1
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.96
 ENV YQ_VERSION=3.3.0
+ENV BUF_VERSION=v0.36.0
 ENV GCLOUD_VERSION=319.0.0
 ENV KUBETEST2_VERSION=43699a7ba223ddce766f62ecd7504c7233605710
 ENV BOSKOSCTL_VERSION=c6d730e323f06da1b56dfa14bdab6d7d5dc22e2a
@@ -223,6 +224,9 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
 ADD https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${GCR_AUTH_VERSION}/docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz /tmp
 RUN tar -xzf /tmp/docker-credential-gcr_linux_amd64-${GCR_AUTH_VERSION}.tar.gz -C /tmp
 RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
+
+ADD https://github.com/bufbuild/buf/releases/download/${BUF_VERSION}/buf-Linux-x86_64 ${OUTDIR}/usr/bin/buf
+RUN chmod 555 ${OUTDIR}/usr/bin/buf
 
 # Install su-exec which is a tool that operates like sudo without the overhead
 ADD https://github.com/ncopa/su-exec/archive/v${SU_EXEC_VERSION}.tar.gz /tmp
