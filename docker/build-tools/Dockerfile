@@ -25,7 +25,7 @@
 # Binary tools
 ################
 
-ARG GOLANG_IMAGE=golang:1.16beta1
+ARG GOLANG_IMAGE=golang:1.16rc1
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
 
@@ -33,7 +33,6 @@ FROM ${GOLANG_IMAGE} as binary_tools_context
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in
-ENV FORTIO_VERSION=v1.3.1
 ENV GCR_AUTH_VERSION=1.5.0
 ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=af01ea7f8024089b458d804d5cdf190f962a9a0c
@@ -122,7 +121,6 @@ RUN go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTO
 RUN go install github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
 RUN go install sigs.k8s.io/kind@${KIND_VERSION}
 RUN go install github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
-RUN go install github.com/fortio/fortio@${FORTIO_VERSION}
 RUN go install github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 RUN go install golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
 
