@@ -37,6 +37,11 @@ data:
         - call:
             service: {{ .Values.serviceNamePrefix }}0-8
             size: {{ .Values.requestSize }}
+        {{- if .Values.vm.enabled }}
+        - call:
+            service: {{ .Values.serviceNamePrefix }}0-9
+            size: {{ .Values.requestSize }}
+        {{- end}}
       type: http
     - name: {{ .Values.serviceNamePrefix }}0-0
       numReplicas: {{ .Values.replicas }}
@@ -109,7 +114,17 @@ data:
       - - call:
             service: {{ .Values.serviceNamePrefix }}0-8-0
             size: {{ .Values.requestSize }}
+    {{- if .Values.vm.enabled }}
+    - name: {{ .Values.serviceNamePrefix }}0-9
+      numReplicas: {{ .Values.replicas }}
+      responseSize: {{ .Values.responseSize }}
       type: http
+      script:
+      - - call:
+            service: {{ .Values.serviceNamePrefix }}0-9-0
+            size: {{ .Values.requestSize }}
+      type: http
+    {{- end }}
     - name: {{ .Values.serviceNamePrefix }}0-0-0
       numReplicas: {{ .Values.replicas }}
       responseSize: {{ .Values.responseSize }}
@@ -146,6 +161,12 @@ data:
       numReplicas: {{ .Values.replicas }}
       responseSize: {{ .Values.responseSize }}
       type: http
+    {{- if .Values.vm.enabled }}
+    - name: {{ .Values.serviceNamePrefix }}0-9-0
+      numReplicas: {{ .Values.replicas }}
+      responseSize: {{ .Values.responseSize }}
+      type: http
+    {{- end }}
 kind: ConfigMap
 metadata:
   labels:
@@ -1477,3 +1498,59 @@ spec:
     app: {{ .Values.serviceNamePrefix }}0-8-0
 status:
 {{- end}}
+---
+{{- if .Values.vm.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-9
+spec:
+  ports:
+  - name: {{ .Values.httpPortName }}
+    port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-9
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: WorkloadGroup
+metadata:
+  name: {{ .Values.serviceNamePrefix }}0-9
+spec:
+  metadata:
+    labels:
+      app:  {{ .Values.serviceNamePrefix }}0-9
+  template: {}
+  {{- if .Values.readinessProbe }}
+  probe:
+    {{ toJson .Values.readinessProbe }}
+  {{- end}}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: WorkloadGroup
+metadata:
+  name: {{ .Values.serviceNamePrefix }}0-9-0
+spec:
+  metadata:
+    labels:
+      app:  {{ .Values.serviceNamePrefix }}0-9-0
+  template: {}
+  {{- if .Values.readinessProbe }}
+  probe:
+    {{ toJson .Values.readinessProbe }}
+  {{- end}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: service-graph
+  name: {{ .Values.serviceNamePrefix }}0-9-0
+spec:
+  ports:
+  - name: tcp-web
+    port: 8080
+  selector:
+    app: {{ .Values.serviceNamePrefix }}0-9-0
+{{- end }}

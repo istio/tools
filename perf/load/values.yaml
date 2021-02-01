@@ -26,6 +26,9 @@ multicluster:
   cluster1: false
   cluster2: false
 
+vm:
+  enabled: false
+
 # time between config changes
 configSleep: 120
 
