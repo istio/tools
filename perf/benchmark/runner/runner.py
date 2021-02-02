@@ -396,8 +396,7 @@ class Fortio:
                 process.join()
 
 
-WD = os.getcwd()
-LOCAL_FLAMEDIR = os.path.join(WD, "../flame/")
+LOCAL_FLAMEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../flame/")
 PERF_PROXY_FILE = "get_proxy_perf.sh"
 LOCAL_FLAME_PROXY_FILE_PATH = LOCAL_FLAMEDIR + PERF_PROXY_FILE
 LOCAL_FLAMEOUTPUT = LOCAL_FLAMEDIR + "flameoutput/"
