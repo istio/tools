@@ -136,7 +136,8 @@ RUN gobin istio.io/tools/cmd/protoc-gen-deepcopy@${ISTIO_TOOLS_SHA}
 RUN gobin istio.io/tools/cmd/protoc-gen-jsonshim@${ISTIO_TOOLS_SHA}
 RUN gobin istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
 RUN gobin istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
-RUN gobin istio.io/tools/cmd/gen-release-notes
+RUN gobin istio.io/tools/cmd/gen-release-notes@${ISTIO_TOOLS_SHA}
+RUN gobin istio.io/test-infra/toolbox/githubctl
 
 # TODO(sdake/clarktm) sort out why this results in a building test-infra container
 RUN rm -rf /tmp/go/pkg/mod/cache/download/k8s.io
