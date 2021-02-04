@@ -130,7 +130,7 @@ setup_fortio_and_prometheus
 # Step 7: setup exit handling
 function exit_handling() {
   for pid in "${CLEANUP_PIDS[@]}"; do
-    kill "${pid}"
+    kill "${pid}" || true
   done
 
   if [[ "${TRIALRUN}" == "True" ]]; then
