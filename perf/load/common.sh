@@ -27,6 +27,7 @@ function run_test() {
   MULTI_CLUSTER=${MULTI_CLUSTER:-"false"}
   CLUSTER1=${CLUSTER1:-"false"}
   CLUSTER2=${CLUSTER2:-"false"}
+  VM_ENABLED="${VM_ENABLED:-false}"
   YAML=$(mktemp).yml
   # shellcheck disable=SC2086
   helm -n ${ns} template \
@@ -39,6 +40,7 @@ function run_test() {
           --set multicluster.enabled="${MULTI_CLUSTER}" \
           --set multicluster.cluster1="${CLUSTER1}" \
           --set multicluster.cluster2="${CLUSTER2}" \
+          --set vm.enabled="${VM_ENABLED}" \
           . > "${YAML}"
   echo "Wrote ${YAML}"
 
@@ -51,6 +53,10 @@ function run_test() {
   else
     kubectl -n "${ns}" delete -f "${YAML}" || true
     kubectl delete ns "${ns}"
+  fi
+  if [[ "${VM_ENABLED}" == "true" ]]; then
+    VM_NAMESPACE="${ns}" VM_APP="${prefix}0-9"  ./bootstrap-vm.sh
+    VM_NAMESPACE="${ns}" VM_APP="${prefix}0-9-0"  ./bootstrap-vm.sh
   fi
 }
 
@@ -70,6 +76,6 @@ function start_servicegraphs() {
       ${CMD} run_test "${ns}" "${prefix}"
     fi
 
-    sleep 30
+    sleep "${PERF_NAMESPACE_DELAY:-30}"
   }
 }
