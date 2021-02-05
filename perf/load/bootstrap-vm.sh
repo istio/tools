@@ -22,12 +22,15 @@ clr='\[\033[0m\]'
 VM_APP="${VM_APP:?}"
 VM_NAME="${VM_NAME:-${VM_APP}}"
 VM_NAMESPACE="${VM_NAMESPACE:?}"
+VERSION="${VERSION:?"version, like 1.10-alpha.45c5661eb8c96cebe8fcb467b4c1be3262b0de4c"}"
 PROJECT="${PROJECT:-mixologist-142215}"
 ZONE="${ZONE:-us-central1-c}"
 WORK_DIR=/tmp/vm
 SERVICE_ACCOUNT=default
 export CLOUDSDK_COMPUTE_ZONE="${ZONE}"
 export CLOUDSDK_CORE_PROJECT="${PROJECT}"
+
+mkdir -p "${WORK_DIR}"
 
 docker-copy() {
     image="${1:?image}"
@@ -97,9 +100,9 @@ EOF
 docker-copy gcr.io/istio-testing/isotope:0.0.1 /usr/local/bin/isotope_service  "${WORK_DIR}"/isotope_service
 
 gcloud compute scp "${WORK_DIR}"/* "${VM_APP}":
-gcloud compute ssh  "${VM_APP}" -- sudo bash -c '"
+gcloud compute ssh  "${VM_APP}" -- sudo bash -c "\"
 mkdir -p /etc/certs /var/run/secrets/tokens /etc/istio/config/ /etc/istio/proxy /etc/config
-curl -LO https://storage.googleapis.com/istio-build/dev/1.10-alpha.45c5661eb8c96cebe8fcb467b4c1be3262b0de4c/deb/istio-sidecar.deb
+curl -LO https://storage.googleapis.com/istio-build/dev/${VERSION}/deb/istio-sidecar.deb
 sudo dpkg -i istio-sidecar.deb
 cp root-cert.pem /etc/certs/root-cert.pem
 cp istio-token /var/run/secrets/tokens/istio-token
@@ -113,4 +116,4 @@ cat hosts >> /etc/hosts
 chown -R istio-proxy /var/lib/istio /etc/certs /etc/istio/proxy /etc/istio/config /var/run/secrets /etc/certs/root-cert.pem
 systemctl start istio
 systemctl start isotope
-"'
+\""
