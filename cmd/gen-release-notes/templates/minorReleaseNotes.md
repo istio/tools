@@ -52,6 +52,18 @@ These notices describe functionality that will be removed in a future release ac
 <!-- releaseNotes area:telemetry action:Removed -->
 <!-- releaseNotes area:telemetry action:Optimized -->
 
+## Extensibility
+
+<!-- releaseNotes area:extensibility action:Promoted -->
+<!-- releaseNotes area:extensibility action:Improved -->
+<!-- releaseNotes area:extensibility action:Updated -->
+<!-- releaseNotes area:extensibility action:Added -->
+<!-- releaseNotes area:extensibility action:Enabled -->
+<!-- releaseNotes area:extensibility action:Fixed -->
+<!-- releaseNotes area:extensibility action:Upgraded -->
+<!-- releaseNotes area:extensibility action:Removed -->
+<!-- releaseNotes area:extensibility action:Optimized -->
+
 ## Installation
 
 <!-- releaseNotes area:installation action:Promoted -->
