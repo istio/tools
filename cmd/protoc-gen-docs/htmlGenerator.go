@@ -87,13 +87,11 @@ func (g *htmlGenerator) getFileContents(file *protomodel.FileDescriptor,
 	messages *[]*protomodel.MessageDescriptor,
 	enums *[]*protomodel.EnumDescriptor,
 	services *[]*protomodel.ServiceDescriptor) {
-
 	*messages = append(*messages, file.AllMessages...)
 	*enums = append(*enums, file.AllEnums...)
 	*services = append(*services, file.Services...)
 
 	for _, m := range file.AllMessages {
-
 		g.includeUnsituatedDependencies(messages, enums, m, file.Matter.Mode == protomodel.ModePackage)
 	}
 }
@@ -125,7 +123,6 @@ func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*protomodel.FileDes
 
 func (g *htmlGenerator) generatePerPackageOutput(filesToGen map[*protomodel.FileDescriptor]bool, pkg *protomodel.PackageDescriptor,
 	response *plugin.CodeGeneratorResponse) {
-
 	// We need to produce a file for this package.
 
 	// Decide which types need to be included in the generated file.
@@ -844,9 +841,11 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 	g.buffer.WriteByte('\n')
 }
 
-var stripCodeBlocks = regexp.MustCompile("(`.*`)")
-var stripMarkdownURLs = regexp.MustCompile(`\[.*\]\((.*)\)`)
-var stripHTMLURLs = regexp.MustCompile(`(<a href=".*">)`)
+var (
+	stripCodeBlocks   = regexp.MustCompile("(`.*`)")
+	stripMarkdownURLs = regexp.MustCompile(`\[.*\]\((.*)\)`)
+	stripHTMLURLs     = regexp.MustCompile(`(<a href=".*">)`)
+)
 
 func sanitize(line string) string {
 	// strip out any embedded code blocks and URLs
@@ -920,7 +919,6 @@ func (g *htmlGenerator) warn(loc protomodel.LocationDescriptor, lineOffset int, 
 	if g.genWarnings {
 		place := ""
 		if loc.SourceCodeInfo_Location != nil && len(loc.Span) >= 2 {
-
 			if lineOffset < 0 {
 				place = fmt.Sprintf("%s:%d: ", loc.File.GetName(), loc.Span[0]+int32(lineOffset)+1)
 			} else {

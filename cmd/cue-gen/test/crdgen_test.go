@@ -23,9 +23,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/google/go-cmp/cmp"
-
 	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-
 	kubeyaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 

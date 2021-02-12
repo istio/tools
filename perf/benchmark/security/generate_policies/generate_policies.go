@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-
 	"io/ioutil"
 	"os"
 	"strings"

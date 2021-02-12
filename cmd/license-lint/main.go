@@ -76,7 +76,7 @@ func main() {
 			fmt.Printf("\n")
 		}
 	} else if mirror {
-		var basePath = "licenses"
+		basePath := "licenses"
 
 		for _, module := range modules {
 			p := path.Join(basePath, module.moduleName)

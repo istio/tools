@@ -19,7 +19,6 @@ import (
 
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/utils/pointer"
-
 	crdutil "sigs.k8s.io/controller-tools/pkg/crd"
 )
 

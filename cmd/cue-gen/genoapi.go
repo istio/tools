@@ -632,7 +632,6 @@ func fixSnakes(f *ast.File, sf []string) {
 		default:
 			return true
 		}
-
 	}, nil)
 }
 

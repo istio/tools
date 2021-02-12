@@ -29,7 +29,8 @@ func TestIntegTestSkipByIssueRule(t *testing.T) {
 	rpts, _ := getReport([]string{"testdata/"})
 	expectedRpts := []string{
 		getAbsPath("testdata/integration/integtest_test.go") + ":26:2:Only t.Skip() is allowed and t.Skip() should contain an url to GitHub issue. (skip_issue)",
-		getAbsPath("testdata/integtest_integ_test.go") + ":26:2:Only t.Skip() is allowed and t.Skip() should contain an url to GitHub issue. (skip_issue)"}
+		getAbsPath("testdata/integtest_integ_test.go") + ":26:2:Only t.Skip() is allowed and t.Skip() should contain an url to GitHub issue. (skip_issue)",
+	}
 
 	if !reflect.DeepEqual(rpts, expectedRpts) {
 		t.Errorf("lint reports don't match\nReceived: %v\nExpected: %v", rpts, expectedRpts)
@@ -41,14 +42,16 @@ func TestIntegTestSkipByShortRule(t *testing.T) {
 	LintRulesList[IntegTest] = []checker.Rule{rules.NewSkipByShort()}
 
 	rpts, _ := getReport([]string{"testdata/"})
-	expectedRpts := []string{getAbsPath("testdata/integration/integtest_test.go") +
-		":25:1:Missing either 'if testing.Short() { t.Skip() }' or 'if !testing.Short() {}' (short_skip)",
+	expectedRpts := []string{
+		getAbsPath("testdata/integration/integtest_test.go") +
+			":25:1:Missing either 'if testing.Short() { t.Skip() }' or 'if !testing.Short() {}' (short_skip)",
 		getAbsPath("testdata/integration/integtest_test.go") +
 			":41:1:Missing either 'if testing.Short() { t.Skip() }' or 'if !testing.Short() {}' (short_skip)",
 		getAbsPath("testdata/integtest_integ_test.go") +
 			":25:1:Missing either 'if testing.Short() { t.Skip() }' or 'if !testing.Short() {}' (short_skip)",
 		getAbsPath("testdata/integtest_integ_test.go") +
-			":41:1:Missing either 'if testing.Short() { t.Skip() }' or 'if !testing.Short() {}' (short_skip)"}
+			":41:1:Missing either 'if testing.Short() { t.Skip() }' or 'if !testing.Short() {}' (short_skip)",
+	}
 
 	if !reflect.DeepEqual(rpts, expectedRpts) {
 		t.Errorf("lint reports don't match\nReceived: %v\nExpected: %v", rpts, expectedRpts)

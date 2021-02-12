@@ -85,7 +85,6 @@ func TestImportedReference(t *testing.T) {
 		},
 	}
 	testSerialization(t, obj)
-
 }
 
 func testSerialization(t *testing.T, obj proto.Message) {

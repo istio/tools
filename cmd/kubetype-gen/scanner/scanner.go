@@ -18,15 +18,14 @@ import (
 	"fmt"
 	"strings"
 
-	"istio.io/tools/cmd/kubetype-gen/generators"
-	"istio.io/tools/cmd/kubetype-gen/metadata"
-
 	"github.com/golang/glog"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/gengo/args"
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/types"
+
+	"istio.io/tools/cmd/kubetype-gen/generators"
+	"istio.io/tools/cmd/kubetype-gen/metadata"
 )
 
 const (

@@ -22,7 +22,6 @@ import (
 const gocExitCode = -111
 
 func main() {
-
 	b, err := currentGoCmd()
 	if err != nil {
 		fmt.Printf("goc err: %v\n", err)

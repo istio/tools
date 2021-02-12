@@ -24,10 +24,8 @@ import (
 	"strings"
 )
 
-var (
-	// IgnoreTestLinterData skips over unit tests
-	IgnoreTestLinterData = true
-)
+// IgnoreTestLinterData skips over unit tests
+var IgnoreTestLinterData = true
 
 // Check checks the list of files, and write to the given Report.
 func Check(paths []string, factory RulesFactory, allowlist *Allowlist, report *Report) error {
