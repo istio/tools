@@ -29,7 +29,7 @@ lint: lint-all
 
 fmt: format-go tidy-go format-python
 
-gen: tidy-go mirror-licenses
+gen: fmt mirror-licenses
 
 gen-check: gen check-clean-repo
 

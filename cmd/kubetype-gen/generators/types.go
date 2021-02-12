@@ -17,11 +17,11 @@ package generators
 import (
 	"io"
 
-	"istio.io/tools/cmd/kubetype-gen/metadata"
-
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/namer"
 	"k8s.io/gengo/types"
+
+	"istio.io/tools/cmd/kubetype-gen/metadata"
 )
 
 type typesGenerator struct {

@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/gengo/types"
 )

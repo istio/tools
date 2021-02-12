@@ -20,9 +20,7 @@ import (
 	"sync"
 )
 
-var (
-	wg = sync.WaitGroup{}
-)
+var wg = sync.WaitGroup{}
 
 func main() {
 	// Simple server that listens on many ports

@@ -88,13 +88,17 @@ func TestUnitTestNoGoroutineRule(t *testing.T) {
 
 func TestUnitTestAllowlist(t *testing.T) {
 	clearLintRulesList()
-	LintRulesList[UnitTest] = []checker.Rule{rules.NewSkipByIssue(),
+	LintRulesList[UnitTest] = []checker.Rule{
+		rules.NewSkipByIssue(),
 		rules.NewNoShort(),
 		rules.NewNoSleep(),
-		rules.NewNoGoroutine()}
+		rules.NewNoGoroutine(),
+	}
 	Allowlist = make(map[string][]string)
-	Allowlist["testdata/unit_test.go"] = []string{"skip_by_issue_rule", "no_short_rule",
-		"no_sleep_rule", "no_goroutine_rule"}
+	Allowlist["testdata/unit_test.go"] = []string{
+		"skip_by_issue_rule", "no_short_rule",
+		"no_sleep_rule", "no_goroutine_rule",
+	}
 
 	rpts, _ := getReport([]string{"testdata/*"})
 	expectedRpts := []string{}

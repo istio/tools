@@ -29,10 +29,12 @@ func getAbsPath(path string) string {
 
 func TestNoOSEnvRule(t *testing.T) {
 	rpts, _ := getReport([]string{"testdata/"})
-	expectedRpts := []string{getAbsPath("testdata/envuse.go") +
-		":20:6:os.Getenv is disallowed, please see pkg/env instead (no_os_env)",
+	expectedRpts := []string{
 		getAbsPath("testdata/envuse.go") +
-			":21:9:os.LookupEnv is disallowed, please see pkg/env instead (no_os_env)"}
+			":20:6:os.Getenv is disallowed, please see pkg/env instead (no_os_env)",
+		getAbsPath("testdata/envuse.go") +
+			":21:9:os.LookupEnv is disallowed, please see pkg/env instead (no_os_env)",
+	}
 
 	if !reflect.DeepEqual(rpts, expectedRpts) {
 		t.Errorf("lint reports don't match\nReceived: %v\nExpected: %v", rpts, expectedRpts)

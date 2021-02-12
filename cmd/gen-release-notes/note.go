@@ -70,7 +70,6 @@ func filterNote(templateFilter string, noteFilter string) bool {
 		return true
 	}
 	return false
-
 }
 
 func (note Note) getReleaseNotes(kind string, area string, action string) []string {
@@ -127,7 +126,6 @@ func (note *upgradeNote) UnmarshalJSON(data []byte) error {
 	}
 	note.Content = noteInt.Content
 	return nil
-
 }
 
 func (note upgradeNote) String() string {
@@ -154,7 +152,7 @@ func (note *releaseNote) UnmarshalJSON(data []byte) error {
 			"**Action** {text} with an action listed here: https://github.com/istio/istio/tree/master/releasenotes#release-notes", note.Value)
 	}
 
-	//TODO: Externalize this... we should validate this and action. However, they should not live in code.
+	// TODO: Externalize this... we should validate this and action. However, they should not live in code.
 	if note.Action != "Added" && note.Action != "Deprecated" && note.Action != "Enabled" &&
 		note.Action != "Fixed" && note.Action != "Optimized" && note.Action != "Improved" &&
 		note.Action != "Removed" && note.Action != "Upgraded" && note.Action != "Updated" && note.Action != "Promoted" {

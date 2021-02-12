@@ -28,7 +28,7 @@ import (
 	"github.com/russross/blackfriday/v2"
 )
 
-//golang flags don't accept arrays by default. This adds it.
+// golang flags don't accept arrays by default. This adds it.
 type flagStrings []string
 
 func (flagString *flagStrings) String() string {
@@ -79,7 +79,7 @@ func main() {
 
 	if len(releaseNotes) < 1 {
 		fmt.Fprintf(os.Stderr, "failed to find any release notes.\n")
-		//maps to EX_NOINPUT, but more importantly lets us differentiate between no files found and other errors
+		// maps to EX_NOINPUT, but more importantly lets us differentiate between no files found and other errors
 		os.Exit(66)
 	}
 
@@ -127,7 +127,7 @@ func createDirIfNotExists(path string) error {
 	return err
 }
 
-//writeAsHTML generates HTML from markdown before writing it to a file
+// writeAsHTML generates HTML from markdown before writing it to a file
 func writeAsHTML(filename string, markdown string) error {
 	output := string(blackfriday.Run([]byte(markdown)))
 	if err := ioutil.WriteFile(filename+".html", []byte(output), 0644); err != nil {
@@ -136,7 +136,7 @@ func writeAsHTML(filename string, markdown string) error {
 	return nil
 }
 
-//writeAsMarkdown writes markdown to a file
+// writeAsMarkdown writes markdown to a file
 func writeAsMarkdown(filename string, markdown string) error {
 	if err := ioutil.WriteFile(filename, []byte(markdown), 0644); err != nil {
 		return err
@@ -167,7 +167,7 @@ func getNotesForTemplateFormat(notes []Note, template Template) []string {
 	return parsedNotes
 }
 
-//getFilesWithExtension returns the files from filePath with extension extension
+// getFilesWithExtension returns the files from filePath with extension extension
 func getFilesWithExtension(filePath string, extension string) ([]string, error) {
 	directory, err := os.Open(filePath)
 	if err != nil {
@@ -189,7 +189,6 @@ func getFilesWithExtension(filePath string, extension string) ([]string, error) 
 	}
 
 	return filesWithExtension, nil
-
 }
 
 func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
@@ -212,7 +211,6 @@ func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
 
 	}
 	return notes, nil
-
 }
 
 func populateTemplate(filepath string, filename string, releaseNotes []Note, oldRelease string, newRelease string) (string, error) {

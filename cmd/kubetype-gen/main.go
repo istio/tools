@@ -18,11 +18,10 @@ import (
 	"os"
 
 	"github.com/golang/glog"
+	"k8s.io/gengo/args"
 
 	"istio.io/tools/cmd/kubetype-gen/generators"
 	"istio.io/tools/cmd/kubetype-gen/scanner"
-
-	"k8s.io/gengo/args"
 )
 
 func main() {
