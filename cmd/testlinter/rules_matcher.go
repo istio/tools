@@ -32,8 +32,7 @@ const (
 )
 
 // RulesMatcher filters out test files and detects test type.
-type RulesMatcher struct {
-}
+type RulesMatcher struct{}
 
 // GetRules checks path absp and decides whether absp is a test file. It returns true and test type
 // for a test file. If path absp should be skipped, it returns false.
