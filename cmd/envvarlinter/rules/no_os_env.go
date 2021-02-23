@@ -22,8 +22,7 @@ import (
 )
 
 // NoOsEnv flags an error if os.Getenv or os.LookupEnv are used.
-type NoOsEnv struct {
-}
+type NoOsEnv struct{}
 
 // NewNoOsEnv creates and returns a NoOsEnv object.
 func NewNoOsEnv() *NoOsEnv {

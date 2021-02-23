@@ -24,8 +24,7 @@ type generator interface {
 	generate(policyData SecurityPolicy) *authzpb.Rule
 }
 
-type operationGenerator struct {
-}
+type operationGenerator struct{}
 
 func (operationGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	rule := &authzpb.Rule{}
@@ -47,8 +46,7 @@ func (operationGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	return rule
 }
 
-type conditionGenerator struct {
-}
+type conditionGenerator struct{}
 
 func (conditionGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	rule := &authzpb.Rule{}
@@ -73,8 +71,7 @@ func (conditionGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	return rule
 }
 
-type sourceGenerator struct {
-}
+type sourceGenerator struct{}
 
 func (sourceGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 	rule := &authzpb.Rule{}
