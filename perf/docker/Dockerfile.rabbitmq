@@ -1,7 +1,7 @@
 FROM python:alpine
 
 # hadolint ignore=DL3013
-RUN pip3 install -q pika prometheus_client
+RUN pip3 install --no-cache-dir -q pika prometheus_client
 
 ENV ADDRESS rabbitmq
 ENV USERNAME istio
