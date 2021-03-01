@@ -1,7 +1,7 @@
 FROM python:alpine
 
 # hadolint ignore=DL3013
-RUN pip3 install -q redis prometheus_client
+RUN pip3 install --no-cache-dir -q redis prometheus_client
 
 ENV PORT 6379
 ENV ADDRESS redis-master

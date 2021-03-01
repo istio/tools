@@ -80,7 +80,7 @@ RUN mkdir -p ${OUTDIR}/usr/local
 
 # Update distro and install dependencies
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     build-essential \
     ca-certificates \
@@ -315,7 +315,7 @@ ENV LICENSEE_VERSION=9.11.0
 ENV MDL_VERSION=0.5.0
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     gnupg2 \
@@ -348,13 +348,14 @@ FROM ubuntu:bionic as python_context
 # Pinned versions of stuff we pull in
 ENV AUTOPEP8_VERSION=1.4.4
 ENV YAMLLINT_VERSION=1.24.2
+ENV PIP_VERSION=21.0.1
 ENV REQUESTS_VERSION=2.22.0
 ENV PYTHON_PROTOBUF_VERSION=3.11.2
 ENV PYYAML_VERSION=5.3.1
 ENV JWCRYPTO_VERSION=0.7
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     libc-dev \
@@ -365,13 +366,13 @@ RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install
     python3-setuptools
 
 # Install Python stuff
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install --no-binary :all: autopep8==${AUTOPEP8_VERSION}
-RUN python3 -m pip install yamllint==${YAMLLINT_VERSION}
-RUN python3 -m pip install requests==${REQUESTS_VERSION}
-RUN python3 -m pip install protobuf==${PYTHON_PROTOBUF_VERSION}
-RUN python3 -m pip install PyYAML==${PYYAML_VERSION}
-RUN python3 -m pip install jwcrypto==${JWCRYPTO_VERSION}
+RUN python3 -m pip install --no-cache-dir --upgrade pip==${PIP_VERSION}
+RUN python3 -m pip install --no-cache-dir --no-binary :all: autopep8==${AUTOPEP8_VERSION}
+RUN python3 -m pip install --no-cache-dir yamllint==${YAMLLINT_VERSION}
+RUN python3 -m pip install --no-cache-dir requests==${REQUESTS_VERSION}
+RUN python3 -m pip install --no-cache-dir protobuf==${PYTHON_PROTOBUF_VERSION}
+RUN python3 -m pip install --no-cache-dir PyYAML==${PYYAML_VERSION}
+RUN python3 -m pip install --no-cache-dir jwcrypto==${JWCRYPTO_VERSION}
 
 #############
 # Base OS
@@ -389,7 +390,7 @@ ENV OUTDIR=/out
 # required for ruby: libcurl4-openssl-dev
 # required for python: python3, pkg-config
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -532,7 +533,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 FROM ubuntu:xenial as clang_context
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     wget \
     ca-certificates \
@@ -563,7 +564,7 @@ ENV BAZELISK_BIN="bazelisk-linux-amd64"
 ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates \
  && apt-get clean \
@@ -615,7 +616,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # required for general build: make, wget, curl, ssh
 # required for python: python3, pkg-config
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get -y dist-upgrade && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     curl \

@@ -6,6 +6,6 @@ RUN apt-get update \
     python3-dev=3.5.3-1 \
     --no-install-recommends \
   && ln -s /usr/bin/python3 /usr/local/bin/python \
-  && pip3 install --upgrade pip==19.2.3 \
+  && pip3 install --no-cache-dir --upgrade pip==19.2.3 \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*

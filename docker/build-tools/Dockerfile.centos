@@ -7,6 +7,7 @@ ARG VERSION
 LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
+# hadolint ignore=DL3031,DL3033
 RUN yum install -y centos-release-scl epel-release && \
     yum update -y && \
     yum install -y fedpkg sudo devtoolset-7-gcc devtoolset-7-gcc-c++ \
