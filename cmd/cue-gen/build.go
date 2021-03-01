@@ -27,8 +27,7 @@ import (
 	"cuelang.org/go/encoding/yaml"
 	"github.com/emicklei/proto"
 	"github.com/kr/pretty"
-	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	"k8s.io/utils/pointer"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 const (
@@ -427,7 +426,7 @@ func convertCrdConfig(c map[string]string, t string, cfg *CrdConfig) {
 			src.Labels = appendMap(src.Labels, extractKeyValue(v))
 		case "subresource":
 			if v == "status" {
-				src.Spec.Subresources = &apiext.CustomResourceSubresources{Status: &apiext.CustomResourceSubresourceStatus{}}
+				version.Subresources = &apiext.CustomResourceSubresources{Status: &apiext.CustomResourceSubresourceStatus{}}
 			}
 		case "storageVersion":
 			version.Storage = true
@@ -456,15 +455,6 @@ func convertCrdConfig(c map[string]string, t string, cfg *CrdConfig) {
 			version.Name = v
 		case "schema":
 			sc = v
-		case "preserveUnknownFields":
-			var b *bool
-			switch v {
-			case "true":
-				b = pointer.BoolPtr(true)
-			case "false":
-				b = pointer.BoolPtr(false)
-			}
-			src.Spec.PreserveUnknownFields = b
 		}
 	}
 	if sc != "" {
