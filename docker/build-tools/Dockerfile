@@ -348,7 +348,7 @@ FROM ubuntu:bionic as python_context
 # Pinned versions of stuff we pull in
 ENV AUTOPEP8_VERSION=1.4.4
 ENV YAMLLINT_VERSION=1.24.2
-ENV PIP_VERSION=21.0.1
+ENV PIP_INSTALL_VERSION=21.0.1
 ENV REQUESTS_VERSION=2.22.0
 ENV PYTHON_PROTOBUF_VERSION=3.11.2
 ENV PYYAML_VERSION=5.3.1
@@ -366,7 +366,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-setuptools
 
 # Install Python stuff
-RUN python3 -m pip install --no-cache-dir --upgrade pip==${PIP_VERSION}
+RUN python3 -m pip install --no-cache-dir --upgrade pip==${PIP_INSTALL_VERSION}
 RUN python3 -m pip install --no-cache-dir --no-binary :all: autopep8==${AUTOPEP8_VERSION}
 RUN python3 -m pip install --no-cache-dir yamllint==${YAMLLINT_VERSION}
 RUN python3 -m pip install --no-cache-dir requests==${REQUESTS_VERSION}
