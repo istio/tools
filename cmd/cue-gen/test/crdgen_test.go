@@ -50,7 +50,6 @@ func TestCRDwithStatus(t *testing.T) {
 	}
 
 	for _, c := range crds {
-
 		for _, v := range c.Spec.Versions {
 			// status subresource must be enabled.
 			if v.Subresources == nil && v.Subresources.Status == nil {
@@ -62,7 +61,6 @@ func TestCRDwithStatus(t *testing.T) {
 				t.Errorf("status specs are not equal, expected:\n%v\n, but got:\n%v", expected, got)
 			}
 		}
-
 	}
 }
 
@@ -83,7 +81,6 @@ func TestBazPreserveUnknownFields(t *testing.T) {
 			}
 		}
 	}
-
 }
 
 func readCRDFile(t *testing.T) []*apiextv1.CustomResourceDefinition {
