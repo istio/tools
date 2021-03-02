@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: client-{{ .Values.Name }}
 spec:
+  selector:
+    matchLabels:
+      app: client-{{ .Values.Name }}
   template:
     metadata:
       labels:

@@ -15,11 +15,14 @@ spec:
   selector:
     app: fortio-server
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fortio-server
 spec:
+  selector:
+    matchLabels:
+      app: fortio-server
   template:
     metadata:
       labels:

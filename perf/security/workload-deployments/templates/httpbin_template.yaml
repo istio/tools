@@ -33,6 +33,9 @@ kind: Deployment
 metadata:
   name: httpbin
 spec:
+  selector:
+    matchLabels:
+      app: httpbin
   replicas: {{ .Values.replicas }}
   template:
     metadata:
@@ -73,6 +76,9 @@ kind: Deployment
 metadata:
   name: sleep
 spec:
+  selector:
+    matchLabels:
+      app: sleep
   replicas: {{ .Values.replicas }}
   template:
     metadata:
