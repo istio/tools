@@ -4,11 +4,14 @@
 # Expects real DNS name and attempts to connect over https (allowing
 # non-trusted certificates so we can use "staging" version of "Let's Encrypt").
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fortio-client
 spec:
+  selector:
+    matchLabels:
+      app: fortio-cli-raw
   template:
     metadata:
       labels:

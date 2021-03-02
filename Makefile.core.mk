@@ -25,8 +25,7 @@ check-stability:
 
 MARKDOWN_LINT_ALLOWLIST=mysite.com/mypage.html,github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz,localhost
 
-# TODO(https://github.com/istio/istio/issues/31157) re-enable lint-helm
-lint: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-python lint-markdown lint-sass lint-typescript lint-protos lint-licenses
+lint: lint-all
 
 fmt: format-go tidy-go format-python
 

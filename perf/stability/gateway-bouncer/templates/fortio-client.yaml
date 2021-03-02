@@ -9,11 +9,14 @@ metadata:
 data:
   external_addr: istio-ingress-{{ .Values.namespace }}
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fortio-client
 spec:
+  selector:
+    matchLabels:
+      app: fortio-cli-raw
   template:
     metadata:
       labels:

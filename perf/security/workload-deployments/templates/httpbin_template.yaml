@@ -28,11 +28,14 @@ spec:
   selector:
     app: httpbin
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: httpbin
 spec:
+  selector:
+    matchLabels:
+      app: httpbin
   replicas: {{ .Values.replicas }}
   template:
     metadata:
@@ -68,11 +71,14 @@ spec:
   selector:
     app: sleep
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sleep
 spec:
+  selector:
+    matchLabels:
+      app: sleep
   replicas: {{ .Values.replicas }}
   template:
     metadata:

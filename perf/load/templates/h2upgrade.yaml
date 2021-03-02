@@ -31,4 +31,4 @@ spec:
 
 {{- end }} 
 
-{{- end }} # h2upgrade
+{{- end }}
