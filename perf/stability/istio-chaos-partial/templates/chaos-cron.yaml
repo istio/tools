@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.namespace }}-account
   namespace: istio-stability-{{ .Values.namespace }}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ .Values.namespace }}-role
@@ -13,7 +13,7 @@ rules:
     resources: ["pods"]
     verbs: ["get", "delete", "list"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: {{ .Values.namespace }}-role-binding

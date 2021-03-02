@@ -57,7 +57,7 @@ metadata:
   name: looper-service-account
   namespace: {{ .Release.Namespace }}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: looper-role
@@ -66,7 +66,7 @@ rules:
     resources: ["pods"]
     verbs: ["get", "list"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: looper-role-binding
