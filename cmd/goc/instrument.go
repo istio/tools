@@ -23,7 +23,7 @@ import (
 	"path"
 	"strings"
 
-	"golang.org/x/tools/go/loader"
+	"golang.org/x/tools/go/loader" // nolint: staticcheck - SA1019: package golang.org/x/tools/go/loader is deprecated
 )
 
 // instrumenter is used to create instrumented version of the code.
