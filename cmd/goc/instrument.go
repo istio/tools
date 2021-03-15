@@ -23,6 +23,7 @@ import (
 	"path"
 	"strings"
 
+	// nolint: staticcheck - SA1019: package golang.org/x/tools/go/loader is deprecated
 	"golang.org/x/tools/go/loader"
 )
 
