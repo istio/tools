@@ -97,7 +97,7 @@ ExecStart=/usr/bin/isotope_service --max-idle-connections-per-host=32
 WantedBy=multi-user.target
 EOF
 
-docker-copy gcr.io/istio-testing/isotope:0.0.1 /usr/local/bin/isotope_service  "${WORK_DIR}"/isotope_service
+docker-copy gcr.io/istio-testing/isotope:0.0.2 /usr/local/bin/isotope_service  "${WORK_DIR}"/isotope_service
 
 gcloud compute scp "${WORK_DIR}"/* "${VM_APP}":
 gcloud compute ssh  "${VM_APP}" -- sudo bash -c "\"
