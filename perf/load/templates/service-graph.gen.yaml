@@ -366,7 +366,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-0
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -436,7 +435,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-1
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -506,7 +504,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-2
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -576,7 +573,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-3
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -646,7 +642,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-4
-status:
 ---
 apiVersion: v1
 kind: Service
@@ -660,7 +655,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-5
-status:
 ---
 apiVersion: v1
 kind: Service
@@ -674,7 +668,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-6
-status:
 ---
 apiVersion: v1
 kind: Service
@@ -688,7 +681,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-7
-status:
 ---
 apiVersion: v1
 kind: Service
@@ -702,7 +694,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-8
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -772,7 +763,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-0-0
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -842,7 +832,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-1-0
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -912,7 +901,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-2-0
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -982,7 +970,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-3-0
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1052,7 +1039,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-4-0
-status:
 
 {{- end}}
 ---
@@ -1082,13 +1068,13 @@ spec:
     spec:
       containers:
       - args:
-          - --max-idle-connections-per-host=32
-          lifecycle:
-            preStop:
-              exec:
-                command: # Do not shut the application down immediately
-                  - "sleep"
-                  - "10s"
+        - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
           - name: SERVICE_NAME
             value: {{ .Values.serviceNamePrefix }}0-5
@@ -1126,7 +1112,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-5
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1152,13 +1137,13 @@ spec:
     spec:
       containers:
       - args:
-          - --max-idle-connections-per-host=32
-          lifecycle:
-            preStop:
-              exec:
-                command: # Do not shut the application down immediately
-                  - "sleep"
-                  - "10s"
+        - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
           - name: SERVICE_NAME
             value: {{ .Values.serviceNamePrefix }}0-6
@@ -1196,7 +1181,6 @@ spec:
       port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-6
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1222,13 +1206,13 @@ spec:
     spec:
       containers:
       - args:
-          - --max-idle-connections-per-host=32
-          lifecycle:
-            preStop:
-              exec:
-                command: # Do not shut the application down immediately
-                  - "sleep"
-                  - "10s"
+        - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
           - name: SERVICE_NAME
             value: {{ .Values.serviceNamePrefix }}0-7
@@ -1266,7 +1250,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-7
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1292,13 +1275,13 @@ spec:
     spec:
       containers:
         - args:
-            - --max-idle-connections-per-host=32
-            lifecycle:
-              preStop:
-                exec:
-                  command: # Do not shut the application down immediately
-                    - "sleep"
-                    - "10s"
+          - --max-idle-connections-per-host=32
+          lifecycle:
+            preStop:
+              exec:
+                command: # Do not shut the application down immediately
+                  - "sleep"
+                  - "10s"
           env:
             - name: SERVICE_NAME
               value: {{ .Values.serviceNamePrefix }}0-8
@@ -1336,7 +1319,6 @@ spec:
       port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-8
-  status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1406,7 +1388,6 @@ spec:
       port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-5-0
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1476,7 +1457,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-6-0
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1546,7 +1526,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-7-0
-status:
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1616,7 +1595,6 @@ spec:
     port: 8080
   selector:
     app: {{ .Values.serviceNamePrefix }}0-8-0
-status:
 {{- end}}
 ---
 {{- if .Values.vm.enabled }}
