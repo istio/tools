@@ -11,7 +11,7 @@ WORKDIR /build
 
 RUN GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build -o isotope_service ./service
 
-FROM alpine
+FROM alpine:3.12
 
 COPY --from=builder /build/isotope_service /usr/local/bin/isotope_service
 
