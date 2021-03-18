@@ -198,6 +198,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0
@@ -248,6 +254,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0
@@ -311,6 +323,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-0
@@ -375,6 +393,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-1
@@ -439,6 +463,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-2
@@ -503,6 +533,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-3
@@ -567,6 +603,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-4
@@ -687,6 +729,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-0-0
@@ -751,6 +799,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-1-0
@@ -815,6 +869,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-2-0
@@ -879,6 +939,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-3-0
@@ -943,6 +1009,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-4-0
@@ -1011,6 +1083,12 @@ spec:
       containers:
       - args:
           - --max-idle-connections-per-host=32
+          lifecycle:
+            preStop:
+              exec:
+                command: # Do not shut the application down immediately
+                  - "sleep"
+                  - "10s"
         env:
           - name: SERVICE_NAME
             value: {{ .Values.serviceNamePrefix }}0-5
@@ -1075,6 +1153,12 @@ spec:
       containers:
       - args:
           - --max-idle-connections-per-host=32
+          lifecycle:
+            preStop:
+              exec:
+                command: # Do not shut the application down immediately
+                  - "sleep"
+                  - "10s"
         env:
           - name: SERVICE_NAME
             value: {{ .Values.serviceNamePrefix }}0-6
@@ -1139,6 +1223,12 @@ spec:
       containers:
       - args:
           - --max-idle-connections-per-host=32
+          lifecycle:
+            preStop:
+              exec:
+                command: # Do not shut the application down immediately
+                  - "sleep"
+                  - "10s"
         env:
           - name: SERVICE_NAME
             value: {{ .Values.serviceNamePrefix }}0-7
@@ -1203,6 +1293,12 @@ spec:
       containers:
         - args:
             - --max-idle-connections-per-host=32
+            lifecycle:
+              preStop:
+                exec:
+                  command: # Do not shut the application down immediately
+                    - "sleep"
+                    - "10s"
           env:
             - name: SERVICE_NAME
               value: {{ .Values.serviceNamePrefix }}0-8
@@ -1267,6 +1363,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-5-0
@@ -1331,6 +1433,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-6-0
@@ -1395,6 +1503,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-7-0
@@ -1459,6 +1573,12 @@ spec:
       containers:
       - args:
         - --max-idle-connections-per-host=32
+        lifecycle:
+          preStop:
+            exec:
+              command: # Do not shut the application down immediately
+                - "sleep"
+                - "10s"
         env:
         - name: SERVICE_NAME
           value: {{ .Values.serviceNamePrefix }}0-8-0
