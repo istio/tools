@@ -1,0 +1,7 @@
+{
+    "peerAuthN":
+    {
+        "numPolicies": 2000,
+        "mtlsMode":"STRICT"
+    }
+}
