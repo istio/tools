@@ -1,0 +1,18 @@
+# Data: latency
+# Config: security_authz
+telemetry_mode: "none"
+conn:
+    - 2
+qps:
+    - 1000
+duration: 240
+perf_record: true
+# we only care about both sidecar mode, which is the base line for mTLs overhead comparison.
+run_bothsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
+run_baseline: false
+
+extra_labels: "security_authz"
+
+jitter: true
