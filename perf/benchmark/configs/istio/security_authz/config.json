@@ -1,8 +1,8 @@
 {
     "authZ":
     {
-        "numPolicies": 2000,
-        "numSourceIP":1000,
-        "numPaths":1000
+        "numPolicies": 1,
+        "numSourceIP":100,
+        "numPaths":100
     }
 }
