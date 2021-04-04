@@ -21,6 +21,6 @@ echo "Build Security Policy Generator..."
 go build -o "${LOCAL_OUTPUT_DIR}/generator" "${POLICY_PATH}/generate_policies.go" "${POLICY_PATH}/generate.go" "${POLICY_PATH}/jwt.go"
 
 echo "Apply Security Policy to Cluster..."
-./"${LOCAL_OUTPUT_DIR}/generator" -configFile="${CONFIG_DIR}/security_authz/config.json" > "${LOCAL_OUTPUT_DIR}/largeSecurityPolicy.yaml"
+"${LOCAL_OUTPUT_DIR}/generator" -configFile="${CONFIG_DIR}/security_authz/config.json" > "${LOCAL_OUTPUT_DIR}/largeSecurityPolicy.yaml"
 
 kubectl apply -f "${LOCAL_OUTPUT_DIR}/largeSecurityPolicy.yaml"
