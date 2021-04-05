@@ -1,0 +1,12 @@
+{
+    "authZ":
+    {
+        "numPolicies": 1,
+        "numRequestPrincipals":1000
+    },
+    "requestAuthN":
+    {
+        "numPolicies": 1,
+        "NumJwks":1
+    }
+}

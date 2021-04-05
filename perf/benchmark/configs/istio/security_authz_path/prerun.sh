@@ -14,8 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "Delete the Security Policies related config..."
-kubectl delete -f "${LOCAL_OUTPUT_DIR}/largeSecurityPolicy.yaml"
+echo "Configure Security Policies..."
+POLICY_PATH="${WD}/security/generate_policies"
 
-rm "${LOCAL_OUTPUT_DIR}/generator"
-rm "${LOCAL_OUTPUT_DIR}/largeSecurityPolicy.yaml"
+echo "Build Security Policy Generator..."
+go build -o "${LOCAL_OUTPUT_DIR}/generator" "${POLICY_PATH}/generate_policies.go" "${POLICY_PATH}/generate.go" "${POLICY_PATH}/jwt.go"
+
+echo "Apply Security Policy to Cluster..."
+"${LOCAL_OUTPUT_DIR}/generator" -configFile="${CONFIG_DIR}/security_authz_path/config.json" > "${LOCAL_OUTPUT_DIR}/largeSecurityAuthzPathPolicy.yaml"
+
+kubectl apply -f "${LOCAL_OUTPUT_DIR}/largeSecurityAuthzPathPolicy.yaml"

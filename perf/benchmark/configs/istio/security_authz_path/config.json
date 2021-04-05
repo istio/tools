@@ -1,0 +1,7 @@
+{
+    "authZ":
+    {
+        "numPolicies": 1,
+        "numPaths":1000
+    }
+}
