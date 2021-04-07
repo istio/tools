@@ -8,6 +8,10 @@ window.generateLatencyChart = function(xNum, options) {
   p50ReleaseModesData.push(latency_v2_stats_wasm_both_p50);
   p50ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p50);
   p50ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p50);
+  p50ReleaseModesData.push(latency_none_security_authz_ip_both_p50);
+  p50ReleaseModesData.push(latency_none_security_authz_path_both_p50);
+  p50ReleaseModesData.push(latency_none_security_authz_jwt_both_p50);
+  p50ReleaseModesData.push(latency_none_security_peer_authn_both_p50);
 
   generateLatencyChartByID("latency-p50-release", xNum, p50ReleaseModesData, options)
 
@@ -20,6 +24,10 @@ window.generateLatencyChart = function(xNum, options) {
   p90ReleaseModesData.push(latency_v2_stats_wasm_both_p90);
   p90ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p90);
   p90ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p90);
+  p90ReleaseModesData.push(latency_none_security_authz_ip_both_p90);
+  p90ReleaseModesData.push(latency_none_security_authz_path_both_p90);
+  p90ReleaseModesData.push(latency_none_security_authz_jwt_both_p90);
+  p90ReleaseModesData.push(latency_none_security_peer_authn_both_p90);
 
   generateLatencyChartByID("latency-p90-release", xNum, p90ReleaseModesData, options)
 
@@ -32,6 +40,10 @@ window.generateLatencyChart = function(xNum, options) {
   p99ReleaseModesData.push(latency_v2_stats_wasm_both_p99);
   p99ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p99);
   p99ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p99);
+  p99ReleaseModesData.push(latency_none_security_authz_ip_both_p99);
+  p99ReleaseModesData.push(latency_none_security_authz_path_both_p99);
+  p99ReleaseModesData.push(latency_none_security_authz_jwt_both_p99);
+  p99ReleaseModesData.push(latency_none_security_peer_authn_both_p99);
 
   generateLatencyChartByID("latency-p99-release", xNum, p99ReleaseModesData, options)
 
@@ -44,6 +56,10 @@ window.generateLatencyChart = function(xNum, options) {
   p999ReleaseModesData.push(latency_v2_stats_wasm_both_p999);
   p999ReleaseModesData.push(latency_v2_sd_nologging_nullvm_both_p999);
   p999ReleaseModesData.push(latency_v2_sd_full_nullvm_both_p999);
+  p999ReleaseModesData.push(latency_none_security_authz_ip_both_p999);
+  p999ReleaseModesData.push(latency_none_security_authz_path_both_p999);
+  p999ReleaseModesData.push(latency_none_security_authz_jwt_both_p999);
+  p999ReleaseModesData.push(latency_none_security_peer_authn_both_p999);
 
   generateLatencyChartByID("latency-p999-release", xNum, p999ReleaseModesData, options)
 
@@ -56,6 +72,10 @@ window.generateLatencyChart = function(xNum, options) {
   p50ModesData.push(latency_v2_stats_wasm_both_p50_master);
   p50ModesData.push(latency_v2_sd_nologging_nullvm_both_p50_master);
   p50ModesData.push(latency_v2_sd_full_nullvm_both_p50_master);
+  p50ModesData.push(latency_none_security_authz_ip_both_p50_master);
+  p50ModesData.push(latency_none_security_authz_path_both_p50_master);
+  p50ModesData.push(latency_none_security_authz_jwt_both_p50_master);
+  p50ModesData.push(latency_none_security_peer_authn_both_p50_master);
 
   generateLatencyChartByID("latency-p50-master", xNum, p50ModesData, options)
 
@@ -68,6 +88,10 @@ window.generateLatencyChart = function(xNum, options) {
   p90ModesData.push(latency_v2_stats_wasm_both_p90_master);
   p90ModesData.push(latency_v2_sd_nologging_nullvm_both_p90_master);
   p90ModesData.push(latency_v2_sd_full_nullvm_both_p90_master);
+  p90ModesData.push(latency_none_security_authz_ip_both_p90_master);
+  p90ModesData.push(latency_none_security_authz_path_both_p90_master);
+  p90ModesData.push(latency_none_security_authz_jwt_both_p90_master);
+  p90ModesData.push(latency_none_security_peer_authn_both_p90_master);
 
   generateLatencyChartByID("latency-p90-master", xNum, p90ModesData, options)
 
@@ -80,6 +104,10 @@ window.generateLatencyChart = function(xNum, options) {
   p99ModesData.push(latency_v2_stats_wasm_both_p99_master);
   p99ModesData.push(latency_v2_sd_nologging_nullvm_both_p99_master);
   p99ModesData.push(latency_v2_sd_full_nullvm_both_p99_master);
+  p99ModesData.push(latency_none_security_authz_ip_both_p99_master);
+  p99ModesData.push(latency_none_security_authz_path_both_p99_master);
+  p99ModesData.push(latency_none_security_authz_jwt_both_p99_master);
+  p99ModesData.push(latency_none_security_peer_authn_both_p99_master);
 
   generateLatencyChartByID("latency-p99-master", xNum, p99ModesData, options)
 
@@ -92,6 +120,10 @@ window.generateLatencyChart = function(xNum, options) {
   p999ModesData.push(latency_v2_stats_wasm_both_p999_master);
   p999ModesData.push(latency_v2_sd_nologging_nullvm_both_p999_master);
   p999ModesData.push(latency_v2_sd_full_nullvm_both_p999_master);
+  p999ModesData.push(latency_none_security_authz_ip_both_p999_master);
+  p999ModesData.push(latency_none_security_authz_path_both_p999_master);
+  p999ModesData.push(latency_none_security_authz_jwt_both_p999_master);
+  p999ModesData.push(latency_none_security_peer_authn_both_p999_master);
 
   generateLatencyChartByID("latency-p999-master", xNum, p999ModesData, options)
 };
@@ -146,6 +178,34 @@ window.generateLatencyChartByID = function(chartID, xNum, modesData, options) {
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: modesData[6],
                 hidden: true,
+                fill: false
+            }, {
+                label: "none_security_authz_ip_both",
+                backgroundColor: "rgba(50,219,199, 0.2)",
+                borderColor: "rgb(50,219,199)",
+                data: modesData[7],
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_path_both",
+                backgroundColor: "rgba(8,171,195, 0.2)",
+                borderColor: "rgb(8,171,195)",
+                data: modesData[8],
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_jwt_both",
+                backgroundColor: "rgba(5,140,212, 0.2)",
+                borderColor: "rgb(5,140,212)",
+                data: modesData[9],
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_peer_authn_both",
+                backgroundColor: "rgba(6,91,184, 0.2)",
+                borderColor: "rgb(6,91,184)",
+                data: modesData[10],
+                hidden: false,
                 fill: false
             }
         ]

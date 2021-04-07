@@ -99,6 +99,38 @@ window.generateChart = function(chartID, modesData) {
             xValueFormatString: "DD MMM, YYYY",
             color: "rgba(168, 50, 168, 1)",
             dataPoints: modesData[5]
+            }, {
+            type: "line",
+            showInLegend: true,
+            name: "none_security_authz_ip_both - baseline",
+            markerType: "square",
+            xValueFormatString: "DD MMM, YYYY",
+            color: "rgba(50,219,199)",
+            dataPoints: modesData[6]
+            }, {
+            type: "line",
+            showInLegend: true,
+            name: "none_security_authz_path_both - baseline",
+            markerType: "square",
+            xValueFormatString: "DD MMM, YYYY",
+            color: "rgba(8,171,195)",
+            dataPoints: modesData[7]
+            }, {
+            type: "line",
+            showInLegend: true,
+            name: "none_security_authz_jwt_both - baseline",
+            markerType: "square",
+            xValueFormatString: "DD MMM, YYYY",
+            color: "rgba(5,140,212)",
+            dataPoints: modesData[8]
+            }, {
+            type: "line",
+            showInLegend: true,
+            name: "none_security_peer_authn_both - baseline",
+            markerType: "square",
+            xValueFormatString: "DD MMM, YYYY",
+            color: "rgba(6,91,184)",
+            dataPoints: modesData[9]
             }
         ]
   });

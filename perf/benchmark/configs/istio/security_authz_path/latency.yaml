@@ -1,6 +1,7 @@
 # Data: latency
 # Config: security_authz_path
-telemetry_mode: "v2-stats-nullvm"
+# VM mode: nullvm
+telemetry_mode: "none"
 conn:
     - 2
     - 4
