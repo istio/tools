@@ -98,7 +98,7 @@ def get_data_helper(df, query_list, query_str, telemetry_mode, metric_name):
             y_series_data.append(None)
         else:
             if not data[metric_name].head().empty:
-                if metric_name in ['cpu', 'mem']:
+                if metric_name.startswith('cpu') or metric_name.startswith('mem'):
                     y_series_data.append(data[metric_name].head(1).values[0])
                 else:
                     y_series_data.append(data[metric_name].head(1).values[0] / 1000)
