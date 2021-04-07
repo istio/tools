@@ -21,7 +21,7 @@ echo "Build Security Policy Generator..."
 go build -o "${LOCAL_OUTPUT_DIR}/generator" "${POLICY_PATH}/generate_policies.go" "${POLICY_PATH}/generate.go" "${POLICY_PATH}/jwt.go"
 
 echo "Apply Security Policy to Cluster..."
-./"${LOCAL_OUTPUT_DIR}/generator" -configFile="${CONFIG_DIR}/security_authz_jwt/config.json" > "${LOCAL_OUTPUT_DIR}/largeSecurityRequestAuthnPolicy.yaml"
+"${LOCAL_OUTPUT_DIR}/generator" -configFile="${CONFIG_DIR}/security_authz_jwt/config.json" > "${LOCAL_OUTPUT_DIR}/largeSecurityRequestAuthzJwtPolicy.yaml"
 
 cp "${CONFIG_DIR}/security_authz_jwt/latency.yaml" "${LOCAL_OUTPUT_DIR}/latency.yaml"
 
