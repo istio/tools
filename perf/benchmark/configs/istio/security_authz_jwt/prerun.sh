@@ -19,16 +19,18 @@ POLICY_PATH="${WD}/security/generate_policies"
 
 echo "Build Security Policy Generator..."
 go build -o "${LOCAL_OUTPUT_DIR}/generator" "${POLICY_PATH}/generate_policies.go" "${POLICY_PATH}/generate.go" "${POLICY_PATH}/jwt.go"
-
-echo "Apply Security Policy to Cluster..."
 "${LOCAL_OUTPUT_DIR}/generator" -configFile="${CONFIG_DIR}/security_authz_jwt/config.json" > "${LOCAL_OUTPUT_DIR}/largeSecurityRequestAuthzJwtPolicy.yaml"
 
 cp "${CONFIG_DIR}/security_authz_jwt/latency.yaml" "${LOCAL_OUTPUT_DIR}/latency.yaml"
+cp "${CONFIG_DIR}/security_authz_jwt/cpu_mem.yaml" "${LOCAL_OUTPUT_DIR}/cpu_mem.yaml"
 
-SECURITY_REQUEST_AUTHN_TOKEN=$(<token.txt)
 echo "Generate Security Token for Requests:"
-echo "$SECURITY_REQUEST_AUTHN_TOKEN"
+SECURITY_REQUEST_AUTHN_TOKEN=$(<token.txt)
+echo "${SECURITY_REQUEST_AUTHN_TOKEN}"
+rm token.txt
 
-envsubst < "${LOCAL_OUTPUT_DIR}/latency.yaml" > "${CONFIG_DIR}/security_request_authn/latency.yaml"
+envsubst < "${LOCAL_OUTPUT_DIR}/latency.yaml" > "${CONFIG_DIR}/security_authz_jwt/latency.yaml"
+envsubst < "${LOCAL_OUTPUT_DIR}/cpu_mem.yaml" > "${CONFIG_DIR}/security_authz_jwt/cpu_mem.yaml"
 
+echo "Apply Security Policy to Cluster..."
 kubectl apply -f "${LOCAL_OUTPUT_DIR}/largeSecurityRequestAuthzJwtPolicy.yaml"
