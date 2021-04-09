@@ -21,3 +21,5 @@ run_baseline: false
 extra_labels: "security_authz_jwt"
 
 jitter: true
+
+header: $SECURITY_REQUEST_AUTHN_TOKEN
