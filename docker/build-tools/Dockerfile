@@ -100,9 +100,6 @@ ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}
 RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_amd64.deb
 RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
-RUN go install github.com/myitcv/gobin@v0.0.14
-RUN mv /tmp/go/bin/gobin /usr/local/go/bin
-
 # Build and install a bunch of Go tools
 RUN go install github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
 RUN go install github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
