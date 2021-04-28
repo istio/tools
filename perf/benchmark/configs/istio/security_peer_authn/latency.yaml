@@ -1,5 +1,6 @@
 # Data: latency
 # Config: security_peer_authn
+# VM mode: nullvm
 telemetry_mode: "v2-stats-nullvm"
 conn:
     - 2
