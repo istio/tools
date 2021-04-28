@@ -14,8 +14,8 @@ There is a webhook pod deployed which handles the alertmanager alerts and notifi
 
 1. Abnormal metrics breaking SLO would be recorded in the alertmanager-webhook pod
 1. For the pod to write monitor status to the spanner tables, you have to
-    11. create the cluster with full access to Google Cloud API or configure the cluster with Workload Identity
-    11. create the spanner tables first in your own project or reuse the existing one in istio-testing
+    1. create the cluster with full access to Google Cloud API or configure the cluster with Workload Identity
+    1. create the spanner tables first in your own project or reuse the existing one in istio-testing
 1. Optionally, corresponding alertmanager notification can be pushed to slack channel, checkout the example config for [slack webhook](https://github.com/istio/tools/blob/master/perf/stability/alertmanager/values.yaml#L21). Suspicious logs would be scanned and recorded in the istio-logs-checker Cronjob.
 
 ### Run the script
@@ -59,11 +59,28 @@ The monitors are configured via PrometheusRule CR managed by prometheus operator
 ### Dashboard
 
 1. The alertmanager webhook pod would write the monitor status data to two spanner table: MonitorStatus and ReleaseQualTestMetadata
+
 1. The [eng.istio.io](http://eng.istio.io/releasequal) would read from the spanner table instances in GCP istio-testing project
 
 For release managers, to reuse the existing spanner instance and publish the result to [eng.istio.io](http://eng.istio.io/releasequal), run the test on a new cluster under istio-testing GCP project and make sure the PROJECT_ID is set to istio-testing
 
 The related params of spanner table are defined in env variables of the [webhook deployment]((./alertmanager/templates/alertmanager-webhook.yaml))
+
+### Checking Result
+
+Unlike the normal integration/unit test that we can declare success/failure directly, it is up to release managers to make decision based on the metrics collected during the test.
+
+Important metrics: Success rate, Latency, CPU/Memory of Istiod and Proxies
+
+These are the steps we can take:
+
+1. Check the control plane and workload basic status
+
+1. Check the prometheus monitor alert status via Prometheus UI or Spanner Table(If running in istio-testing, check the [eng.istio.io dashboard](http://eng.istio.io/releasequal))
+
+1. Check the Grafana dashboard for more detailed metric over time
+
+1. Check the cronjob pod in the logs-checker namespace, grep for `found suspicious logs from svc`
 
 ### Upgrade
 
