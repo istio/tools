@@ -47,4 +47,4 @@ function check_pod_errors() {
   done
 }
 
-check_pod_errorss
+check_pod_errors

@@ -72,7 +72,7 @@ Unlike the normal integration/unit test that we can declare success/failure dire
 
 Important metrics: Success rate, Latency, CPU/Memory of Istiod and Proxies
 
-These are the steps we can take:
+Normally the test would be running for at least 48h and here are the steps that we can check intermittently during the test and after 48h:
 
 1. Check the control plane and workload basic status
 
