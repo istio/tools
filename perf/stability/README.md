@@ -10,7 +10,13 @@ The intent of these tests is to be run continuously for extend periods of time, 
 
 The long running test script would deploy service graphs application with 15 namespaces in the cluster and run continuously. Prometheus/Alertmanager related resources, monitors and alerting rules would be deployed and managed by Prometheus Operator, Grafana would be installed via sample addon config yaml.
 
-Abnormal metrics breaking SLO would be recorded in the alertmanager-webhook pod. Optionally, corresponding alertmanager notification can be pushed to slack channel, checkout the example config for [slack webhook](https://github.com/istio/tools/blob/master/perf/stability/alertmanager/values.yaml#L21). Suspicious logs would be scanned and recorded in the istio-logs-checker Cronjob.
+There is a webhook pod deployed which handles the alertmanager alerts and notification:
+
+1. Abnormal metrics breaking SLO would be recorded in the alertmanager-webhook pod
+1. For the pod to write monitor status to the spanner tables, you have to
+    1. create the cluster with full access to Google Cloud API or configure the cluster with Workload Identity
+    1. create the spanner tables first in your own project or reuse the existing one in istio-testing
+1. Optionally, corresponding alertmanager notification can be pushed to slack channel, checkout the example config for [slack webhook](https://github.com/istio/tools/blob/master/perf/stability/alertmanager/values.yaml#L21). Suspicious logs would be scanned and recorded in the istio-logs-checker Cronjob.
 
 ### Run the script
 
@@ -18,21 +24,25 @@ If you want to run against a public release(stable or dev), specify the target r
 
 For example
 
-run with Istio 1.7.0:
+run with Istio 1.9.0:
 
-`DNS_DOMAIN=release-qual-17.qualistio.org VERSION=1.7.0 NAMESPACE_NUM=15 ./long_running.sh`
+`DNS_DOMAIN=release-qual-19.qualistio.org VERSION=1.9.0 NAMESPACE_NUM=15 ./long_running.sh`
 
 run with Istio 1.7.1 prerelease:
 
-`DNS_DOMAIN=release-qual-17.qualistio.org VERSION=1.7.1 NAMESPACE_NUM=15  ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`
+`DNS_DOMAIN=release-qual-19.qualistio.org VERSION=1.9.1 NAMESPACE_NUM=15  ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.9.1`
 
 run with Istio private release:
 
-`RELEASE_URL=gs://istio-private-prerelease/prerelease/1.5.8/istio-1.5.8-linux.tar.gz NAMESPACE_NUM=15  ./long_running.sh --set hub=gcr.io/istio-prow-build --set tag=1.5.8`
+`RELEASE_URL=gs://istio-private-prerelease/prerelease/1.9.3/istio-1.9.3-linux.tar.gz NAMESPACE_NUM=15  ./long_running.sh --set hub=gcr.io/istio-prow-build --set tag=1.9.3`
+
+You can also run the canary upgrade mode, which would deploy an extra cronjob to automatically upgrade the control plane and data plane to the latest dev release every 48h, default is off.
+
+`CANARY_UPGRADE_MODE=true DNS_DOMAIN=release-qual-19.qualistio.org VERSION=1.9.0 NAMESPACE_NUM=15 ./long_running.sh`
 
 If you already install specific Istio version in the cluster, you can also point to the local release bundles to install grafana, some extra prometheus configs needed, e.g.
 
-`LOCAL_ISTIO_PATH=/Users/iamwen/Downloads/istio-1.5.5 ./long_running.sh`
+`LOCAL_ISTIO_PATH=/Users/iamwen/Downloads/istio-1.9.3 ./long_running.sh`
 
 Or if you want to skip Istio setup completely, just deploy the workloads and alertmanager
 
@@ -48,7 +58,29 @@ The monitors are configured via PrometheusRule CR managed by prometheus operator
 
 ### Dashboard
 
-The pipeline is configured to publish data to spanner table `MonitorStatus` under istio-testing project, and render on [eng.istio.io](http://eng.istio.io/releasequal). The related params of spanner table are defined in env variables of the [webhook deployment]((./alertmanager/templates/alertmanager-webhook.yaml))
+1. The alertmanager webhook pod would write the monitor status data to two spanner table: MonitorStatus and ReleaseQualTestMetadata
+
+1. The [eng.istio.io](http://eng.istio.io/releasequal) would read from the spanner table instances in GCP istio-testing project
+
+For release managers, to reuse the existing spanner instance and publish the result to [eng.istio.io](http://eng.istio.io/releasequal), run the test on a new cluster under istio-testing GCP project and make sure the PROJECT_ID is set to istio-testing
+
+The related params of spanner table are defined in env variables of the [webhook deployment]((./alertmanager/templates/alertmanager-webhook.yaml))
+
+### Checking Result
+
+Unlike the normal integration/unit test that we can declare success/failure directly, it is up to release managers to make decision based on the metrics collected during the test.
+
+Important metrics: Success rate, Latency, CPU/Memory of Istiod and Proxies
+
+These are the steps we can take:
+
+1. Check the control plane and workload basic status
+
+1. Check the prometheus monitor alert status via Prometheus UI or Spanner Table(If running in istio-testing, check the [eng.istio.io dashboard](http://eng.istio.io/releasequal))
+
+1. Check the Grafana dashboard for more detailed metric over time
+
+1. Check the cronjob pod in the logs-checker namespace, grep for `found suspicious logs from svc`
 
 ### Upgrade
 

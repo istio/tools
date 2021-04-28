@@ -26,27 +26,6 @@ for ((ii=0; ii<15; ii++)) {
     namespaces+=("${ns}")
 }
 
-function check_events() {
-  printf '\n'
-  if [[ ${#ERRORED[@]} -ne 0 ]]
-  then
-      echo "${#ERRORED[@]} errored pods found."
-      # shellcheck disable=SC2068
-      for CULPRIT in ${ERRORED[@]}
-      do
-        echo "POD: $CULPRIT"
-        echo
-        kubectl get events \
-        --field-selector=involvedObject.name="${CULPRIT}" \
-        -ocustom-columns=LASTSEEN:.lastTimestamp,REASON:.reason,MESSAGE:.message \
-        --all-namespaces \
-        --ignore-not-found=true
-      done
-  else
-      echo "0 pods with errored events found."
-  fi
-}
-
 function check_pod_errors() {
   # shellcheck disable=SC2068
   for NAMESPACE in ${namespaces[@]}
@@ -68,5 +47,4 @@ function check_pod_errors() {
   done
 }
 
-check_pod_errors
-check_events
+check_pod_errorss

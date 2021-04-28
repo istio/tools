@@ -15,6 +15,7 @@ rules:
       - configmaps
       - namespaces
       - pods
+      - pods/log
       - services
       - serviceaccounts
     verbs:
@@ -70,6 +71,7 @@ metadata:
     app: istio-logs-checker
 spec:
   schedule: "30 0 * * *"
+  successfulJobsHistoryLimit: 10
   jobTemplate:
     spec:
       template:

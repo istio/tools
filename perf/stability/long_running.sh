@@ -28,6 +28,7 @@ export DNS_DOMAIN="${DNS_DOMAIN:-release-qual.qualistio.org}"
 export LOCAL_ISTIO_PATH="${LOCAL_ISTIO_PATH:-}"
 export NAMESPACE_NUM="${NAMESPACE_NUM:-15}"
 export SKIP_ISTIO_SETUP="${SKIP_ISTIO_SETUP:-false}"
+export CANARY_UPGRADE_MODE="${CANARY_UPGRADE_MODE:-false}"
 export PROMETHEUS_NAMESPACE="${PROMETHEUS_NAMESPACE:-istio-prometheus}"
 
 # shellcheck disable=SC2153
@@ -80,9 +81,11 @@ kubectl create configmap logs-checker --from-file=./logs-checker/check_k8s_logs.
 # This part would be only needed when we run the fully automated jobs on a dedicated cluster
 # It would upgrade control plane and data plane to newer dev release every 48h.
 # deploy canary upgrader
-kubectl create ns canary-upgrader || true
-kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh -n canary-upgrader || true
-./setup_test.sh canary-upgrader
+if [[ "${CANARY_UPGRADE_MODE}" == "true" ]];then
+    kubectl create ns canary-upgrader || true
+    kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh -n canary-upgrader || true
+    ./setup_test.sh canary-upgrader
+fi
 
 # Setup workloads
 pushd "${ROOT}/load"
