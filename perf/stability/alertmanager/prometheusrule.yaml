@@ -8,6 +8,22 @@ metadata:
   namespace: istio-prometheus
 spec:
   groups:
+    - name: ./basic.rules
+      rules:
+        - alert: IngressTrafficMissing
+            annotations:
+              summary: 'ingress gateway traffic missing'
+              description: '[Critical]: ingress gateway traffic missing, likely other monitors are misleading, check client logs'
+            expr: >
+              absent(istio_requests_total{destination_service_namespace=~"service-graph.*",reporter="source",source_workload="istio-ingressgateway"})==1
+            for: 5m
+        - alert: IstioMetricsMissing
+          annotations:
+            summary: 'Istio Metrics missing'
+            description: '[Critical]: Check prometheus deployment or whether the prometheus filters are applied correctly'
+          expr: >
+            absent(istio_request_total)==1 or absent(istio_request_duration_milliseconds_bucket)==1
+          for: 5m
     - name: ./workload.rules
       rules:
         - alert: HTTP5xxRateHigh
@@ -104,13 +120,6 @@ spec:
           expr: >
             sum(rate(istio_requests_total{reporter="source", source_workload="istio-ingressgateway",response_code="200",destination_service_namespace=~"service-graph.*"}[5m])) < 1490
           for: 30m
-        - alert: IngressTrafficMissing
-          annotations:
-            summary: 'ingress gateway traffic missing'
-            description: 'ingress gateway traffic missing, check client logs'
-          expr: >
-            absent(istio_requests_total{destination_service_namespace=~"service-graph.*",reporter="source",source_workload="istio-ingressgateway"})==1
-          for: 5m
     - name: "istio.recording-rules"
       interval: 5s
       rules:
