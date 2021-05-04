@@ -1,7 +1,13 @@
 ---
 title: Change Notes
+linktitle: <!--newRelease-->
+subtitle: Minor Release
 description: Istio <!--newRelease--> release notes.
+publishdate: 2020-07-29
+release: <!--newRelease-->
 weight: 10
+aliases:
+    - /news/announcing-<!--newRelease-->
 ---
 
 {{< warning >}}
