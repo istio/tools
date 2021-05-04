@@ -96,6 +96,10 @@ def latency_vs_conn(request, uploaded_csv_url=None):
                                                                                       '_v2-sd-nologging-nullvm_both',
                                                                                       'p50')
         latency_v2_sd_full_nullvm_both_p50_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p50')
+        latency_none_security_authz_ip_both_p50_master = get_latency_vs_conn_y_series(df, '_none-security_authz_ip_both', 'p50')
+        latency_none_security_authz_path_both_p50_master = get_latency_vs_conn_y_series(df, '_none-security_authz_path_both', 'p50')
+        latency_none_security_authz_jwt_both_p50_master = get_latency_vs_conn_y_series(df, '_none-security_authz_jwt_both', 'p50')
+        latency_none_security_peer_authn_both_p50_master = get_latency_vs_conn_y_series(df, '_none-security_peer_authn_both', 'p50')
 
         latency_none_mtls_base_p90_master = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p90')
         latency_none_mtls_both_p90_master = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p90')
@@ -106,6 +110,10 @@ def latency_vs_conn(request, uploaded_csv_url=None):
                                                                                       '_v2-sd-nologging-nullvm_both',
                                                                                       'p90')
         latency_v2_sd_full_nullvm_both_p90_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p90')
+        latency_none_security_authz_ip_both_p90_master = get_latency_vs_conn_y_series(df, '_none-security_authz_ip_both', 'p90')
+        latency_none_security_authz_path_both_p90_master = get_latency_vs_conn_y_series(df, '_none-security_authz_path_both', 'p90')
+        latency_none_security_authz_jwt_both_p90_master = get_latency_vs_conn_y_series(df, '_none-security_authz_jwt_both', 'p90')
+        latency_none_security_peer_authn_both_p90_master = get_latency_vs_conn_y_series(df, '_none-security_peer_authn_both', 'p90')
 
         latency_none_mtls_base_p99_master = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p99')
         latency_none_mtls_both_p99_master = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p99')
@@ -116,6 +124,10 @@ def latency_vs_conn(request, uploaded_csv_url=None):
                                                                                       '_v2-sd-nologging-nullvm_both',
                                                                                       'p99')
         latency_v2_sd_full_nullvm_both_p99_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
+        latency_none_security_authz_ip_both_p99_master = get_latency_vs_conn_y_series(df, '_none-security_authz_ip_both', 'p99')
+        latency_none_security_authz_path_both_p99_master = get_latency_vs_conn_y_series(df, '_none-security_authz_path_both', 'p99')
+        latency_none_security_authz_jwt_both_p99_master = get_latency_vs_conn_y_series(df, '_none-security_authz_jwt_both', 'p99')
+        latency_none_security_peer_authn_both_p99_master = get_latency_vs_conn_y_series(df, '_none-security_peer_authn_both', 'p99')
 
         latency_none_mtls_base_p999_master = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p999')
         latency_none_mtls_both_p999_master = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p999')
@@ -124,6 +136,10 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         latency_v2_stats_wasm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-stats-wasm_both', 'p999')
         latency_v2_sd_nologging_nullvm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p999')
         latency_v2_sd_full_nullvm_both_p999_master = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p999')
+        latency_none_security_authz_ip_both_p999_master = get_latency_vs_conn_y_series(df, '_none-security_authz_ip_both', 'p999')
+        latency_none_security_authz_path_both_p999_master = get_latency_vs_conn_y_series(df, '_none-security_authz_path_both', 'p999')
+        latency_none_security_authz_jwt_both_p999_master = get_latency_vs_conn_y_series(df, '_none-security_authz_jwt_both', 'p999')
+        latency_none_security_peer_authn_both_p999_master = get_latency_vs_conn_y_series(df, '_none-security_peer_authn_both', 'p999')
 
         other_context = {'current_release': current_release,
                          'cur_selected_release': cur_selected_release,
@@ -139,6 +155,10 @@ def latency_vs_conn(request, uploaded_csv_url=None):
                           'latency_v2_stats_wasm_both_p50_master': latency_v2_stats_wasm_both_p50_master,
                           'latency_v2_sd_nologging_nullvm_both_p50_master': latency_v2_sd_nologging_nullvm_both_p50_master,
                           'latency_v2_sd_full_nullvm_both_p50_master': latency_v2_sd_full_nullvm_both_p50_master,
+                          'latency_none_security_authz_ip_both_p50_master': latency_none_security_authz_ip_both_p50_master,
+                          'latency_none_security_authz_path_both_p50_master': latency_none_security_authz_path_both_p50_master,
+                          'latency_none_security_authz_jwt_both_p50_master': latency_none_security_authz_jwt_both_p50_master,
+                          'latency_none_security_peer_authn_both_p50_master': latency_none_security_peer_authn_both_p50_master,
                           'latency_none_mtls_base_p90_master': latency_none_mtls_base_p90_master,
                           'latency_none_mtls_both_p90_master': latency_none_mtls_both_p90_master,
                           'latency_none_plaintext_both_p90_master': latency_none_plaintext_both_p90_master,
@@ -146,6 +166,10 @@ def latency_vs_conn(request, uploaded_csv_url=None):
                           'latency_v2_stats_wasm_both_p90_master': latency_v2_stats_wasm_both_p90_master,
                           'latency_v2_sd_nologging_nullvm_both_p90_master': latency_v2_sd_nologging_nullvm_both_p90_master,
                           'latency_v2_sd_full_nullvm_both_p90_master': latency_v2_sd_full_nullvm_both_p90_master,
+                          'latency_none_security_authz_ip_both_p90_master': latency_none_security_authz_ip_both_p90_master,
+                          'latency_none_security_authz_path_both_p90_master': latency_none_security_authz_path_both_p90_master,
+                          'latency_none_security_authz_jwt_both_p90_master': latency_none_security_authz_jwt_both_p90_master,
+                          'latency_none_security_peer_authn_both_p90_master': latency_none_security_peer_authn_both_p90_master,
                           'latency_none_mtls_base_p99_master': latency_none_mtls_base_p99_master,
                           'latency_none_mtls_both_p99_master': latency_none_mtls_both_p99_master,
                           'latency_none_plaintext_both_p99_master': latency_none_plaintext_both_p99_master,
@@ -153,6 +177,10 @@ def latency_vs_conn(request, uploaded_csv_url=None):
                           'latency_v2_stats_wasm_both_p99_master': latency_v2_stats_wasm_both_p99_master,
                           'latency_v2_sd_nologging_nullvm_both_p99_master': latency_v2_sd_nologging_nullvm_both_p99_master,
                           'latency_v2_sd_full_nullvm_both_p99_master': latency_v2_sd_full_nullvm_both_p99_master,
+                          'latency_none_security_authz_ip_both_p99_master': latency_none_security_authz_ip_both_p99_master,
+                          'latency_none_security_authz_path_both_p99_master': latency_none_security_authz_path_both_p99_master,
+                          'latency_none_security_authz_jwt_both_p99_master': latency_none_security_authz_jwt_both_p99_master,
+                          'latency_none_security_peer_authn_both_p99_master': latency_none_security_peer_authn_both_p99_master,
                           'latency_none_mtls_base_p999_master': latency_none_mtls_base_p999_master,
                           'latency_none_mtls_both_p999_master': latency_none_mtls_both_p999_master,
                           'latency_none_plaintext_both_p999_master': latency_none_plaintext_both_p999_master,
@@ -160,6 +188,10 @@ def latency_vs_conn(request, uploaded_csv_url=None):
                           'latency_v2_stats_wasm_both_p999_master': latency_v2_stats_wasm_both_p999_master,
                           'latency_v2_sd_nologging_nullvm_both_p999_master': latency_v2_sd_nologging_nullvm_both_p999_master,
                           'latency_v2_sd_full_nullvm_both_p999_master': latency_v2_sd_full_nullvm_both_p999_master,
+                          'latency_none_security_authz_ip_both_p999_master': latency_none_security_authz_ip_both_p999_master,
+                          'latency_none_security_authz_path_both_p999_master': latency_none_security_authz_path_both_p999_master,
+                          'latency_none_security_authz_jwt_both_p999_master': latency_none_security_authz_jwt_both_p999_master,
+                          'latency_none_security_peer_authn_both_p999_master': latency_none_security_peer_authn_both_p999_master,
                           }
 
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
@@ -224,6 +256,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_v2_sd_nologging_nullvm_both_p50_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both',
                                                                                      'p50')
         latency_v2_sd_full_nullvm_both_p50_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p50')
+        latency_none_security_authz_ip_both_p50_master = get_latency_vs_qps_y_series(df, '_none-security_authz_ip_both', 'p50')
+        latency_none_security_authz_path_both_p50_master = get_latency_vs_qps_y_series(df, '_none-security_authz_path_both', 'p50')
+        latency_none_security_authz_jwt_both_p50_master = get_latency_vs_qps_y_series(df, '_none-security_authz_jwt_both', 'p50')
+        latency_none_security_peer_authn_both_p50_master = get_latency_vs_qps_y_series(df, '_none-security_peer_authn_both', 'p50')
 
         latency_none_mtls_base_p90_master = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p90')
         latency_none_mtls_both_p90_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p90')
@@ -232,6 +268,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_v2_stats_wasm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p90')
         latency_v2_sd_nologging_nullvm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p90')
         latency_v2_sd_full_nullvm_both_p90_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p90')
+        latency_none_security_authz_ip_both_p90_master = get_latency_vs_qps_y_series(df, '_none-security_authz_ip_both', 'p90')
+        latency_none_security_authz_path_both_p90_master = get_latency_vs_qps_y_series(df, '_none-security_authz_path_both', 'p90')
+        latency_none_security_authz_jwt_both_p90_master = get_latency_vs_qps_y_series(df, '_none-security_authz_jwt_both', 'p90')
+        latency_none_security_peer_authn_both_p90_master = get_latency_vs_qps_y_series(df, '_none-security_peer_authn_both', 'p90')
 
         latency_none_mtls_base_p99_master = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p99')
         latency_none_mtls_both_p99_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p99')
@@ -240,6 +280,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_v2_stats_wasm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p99')
         latency_v2_sd_nologging_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
         latency_v2_sd_full_nullvm_both_p99_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
+        latency_none_security_authz_ip_both_p99_master = get_latency_vs_qps_y_series(df, '_none-security_authz_ip_both', 'p99')
+        latency_none_security_authz_path_both_p99_master = get_latency_vs_qps_y_series(df, '_none-security_authz_path_both', 'p99')
+        latency_none_security_authz_jwt_both_p99_master = get_latency_vs_qps_y_series(df, '_none-security_authz_jwt_both', 'p99')
+        latency_none_security_peer_authn_both_p99_master = get_latency_vs_qps_y_series(df, '_none-security_peer_authn_both', 'p99')
 
         latency_none_mtls_base_p999_master = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p999')
         latency_none_mtls_both_p999_master = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p999')
@@ -248,6 +292,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_v2_stats_wasm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p999')
         latency_v2_sd_nologging_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p999')
         latency_v2_sd_full_nullvm_both_p999_master = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p999')
+        latency_none_security_authz_ip_both_p999_master = get_latency_vs_qps_y_series(df, '_none-security_authz_ip_both', 'p999')
+        latency_none_security_authz_path_both_p999_master = get_latency_vs_qps_y_series(df, '_none-security_authz_path_both', 'p999')
+        latency_none_security_authz_jwt_both_p999_master = get_latency_vs_qps_y_series(df, '_none-security_authz_jwt_both', 'p999')
+        latency_none_security_peer_authn_both_p999_master = get_latency_vs_qps_y_series(df, '_none-security_peer_authn_both', 'p999')
 
         other_context = {'current_release': current_release,
                          'cur_selected_release': cur_selected_release,
@@ -263,6 +311,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
                           'latency_v2_stats_wasm_both_p50_master': latency_v2_stats_wasm_both_p50_master,
                           'latency_v2_sd_nologging_nullvm_both_p50_master': latency_v2_sd_nologging_nullvm_both_p50_master,
                           'latency_v2_sd_full_nullvm_both_p50_master': latency_v2_sd_full_nullvm_both_p50_master,
+                          'latency_none_security_authz_ip_both_p50_master': latency_none_security_authz_ip_both_p50_master,
+                          'latency_none_security_authz_path_both_p50_master': latency_none_security_authz_path_both_p50_master,
+                          'latency_none_security_authz_jwt_both_p50_master': latency_none_security_authz_jwt_both_p50_master,
+                          'latency_none_security_peer_authn_both_p50_master': latency_none_security_peer_authn_both_p50_master,
                           'latency_none_mtls_base_p90_master': latency_none_mtls_base_p90_master,
                           'latency_none_mtls_both_p90_master': latency_none_mtls_both_p90_master,
                           'latency_none_plaintext_both_p90_master': latency_none_plaintext_both_p90_master,
@@ -270,6 +322,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
                           'latency_v2_stats_wasm_both_p90_master': latency_v2_stats_wasm_both_p90_master,
                           'latency_v2_sd_nologging_nullvm_both_p90_master': latency_v2_sd_nologging_nullvm_both_p90_master,
                           'latency_v2_sd_full_nullvm_both_p90_master': latency_v2_sd_full_nullvm_both_p90_master,
+                          'latency_none_security_authz_ip_both_p90_master': latency_none_security_authz_ip_both_p90_master,
+                          'latency_none_security_authz_path_both_p90_master': latency_none_security_authz_path_both_p90_master,
+                          'latency_none_security_authz_jwt_both_p90_master': latency_none_security_authz_jwt_both_p90_master,
+                          'latency_none_security_peer_authn_both_p90_master': latency_none_security_peer_authn_both_p90_master,
                           'latency_none_mtls_base_p99_master': latency_none_mtls_base_p99_master,
                           'latency_none_mtls_both_p99_master': latency_none_mtls_both_p99_master,
                           'latency_none_plaintext_both_p99_master': latency_none_plaintext_both_p99_master,
@@ -277,6 +333,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
                           'latency_v2_stats_wasm_both_p99_master': latency_v2_stats_wasm_both_p99_master,
                           'latency_v2_sd_nologging_nullvm_both_p99_master': latency_v2_sd_nologging_nullvm_both_p99_master,
                           'latency_v2_sd_full_nullvm_both_p99_master': latency_v2_sd_full_nullvm_both_p99_master,
+                          'latency_none_security_authz_ip_both_p99_master': latency_none_security_authz_ip_both_p99_master,
+                          'latency_none_security_authz_path_both_p99_master': latency_none_security_authz_path_both_p99_master,
+                          'latency_none_security_authz_jwt_both_p99_master': latency_none_security_authz_jwt_both_p99_master,
+                          'latency_none_security_peer_authn_both_p99_master': latency_none_security_peer_authn_both_p99_master,
                           'latency_none_mtls_base_p999_master': latency_none_mtls_base_p999_master,
                           'latency_none_mtls_both_p999_master': latency_none_mtls_both_p999_master,
                           'latency_none_plaintext_both_p999_master': latency_none_plaintext_both_p999_master,
@@ -284,6 +344,10 @@ def latency_vs_qps(request, uploaded_csv_url=None):
                           'latency_v2_stats_wasm_both_p999_master': latency_v2_stats_wasm_both_p999_master,
                           'latency_v2_sd_nologging_nullvm_both_p999_master': latency_v2_sd_nologging_nullvm_both_p999_master,
                           'latency_v2_sd_full_nullvm_both_p999_master': latency_v2_sd_full_nullvm_both_p999_master,
+                          'latency_none_security_authz_ip_both_p999_master': latency_none_security_authz_ip_both_p999_master,
+                          'latency_none_security_authz_path_both_p999_master': latency_none_security_authz_path_both_p999_master,
+                          'latency_none_security_authz_jwt_both_p999_master': latency_none_security_authz_jwt_both_p999_master,
+                          'latency_none_security_peer_authn_both_p999_master': latency_none_security_peer_authn_both_p999_master,
                           }
         context = reduce(lambda x, y: dict(x, **y), (other_context, release_context, master_context))
 
@@ -339,6 +403,10 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
         cpu_client_v2_stats_wasm_both_master = get_cpu_vs_qps_y_series(df, '_v2-stats-wasm_both', cpu_client_metric_name)
         cpu_client_v2_sd_nologging_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_client_metric_name)
         cpu_client_v2_sd_full_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_client_metric_name)
+        cpu_client_none_security_authz_ip_both_master = get_cpu_vs_qps_y_series(df, '_none-security_authz_ip_both', cpu_client_metric_name)
+        cpu_client_none_security_authz_path_both_master = get_cpu_vs_qps_y_series(df, '_none-security_authz_path_both', cpu_client_metric_name)
+        cpu_client_none_security_authz_jwt_both_master = get_cpu_vs_qps_y_series(df, '_none-security_authz_jwt_both', cpu_client_metric_name)
+        cpu_client_none_security_peer_authn_both_master = get_cpu_vs_qps_y_series(df, '_none-security_peer_authn_both', cpu_client_metric_name)
 
         cpu_server_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_server_metric_name)
         cpu_server_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_server_metric_name)
@@ -347,6 +415,10 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
         cpu_server_v2_stats_wasm_both_master = get_cpu_vs_qps_y_series(df, '_v2-stats-wasm_both', cpu_server_metric_name)
         cpu_server_v2_sd_nologging_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
         cpu_server_v2_sd_full_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
+        cpu_server_none_security_authz_ip_both_master = get_cpu_vs_qps_y_series(df, '_none-security_authz_ip_both', cpu_server_metric_name)
+        cpu_server_none_security_authz_path_both_master = get_cpu_vs_qps_y_series(df, '_none-security_authz_path_both', cpu_server_metric_name)
+        cpu_server_none_security_authz_jwt_both_master = get_cpu_vs_qps_y_series(df, '_none-security_authz_jwt_both', cpu_server_metric_name)
+        cpu_server_none_security_peer_authn_both_master = get_cpu_vs_qps_y_series(df, '_none-security_peer_authn_both', cpu_server_metric_name)
 
         cpu_ingressgw_none_mtls_base_master = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_ingressgw_metric_name)
         cpu_ingressgw_none_mtls_both_master = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_ingressgw_metric_name)
@@ -370,6 +442,10 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
                           'cpu_client_v2_stats_wasm_both_master': cpu_client_v2_stats_wasm_both_master,
                           'cpu_client_v2_sd_nologging_nullvm_both_master': cpu_client_v2_sd_nologging_nullvm_both_master,
                           'cpu_client_v2_sd_full_nullvm_both_master': cpu_client_v2_sd_full_nullvm_both_master,
+                          'cpu_client_none_security_authz_ip_both_master': cpu_client_none_security_authz_ip_both_master,
+                          'cpu_client_none_security_authz_path_both_master': cpu_client_none_security_authz_path_both_master,
+                          'cpu_client_none_security_authz_jwt_both_master': cpu_client_none_security_authz_jwt_both_master,
+                          'cpu_client_none_security_peer_authn_both_master': cpu_client_none_security_peer_authn_both_master,
                           'cpu_server_none_mtls_base_master': cpu_server_none_mtls_base_master,
                           'cpu_server_none_mtls_both_master': cpu_server_none_mtls_both_master,
                           'cpu_server_none_plaintext_both_master': cpu_server_none_plaintext_both_master,
@@ -377,6 +453,10 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
                           'cpu_server_v2_stats_wasm_both_master': cpu_server_v2_stats_wasm_both_master,
                           'cpu_server_v2_sd_nologging_nullvm_both_master': cpu_server_v2_sd_nologging_nullvm_both_master,
                           'cpu_server_v2_sd_full_nullvm_both_master': cpu_server_v2_sd_full_nullvm_both_master,
+                          'cpu_server_none_security_authz_ip_both_master': cpu_server_none_security_authz_ip_both_master,
+                          'cpu_server_none_security_authz_path_both_master': cpu_server_none_security_authz_path_both_master,
+                          'cpu_server_none_security_authz_jwt_both_master': cpu_server_none_security_authz_jwt_both_master,
+                          'cpu_server_none_security_peer_authn_both_master': cpu_server_none_security_peer_authn_both_master,
                           'cpu_ingressgw_none_mtls_base_master': cpu_ingressgw_none_mtls_base_master,
                           'cpu_ingressgw_none_mtls_both_master': cpu_ingressgw_none_mtls_both_master,
                           'cpu_ingressgw_none_plaintext_both_master': cpu_ingressgw_none_plaintext_both_master,
@@ -438,6 +518,10 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
         cpu_client_v2_stats_wasm_both_master = get_cpu_vs_conn_y_series(df, '_v2-wasm-nullvm_both', cpu_client_metric_name)
         cpu_client_v2_sd_nologging_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_client_metric_name)
         cpu_client_v2_sd_full_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_client_metric_name)
+        cpu_client_none_security_authz_ip_both_master = get_cpu_vs_conn_y_series(df, '_none-security_authz_ip_both', cpu_client_metric_name)
+        cpu_client_none_security_authz_path_both_master = get_cpu_vs_conn_y_series(df, '_none-security_authz_path_both', cpu_client_metric_name)
+        cpu_client_none_security_authz_jwt_both_master = get_cpu_vs_conn_y_series(df, '_none-security_authz_jwt_both', cpu_client_metric_name)
+        cpu_client_none_security_peer_authn_both_master = get_cpu_vs_conn_y_series(df, '_none-security_peer_authn_both', cpu_client_metric_name)
 
         cpu_server_none_mtls_base_master = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_server_metric_name)
         cpu_server_none_mtls_both_master = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_server_metric_name)
@@ -446,6 +530,10 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
         cpu_server_v2_stats_wasm_both_master = get_cpu_vs_conn_y_series(df, '_v2-stats-wasm_both', cpu_server_metric_name)
         cpu_server_v2_sd_nologging_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
         cpu_server_v2_sd_full_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
+        cpu_server_none_security_authz_ip_both_master = get_cpu_vs_conn_y_series(df, '_none-security_authz_ip_both', cpu_server_metric_name)
+        cpu_server_none_security_authz_path_both_master = get_cpu_vs_conn_y_series(df, '_none-security_authz_path_both', cpu_server_metric_name)
+        cpu_server_none_security_authz_jwt_both_master = get_cpu_vs_conn_y_series(df, '_none-security_authz_jwt_both', cpu_server_metric_name)
+        cpu_server_none_security_peer_authn_both_master = get_cpu_vs_conn_y_series(df, '_none-security_peer_authn_both', cpu_server_metric_name)
 
         cpu_ingressgw_none_mtls_base_master = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_ingressgw_metric_name)
         cpu_ingressgw_none_mtls_both_master = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_ingressgw_metric_name)
@@ -469,6 +557,10 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
                           'cpu_client_v2_stats_wasm_both_master': cpu_client_v2_stats_wasm_both_master,
                           'cpu_client_v2_sd_nologging_nullvm_both_master': cpu_client_v2_sd_nologging_nullvm_both_master,
                           'cpu_client_v2_sd_full_nullvm_both_master': cpu_client_v2_sd_full_nullvm_both_master,
+                          'cpu_client_none_security_authz_ip_both_master': cpu_client_none_security_authz_ip_both_master,
+                          'cpu_client_none_security_authz_path_both_master': cpu_client_none_security_authz_path_both_master,
+                          'cpu_client_none_security_authz_jwt_both_master': cpu_client_none_security_authz_jwt_both_master,
+                          'cpu_client_none_security_peer_authn_both_master': cpu_client_none_security_peer_authn_both_master,
                           'cpu_server_none_mtls_base_master': cpu_server_none_mtls_base_master,
                           'cpu_server_none_mtls_both_master': cpu_server_none_mtls_both_master,
                           'cpu_server_none_plaintext_both_master': cpu_server_none_plaintext_both_master,
@@ -476,6 +568,10 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
                           'cpu_server_v2_stats_wasm_both_master': cpu_server_v2_stats_wasm_both_master,
                           'cpu_server_v2_sd_nologging_nullvm_both_master': cpu_server_v2_sd_nologging_nullvm_both_master,
                           'cpu_server_v2_sd_full_nullvm_both_master': cpu_server_v2_sd_full_nullvm_both_master,
+                          'cpu_server_none_security_authz_ip_both_master': cpu_server_none_security_authz_ip_both_master,
+                          'cpu_server_none_security_authz_path_both_master': cpu_server_none_security_authz_path_both_master,
+                          'cpu_server_none_security_authz_jwt_both_master': cpu_server_none_security_authz_jwt_both_master,
+                          'cpu_server_none_security_peer_authn_both_master': cpu_server_none_security_peer_authn_both_master,
                           'cpu_ingressgw_none_mtls_base_master': cpu_ingressgw_none_mtls_base_master,
                           'cpu_ingressgw_none_mtls_both_master': cpu_ingressgw_none_mtls_both_master,
                           'cpu_ingressgw_none_plaintext_both_master': cpu_ingressgw_none_plaintext_both_master,
@@ -539,6 +635,10 @@ def mem_vs_qps(request, uploaded_csv_url=None):
         mem_client_v2_stats_wasm_both_master = get_mem_vs_qps_y_series(df, '_v2-stats-wasm_both', mem_client_metric_name)
         mem_client_v2_sd_nologging_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_client_metric_name)
         mem_client_v2_sd_full_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_client_metric_name)
+        mem_client_none_security_authz_ip_both_master = get_mem_vs_qps_y_series(df, '_none-security_authz_ip_both', mem_client_metric_name)
+        mem_client_none_security_authz_path_both_master = get_mem_vs_qps_y_series(df, '_none-security_authz_path_both', mem_client_metric_name)
+        mem_client_none_security_authz_jwt_both_master = get_mem_vs_qps_y_series(df, '_none-security_authz_jwt_both', mem_client_metric_name)
+        mem_client_none_security_peer_authn_both_master = get_mem_vs_qps_y_series(df, '_none-security_peer_authn_both', mem_client_metric_name)
 
         mem_server_none_mtls_base_master = get_mem_vs_qps_y_series(df, '_none_mtls_baseline', mem_server_metric_name)
         mem_server_none_mtls_both_master = get_mem_vs_qps_y_series(df, '_none_mtls_both', mem_server_metric_name)
@@ -547,6 +647,10 @@ def mem_vs_qps(request, uploaded_csv_url=None):
         mem_server_v2_stats_wasm_both_master = get_mem_vs_qps_y_series(df, '_v2-stats-wasm_both', mem_server_metric_name)
         mem_server_v2_sd_nologging_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_server_metric_name)
         mem_server_v2_sd_full_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_server_metric_name)
+        mem_server_none_security_authz_ip_both_master = get_mem_vs_qps_y_series(df, '_none-security_authz_ip_both', mem_server_metric_name)
+        mem_server_none_security_authz_path_both_master = get_mem_vs_qps_y_series(df, '_none-security_authz_path_both', mem_server_metric_name)
+        mem_server_none_security_authz_jwt_both_master = get_mem_vs_qps_y_series(df, '_none-security_authz_jwt_both', mem_server_metric_name)
+        mem_server_none_security_peer_authn_both_master = get_mem_vs_qps_y_series(df, '_none-security_peer_authn_both', mem_server_metric_name)
 
         mem_ingressgw_none_mtls_base_master = get_mem_vs_qps_y_series(df, '_none_mtls_baseline', mem_ingressgw_metric_name)
         mem_ingressgw_none_mtls_both_master = get_mem_vs_qps_y_series(df, '_none_mtls_both', mem_ingressgw_metric_name)
@@ -570,6 +674,10 @@ def mem_vs_qps(request, uploaded_csv_url=None):
                           'mem_client_v2_stats_wasm_both_master': mem_client_v2_stats_wasm_both_master,
                           'mem_client_v2_sd_nologging_nullvm_both_master': mem_client_v2_sd_nologging_nullvm_both_master,
                           'mem_client_v2_sd_full_nullvm_both_master': mem_client_v2_sd_full_nullvm_both_master,
+                          'mem_client_none_security_authz_ip_both_master': mem_client_none_security_authz_ip_both_master,
+                          'mem_client_none_security_authz_path_both_master': mem_client_none_security_authz_path_both_master,
+                          'mem_client_none_security_authz_jwt_both_master': mem_client_none_security_authz_jwt_both_master,
+                          'mem_client_none_security_peer_authn_both_master': mem_client_none_security_peer_authn_both_master,
                           'mem_server_none_mtls_base_master': mem_server_none_mtls_base_master,
                           'mem_server_none_mtls_both_master': mem_server_none_mtls_both_master,
                           'mem_server_none_plaintext_both_master': mem_server_none_plaintext_both_master,
@@ -577,6 +685,10 @@ def mem_vs_qps(request, uploaded_csv_url=None):
                           'mem_server_v2_stats_wasm_both_master': mem_server_v2_stats_wasm_both_master,
                           'mem_server_v2_sd_nologging_nullvm_both_master': mem_server_v2_sd_nologging_nullvm_both_master,
                           'mem_server_v2_sd_full_nullvm_both_master': mem_server_v2_sd_full_nullvm_both_master,
+                          'mem_server_none_security_authz_ip_both_master': mem_server_none_security_authz_ip_both_master,
+                          'mem_server_none_security_authz_path_both_master': mem_server_none_security_authz_path_both_master,
+                          'mem_server_none_security_authz_jwt_both_master': mem_server_none_security_authz_jwt_both_master,
+                          'mem_server_none_security_peer_authn_both_master': mem_server_none_security_peer_authn_both_master,
                           'mem_ingressgw_none_mtls_base_master': mem_ingressgw_none_mtls_base_master,
                           'mem_ingressgw_none_mtls_both_master': mem_ingressgw_none_mtls_both_master,
                           'mem_ingressgw_none_plaintext_both_master': mem_ingressgw_none_plaintext_both_master,
@@ -639,6 +751,10 @@ def mem_vs_conn(request, uploaded_csv_url=None):
         mem_client_v2_stats_wasm_both_master = get_mem_vs_conn_y_series(df, '_v2-stats-wasm_both', mem_client_metric_name)
         mem_client_v2_sd_nologging_nullvm_both_master = get_mem_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', mem_client_metric_name)
         mem_client_v2_sd_full_nullvm_both_master = get_mem_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', mem_client_metric_name)
+        mem_client_none_security_authz_ip_both_master = get_mem_vs_conn_y_series(df, '_none-security_authz_ip_both', mem_client_metric_name)
+        mem_client_none_security_authz_path_both_master = get_mem_vs_conn_y_series(df, '_none-security_authz_path_both', mem_client_metric_name)
+        mem_client_none_security_authz_jwt_both_master = get_mem_vs_conn_y_series(df, '_none-security_authz_jwt_both', mem_client_metric_name)
+        mem_client_none_security_peer_authn_both_master = get_mem_vs_conn_y_series(df, '_none-security_peer_authn_both', mem_client_metric_name)
 
         mem_server_none_mtls_base_master = get_mem_vs_conn_y_series(df, '_none_mtls_baseline', mem_server_metric_name)
         mem_server_none_mtls_both_master = get_mem_vs_conn_y_series(df, '_none_mtls_both', mem_server_metric_name)
@@ -647,6 +763,10 @@ def mem_vs_conn(request, uploaded_csv_url=None):
         mem_server_v2_stats_wasm_both_master = get_mem_vs_conn_y_series(df, '_v2-stats-wasm_both', mem_server_metric_name)
         mem_server_v2_sd_nologging_nullvm_both_master = get_mem_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', mem_server_metric_name)
         mem_server_v2_sd_full_nullvm_both_master = get_mem_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', mem_server_metric_name)
+        mem_server_none_security_authz_ip_both_master = get_mem_vs_conn_y_series(df, '_none-security_authz_ip_both', mem_server_metric_name)
+        mem_server_none_security_authz_path_both_master = get_mem_vs_conn_y_series(df, '_none-security_authz_path_both', mem_server_metric_name)
+        mem_server_none_security_authz_jwt_both_master = get_mem_vs_conn_y_series(df, '_none-security_authz_jwt_both', mem_server_metric_name)
+        mem_server_none_security_peer_authn_both_master = get_mem_vs_conn_y_series(df, '_none-security_peer_authn_both', mem_server_metric_name)
 
         mem_ingressgw_none_mtls_base_master = get_mem_vs_qps_y_series(df, '_none_mtls_baseline', mem_ingressgw_metric_name)
         mem_ingressgw_none_mtls_both_master = get_mem_vs_qps_y_series(df, '_none_mtls_both', mem_ingressgw_metric_name)
@@ -670,6 +790,10 @@ def mem_vs_conn(request, uploaded_csv_url=None):
                           'mem_client_v2_stats_wasm_both_master': mem_client_v2_stats_wasm_both_master,
                           'mem_client_v2_sd_nologging_nullvm_both_master': mem_client_v2_sd_nologging_nullvm_both_master,
                           'mem_client_v2_sd_full_nullvm_both_master': mem_client_v2_sd_full_nullvm_both_master,
+                          'mem_client_none_security_authz_ip_both_master': mem_client_none_security_authz_ip_both_master,
+                          'mem_client_none_security_authz_path_both_master': mem_client_none_security_authz_path_both_master,
+                          'mem_client_none_security_authz_jwt_both_master': mem_client_none_security_authz_jwt_both_master,
+                          'mem_client_none_security_peer_authn_both_master': mem_client_none_security_peer_authn_both_master,
                           'mem_server_none_mtls_base_master': mem_server_none_mtls_base_master,
                           'mem_server_none_mtls_both_master': mem_server_none_mtls_both_master,
                           'mem_server_none_plaintext_both_master': mem_server_none_plaintext_both_master,
@@ -677,6 +801,10 @@ def mem_vs_conn(request, uploaded_csv_url=None):
                           'mem_server_v2_stats_wasm_both_master': mem_server_v2_stats_wasm_both_master,
                           'mem_server_v2_sd_nologging_nullvm_both_master': mem_server_v2_sd_nologging_nullvm_both_master,
                           'mem_server_v2_sd_full_nullvm_both_master': mem_server_v2_sd_full_nullvm_both_master,
+                          'mem_server_none_security_authz_ip_both_master': mem_server_none_security_authz_ip_both_master,
+                          'mem_server_none_security_authz_path_both_master': mem_server_none_security_authz_path_both_master,
+                          'mem_server_none_security_authz_jwt_both_master': mem_server_none_security_authz_jwt_both_master,
+                          'mem_server_none_security_peer_authn_both_master': mem_server_none_security_peer_authn_both_master,
                           'mem_ingressgw_none_mtls_base_master': mem_ingressgw_none_mtls_base_master,
                           'mem_ingressgw_none_mtls_both_master': mem_ingressgw_none_mtls_both_master,
                           'mem_ingressgw_none_plaintext_both_master': mem_ingressgw_none_plaintext_both_master,
@@ -699,6 +827,16 @@ def get_lantency_vs_conn_context(df):
     latency_v2_sd_nologging_nullvm_both_p50 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p50')
     latency_v2_sd_full_nullvm_both_p50 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p50')
 
+    latency_none_security_authz_ip_both_p50 = get_latency_vs_conn_y_series(df, '_none-security_authz_ip_both',
+                                                                           'p50')
+    latency_none_security_authz_path_both_p50 = get_latency_vs_conn_y_series(df,
+                                                                             '_none-security_authz_path_both',
+                                                                             'p50')
+    latency_none_security_authz_jwt_both_p50 = get_latency_vs_conn_y_series(df, '_none-security_authz_jwt_both',
+                                                                            'p50')
+    latency_none_security_peer_authn_both_p50 = get_latency_vs_conn_y_series(df,
+                                                                             '_none-security_peer_authn_both',
+                                                                             'p50')
     latency_none_mtls_base_p90 = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p90')
     latency_none_mtls_both_p90 = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p90')
     latency_none_plaintext_both_p90 = get_latency_vs_conn_y_series(df, '_none_plaintext_both', 'p90')
@@ -706,6 +844,16 @@ def get_lantency_vs_conn_context(df):
     latency_v2_stats_wasm_both_p90 = get_latency_vs_conn_y_series(df, '_v2-stats-wasm_both', 'p90')
     latency_v2_sd_nologging_nullvm_both_p90 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p90')
     latency_v2_sd_full_nullvm_both_p90 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p90')
+    latency_none_security_authz_ip_both_p90 = get_latency_vs_conn_y_series(df, '_none-security_authz_ip_both',
+                                                                           'p90')
+    latency_none_security_authz_path_both_p90 = get_latency_vs_conn_y_series(df,
+                                                                             '_none-security_authz_path_both',
+                                                                             'p90')
+    latency_none_security_authz_jwt_both_p90 = get_latency_vs_conn_y_series(df, '_none-security_authz_jwt_both',
+                                                                            'p90')
+    latency_none_security_peer_authn_both_p90 = get_latency_vs_conn_y_series(df,
+                                                                             '_none-security_peer_authn_both',
+                                                                             'p90')
 
     latency_none_mtls_base_p99 = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p99')
     latency_none_mtls_both_p99 = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p99')
@@ -714,6 +862,16 @@ def get_lantency_vs_conn_context(df):
     latency_v2_stats_wasm_both_p99 = get_latency_vs_conn_y_series(df, '_v2-stats-wasm_both', 'p99')
     latency_v2_sd_nologging_nullvm_both_p99 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
     latency_v2_sd_full_nullvm_both_p99 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
+    latency_none_security_authz_ip_both_p99 = get_latency_vs_conn_y_series(df, '_none-security_authz_ip_both',
+                                                                           'p99')
+    latency_none_security_authz_path_both_p99 = get_latency_vs_conn_y_series(df,
+                                                                             '_none-security_authz_path_both',
+                                                                             'p99')
+    latency_none_security_authz_jwt_both_p99 = get_latency_vs_conn_y_series(df, '_none-security_authz_jwt_both',
+                                                                            'p99')
+    latency_none_security_peer_authn_both_p99 = get_latency_vs_conn_y_series(df,
+                                                                             '_none-security_peer_authn_both',
+                                                                             'p99')
 
     latency_none_mtls_base_p999 = get_latency_vs_conn_y_series(df, '_none_mtls_baseline', 'p999')
     latency_none_mtls_both_p999 = get_latency_vs_conn_y_series(df, '_none_mtls_both', 'p999')
@@ -722,6 +880,16 @@ def get_lantency_vs_conn_context(df):
     latency_v2_stats_wasm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-stats-wasm_both', 'p999')
     latency_v2_sd_nologging_nullvm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', 'p999')
     latency_v2_sd_full_nullvm_both_p999 = get_latency_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', 'p999')
+    latency_none_security_authz_ip_both_p999 = get_latency_vs_conn_y_series(df, '_none-security_authz_ip_both',
+                                                                            'p999')
+    latency_none_security_authz_path_both_p999 = get_latency_vs_conn_y_series(df,
+                                                                              '_none-security_authz_path_both',
+                                                                              'p999')
+    latency_none_security_authz_jwt_both_p999 = get_latency_vs_conn_y_series(df, '_none-security_authz_jwt_both',
+                                                                             'p999')
+    latency_none_security_peer_authn_both_p999 = get_latency_vs_conn_y_series(df,
+                                                                              '_none-security_peer_authn_both',
+                                                                              'p999')
 
     context = {'latency_none_mtls_base_p50': latency_none_mtls_base_p50,
                'latency_none_mtls_both_p50': latency_none_mtls_both_p50,
@@ -730,6 +898,10 @@ def get_lantency_vs_conn_context(df):
                'latency_v2_stats_wasm_both_p50': latency_v2_stats_wasm_both_p50,
                'latency_v2_sd_nologging_nullvm_both_p50': latency_v2_sd_nologging_nullvm_both_p50,
                'latency_v2_sd_full_nullvm_both_p50': latency_v2_sd_full_nullvm_both_p50,
+               'latency_none_security_authz_ip_both_p50': latency_none_security_authz_ip_both_p50,
+               'latency_none_security_authz_path_both_p50': latency_none_security_authz_path_both_p50,
+               'latency_none_security_authz_jwt_both_p50': latency_none_security_authz_jwt_both_p50,
+               'latency_none_security_peer_authn_both_p50': latency_none_security_peer_authn_both_p50,
                'latency_none_mtls_base_p90': latency_none_mtls_base_p90,
                'latency_none_mtls_both_p90': latency_none_mtls_both_p90,
                'latency_none_plaintext_both_p90': latency_none_plaintext_both_p90,
@@ -737,6 +909,10 @@ def get_lantency_vs_conn_context(df):
                'latency_v2_stats_wasm_both_p90': latency_v2_stats_wasm_both_p90,
                'latency_v2_sd_nologging_nullvm_both_p90': latency_v2_sd_nologging_nullvm_both_p90,
                'latency_v2_sd_full_nullvm_both_p90': latency_v2_sd_full_nullvm_both_p90,
+               'latency_none_security_authz_ip_both_p90': latency_none_security_authz_ip_both_p90,
+               'latency_none_security_authz_path_both_p90': latency_none_security_authz_path_both_p90,
+               'latency_none_security_authz_jwt_both_p90': latency_none_security_authz_jwt_both_p90,
+               'latency_none_security_peer_authn_both_p90': latency_none_security_peer_authn_both_p90,
                'latency_none_mtls_base_p99': latency_none_mtls_base_p99,
                'latency_none_mtls_both_p99': latency_none_mtls_both_p99,
                'latency_none_plaintext_both_p99': latency_none_plaintext_both_p99,
@@ -744,6 +920,10 @@ def get_lantency_vs_conn_context(df):
                'latency_v2_stats_wasm_both_p99': latency_v2_stats_wasm_both_p99,
                'latency_v2_sd_nologging_nullvm_both_p99': latency_v2_sd_nologging_nullvm_both_p99,
                'latency_v2_sd_full_nullvm_both_p99': latency_v2_sd_full_nullvm_both_p99,
+               'latency_none_security_authz_ip_both_p99': latency_none_security_authz_ip_both_p99,
+               'latency_none_security_authz_path_both_p99': latency_none_security_authz_path_both_p99,
+               'latency_none_security_authz_jwt_both_p99': latency_none_security_authz_jwt_both_p99,
+               'latency_none_security_peer_authn_both_p99': latency_none_security_peer_authn_both_p99,
                'latency_none_mtls_base_p999': latency_none_mtls_base_p999,
                'latency_none_mtls_both_p999': latency_none_mtls_both_p999,
                'latency_none_plaintext_both_p999': latency_none_plaintext_both_p999,
@@ -751,6 +931,11 @@ def get_lantency_vs_conn_context(df):
                'latency_v2_stats_wasm_both_p999': latency_v2_stats_wasm_both_p999,
                'latency_v2_sd_nologging_nullvm_both_p999': latency_v2_sd_nologging_nullvm_both_p999,
                'latency_v2_sd_full_nullvm_both_p999': latency_v2_sd_full_nullvm_both_p999,
+               'latency_none_security_authz_ip_both_p999': latency_none_security_authz_ip_both_p999,
+               'latency_none_security_authz_path_both_p999': latency_none_security_authz_path_both_p999,
+               'latency_none_security_authz_jwt_both_p999': latency_none_security_authz_jwt_both_p999,
+               'latency_none_security_peer_authn_both_p999': latency_none_security_peer_authn_both_p999,
+
                }
     return context
 
@@ -763,6 +948,14 @@ def get_lantency_vs_qps_context(df):
     latency_v2_stats_wasm_both_p50 = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p50')
     latency_v2_sd_nologging_nullvm_both_p50 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p50')
     latency_v2_sd_full_nullvm_both_p50 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p50')
+    latency_none_security_authz_ip_both_p50 = get_latency_vs_qps_y_series(df, '_none-security_authz_ip_both',
+                                                                          'p50')
+    latency_none_security_authz_path_both_p50 = get_latency_vs_qps_y_series(df, '_none-security_authz_path_both',
+                                                                            'p50')
+    latency_none_security_authz_jwt_both_p50 = get_latency_vs_qps_y_series(df, '_none-security_authz_jwt_both',
+                                                                           'p50')
+    latency_none_security_peer_authn_both_p50 = get_latency_vs_qps_y_series(df, '_none-security_peer_authn_both',
+                                                                            'p50')
 
     latency_none_mtls_base_p90 = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p90')
     latency_none_mtls_both_p90 = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p90')
@@ -771,6 +964,14 @@ def get_lantency_vs_qps_context(df):
     latency_v2_stats_wasm_both_p90 = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p90')
     latency_v2_sd_nologging_nullvm_both_p90 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p90')
     latency_v2_sd_full_nullvm_both_p90 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p90')
+    latency_none_security_authz_ip_both_p90 = get_latency_vs_qps_y_series(df, '_none-security_authz_ip_both',
+                                                                          'p90')
+    latency_none_security_authz_path_both_p90 = get_latency_vs_qps_y_series(df, '_none-security_authz_path_both',
+                                                                            'p90')
+    latency_none_security_authz_jwt_both_p90 = get_latency_vs_qps_y_series(df, '_none-security_authz_jwt_both',
+                                                                           'p90')
+    latency_none_security_peer_authn_both_p90 = get_latency_vs_qps_y_series(df, '_none-security_peer_authn_both',
+                                                                            'p90')
 
     latency_none_mtls_base_p99 = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p99')
     latency_none_mtls_both_p99 = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p99')
@@ -779,6 +980,14 @@ def get_lantency_vs_qps_context(df):
     latency_v2_stats_wasm_both_p99 = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p99')
     latency_v2_sd_nologging_nullvm_both_p99 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p99')
     latency_v2_sd_full_nullvm_both_p99 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p99')
+    latency_none_security_authz_ip_both_p99 = get_latency_vs_qps_y_series(df, '_none-security_authz_ip_both',
+                                                                          'p99')
+    latency_none_security_authz_path_both_p99 = get_latency_vs_qps_y_series(df, '_none-security_authz_path_both',
+                                                                            'p99')
+    latency_none_security_authz_jwt_both_p99 = get_latency_vs_qps_y_series(df, '_none-security_authz_jwt_both',
+                                                                           'p99')
+    latency_none_security_peer_authn_both_p99 = get_latency_vs_qps_y_series(df, '_none-security_peer_authn_both',
+                                                                            'p99')
 
     latency_none_mtls_base_p999 = get_latency_vs_qps_y_series(df, '_none_mtls_baseline', 'p999')
     latency_none_mtls_both_p999 = get_latency_vs_qps_y_series(df, '_none_mtls_both', 'p999')
@@ -787,6 +996,16 @@ def get_lantency_vs_qps_context(df):
     latency_v2_stats_wasm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-stats-wasm_both', 'p999')
     latency_v2_sd_nologging_nullvm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', 'p999')
     latency_v2_sd_full_nullvm_both_p999 = get_latency_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', 'p999')
+    latency_none_security_authz_ip_both_p999 = get_latency_vs_qps_y_series(df, '_none-security_authz_ip_both',
+                                                                           'p999')
+    latency_none_security_authz_path_both_p999 = get_latency_vs_qps_y_series(df,
+                                                                             '_none-security_authz_path_both',
+                                                                             'p999')
+    latency_none_security_authz_jwt_both_p999 = get_latency_vs_qps_y_series(df, '_none-security_authz_jwt_both',
+                                                                            'p999')
+    latency_none_security_peer_authn_both_p999 = get_latency_vs_qps_y_series(df,
+                                                                             '_none-security_peer_authn_both',
+                                                                             'p999')
 
     context = {'latency_none_mtls_base_p50': latency_none_mtls_base_p50,
                'latency_none_mtls_both_p50': latency_none_mtls_both_p50,
@@ -795,6 +1014,10 @@ def get_lantency_vs_qps_context(df):
                'latency_v2_stats_wasm_both_p50': latency_v2_stats_wasm_both_p50,
                'latency_v2_sd_nologging_nullvm_both_p50': latency_v2_sd_nologging_nullvm_both_p50,
                'latency_v2_sd_full_nullvm_both_p50': latency_v2_sd_full_nullvm_both_p50,
+               'latency_none_security_authz_ip_both_p50': latency_none_security_authz_ip_both_p50,
+               'latency_none_security_authz_path_both_p50': latency_none_security_authz_path_both_p50,
+               'latency_none_security_authz_jwt_both_p50': latency_none_security_authz_jwt_both_p50,
+               'latency_none_security_peer_authn_both_p50': latency_none_security_peer_authn_both_p50,
                'latency_none_mtls_base_p90': latency_none_mtls_base_p90,
                'latency_none_mtls_both_p90': latency_none_mtls_both_p90,
                'latency_none_plaintext_both_p90': latency_none_plaintext_both_p90,
@@ -802,6 +1025,10 @@ def get_lantency_vs_qps_context(df):
                'latency_v2_stats_wasm_both_p90': latency_v2_stats_wasm_both_p90,
                'latency_v2_sd_nologging_nullvm_both_p90': latency_v2_sd_nologging_nullvm_both_p90,
                'latency_v2_sd_full_nullvm_both_p90': latency_v2_sd_full_nullvm_both_p90,
+               'latency_none_security_authz_ip_both_p90': latency_none_security_authz_ip_both_p90,
+               'latency_none_security_authz_path_both_p90': latency_none_security_authz_path_both_p90,
+               'latency_none_security_authz_jwt_both_p90': latency_none_security_authz_jwt_both_p90,
+               'latency_none_security_peer_authn_both_p90': latency_none_security_peer_authn_both_p90,
                'latency_none_mtls_base_p99': latency_none_mtls_base_p99,
                'latency_none_mtls_both_p99': latency_none_mtls_both_p99,
                'latency_none_plaintext_both_p99': latency_none_plaintext_both_p99,
@@ -809,6 +1036,10 @@ def get_lantency_vs_qps_context(df):
                'latency_v2_stats_wasm_both_p99': latency_v2_stats_wasm_both_p99,
                'latency_v2_sd_nologging_nullvm_both_p99': latency_v2_sd_nologging_nullvm_both_p99,
                'latency_v2_sd_full_nullvm_both_p99': latency_v2_sd_full_nullvm_both_p99,
+               'latency_none_security_authz_ip_both_p99': latency_none_security_authz_ip_both_p99,
+               'latency_none_security_authz_path_both_p99': latency_none_security_authz_path_both_p99,
+               'latency_none_security_authz_jwt_both_p99': latency_none_security_authz_jwt_both_p99,
+               'latency_none_security_peer_authn_both_p99': latency_none_security_peer_authn_both_p99,
                'latency_none_mtls_base_p999': latency_none_mtls_base_p999,
                'latency_none_mtls_both_p999': latency_none_mtls_both_p999,
                'latency_none_plaintext_both_p999': latency_none_plaintext_both_p999,
@@ -816,6 +1047,10 @@ def get_lantency_vs_qps_context(df):
                'latency_v2_stats_wasm_both_p999': latency_v2_stats_wasm_both_p999,
                'latency_v2_sd_nologging_nullvm_both_p999': latency_v2_sd_nologging_nullvm_both_p999,
                'latency_v2_sd_full_nullvm_both_p999': latency_v2_sd_full_nullvm_both_p999,
+               'latency_none_security_authz_ip_both_p999': latency_none_security_authz_ip_both_p999,
+               'latency_none_security_authz_path_both_p999': latency_none_security_authz_path_both_p999,
+               'latency_none_security_authz_jwt_both_p999': latency_none_security_authz_jwt_both_p999,
+               'latency_none_security_peer_authn_both_p999': latency_none_security_peer_authn_both_p999,
                }
     return context
 
@@ -828,6 +1063,14 @@ def get_cpu_vs_qps_context(df):
     cpu_client_v2_stats_wasm_both = get_cpu_vs_qps_y_series(df, '_v2-stats-wasm_both', cpu_client_metric_name)
     cpu_client_v2_sd_nologging_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_client_metric_name)
     cpu_client_v2_sd_full_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_client_metric_name)
+    cpu_client_none_security_authz_ip_both = get_cpu_vs_qps_y_series(df, '_none-security_authz_ip_both',
+                                                                     cpu_client_metric_name)
+    cpu_client_none_security_authz_path_both = get_cpu_vs_qps_y_series(df, '_none-security_authz_path_both',
+                                                                       cpu_client_metric_name)
+    cpu_client_none_security_authz_jwt_both = get_cpu_vs_qps_y_series(df, '_none-security_authz_jwt_both',
+                                                                      cpu_client_metric_name)
+    cpu_client_none_security_peer_authn_both = get_cpu_vs_qps_y_series(df, '_none-security_peer_authn_both',
+                                                                       cpu_client_metric_name)
 
     cpu_server_none_mtls_base = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_server_metric_name)
     cpu_server_none_mtls_both = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_server_metric_name)
@@ -836,6 +1079,14 @@ def get_cpu_vs_qps_context(df):
     cpu_server_v2_stats_wasm_both = get_cpu_vs_qps_y_series(df, '_v2-stats-wasm_both', cpu_server_metric_name)
     cpu_server_v2_sd_nologging_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
     cpu_server_v2_sd_full_nullvm_both = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
+    cpu_server_none_security_authz_ip_both = get_cpu_vs_qps_y_series(df, '_none-security_authz_ip_both',
+                                                                     cpu_server_metric_name)
+    cpu_server_none_security_authz_path_both = get_cpu_vs_qps_y_series(df, '_none-security_authz_path_both',
+                                                                       cpu_server_metric_name)
+    cpu_server_none_security_authz_jwt_both = get_cpu_vs_qps_y_series(df, '_none-security_authz_jwt_both',
+                                                                      cpu_server_metric_name)
+    cpu_server_none_security_peer_authn_both = get_cpu_vs_qps_y_series(df, '_none-security_peer_authn_both',
+                                                                       cpu_server_metric_name)
 
     cpu_ingressgw_none_mtls_base = get_cpu_vs_qps_y_series(df, '_none_mtls_baseline', cpu_ingressgw_metric_name)
     cpu_ingressgw_none_mtls_both = get_cpu_vs_qps_y_series(df, '_none_mtls_both', cpu_ingressgw_metric_name)
@@ -852,6 +1103,10 @@ def get_cpu_vs_qps_context(df):
                'cpu_client_v2_stats_wasm_both': cpu_client_v2_stats_wasm_both,
                'cpu_client_v2_sd_nologging_nullvm_both': cpu_client_v2_sd_nologging_nullvm_both,
                'cpu_client_v2_sd_full_nullvm_both': cpu_client_v2_sd_full_nullvm_both,
+               'cpu_client_none_security_authz_ip_both': cpu_client_none_security_authz_ip_both,
+               'cpu_client_none_security_authz_path_both': cpu_client_none_security_authz_path_both,
+               'cpu_client_none_security_authz_jwt_both': cpu_client_none_security_authz_jwt_both,
+               'cpu_client_none_security_peer_authn_both': cpu_client_none_security_peer_authn_both,
                'cpu_server_none_mtls_base': cpu_server_none_mtls_base,
                'cpu_server_none_mtls_both': cpu_server_none_mtls_both,
                'cpu_server_none_plaintext_both': cpu_server_none_plaintext_both,
@@ -859,6 +1114,10 @@ def get_cpu_vs_qps_context(df):
                'cpu_server_v2_stats_wasm_both': cpu_server_v2_stats_wasm_both,
                'cpu_server_v2_sd_nologging_nullvm_both': cpu_server_v2_sd_nologging_nullvm_both,
                'cpu_server_v2_sd_full_nullvm_both': cpu_server_v2_sd_full_nullvm_both,
+               'cpu_server_none_security_authz_ip_both': cpu_server_none_security_authz_ip_both,
+               'cpu_server_none_security_authz_path_both': cpu_server_none_security_authz_path_both,
+               'cpu_server_none_security_authz_jwt_both': cpu_server_none_security_authz_jwt_both,
+               'cpu_server_none_security_peer_authn_both': cpu_server_none_security_peer_authn_both,
                'cpu_ingressgw_none_mtls_base': cpu_ingressgw_none_mtls_base,
                'cpu_ingressgw_none_mtls_both': cpu_ingressgw_none_mtls_both,
                'cpu_ingressgw_none_plaintext_both': cpu_ingressgw_none_plaintext_both,
@@ -878,6 +1137,14 @@ def get_cpu_vs_conn_context(df):
     cpu_client_v2_stats_wasm_both = get_cpu_vs_conn_y_series(df, '_v2-stats-wasm_both', cpu_client_metric_name)
     cpu_client_v2_sd_nologging_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_client_metric_name)
     cpu_client_v2_sd_full_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_client_metric_name)
+    cpu_client_none_security_authz_ip_both = get_cpu_vs_conn_y_series(df, '_none-security_authz_ip_both',
+                                                                      cpu_client_metric_name)
+    cpu_client_none_security_authz_path_both = get_cpu_vs_conn_y_series(df, '_none-security_authz_path_both',
+                                                                        cpu_client_metric_name)
+    cpu_client_none_security_authz_jwt_both = get_cpu_vs_conn_y_series(df, '_none-security_authz_jwt_both',
+                                                                       cpu_client_metric_name)
+    cpu_client_none_security_peer_authn_both = get_cpu_vs_conn_y_series(df, '_none-security_peer_authn_both',
+                                                                        cpu_client_metric_name)
 
     cpu_server_none_mtls_base = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_server_metric_name)
     cpu_server_none_mtls_both = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_server_metric_name)
@@ -886,6 +1153,14 @@ def get_cpu_vs_conn_context(df):
     cpu_server_v2_stats_wasm_both = get_cpu_vs_conn_y_series(df, '_v2-stats-wasm_both', cpu_server_metric_name)
     cpu_server_v2_sd_nologging_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_server_metric_name)
     cpu_server_v2_sd_full_nullvm_both = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_server_metric_name)
+    cpu_server_none_security_authz_ip_both = get_cpu_vs_conn_y_series(df, '_none-security_authz_ip_both',
+                                                                      cpu_server_metric_name)
+    cpu_server_none_security_authz_path_both = get_cpu_vs_conn_y_series(df, '_none-security_authz_path_both',
+                                                                        cpu_server_metric_name)
+    cpu_server_none_security_authz_jwt_both = get_cpu_vs_conn_y_series(df, '_none-security_authz_jwt_both',
+                                                                       cpu_server_metric_name)
+    cpu_server_none_security_peer_authn_both = get_cpu_vs_conn_y_series(df, '_none-security_peer_authn_both',
+                                                                        cpu_server_metric_name)
 
     cpu_ingressgw_none_mtls_base = get_cpu_vs_conn_y_series(df, '_none_mtls_baseline', cpu_ingressgw_metric_name)
     cpu_ingressgw_none_mtls_both = get_cpu_vs_conn_y_series(df, '_none_mtls_both', cpu_ingressgw_metric_name)
@@ -902,6 +1177,10 @@ def get_cpu_vs_conn_context(df):
                'cpu_client_v2_stats_wasm_both': cpu_client_v2_stats_wasm_both,
                'cpu_client_v2_sd_nologging_nullvm_both': cpu_client_v2_sd_nologging_nullvm_both,
                'cpu_client_v2_sd_full_nullvm_both': cpu_client_v2_sd_full_nullvm_both,
+               'cpu_client_none_security_authz_ip_both': cpu_client_none_security_authz_ip_both,
+               'cpu_client_none_security_authz_path_both': cpu_client_none_security_authz_path_both,
+               'cpu_client_none_security_authz_jwt_both': cpu_client_none_security_authz_jwt_both,
+               'cpu_client_none_security_peer_authn_both': cpu_client_none_security_peer_authn_both,
                'cpu_server_none_mtls_base': cpu_server_none_mtls_base,
                'cpu_server_none_mtls_both': cpu_server_none_mtls_both,
                'cpu_server_none_plaintext_both': cpu_server_none_plaintext_both,
@@ -909,6 +1188,10 @@ def get_cpu_vs_conn_context(df):
                'cpu_server_v2_stats_wasm_both': cpu_server_v2_stats_wasm_both,
                'cpu_server_v2_sd_nologging_nullvm_both': cpu_server_v2_sd_nologging_nullvm_both,
                'cpu_server_v2_sd_full_nullvm_both': cpu_server_v2_sd_full_nullvm_both,
+               'cpu_server_none_security_authz_ip_both': cpu_server_none_security_authz_ip_both,
+               'cpu_server_none_security_authz_path_both': cpu_server_none_security_authz_path_both,
+               'cpu_server_none_security_authz_jwt_both': cpu_server_none_security_authz_jwt_both,
+               'cpu_server_none_security_peer_authn_both': cpu_server_none_security_peer_authn_both,
                'cpu_ingressgw_none_mtls_base': cpu_ingressgw_none_mtls_base,
                'cpu_ingressgw_none_mtls_both': cpu_ingressgw_none_mtls_both,
                'cpu_ingressgw_none_plaintext_both': cpu_ingressgw_none_plaintext_both,
@@ -928,6 +1211,14 @@ def get_mem_vs_qps_context(df):
     mem_client_v2_stats_wasm_both = get_mem_vs_qps_y_series(df, '_v2-stats-wasm_both', mem_client_metric_name)
     mem_client_v2_sd_nologging_nullvm_both = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_client_metric_name)
     mem_client_v2_sd_full_nullvm_both = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_client_metric_name)
+    mem_client_none_security_authz_ip_both = get_mem_vs_qps_y_series(df, '_none-security_authz_ip_both',
+                                                                     mem_client_metric_name)
+    mem_client_none_security_authz_path_both = get_mem_vs_qps_y_series(df, '_none-security_authz_path_both',
+                                                                       mem_client_metric_name)
+    mem_client_none_security_authz_jwt_both = get_mem_vs_qps_y_series(df, '_none-security_authz_jwt_both',
+                                                                      mem_client_metric_name)
+    mem_client_none_security_peer_authn_both = get_mem_vs_qps_y_series(df, '_none-security_peer_authn_both',
+                                                                       mem_client_metric_name)
 
     mem_server_none_mtls_base = get_mem_vs_qps_y_series(df, '_none_mtls_baseline', mem_server_metric_name)
     mem_server_none_mtls_both = get_mem_vs_qps_y_series(df, '_none_mtls_both', mem_server_metric_name)
@@ -936,6 +1227,14 @@ def get_mem_vs_qps_context(df):
     mem_server_v2_stats_wasm_both = get_mem_vs_qps_y_series(df, '_v2-stats-wasm_both', mem_server_metric_name)
     mem_server_v2_sd_nologging_nullvm_both = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_server_metric_name)
     mem_server_v2_sd_full_nullvm_both = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_server_metric_name)
+    mem_server_none_security_authz_ip_both = get_mem_vs_qps_y_series(df, '_none-security_authz_ip_both',
+                                                                     mem_server_metric_name)
+    mem_server_none_security_authz_path_both = get_mem_vs_qps_y_series(df, '_none-security_authz_path_both',
+                                                                       mem_server_metric_name)
+    mem_server_none_security_authz_jwt_both = get_mem_vs_qps_y_series(df, '_none-security_authz_jwt_both',
+                                                                      mem_server_metric_name)
+    mem_server_none_security_peer_authn_both = get_mem_vs_qps_y_series(df, '_none-security_peer_authn_both',
+                                                                       mem_server_metric_name)
 
     mem_ingressgw_none_mtls_base = get_mem_vs_qps_y_series(df, '_none_mtls_baseline', mem_ingressgw_metric_name)
     mem_ingressgw_none_mtls_both = get_mem_vs_qps_y_series(df, '_none_mtls_both', mem_ingressgw_metric_name)
@@ -952,6 +1251,10 @@ def get_mem_vs_qps_context(df):
                'mem_client_v2_stats_wasm_both': mem_client_v2_stats_wasm_both,
                'mem_client_v2_sd_nologging_nullvm_both': mem_client_v2_sd_nologging_nullvm_both,
                'mem_client_v2_sd_full_nullvm_both': mem_client_v2_sd_full_nullvm_both,
+               'mem_client_none_security_authz_ip_both': mem_client_none_security_authz_ip_both,
+               'mem_client_none_security_authz_path_both': mem_client_none_security_authz_path_both,
+               'mem_client_none_security_authz_jwt_both': mem_client_none_security_authz_jwt_both,
+               'mem_client_none_security_peer_authn_both': mem_client_none_security_peer_authn_both,
                'mem_server_none_mtls_base': mem_server_none_mtls_base,
                'mem_server_none_mtls_both': mem_server_none_mtls_both,
                'mem_server_none_plaintext_both': mem_server_none_plaintext_both,
@@ -959,6 +1262,10 @@ def get_mem_vs_qps_context(df):
                'mem_server_v2_stats_wasm_both': mem_server_v2_stats_wasm_both,
                'mem_server_v2_sd_nologging_nullvm_both': mem_server_v2_sd_nologging_nullvm_both,
                'mem_server_v2_sd_full_nullvm_both': mem_server_v2_sd_full_nullvm_both,
+               'mem_server_none_security_authz_ip_both': mem_server_none_security_authz_ip_both,
+               'mem_server_none_security_authz_path_both': mem_server_none_security_authz_path_both,
+               'mem_server_none_security_authz_jwt_both': mem_server_none_security_authz_jwt_both,
+               'mem_server_none_security_peer_authn_both': mem_server_none_security_peer_authn_both,
                'mem_ingressgw_none_mtls_base': mem_ingressgw_none_mtls_base,
                'mem_ingressgw_none_mtls_both': mem_ingressgw_none_mtls_both,
                'mem_ingressgw_none_plaintext_both': mem_ingressgw_none_plaintext_both,
@@ -978,6 +1285,14 @@ def get_mem_vs_conn_context(df):
     mem_client_v2_stats_wasm_both = get_mem_vs_conn_y_series(df, '_v2-stats-wasm_both', mem_client_metric_name)
     mem_client_v2_sd_nologging_nullvm_both = get_mem_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', mem_client_metric_name)
     mem_client_v2_sd_full_nullvm_both = get_mem_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', mem_client_metric_name)
+    mem_client_none_security_authz_ip_both = get_mem_vs_conn_y_series(df, '_none-security_authz_ip_both',
+                                                                      mem_client_metric_name)
+    mem_client_none_security_authz_path_both = get_mem_vs_conn_y_series(df, '_none-security_authz_path_both',
+                                                                        mem_client_metric_name)
+    mem_client_none_security_authz_jwt_both = get_mem_vs_conn_y_series(df, '_none-security_authz_jwt_both',
+                                                                       mem_client_metric_name)
+    mem_client_none_security_peer_authn_both = get_mem_vs_conn_y_series(df, '_none-security_peer_authn_both',
+                                                                        mem_client_metric_name)
 
     mem_server_none_mtls_base = get_mem_vs_conn_y_series(df, '_none_mtls_baseline', mem_server_metric_name)
     mem_server_none_mtls_both = get_mem_vs_conn_y_series(df, '_none_mtls_both', mem_server_metric_name)
@@ -986,6 +1301,14 @@ def get_mem_vs_conn_context(df):
     mem_server_v2_stats_wasm_both = get_mem_vs_conn_y_series(df, '_v2-stats-wasm_both', mem_server_metric_name)
     mem_server_v2_sd_nologging_nullvm_both = get_mem_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', mem_server_metric_name)
     mem_server_v2_sd_full_nullvm_both = get_mem_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', mem_server_metric_name)
+    mem_server_none_security_authz_ip_both = get_mem_vs_conn_y_series(df, '_none-security_authz_ip_both',
+                                                                      mem_server_metric_name)
+    mem_server_none_security_authz_path_both = get_mem_vs_conn_y_series(df, '_none-security_authz_path_both',
+                                                                        mem_server_metric_name)
+    mem_server_none_security_authz_jwt_both = get_mem_vs_conn_y_series(df, '_none-security_authz_jwt_both',
+                                                                       mem_server_metric_name)
+    mem_server_none_security_peer_authn_both = get_mem_vs_conn_y_series(df, '_none-security_peer_authn_both',
+                                                                        mem_server_metric_name)
 
     mem_ingressgw_none_mtls_base = get_mem_vs_conn_y_series(df, '_none_mtls_baseline', mem_ingressgw_metric_name)
     mem_ingressgw_none_mtls_both = get_mem_vs_conn_y_series(df, '_none_mtls_both', mem_ingressgw_metric_name)
@@ -1002,6 +1325,10 @@ def get_mem_vs_conn_context(df):
                'mem_client_v2_stats_wasm_both': mem_client_v2_stats_wasm_both,
                'mem_client_v2_sd_nologging_nullvm_both': mem_client_v2_sd_nologging_nullvm_both,
                'mem_client_v2_sd_full_nullvm_both': mem_client_v2_sd_full_nullvm_both,
+               'mem_client_none_security_authz_ip_both': mem_client_none_security_authz_ip_both,
+               'mem_client_none_security_authz_path_both': mem_client_none_security_authz_path_both,
+               'mem_client_none_security_authz_jwt_both': mem_client_none_security_authz_jwt_both,
+               'mem_client_none_security_peer_authn_both': mem_client_none_security_peer_authn_both,
                'mem_server_none_mtls_base': mem_server_none_mtls_base,
                'mem_server_none_mtls_both': mem_server_none_mtls_both,
                'mem_server_none_plaintext_both': mem_server_none_plaintext_both,
