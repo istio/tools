@@ -180,28 +180,28 @@ window.generateLatencyChartByID = function(chartID, xNum, modesData, options) {
                 hidden: true,
                 fill: false
             }, {
-                label: "none-security_authz_ip_both",
+                label: "none_security_authz_ip_both",
                 backgroundColor: "rgba(50,219,199, 0.2)",
                 borderColor: "rgb(50,219,199)",
                 data: modesData[7],
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_path_both",
+                label: "none_security_authz_path_both",
                 backgroundColor: "rgba(8,171,195, 0.2)",
                 borderColor: "rgb(8,171,195)",
                 data: modesData[8],
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_jwt_both",
+                label: "none_security_authz_jwt_both",
                 backgroundColor: "rgba(5,140,212, 0.2)",
                 borderColor: "rgb(5,140,212)",
                 data: modesData[9],
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_peer_authn_both",
+                label: "none_security_peer_authn_both",
                 backgroundColor: "rgba(6,91,184, 0.2)",
                 borderColor: "rgb(6,91,184)",
                 data: modesData[10],

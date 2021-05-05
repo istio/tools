@@ -70,28 +70,28 @@ new Chart(document.getElementById("cpu-client-conn-release"), {
                 hidden: true,
                 fill: false
             }, {
-                label: "none-security_authz_ip_both",
+                label: "none_security_authz_ip_both",
                 backgroundColor: "rgba(50,219,199, 0.2)",
                 borderColor: "rgb(50,219,199)",
                 data: cpu_client_none_security_authz_ip_both,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_path_both",
+                label: "none_security_authz_path_both",
                 backgroundColor: "rgba(8,171,195, 0.2)",
                 borderColor: "rgb(8,171,195)",
                 data: cpu_client_none_security_authz_path_both,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_jwt_both",
+                label: "none_security_authz_jwt_both",
                 backgroundColor: "rgba(5,140,212, 0.2)",
                 borderColor: "rgb(5,140,212)",
                 data: cpu_client_none_security_authz_jwt_both,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_peer_authn_both",
+                label: "none_security_peer_authn_both",
                 backgroundColor: "rgba(6,91,184, 0.2)",
                 borderColor: "rgb(6,91,184)",
                 data: cpu_client_none_security_peer_authn_both,
@@ -154,28 +154,28 @@ new Chart(document.getElementById("cpu-client-conn-master"), {
                 hidden: true,
                 fill: false
             }, {
-                label: "none-security_authz_ip_both",
+                label: "none_security_authz_ip_both",
                 backgroundColor: "rgba(50,219,199, 0.2)",
                 borderColor: "rgb(50,219,199)",
                 data: cpu_client_none_security_authz_ip_both_master,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_path_both",
+                label: "none_security_authz_path_both",
                 backgroundColor: "rgba(8,171,195, 0.2)",
                 borderColor: "rgb(8,171,195)",
                 data: cpu_client_none_security_authz_path_both_master,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_jwt_both",
+                label: "none_security_authz_jwt_both",
                 backgroundColor: "rgba(5,140,212, 0.2)",
                 borderColor: "rgb(5,140,212)",
                 data: cpu_client_none_security_authz_jwt_both_master,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_peer_authn_both",
+                label: "none_security_peer_authn_both",
                 backgroundColor: "rgba(6,91,184, 0.2)",
                 borderColor: "rgb(6,91,184)",
                 data: cpu_client_none_security_peer_authn_both_master,
@@ -238,28 +238,28 @@ new Chart(document.getElementById("cpu-server-conn-release"), {
                 hidden: true,
                 fill: false
             }, {
-                label: "none-security_authz_ip_both",
+                label: "none_security_authz_ip_both",
                 backgroundColor: "rgba(50,219,199, 0.2)",
                 borderColor: "rgb(50,219,199)",
                 data: cpu_server_none_security_authz_ip_both,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_path_both",
+                label: "none_security_authz_path_both",
                 backgroundColor: "rgba(8,171,195, 0.2)",
                 borderColor: "rgb(8,171,195)",
                 data: cpu_server_none_security_authz_path_both,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_jwt_both",
+                label: "none_security_authz_jwt_both",
                 backgroundColor: "rgba(5,140,212, 0.2)",
                 borderColor: "rgb(5,140,212)",
                 data: cpu_server_none_security_authz_jwt_both,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_peer_authn_both",
+                label: "none_security_peer_authn_both",
                 backgroundColor: "rgba(6,91,184, 0.2)",
                 borderColor: "rgb(6,91,184)",
                 data: cpu_server_none_security_peer_authn_both,
@@ -322,28 +322,28 @@ new Chart(document.getElementById("cpu-server-conn-master"), {
                 hidden: true,
                 fill: false
             }, {
-                label: "none-security_authz_ip_both",
+                label: "none_security_authz_ip_both",
                 backgroundColor: "rgba(50,219,199, 0.2)",
                 borderColor: "rgb(50,219,199)",
                 data: cpu_server_none_security_authz_ip_both_master,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_path_both",
+                label: "none_security_authz_path_both",
                 backgroundColor: "rgba(8,171,195, 0.2)",
                 borderColor: "rgb(8,171,195)",
                 data: cpu_server_none_security_authz_path_both_master,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_authz_jwt_both",
+                label: "none_security_authz_jwt_both",
                 backgroundColor: "rgba(5,140,212, 0.2)",
                 borderColor: "rgb(5,140,212)",
                 data: cpu_server_none_security_authz_jwt_both_master,
                 hidden: false,
                 fill: false
             }, {
-                label: "none-security_peer_authn_both",
+                label: "none_security_peer_authn_both",
                 backgroundColor: "rgba(6,91,184, 0.2)",
                 borderColor: "rgb(6,91,184)",
                 data: cpu_server_none_security_peer_authn_both_master,
