@@ -94,9 +94,12 @@ def master_regression(request):
     latency_v2_sd_nologging_nullvm_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_v2-sd-nologging-nullvm_both', 'p90')
     latency_v2_sd_full_nullvm_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_v2-sd-full-nullvm_both', 'p90')
     latency_none_security_authz_ip_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_security_authz_ip_both', 'p90')
-    latency_none_security_authz_path_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_security_authz_path_both', 'p90')
-    latency_none_security_authz_jwt_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_security_authz_jwt_both', 'p90')
-    latency_none_security_peer_authn_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_security_peer_authn_both', 'p90')
+    latency_none_security_authz_path_both_p90_master = get_telemetry_mode_y_series(
+        master_href_links, master_release_dates, '_none_security_authz_path_both', 'p90')
+    latency_none_security_authz_jwt_both_p90_master = get_telemetry_mode_y_series(
+        master_href_links, master_release_dates, '_none_security_authz_jwt_both', 'p90')
+    latency_none_security_peer_authn_both_p90_master = get_telemetry_mode_y_series(
+        master_href_links, master_release_dates, '_none_security_peer_authn_both', 'p90')
 
     latency_none_mtls_base_p99_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_mtls_baseline', 'p99')
     latency_none_mtls_both_p99_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_mtls_both', 'p99')
@@ -106,9 +109,12 @@ def master_regression(request):
     latency_v2_sd_nologging_nullvm_both_p99_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_v2-sd-nologging-nullvm_both', 'p99')
     latency_v2_sd_full_nullvm_both_p99_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_v2-sd-full-nullvm_both', 'p99')
     latency_none_security_authz_ip_both_p99_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_security_authz_ip_both', 'p99')
-    latency_none_security_authz_path_both_p99_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_security_authz_path_both', 'p99')
-    latency_none_security_authz_jwt_both_p99_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_security_authz_jwt_both', 'p99')
-    latency_none_security_peer_authn_both_p99_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_security_peer_authn_both', 'p99')
+    latency_none_security_authz_path_both_p99_master = get_telemetry_mode_y_series(
+        master_href_links, master_release_dates, '_none_security_authz_path_both', 'p99')
+    latency_none_security_authz_jwt_both_p99_master = get_telemetry_mode_y_series(
+        master_href_links, master_release_dates, '_none_security_authz_jwt_both', 'p99')
+    latency_none_security_peer_authn_both_p99_master = get_telemetry_mode_y_series(
+        master_href_links, master_release_dates, '_none_security_peer_authn_both', 'p99')
 
     context = {'latency_none_mtls_base_p90_master': latency_none_mtls_base_p90_master,
                'latency_none_mtls_both_p90_master': latency_none_mtls_both_p90_master,
