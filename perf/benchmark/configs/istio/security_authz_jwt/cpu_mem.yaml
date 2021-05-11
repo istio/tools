@@ -1,7 +1,7 @@
 # Data: cpu/mem
 # Filter: metadata-exchange and stats filters
 # VM mode: nullvm
-telemetry_mode: "v2-stats-nullvm"
+telemetry_mode: "none"
 conn:
     - 16
 qps:
@@ -12,7 +12,7 @@ qps:
     - 800
     - 1000
 duration: 240
-perf_record: false
+perf_record: true
 run_bothsidecar: true
 run_serversidecar: false
 run_clientsidecar: false
@@ -21,3 +21,5 @@ run_baseline: false
 extra_labels: "security_authz_jwt"
 
 jitter: true
+
+header: $SECURITY_REQUEST_AUTHN_TOKEN

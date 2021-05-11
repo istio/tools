@@ -69,6 +69,34 @@ new Chart(document.getElementById("mem-client-conn-release"), {
                 data: mem_client_v2_sd_full_nullvm_both,
                 hidden: true,
                 fill: false
+            }, {
+                label: "none_security_authz_ip_both",
+                backgroundColor: "rgba(50,219,199, 0.2)",
+                borderColor: "rgb(50,219,199)",
+                data: mem_client_none_security_authz_ip_both,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_path_both",
+                backgroundColor: "rgba(8,171,195, 0.2)",
+                borderColor: "rgb(8,171,195)",
+                data: mem_client_none_security_authz_path_both,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_jwt_both",
+                backgroundColor: "rgba(5,140,212, 0.2)",
+                borderColor: "rgb(5,140,212)",
+                data: mem_client_none_security_authz_jwt_both,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_peer_authn_both",
+                backgroundColor: "rgba(6,91,184, 0.2)",
+                borderColor: "rgb(6,91,184)",
+                data: mem_client_none_security_peer_authn_both,
+                hidden: false,
+                fill: false
             }
         ]
     }),
@@ -124,6 +152,34 @@ new Chart(document.getElementById("mem-client-conn-master"), {
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: mem_client_v2_sd_full_nullvm_both_master,
                 hidden: true,
+                fill: false
+            }, {
+                label: "none_security_authz_ip_both",
+                backgroundColor: "rgba(50,219,199, 0.2)",
+                borderColor: "rgb(50,219,199)",
+                data: mem_client_none_security_authz_ip_both_master,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_path_both",
+                backgroundColor: "rgba(8,171,195, 0.2)",
+                borderColor: "rgb(8,171,195)",
+                data: mem_client_none_security_authz_path_both_master,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_jwt_both",
+                backgroundColor: "rgba(5,140,212, 0.2)",
+                borderColor: "rgb(5,140,212)",
+                data: mem_client_none_security_authz_jwt_both_master,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_peer_authn_both",
+                backgroundColor: "rgba(6,91,184, 0.2)",
+                borderColor: "rgb(6,91,184)",
+                data: mem_client_none_security_peer_authn_both_master,
+                hidden: false,
                 fill: false
             }
         ]
@@ -181,6 +237,34 @@ new Chart(document.getElementById("mem-server-conn-release"), {
                 data: mem_server_v2_sd_full_nullvm_both,
                 hidden: true,
                 fill: false
+            }, {
+                label: "none_security_authz_ip_both",
+                backgroundColor: "rgba(50,219,199, 0.2)",
+                borderColor: "rgb(50,219,199)",
+                data: mem_server_none_security_authz_ip_both,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_path_both",
+                backgroundColor: "rgba(8,171,195, 0.2)",
+                borderColor: "rgb(8,171,195)",
+                data: mem_server_none_security_authz_path_both,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_jwt_both",
+                backgroundColor: "rgba(5,140,212, 0.2)",
+                borderColor: "rgb(5,140,212)",
+                data: mem_server_none_security_authz_jwt_both,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_peer_authn_both",
+                backgroundColor: "rgba(6,91,184, 0.2)",
+                borderColor: "rgb(6,91,184)",
+                data: mem_server_none_security_peer_authn_both,
+                hidden: false,
+                fill: false
             }
         ]
     }),
@@ -236,6 +320,34 @@ new Chart(document.getElementById("mem-server-conn-master"), {
                 borderColor: "rgba(168, 50, 168, 1)",
                 data: mem_server_v2_sd_full_nullvm_both_master,
                 hidden: true,
+                fill: false
+            }, {
+                label: "none_security_authz_ip_both",
+                backgroundColor: "rgba(50,219,199, 0.2)",
+                borderColor: "rgb(50,219,199)",
+                data: mem_server_none_security_authz_ip_both_master,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_path_both",
+                backgroundColor: "rgba(8,171,195, 0.2)",
+                borderColor: "rgb(8,171,195)",
+                data: mem_server_none_security_authz_path_both_master,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_authz_jwt_both",
+                backgroundColor: "rgba(5,140,212, 0.2)",
+                borderColor: "rgb(5,140,212)",
+                data: mem_server_none_security_authz_jwt_both_master,
+                hidden: false,
+                fill: false
+            }, {
+                label: "none_security_peer_authn_both",
+                backgroundColor: "rgba(6,91,184, 0.2)",
+                borderColor: "rgb(6,91,184)",
+                data: mem_server_none_security_peer_authn_both_master,
+                hidden: false,
                 fill: false
             }
         ]

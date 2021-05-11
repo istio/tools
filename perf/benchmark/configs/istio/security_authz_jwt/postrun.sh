@@ -17,6 +17,8 @@
 echo "Delete the Security Policies related config..."
 kubectl delete -f "${LOCAL_OUTPUT_DIR}/largeSecurityRequestAuthzJwtPolicy.yaml"
 
+cp "${LOCAL_OUTPUT_DIR}/latency.yaml" "${CONFIG_DIR}/security_authz_jwt/latency.yaml"
+cp "${LOCAL_OUTPUT_DIR}/cpu_mem.yaml" "${CONFIG_DIR}/security_authz_jwt/cpu_mem.yaml"
+
 rm "${LOCAL_OUTPUT_DIR}/generator"
 rm "${LOCAL_OUTPUT_DIR}/largeSecurityRequestAuthzJwtPolicy.yaml"
-cp "${LOCAL_OUTPUT_DIR}/latency.yaml" "${CONFIG_DIR}/security_authz_jwt/latency.yaml"
