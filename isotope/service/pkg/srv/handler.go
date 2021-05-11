@@ -37,10 +37,16 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	prometheus.RecordRequestReceived()
 
-	respond := func(status int) {
+	respond := func(status int, body string) {
 		writer.WriteHeader(status)
-		if _, err := writer.Write(h.responsePayload); err != nil {
-			log.Errorf("%s", err)
+		if body != "" {
+			if _, err := writer.Write([]byte(body)); err != nil {
+				log.Errorf("%s", err)
+			}
+		} else {
+			if _, err := writer.Write(h.responsePayload); err != nil {
+				log.Errorf("%s", err)
+			}
 		}
 
 		stopTime := time.Now()
@@ -53,10 +59,10 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		err := execute(step, forwardableHeader, h.ServiceTypes)
 		if err != nil {
 			log.Errorf("%s", err)
-			respond(http.StatusInternalServerError)
+			respond(http.StatusInternalServerError, err.Error() + "\n")
 			return
 		}
 	}
 
-	respond(http.StatusOK)
+	respond(http.StatusOK, "")
 }

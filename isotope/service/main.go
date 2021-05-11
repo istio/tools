@@ -42,10 +42,28 @@ var (
 	maxIdleConnectionsPerHostFlag = flag.Int(
 		"max-idle-connections-per-host", 0,
 		"maximum number of TCP connections to keep open per host")
+
+	// Set log levels
+	logLevel = flag.String(
+		"log-level", "info",
+		"log level")
 )
+
+var stringToLevel = map[string]log.Level{
+	"debug": log.DebugLevel,
+	"info":  log.InfoLevel,
+	"warn":  log.WarnLevel,
+	"error": log.ErrorLevel,
+	"fatal": log.FatalLevel,
+	"none":  log.NoneLevel,
+}
+
 
 func main() {
 	flag.Parse()
+	for _, s := range log.Scopes() {
+		s.SetOutputLevel(stringToLevel[*logLevel])
+	}
 
 	setMaxProcs()
 	setMaxIdleConnectionsPerHost(*maxIdleConnectionsPerHostFlag)
