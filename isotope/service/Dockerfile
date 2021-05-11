@@ -9,7 +9,9 @@ COPY . /build/
 
 WORKDIR /build
 
-RUN GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build -o isotope_service ./service
+RUN  --mount=type=cache,target=/go/pkg/mod \
+     --mount=type=cache,target=/root/.cache/go-build \
+      GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build -o isotope_service ./service
 
 FROM alpine:3.12
 
