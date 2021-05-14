@@ -1,0 +1,78 @@
+{
+    "$id": "istio.io/release-notes/v2",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "description": "Defines an individual Istio release note",
+    "type": "object",
+    "anyOf": [
+        {"required":["releaseNotes"]},
+        {"required":["upgradeNotes"]},
+        {"required":["securityNotes"]}
+    ],
+    "required":["apiVersion", "kind", "area"],
+    "properties": {
+        "apiVersion": {
+            "type": "string",
+            "pattern":"release-notes/v2"
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "bug-fix",
+                "feature",
+                "promotion",
+                "security-fix",
+                "test"
+            ]
+        },
+        "area": {
+            "type": "string",
+            "enum": [
+                "traffic-management",
+                "security",
+                "telemetry",
+                "extensibility",
+                "installation",
+                "istioctl",
+                "documentation"
+            ]
+        },
+        "issue": {
+            "type": "array",
+            "items": {
+                "type": ["integer", "string"]
+            }
+        },
+        "docs": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "releaseNotes": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "upgradeNotes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "securityNotes": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    }
+}
