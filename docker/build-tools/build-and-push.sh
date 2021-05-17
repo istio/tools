@@ -42,7 +42,7 @@ ${CONTAINER_CLI} ${CONTAINER_BUILDER}  --target build_tools --build-arg "GOLANG_
 # shellcheck disable=SC2086
 ${CONTAINER_CLI} ${CONTAINER_BUILDER}  --build-arg "GOLANG_IMAGE=${GOLANG_IMAGE}" --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
 # shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER}  --build-arg "GOLANG_IMAGE=${GOLANG_IMAGE}" --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-centos:${VERSION}" -t "${HUB}/build-tools-centos:${BRANCH}-latest" -f Dockerfile.centos .
+${CONTAINER_CLI} ${CONTAINER_BUILDER}  --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-centos:${VERSION}" -t "${HUB}/build-tools-centos:${BRANCH}-latest" -f Dockerfile.centos .
 
 if [[ -z "${DRY_RUN:-}" ]]; then
   ${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
