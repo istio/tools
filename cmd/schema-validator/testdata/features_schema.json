@@ -1,0 +1,71 @@
+{
+    "$id": "istio.io/features",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "description": "Defines the maturity of features in Istio",
+    "type": "object",
+    "properties": {
+      "features": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "area": {
+                    "type": "string",
+                    "enum": ["Traffic Management", "Observability", "Extensibility", "Security and policy enforcement", "Core"]
+                },
+                "level": {
+                    "type":"object",
+                    "properties": {
+                        "checklist": {
+                            "type": "string"
+                        },
+                        "maturity": {
+                            "type": "string",
+                            "enum": ["Experimental","Alpha","Beta","Stable"]
+                        },
+                        "nextExpectedPromotion": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["checklist", "maturity"]
+                },
+                "deprecation": {
+                    "type": "object",
+                    "properties": {
+                        "state": {
+                            "type": "string",
+                            "enum": ["deprecated", "retired"]
+                        },
+                        "details": {
+                            "type": "object",
+                            "properties": {
+                                "replacement": {
+                                    "type": "string"
+                                },
+                                "next": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["next"]
+                        }
+                    },
+                    "required": ["state", "details"]
+                }
+            }
+        },
+        "required": ["name", "level"]
+      }
+    },
+    "required": [ "features" ],
+    "dependentRequired": {
+      "post-office-box": [ "street-address" ],
+      "extended-address": [ "street-address" ]
+    }
+  }
+  

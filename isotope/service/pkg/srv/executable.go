@@ -16,14 +16,12 @@ package srv
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
-
-	multierror "github.com/hashicorp/go-multierror"
 
 	"istio.io/pkg/log"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
@@ -93,23 +91,20 @@ func executeRequestCommand(
 
 	// Necessary for reusing HTTP/1.x "keep-alive" TCP connections.
 	// https://golang.org/pkg/net/http/#Response
-	defer readAllAndClose(response.Body)
+	defer response.Body.Close()
 	defer prometheus.RecordRequestSent(destName, uint64(cmd.Size))
 
 	log.Debugf("%s responded with %s", destName, response.Status)
 	if response.StatusCode != http.StatusOK {
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			body = []byte(fmt.Sprintf("failed to read body: %v", err))
+		}
 		return fmt.Errorf(
-			"service %s responded with %s", destName, response.Status)
+			"service %s responded with %s (body: %v)", destName, response.Status, string(body))
 	}
 
 	return nil
-}
-
-func readAllAndClose(r io.ReadCloser) error {
-	if _, err := io.Copy(ioutil.Discard, r); err != nil {
-		return err
-	}
-	return r.Close()
 }
 
 // executeConcurrentCommand calls each command in exe.Commands asynchronously
@@ -117,20 +112,24 @@ func readAllAndClose(r io.ReadCloser) error {
 func executeConcurrentCommand(
 	cmd script.ConcurrentCommand,
 	forwardableHeader http.Header,
-	serviceTypes map[string]svctype.ServiceType) (errs error) {
+	serviceTypes map[string]svctype.ServiceType) error {
 	numSubCmds := len(cmd)
 	wg := sync.WaitGroup{}
 	wg.Add(numSubCmds)
+	var errs []string
 	for _, subCmd := range cmd {
 		go func(step interface{}) {
 			defer wg.Done()
 
 			err := execute(step, forwardableHeader, serviceTypes)
 			if err != nil {
-				errs = multierror.Append(errs, err)
+				errs = append(errs, err.Error())
 			}
 		}(subCmd)
 	}
 	wg.Wait()
-	return
+	if len(errs) == 0 {
+		return nil
+	}
+	return fmt.Errorf("%d errors occurred: %v", len(errs), strings.Join(errs, ", "))
 }

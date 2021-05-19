@@ -1,4 +1,4 @@
-serviceGraphImage: gcr.io/istio-testing/isotope:0.0.2
+serviceGraphImage: gcr.io/istio-testing/isotope:0.0.3
 serviceNamePrefix: svc-
 requestSize: 128B
 responseSize: 1KiB

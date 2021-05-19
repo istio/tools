@@ -40,6 +40,7 @@ require (
 	github.com/spf13/viper v1.4.0
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/xanzy/ssh-agent v0.2.0 // indirect
+	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/tools v0.1.0
 	gonum.org/v1/netlib v0.0.0-20191031114514-eccb95939662 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
@@ -59,4 +60,5 @@ require (
 	k8s.io/gengo v0.0.0-20201214224949-b6c5ce23f027
 	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
 	sigs.k8s.io/controller-tools v0.4.1
+	sigs.k8s.io/yaml v1.2.0
 )
