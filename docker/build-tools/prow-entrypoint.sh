@@ -21,6 +21,8 @@ function log() {
   echo -e "$(date -u '+%Y-%m-%dT%H:%M:%S.%NZ')\t$*"
 }
 
+log "Starting test..."
+
 # optionally enable ipv6 docker
 export DOCKER_IN_DOCKER_IPV6_ENABLED=${DOCKER_IN_DOCKER_IPV6_ENABLED:-false}
 if [[ "${DOCKER_IN_DOCKER_IPV6_ENABLED}" == "true" ]]; then
@@ -29,6 +31,9 @@ if [[ "${DOCKER_IN_DOCKER_IPV6_ENABLED}" == "true" ]]; then
   sysctl net.ipv6.conf.all.forwarding=1
   log "Done enabling IPv6 in Docker config."
 fi
+
+# Enable debug logs for docker daemon
+echo '{"debug":true}' > /etc/docker/daemon.json
 
 # Start docker daemon and wait for dockerd to start
 service docker start
