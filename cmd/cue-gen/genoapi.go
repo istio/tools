@@ -310,7 +310,13 @@ func main() {
 		if err != nil {
 			log.Fatalf("Error completing build plan: %v", err)
 		}
-		for dir, groupings := range c.Directories {
+		dirList := make([]string, len(c.Directories))
+		for dir := range c.Directories {
+			dirList = append(dirList, dir)
+		}
+		sort.Strings(dirList)
+		for _, dir := range dirList {
+			groupings := c.Directories[dir]
 			for _, g := range groupings {
 				builder.gen(dir, &g)
 			}
@@ -332,7 +338,7 @@ func (x *builder) gen(dir string, g *Grouping) {
 	}
 
 	instances := load.Instances([]string{"./" + dir}, cfg)
-	inst := cue.Build(instances)[0]
+	inst := cue.Build(instances)[0] //nolint:staticcheck
 	if inst.Err != nil {
 		fatal(inst.Err, "Instance failed")
 	}
@@ -357,7 +363,7 @@ func (x *builder) genAll(g *Grouping) {
 	}
 
 	instances := load.Instances([]string{"./..."}, cfg)
-	all := cue.Build(instances)
+	all := cue.Build(instances) //nolint:staticcheck
 	for _, inst := range all {
 		if inst.Err != nil {
 			fatal(inst.Err, "Instance failed")
@@ -399,20 +405,24 @@ func (x *builder) genCRD() {
 		for _, d := range v.Directories {
 			wd, _ := os.Getwd()
 			rp, _ := filepath.Rel(wd, filepath.Dir(d))
-			dirset["./"+rp] = struct{}{}
+			if rp[0] != '.' {
+				rp = "./" + rp
+			}
+			dirset[rp] = struct{}{}
 		}
 	}
 	dirs := []string{}
 	for k := range dirset {
 		dirs = append(dirs, k)
 	}
+	sort.Strings(dirs)
 
 	instances := load.Instances(dirs, cfg)
 
 	frontMatterMap = make(map[string][]string)
 	extractFrontMatter(instances, frontMatterMap)
 
-	all := cue.Build(instances)
+	all := cue.Build(instances) //nolint:staticcheck
 	for _, inst := range all {
 		if inst.Err != nil {
 			fatal(inst.Err, "Instance failed")
@@ -479,6 +489,7 @@ func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedM
 		if *crd {
 			n := strings.Split(inst.ImportPath, "/")
 			l, _ := v.Label()
+			l = l[1:] // Remove leading '#' from definition
 			schema := "istio." + n[len(n)-2] + "." + n[len(n)-1] + "." + l
 			if res, ok := frontMatterMap[schema]; ok {
 				return res[0] + " See more details at: " + res[1]
@@ -683,11 +694,14 @@ func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
 	comps.Set("schemas", schemas)  //nolint:staticcheck
 	oapi.Set("components", comps)  //nolint:staticcheck
 
-	b, _ := json.Marshal(oapi)
+	b, err := json.Marshal(oapi)
+	if err != nil {
+		log.Fatalf("Failed to JSON marshal generated OpenAPI: %v", err)
+	}
 
 	// Note: this just tests basic OpenAPI 3 validity. It cannot, of course,
 	// know if the the proto files were correctly mapped.
-	_, err := openapi3.NewSwaggerLoader().LoadSwaggerFromData(b)
+	_, err = openapi3.NewSwaggerLoader().LoadSwaggerFromData(b)
 	if err != nil {
 		log.Fatalf("Invalid OpenAPI generated: %v", err)
 	}
