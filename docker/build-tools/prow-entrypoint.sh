@@ -33,6 +33,7 @@ if [[ "${DOCKER_IN_DOCKER_IPV6_ENABLED}" == "true" ]]; then
 fi
 
 # Enable debug logs for docker daemon
+mkdir /etc/docker
 echo '{"debug":true}' > /etc/docker/daemon.json
 
 # Start docker daemon and wait for dockerd to start
