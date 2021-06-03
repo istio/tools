@@ -251,7 +251,7 @@ RUN rm -fr /usr/local/go/bin/gofmt
 # Nodejs
 #############
 
-FROM ubuntu:bionic as nodejs_tools_context
+FROM ubuntu:focal as nodejs_tools_context
 
 # Pinned versions of stuff we pull in
 ENV BABEL_CLI_VERSION=v7.7.4
@@ -303,7 +303,9 @@ RUN rm -rf /usr/local/share
 # Ruby
 #############
 
-FROM ubuntu:bionic as ruby_tools_context
+FROM ubuntu:focal as ruby_tools_context
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Pinned versions of stuff we pull in
 ENV AWESOMEBOT_VERSION=1.20.0
@@ -341,7 +343,9 @@ RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 # Python
 ##############
 
-FROM ubuntu:bionic as python_context
+FROM ubuntu:focal as python_context
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Pinned versions of stuff we pull in
 ENV AUTOPEP8_VERSION=1.4.4
@@ -376,9 +380,11 @@ RUN python3 -m pip install --no-cache-dir jwcrypto==${JWCRYPTO_VERSION}
 # Base OS
 #############
 
-FROM ubuntu:bionic as base_os_context
+FROM ubuntu:focal as base_os_context
 
-ENV DOCKER_VERSION=5:20.10.6~3-0~ubuntu-bionic
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV DOCKER_VERSION=5:20.10.6~3-0~ubuntu-focal
 ENV CONTAINERD_VERSION=1.4.3-1
 
 ENV OUTDIR=/out
@@ -416,7 +422,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
 RUN apt-key add /tmp/docker-key
-RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
 RUN apt-get update
 RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
 
