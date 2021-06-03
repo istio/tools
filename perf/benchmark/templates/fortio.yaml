@@ -459,9 +459,8 @@ spec:
         {{- end }}
         image: {{ $.Values.curlImage }}
         args:
-        - /bin/sh
-        - -c
-        - while true; do sleep 86400; done
+        - /bin/sleep
+        - 3650d
       - name: uncaptured
         securityContext:
           runAsUser: 1
