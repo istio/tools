@@ -691,6 +691,9 @@ RUN ldconfig
 COPY proxy-tsan-instrumented-libcxx.sh proxy-tsan-instrumented-libcxx.sh
 RUN ./proxy-tsan-instrumented-libcxx.sh
 
+COPY install-python-3.8.sh install-python-3.8.sh
+RUN ./install-python-3.8.sh
+
 # su-exec is used in place of complex sudo setup operations
 RUN chmod u+sx /usr/bin/su-exec
 
