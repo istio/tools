@@ -1,4 +1,4 @@
-Django==2.2.22
+Django==2.2.24
 beautifulsoup4==4.8.1
 pandas==0.25.3
 wget==3.2
