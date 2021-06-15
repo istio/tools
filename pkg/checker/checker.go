@@ -63,9 +63,12 @@ func fileCheck(path string, rules []Rule, allowlist *Allowlist, report *Report) 
 	}
 
 	fs := token.NewFileSet()
-	astFile, err := parser.ParseFile(fs, path, nil, parser.Mode(0))
+	astFile, err := parser.ParseFile(fs, path, nil, parser.ParseComments)
 	if err != nil {
 		report.AddString(fmt.Sprintf("%v", err))
+		return
+	}
+	if skipFile(astFile) {
 		return
 	}
 	v := FileVisitor{
@@ -77,6 +80,15 @@ func fileCheck(path string, rules []Rule, allowlist *Allowlist, report *Report) 
 	}
 	// Walk through the files
 	ast.Walk(&v, astFile)
+}
+
+func skipFile(f *ast.File) bool {
+	for _, c := range f.Comments {
+		if strings.Contains(c.Text(), "nolint") && strings.Contains(c.Text(), "envvarlint") {
+			return true
+		}
+	}
+	return false
 }
 
 // FileVisitor visits the go file syntax tree and applies the given rules.
