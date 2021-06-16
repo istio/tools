@@ -44,7 +44,7 @@ ENV PATH=/opt/llvm/bin:/usr/local/google-cloud-sdk/bin:$PATH
 # Sha matches DEPS in the root of the wee8 tar ball in envoy's repository_locations.bzl
 # hadolint ignore=DL3003
 RUN cd /tmp && git clone https://gn.googlesource.com/gn && cd gn && \
-    git checkout 5ed3c9cc67b090d5e311e4bd2aba072173e82db9 && \
+    git checkout 39a87c0b36310bdf06b692c098f199a0d97fc810 && \
     python build/gen.py && ninja -C out && cp out/gn /usr/bin && rm -rf /tmp/gn
 
 ENV HOME=/home
