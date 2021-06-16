@@ -154,7 +154,7 @@ trap exit_handling EXIT
 # Helper functions
 function collect_flame_graph() {
     FLAME_OUTPUT_DIR="${WD}/flame/flameoutput"
-    gsutil -q cp -r "${FLAME_OUTPUT_DIR}/*.svg" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/flamegraphs"
+    gsutil -q cp -r "${FLAME_OUTPUT_DIR}/*.svg" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/flamegraphs" || true
 }
 
 function collect_metrics() {
