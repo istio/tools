@@ -14,7 +14,7 @@ appresources1:
     memory: "1000Mi"
 
 fortioImage: fortio/fortio:latest_release
-curlImage: tutum/curl:trusty
+curlImage: cfmanteiga/alpine-bash-curl-jq:latest
 nighthawkImage: envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4
 domain: local
 gateway: fortio-gateway

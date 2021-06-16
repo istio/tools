@@ -460,7 +460,7 @@ spec:
         image: {{ $.Values.curlImage }}
         args:
         - /bin/sleep
-        - infinity
+        - 3650d
       - name: uncaptured
         securityContext:
           runAsUser: 1
