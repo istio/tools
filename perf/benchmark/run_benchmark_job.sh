@@ -218,6 +218,9 @@ function collect_pod_spec() {
   gsutil -q cp -r "${POD_SPEC_NAME}" "gs://${GCS_BUCKET}/${OUTPUT_DIR}/pod_spec/${POD_SPEC_NAME}"
 }
 
+# install tools for profiling
+apt-get update && apt-get install linux-tools-generic
+
 # Start run perf test
 echo "Start to run perf benchmark test, all collected data will be dumped to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
 
