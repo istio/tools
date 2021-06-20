@@ -219,7 +219,7 @@ function collect_pod_spec() {
 }
 
 # install tools for profiling
-apt-get update && apt-get install linux-tools-generic
+apt-get update && apt-get -y install linux-tools-generic
 
 # Start run perf test
 echo "Start to run perf benchmark test, all collected data will be dumped to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
