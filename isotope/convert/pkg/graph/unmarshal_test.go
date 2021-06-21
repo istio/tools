@@ -132,7 +132,7 @@ var (
 			ErrorRate:    0.1,
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
-				script.SleepCommand(100 * time.Millisecond),
+				100 * time.Millisecond,
 			}),
 		},
 		{
@@ -143,7 +143,7 @@ var (
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
 				script.RequestCommand{ServiceName: "a", Size: 1024},
-				script.SleepCommand(10 * time.Millisecond),
+				10 * time.Millisecond,
 			}),
 		},
 		{
@@ -157,7 +157,7 @@ var (
 					script.RequestCommand{ServiceName: "a", Size: 516},
 					script.RequestCommand{ServiceName: "b", Size: 516},
 				},
-				script.SleepCommand(10 * time.Millisecond),
+				10 * time.Millisecond,
 			}),
 		},
 	}}
