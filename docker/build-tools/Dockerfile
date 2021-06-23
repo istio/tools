@@ -428,10 +428,10 @@ RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" doc
 
 # Trivy container scanner
 RUN apt-get install -y wget apt-transport-https gnupg lsb-release --no-install-recommends
-set -o pipefail
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add -
 RUN echo deb "https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | tee -a /etc/apt/sources.list.d/trivy.list
-unset +o pipefail
+SHELL ["/bin/bash", "+o", "pipefail", "-c"]
 RUN apt-get update
 RUN apt-get install -y trivy --no-install-recommends
 
