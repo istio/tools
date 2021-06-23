@@ -403,11 +403,13 @@ RUN apt-get update
 RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
 
 # Trivy container scanner
-RUN apt-get install -y wget apt-transport-https gnupg lsb-release
+RUN apt-get install -y wget apt-transport-https gnupg lsb-release --no-install-recommends
+set -o pipefail
 RUN wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | apt-key add -
-RUN echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | tee -a /etc/apt/sources.list.d/trivy.list
+RUN echo deb "https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | tee -a /etc/apt/sources.list.d/trivy.list
+unset +o pipefail
 RUN apt-get update
-RUN apt-get install -y trivy
+RUN apt-get install -y trivy --no-install-recommends
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
