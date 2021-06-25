@@ -18,7 +18,7 @@ set -eux
 
 # gcc-9, need to build instrumented LLVM libc++ for tsan testing.
 add-apt-repository -y ppa:ubuntu-toolchain-r/test
-apt-get update && apt-get install -y --no-install-recommends g++-9
+apt-get update && apt-get install -y --no-install-recommends g++-9 libncurses5
 update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 1000
 update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1000
 update-alternatives --config gcc
@@ -26,11 +26,12 @@ update-alternatives --config g++
 
 # Instrumented libcxx built from LLVM source, used for tsan testing.
 # See envoy dev guide for more info: https://github.com/envoyproxy/envoy/blob/v1.17.0/bazel/README.md#sanitizers
-LLVM_VERSION=10.0.1
+# should use same llvm version of build env
+LLVM_VERSION=${LLVM_VERSION:-11.0.1}
 LLVM_ARCHIVE=llvmorg-${LLVM_VERSION}.tar.gz
 LLVM_ARCHIVE_URL=https://github.com/llvm/llvm-project/archive/${LLVM_ARCHIVE}
-wget ${LLVM_ARCHIVE_URL}
-tar -xzf ${LLVM_ARCHIVE} -C /tmp
+wget "${LLVM_ARCHIVE_URL}"
+tar -xzf "${LLVM_ARCHIVE}" -C /tmp
 mkdir tsan
 pushd tsan || exit
 
