@@ -465,7 +465,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rpm \
     jq \
     gettext-base \
-    locales-all
+    locales-all \
+    file
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
