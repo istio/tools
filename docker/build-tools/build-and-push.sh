@@ -30,6 +30,10 @@ BRANCH=master
 VERSION="${BRANCH}-${DATE}"
 SHA="${BRANCH}"
 
+BUILD_BUILD_TOOLS=${BUILD_BUILD_TOOLS:-1}
+BUILD_BUILD_TOOLS_PROXY=${BUILD_BUILD_TOOLS_PROXY:-1}
+BUILD_BUILD_TOOLS_CENTOS=${BUILD_BUILD_TOOLS_CENTOS:-1}
+
 # The docker image runs `go get istio.io/tools@${SHA}`
 # In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
 # In presubmit, this SHA does not exist, so we should just pull from the head of the branch (eg master)
@@ -37,18 +41,28 @@ if [[ "${JOB_TYPE:-}" == "postsubmit" ]]; then
   SHA=$(git rev-parse ${BRANCH})
 fi
 
-# shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER}  --target build_tools --build-arg "GOLANG_IMAGE=${GOLANG_IMAGE}" --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
-# shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER}  --build-arg "GOLANG_IMAGE=${GOLANG_IMAGE}" --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
-# shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER}  --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-centos:${VERSION}" -t "${HUB}/build-tools-centos:${BRANCH}-latest" -f Dockerfile.centos .
+
+BUILDER_COMMON_FLAGS=${BUILDER_COMMON_FLAGS:-""}
+TARGET_PLATFORMS=${TARGET_PLATFORMS:-"linux/amd64"}
 
 if [[ -z "${DRY_RUN:-}" ]]; then
-  ${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
-  ${CONTAINER_CLI} push "${HUB}/build-tools:${BRANCH}-latest"
-  ${CONTAINER_CLI} push "${HUB}/build-tools-proxy:${VERSION}"
-  ${CONTAINER_CLI} push "${HUB}/build-tools-proxy:${BRANCH}-latest"
-  ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${VERSION}"
-  ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${BRANCH}-latest"
+    BUILDER_COMMON_FLAGS="--load"
+else
+    BUILDER_COMMON_FLAGS="--push"
+fi
+
+
+if [[ ${BUILD_BUILD_TOOLS} == 1 ]]; then
+  # shellcheck disable=SC2086
+  ${CONTAINER_CLI} ${CONTAINER_BUILDER} ${BUILDER_COMMON_FLAGS} --platform=${TARGET_PLATFORMS} --target build_tools --build-arg "GOLANG_IMAGE=${GOLANG_IMAGE}" --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
+fi
+
+if [[ ${BUILD_BUILD_TOOLS_PROXY} == 1 ]]; then
+  # shellcheck disable=SC2086
+  ${CONTAINER_CLI} ${CONTAINER_BUILDER} ${BUILDER_COMMON_FLAGS} --platform=${TARGET_PLATFORMS} --build-arg "GOLANG_IMAGE=${GOLANG_IMAGE}" --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
+fi
+
+if [[ ${BUILD_BUILD_TOOLS_CENTOS} == 1 ]]; then
+  # shellcheck disable=SC2086
+  ${CONTAINER_CLI} ${CONTAINER_BUILDER} ${BUILDER_COMMON_FLAGS} --platform=${TARGET_PLATFORMS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-centos:${VERSION}" -t "${HUB}/build-tools-centos:${BRANCH}-latest" -f Dockerfile.centos .
 fi
