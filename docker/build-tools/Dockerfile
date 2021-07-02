@@ -28,6 +28,8 @@
 ARG GOLANG_IMAGE=golang:1.16.5
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
+# TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
+ARG TARGETARCH
 
 # Istio tools SHA that we use for this image
 ARG ISTIO_TOOLS_SHA
@@ -64,6 +66,7 @@ ENV SHELLCHECK_VERSION=v0.7.1
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.96
 ENV YQ_VERSION=3.3.0
+ENV KPT_VERSION=v0.39.3
 ENV BUF_VERSION=v0.36.0
 ENV GCLOUD_VERSION=345.0.0
 ENV KUBETEST2_VERSION=f4c453f4732bac11a186d89764024117f3860ec1
@@ -93,19 +96,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install protoc
 RUN set -eux; \
-    \
-    case $(uname -m) in \
-        x86_64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-x86_64.zip;; \
-        aarch64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-aarch_64.zip;; \
-        *) echo "unsupported architecture"; exit 1 ;; \
-    esac; \
-    \
-    wget -O /tmp/${PROTOC_ZIP} https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}; \
-    unzip /tmp/${PROTOC_ZIP}; \
+    PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-$(uname -m).zip"; \
+    wget -O "/tmp/${PROTOC_ZIP}" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"; \
+    unzip "/tmp/${PROTOC_ZIP}"; \
     mv /tmp/bin/protoc ${OUTDIR}/usr/bin
 
 # Install gh
-ARG TARGETARCH
 ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.deb /tmp/
 RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_${TARGETARCH}.deb
 RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
@@ -184,7 +180,6 @@ RUN git clone --depth 1 https://github.com/kubernetes-sigs/boskos --branch maste
   cd .. && rm -rf boskos
 
 # Compress the Go tools and put them in their final location
-ARG TARGETARCH
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz /tmp
 RUN tar -xJf upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz -C /tmp
 RUN mv /tmp/upx-${UPX_VERSION}-${TARGETARCH}_linux/upx /usr/bin
@@ -221,7 +216,6 @@ RUN set -eux; \
     mv /tmp/hugo ${OUTDIR}/usr/bin
 
 # Helm version 3
-ARG TARGETARCH
 ADD https://get.helm.sh/helm-${HELM3_VERSION}-linux-${TARGETARCH}.tar.gz /tmp
 RUN mkdir /tmp/helm3
 RUN tar -xf /tmp/helm-${HELM3_VERSION}-linux-${TARGETARCH}.tar.gz -C /tmp/helm3
@@ -229,21 +223,21 @@ RUN cp /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm3
 RUN mv /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm
 
 # yq doesn't support go modules, so install the binary instead
-ARG TARGETARCH
 ADD https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${TARGETARCH} /tmp
 RUN mv /tmp/yq_linux_${TARGETARCH} ${OUTDIR}/usr/bin/yq
 RUN chmod 555 ${OUTDIR}/usr/bin/yq
 
 # Kubectl
-ARG TARGETARCH
 ADD https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl ${OUTDIR}/usr/bin/kubectl
 RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
 
 # GCR docker credential helper
-ARG TARGETARCH
 ADD https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${GCR_AUTH_VERSION}/docker-credential-gcr_linux_${TARGETARCH}-${GCR_AUTH_VERSION}.tar.gz /tmp
 RUN tar -xzf /tmp/docker-credential-gcr_linux_${TARGETARCH}-${GCR_AUTH_VERSION}.tar.gz -C /tmp
 RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
+
+RUN wget -O "${OUTDIR}/usr/bin/buf" "https://github.com/bufbuild/buf/releases/download/${BUF_VERSION}/buf-Linux-$(uname -m)" && \
+    chmod 555 "${OUTDIR}/usr/bin/buf"
 
 # Install su-exec which is a tool that operates like sudo without the overhead
 ADD https://github.com/ncopa/su-exec/archive/v${SU_EXEC_VERSION}.tar.gz /tmp
@@ -252,26 +246,15 @@ WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
 
+ADD https://github.com/GoogleContainerTools/kpt/releases/download/${KPT_VERSION}/kpt_linux_${TARGETARCH} ${OUTDIR}/usr/bin/kpt
+RUN chmod 555 ${OUTDIR}/usr/bin/kpt
+
 # Install gcloud command line tool
 # Install gcloud beta components
 RUN set -eux; \
-    \
-    case $(uname -m) in \
-        x86_64) \
-            export GCLOUD_TAR_FILE=google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz; \
-            ;; \
-        aarch64) \
-            export GCLOUD_TAR_FILE=google-cloud-sdk-${GCLOUD_VERSION}-linux-arm.tar.gz; \
-            ;; \
-        *) \
-            echo "unsuport arch"; \
-            exit 1; \
-            ;; \
-    esac; \
-    \
+    GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-$(uname -m).tar.gz"; \
     wget "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_TAR_FILE}"; \
-    tar -xzvf ./${GCLOUD_TAR_FILE} -C ${OUTDIR}/usr/local && rm ${GCLOUD_TAR_FILE}; \
-    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta kpt --quiet; \
+    tar -xzvf ."/${GCLOUD_TAR_FILE}" -C "${OUTDIR}/usr/local" && rm "${GCLOUD_TAR_FILE}"; \
     rm -rf /usr/local/google-cloud-sdk/.install/.backup
 
 # Cleanup stuff we don't need in the final image
@@ -307,13 +290,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget ca-certificates
 
 RUN set -eux; \
-    \
     case $(uname -m) in \
         x86_64) export NODEJS_TAR=node-v${NODEJS_VERSION}-linux-x64.tar.gz;; \
         aarch64) export NODEJS_TAR=node-v${NODEJS_VERSION}-linux-arm64.tar.gz;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
-    \
     wget -O /tmp/${NODEJS_TAR} https://nodejs.org/download/release/v${NODEJS_VERSION}/${NODEJS_TAR}; \
     tar -xzf /tmp/${NODEJS_TAR} --strip-components=1 -C /usr/local
 
