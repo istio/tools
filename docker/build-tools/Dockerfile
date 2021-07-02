@@ -245,6 +245,9 @@ ADD https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/downlo
 RUN tar -xzf /tmp/docker-credential-gcr_linux_${TARGETARCH}-${GCR_AUTH_VERSION}.tar.gz -C /tmp
 RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
 
+ADD https://github.com/bufbuild/buf/releases/download/${BUF_VERSION}/buf-Linux-$(uname -m) ${OUTDIR}/usr/bin/buf
+RUN chmod 555 ${OUTDIR}/usr/bin/buf
+
 # Install su-exec which is a tool that operates like sudo without the overhead
 ADD https://github.com/ncopa/su-exec/archive/v${SU_EXEC_VERSION}.tar.gz /tmp
 RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
