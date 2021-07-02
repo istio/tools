@@ -96,7 +96,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install protoc
 RUN set -eux; \
-    PROTOC_ZIP="protoc-${PROTOC_VERSION}-linux-$(uname -m).zip"; \
+    \
+    case $(uname -m) in \
+        x86_64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-x86_64.zip;; \
+        aarch64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-aarch_64.zip;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
+    esac; \
+    \
     wget -O "/tmp/${PROTOC_ZIP}" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"; \
     unzip "/tmp/${PROTOC_ZIP}"; \
     mv /tmp/bin/protoc ${OUTDIR}/usr/bin
