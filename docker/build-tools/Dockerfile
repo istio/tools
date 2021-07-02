@@ -250,11 +250,12 @@ ADD https://github.com/GoogleContainerTools/kpt/releases/download/${KPT_VERSION}
 RUN chmod 555 ${OUTDIR}/usr/bin/kpt
 
 # Install gcloud command line tool
-# Install gcloud beta components
+# Install gcloud beta component
 RUN set -eux; \
     GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-$(uname -m).tar.gz"; \
     wget "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_TAR_FILE}"; \
     tar -xzvf ."/${GCLOUD_TAR_FILE}" -C "${OUTDIR}/usr/local" && rm "${GCLOUD_TAR_FILE}"; \
+    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta --quiet; \
     rm -rf /usr/local/google-cloud-sdk/.install/.backup
 
 # Cleanup stuff we don't need in the final image
