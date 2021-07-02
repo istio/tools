@@ -35,10 +35,11 @@ gen-check: gen check-clean-repo
 
 containers:
 	@gcloud auth configure-docker -q	# enable docker to authenticate with gcr.io, needed for prow
-	@cd docker/build-tools && ./build-and-push.sh
+	@cd docker/build-tools && TARGET_PLATFORMS=linux/arm64,linux/amd64 ./build-and-push.sh
 
 containers-test:
-	@cd docker/build-tools && DRY_RUN=true ./build-and-push.sh
+	@cd docker/build-tools && DRY_RUN=true TARGET_PLATFORMS="linux/arm64" ./build-and-push.sh
+	@cd docker/build-tools && DRY_RUN=true TARGET_PLATFORMS="linux/amd64" ./build-and-push.sh
 
 include common/Makefile.common.mk
 include perf/stability/stability.mk
