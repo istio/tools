@@ -144,9 +144,9 @@ RUN rm -rf /tmp/go/pkg/mod/cache/download/k8s.io
 
 # Install istio/test-infra tools
 RUN gobin istio.io/test-infra/boskos/cmd/mason_client
-RUN gobin k8s.io/test-infra/robots/pr-creator
-RUN gobin k8s.io/test-infra/prow/cmd/peribolos
-RUN gobin k8s.io/test-infra/pkg/benchmarkjunit
+RUN GO111MODULE=on go get k8s.io/test-infra/robots/pr-creator@${K8S_TEST_INFRA_VERSION}
+RUN GO111MODULE=on go get k8s.io/test-infra/prow/cmd/peribolos@${K8S_TEST_INFRA_VERSION}
+RUN GO111MODULE=on go get k8s.io/test-infra/pkg/benchmarkjunit@${K8S_TEST_INFRA_VERSION}
 RUN gobin sigs.k8s.io/kubetest2@${KUBETEST2_VERSION}
 RUN gobin sigs.k8s.io/kubetest2/kubetest2-gke@${KUBETEST2_VERSION}
 RUN gobin sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
