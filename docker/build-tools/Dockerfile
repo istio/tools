@@ -158,6 +158,7 @@ RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/informer-ge
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/deepcopy-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 
+# hadolint ignore=DL3003
 RUN git clone https://github.com/kubernetes/test-infra --branch master --single-branch && \
   cd test-infra && \
   git checkout "${K8S_TEST_INFRA_VERSION}" && \
