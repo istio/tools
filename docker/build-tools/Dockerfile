@@ -144,9 +144,6 @@ RUN rm -rf /tmp/go/pkg/mod/cache/download/k8s.io
 
 # Install istio/test-infra tools
 RUN gobin istio.io/test-infra/boskos/cmd/mason_client
-RUN gobin k8s.io/test-infra/robots/pr-creator
-RUN gobin k8s.io/test-infra/prow/cmd/peribolos
-RUN gobin k8s.io/test-infra/pkg/benchmarkjunit
 RUN gobin sigs.k8s.io/kubetest2@${KUBETEST2_VERSION}
 RUN gobin sigs.k8s.io/kubetest2/kubetest2-gke@${KUBETEST2_VERSION}
 RUN gobin sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
@@ -160,6 +157,17 @@ RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/lister-gen@
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/informer-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/deepcopy-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+
+# hadolint ignore=DL3003
+RUN git clone https://github.com/kubernetes/test-infra --branch master --single-branch && \
+		cd test-infra && \
+		git checkout "${K8S_TEST_INFRA_VERSION}" && \
+		go install ./robots/pr-creator && \
+		go install ./prow/cmd/peribolos && \
+		go install ./pkg/benchmarkjunit && \
+		cd .. && rm -rf test-infra
+
+
 
 # Compress the Go tools and put them in their final location
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp
