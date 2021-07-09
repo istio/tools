@@ -67,7 +67,7 @@ ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.96
 ENV YQ_VERSION=3.3.0
 ENV KPT_VERSION=v0.39.3
-ENV BUF_VERSION=v0.36.0
+ENV BUF_VERSION=v0.43.0
 ENV GCLOUD_VERSION=345.0.0
 ENV KUBETEST2_VERSION=f4c453f4732bac11a186d89764024117f3860ec1
 ENV BOSKOSCTL_VERSION=c6d730e323f06da1b56dfa14bdab6d7d5dc22e2a
@@ -258,7 +258,13 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kpt
 # Install gcloud command line tool
 # Install gcloud beta component
 RUN set -eux; \
-    GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-$(uname -m).tar.gz"; \
+    \
+    case $(uname -m) in \
+        x86_64)  export GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz" ;; \
+        aarch64) export GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-arm.tar.gz" ;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
+    esac; \
+    \
     wget "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_TAR_FILE}"; \
     tar -xzvf ."/${GCLOUD_TAR_FILE}" -C "${OUTDIR}/usr/local" && rm "${GCLOUD_TAR_FILE}"; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta --quiet; \
