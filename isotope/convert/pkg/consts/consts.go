@@ -23,6 +23,11 @@ const (
 	// ServicePortName is the name of the service port.
 	ServicePortName = "http-web"
 
+	// ServiceGrpcPort is the GRPC port in which the service will listen.
+	ServiceGrpcPort = 8081
+	// ServiceGrpcPortName is the name of the service grpc port.
+	ServiceGrpcPortName = "grpc"
+
 	// ServiceGraphNamespace is the name of the namespace that all service graph
 	// related components will live in.
 	ServiceGraphNamespace = "service-graph"
