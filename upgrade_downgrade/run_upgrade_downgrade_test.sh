@@ -128,9 +128,29 @@ if [ "${UPGRADE_DOWNGRADE_TEST_LOCAL}" = "boskos" ] || [ "${UPGRADE_DOWNGRADE_TE
 
     setup_e2e_cluster
 elif [[ "${UPGRADE_DOWNGRADE_TEST_LOCAL}" = "kind" ]]; then
-    echo "Spinning up kind cluster and running upgrade tests against it..."
-    setup_kind_cluster
-    metallb
+    if [[ -n "${MULTICLUSTER_SETUP_REQUIRED}" ]]; then
+      echo "Creating test environment for multicluster test"
+      CLUSTER_TOPOLOGY_FILE="${WD}/topology/multicluster.json"
+
+      # These are used by kind provisioner
+      DEFAULT_CLUSTER_YAML=${DEFAULT_CLUSTER_YAML:-"${WD}/config/trustworthy-jwt.yaml"}
+      ARTIFACTS=${ARTIFACTS:-"$(mktemp -d artifacts.XXXXXX)"}
+      METRICS_SERVER_CONFIG_DIR=""
+
+      source "${ROOT}/common/scripts/kind_provisioner.sh"
+      load_cluster_topology "${CLUSTER_TOPOLOGY_FILE}"
+      setup_kind_clusters "${DEFAULT_KIND_IMAGE}" "ipv4"
+
+      export KUBECONFIG
+      KUBECONFIG=$(IFS=':'; echo "${KUBECONFIGS[*]}")
+
+      export CLUSTERS
+      CLUSTERS=$(IFS=':'; echo "${CLUSTER_NAMES[*]}")
+    else
+      echo "Spinning up kind cluster and running upgrade tests against it..."
+      setup_kind_cluster
+      metallb
+    fi
 else
     echo "Running against cluster that kubectl is configured for."
 fi
@@ -140,7 +160,11 @@ go get fortio.org/fortio
 
 # Pick the test file based on scenario
 if [[ "${TEST_SCENARIO}" == *"dual-control-plane"* ]]; then
-  TEST_FILE="${WD}/test_dual_control_plane_upgrade_downgrade.sh"
+  if [[ "${TEST_SCENARIO}" == *"multicluster"* ]]; then
+    TEST_FILE="${WD}/test_multicluster_dual_control_plane_upgrade_downgrade.sh"
+  else
+    TEST_FILE="${WD}/test_dual_control_plane_upgrade_downgrade.sh"
+  fi
 elif [[ "${TEST_SCENARIO}" == *"boutique"* ]]; then
   TEST_FILE="${WD}/test_dual_control_plane_upgrade_downgrade_boutique.sh"
 else

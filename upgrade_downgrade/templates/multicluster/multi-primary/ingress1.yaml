@@ -1,0 +1,16 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: ingress1
+spec:
+  profile: empty # REQUIRED
+  components:
+    ingressGateways:
+      - name: istio-ingressgateway
+        enabled: true
+  values:
+    global:
+      meshID: mesh1
+      network: network1
+      multiCluster:
+        clusterName: kind-cluster1
