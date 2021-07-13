@@ -41,7 +41,7 @@ needs to be added to the comment of the `DestinationRule` proto.
 // +cue-gen:DestinationRule:printerColumn:name=Age,type=date,JSONPath=.metadata.creationTimestamp,description="CreationTimestamp is a timestamp
 // representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations.
 // Clients may not set this value. It is represented in RFC3339 form and is in UTC.
-// Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata"
+// Populated by the system. Read-only. Null for lists. More info: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md
 // -->
 ```
 
