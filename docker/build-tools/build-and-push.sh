@@ -23,7 +23,7 @@ export DOCKER_CLI_EXPERIMENTAL=enabled
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 # Use buildx for CI by default, allow overriding for old clients or other tools like podman
 CONTAINER_BUILDER=${CONTAINER_BUILDER:-"buildx build"}
-GOLANG_IMAGE=${GOLANG_IMAGE:-"golang:1.16.4"}
+GOLANG_IMAGE=${GOLANG_IMAGE:-"golang:1.16.6"}
 HUB=${HUB:-gcr.io/istio-testing}
 DATE=$(date +%Y-%m-%dT%H-%M-%S)
 BRANCH=master
