@@ -597,7 +597,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 ##############
 
 FROM ubuntu:xenial AS clang_context_amd64
-FROM ubuntu:focal AS clang_context_arm64
+FROM ubuntu:bionic AS clang_context_arm64
 # hadolint ignore=DL3006
 FROM clang_context_${TARGETARCH} AS clang_context
 
@@ -663,7 +663,7 @@ RUN set -eux; \
 ###########
 
 FROM ubuntu:xenial AS bazel_context_amd64
-FROM ubuntu:focal AS bazel_context_arm64
+FROM ubuntu:bionic AS bazel_context_arm64
 # hadolint ignore=DL3006
 FROM bazel_context_${TARGETARCH} AS bazel_context
 
@@ -691,8 +691,8 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 
 FROM ubuntu:xenial AS build_env_proxy_amd64
 ENV UBUNTU_RELEASE_CODE_NAME=xenial
-FROM ubuntu:focal AS build_env_proxy_arm64
-ENV UBUNTU_RELEASE_CODE_NAME=focal
+FROM ubuntu:bionic AS build_env_proxy_arm64
+ENV UBUNTU_RELEASE_CODE_NAME=bionic
 # hadolint ignore=DL3006
 FROM build_env_proxy_${TARGETARCH}
 
@@ -773,8 +773,16 @@ RUN chmod +x /usr/local/bin/entrypoint
 
 # CMake
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
-RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_RELEASE_CODE_NAME} main"
+# ubuntu 18.04 without arm64 version see https://apt.kitware.com/
+RUN set -eux; \
+    \
+    case $(uname -m) in \
+        x86_64) \
+            curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - ; \
+            apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_RELEASE_CODE_NAME} main"; \
+            ;; \
+        *) echo "skip" ;; \
+    esac;
 
 # binary dependencies to build envoy at v1.12.0
 # https://github.com/envoyproxy/envoy/blob/v1.12.0/bazel/README.md
