@@ -11,12 +11,12 @@ spec:
     - name: ./basic.rules
       rules:
         - alert: IngressTrafficMissing
-            annotations:
-              summary: 'ingress gateway traffic missing'
-              description: '[Critical]: ingress gateway traffic missing, likely other monitors are misleading, check client logs'
-            expr: >
+          annotations:
+            summary: 'ingress gateway traffic missing'
+            description: '[Critical]: ingress gateway traffic missing, likely other monitors are misleading, check client logs'
+          expr: >
               absent(istio_requests_total{destination_service_namespace=~"service-graph.*",reporter="source",source_workload="istio-ingressgateway"})==1
-            for: 5m
+          for: 5m
         - alert: IstioMetricsMissing
           annotations:
             summary: 'Istio Metrics missing'
