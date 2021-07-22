@@ -98,9 +98,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN set -eux; \
     \
     case $(uname -m) in \
-    x86_64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-x86_64.zip;; \
-    aarch64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-aarch_64.zip;; \
-    *) echo "unsupported architecture"; exit 1 ;; \
+        x86_64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-x86_64.zip;; \
+        aarch64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-aarch_64.zip;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
     wget -O "/tmp/${PROTOC_ZIP}" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"; \
@@ -167,23 +167,23 @@ RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/go-to-proto
 # Should be fixed by https://github.com/kubernetes/test-infra/issues/20421
 # hadolint ignore=DL3003
 RUN git clone https://github.com/kubernetes/test-infra --branch master --single-branch && \
-    cd test-infra && \
-    git checkout "${K8S_TEST_INFRA_VERSION}" && \
-    go install ./robots/pr-creator && \
-    go install ./prow/cmd/peribolos && \
-    go install ./pkg/benchmarkjunit && \
-    cd .. && rm -rf test-infra
+  cd test-infra && \
+  git checkout "${K8S_TEST_INFRA_VERSION}" && \
+  go install ./robots/pr-creator && \
+  go install ./prow/cmd/peribolos && \
+  go install ./pkg/benchmarkjunit && \
+  cd .. && rm -rf test-infra
 # hadolint ignore=DL3003
 RUN git clone --depth 1 https://github.com/istio/test-infra --branch master --single-branch && \
-    cd test-infra && \
-    go install ./toolbox/githubctl && \
-    go install ./boskos/cmd/mason_client && \
-    cd .. && rm -rf test-infra
+  cd test-infra && \
+  go install ./toolbox/githubctl && \
+  go install ./boskos/cmd/mason_client && \
+  cd .. && rm -rf test-infra
 # hadolint ignore=DL3003
 RUN git clone --depth 1 https://github.com/kubernetes-sigs/boskos --branch master --single-branch && \
-    cd boskos && \
-    go install ./cmd/boskosctl && \
-    cd .. && rm -rf boskos
+  cd boskos && \
+  go install ./cmd/boskosctl && \
+  cd .. && rm -rf boskos
 
 # Compress the Go tools and put them in their final location
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz /tmp
@@ -212,9 +212,9 @@ RUN chmod 555 ${OUTDIR}/usr/bin/hadolint
 RUN set -eux; \
     \
     case $(uname -m) in \
-    x86_64) export HUGO_TAR=hugo_${HUGO_VERSION}_Linux-64bit.tar.gz;; \
-    aarch64) export HUGO_TAR=hugo_${HUGO_VERSION}_Linux-ARM64.tar.gz;; \
-    *) echo "unsupported architecture"; exit 1 ;; \
+        x86_64) export HUGO_TAR=hugo_${HUGO_VERSION}_Linux-64bit.tar.gz;; \
+        aarch64) export HUGO_TAR=hugo_${HUGO_VERSION}_Linux-ARM64.tar.gz;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
     wget -O /tmp/${HUGO_TAR} https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_TAR}; \
@@ -260,9 +260,9 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kpt
 RUN set -eux; \
     \
     case $(uname -m) in \
-    x86_64)  export GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz" ;; \
-    aarch64) export GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-arm.tar.gz" ;; \
-    *) echo "unsupported architecture"; exit 1 ;; \
+        x86_64)  export GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz" ;; \
+        aarch64) export GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-arm.tar.gz" ;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
     wget "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_TAR_FILE}"; \
@@ -304,9 +304,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN set -eux; \
     case $(uname -m) in \
-    x86_64) export NODEJS_TAR=node-v${NODEJS_VERSION}-linux-x64.tar.gz;; \
-    aarch64) export NODEJS_TAR=node-v${NODEJS_VERSION}-linux-arm64.tar.gz;; \
-    *) echo "unsupported architecture"; exit 1 ;; \
+        x86_64) export NODEJS_TAR=node-v${NODEJS_VERSION}-linux-x64.tar.gz;; \
+        aarch64) export NODEJS_TAR=node-v${NODEJS_VERSION}-linux-arm64.tar.gz;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     wget -O /tmp/${NODEJS_TAR} https://nodejs.org/download/release/v${NODEJS_VERSION}/${NODEJS_TAR}; \
     tar -xzf /tmp/${NODEJS_TAR} --strip-components=1 -C /usr/local
@@ -474,13 +474,13 @@ RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" doc
 RUN set -eux; \
     \
     case $(uname -m) in \
-    x86_64) \
-    export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-64bit.deb"; \
-    ;; \
-    aarch64) \
-    export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-ARM64.deb"; \
-    ;; \
-    *) echo "unsupported architecture"; exit 1 ;; \
+        x86_64) \
+            export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-64bit.deb"; \
+            ;; \
+        aarch64) \
+            export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-ARM64.deb"; \
+            ;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     wget -O "/tmp/${TRVIY_DEB_NAME}" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${TRVIY_DEB_NAME}"; \
     apt-get -y install --no-install-recommends -f "/tmp/${TRVIY_DEB_NAME}"; \
@@ -606,8 +606,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     wget \
     ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # 11.0.1 is the version support ubuntu:xenial & aarch64
 ENV LLVM_VERSION=11.0.1
@@ -617,9 +617,9 @@ ENV LLVM_DIRECTORY=/usr/lib/llvm
 RUN set -eux; \
     \
     case $(uname -m) in \
-    x86_64) export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
-    aarch64) export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
-    *) echo "unsupported architecture"; exit 1 ;; \
+        x86_64) export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
+        aarch64) export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
     wget ${LLVM_BASE_URL}/${LLVM_ARCHIVE}.tar.xz; \
@@ -637,10 +637,10 @@ RUN set -eux; \
     \
     apt-get update; \
     apt-get install -qqy --no-install-recommends \
-    ca-certificates git \
-    clang python ninja-build \
-    libclang-dev libc++-dev \
-    ; \
+        ca-certificates git \
+        clang python ninja-build \
+        libclang-dev libc++-dev \
+        ; \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
@@ -678,8 +678,8 @@ ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN wget ${BAZELISK_URL}
 RUN chmod +x ${BAZELISK_BIN}
@@ -752,8 +752,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     jq \
     tshark \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
@@ -764,8 +764,8 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
     containerd.io="${CONTAINERD_VERSION}" \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Run dockerd in CI
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
@@ -788,8 +788,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python \
     unzip \
     virtualenv \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
@@ -858,3 +858,4 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 WORKDIR /
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
+
