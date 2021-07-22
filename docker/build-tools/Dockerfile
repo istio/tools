@@ -858,4 +858,3 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 WORKDIR /
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
-
