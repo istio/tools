@@ -21,11 +21,39 @@
 # We pin versions of stuff we install. Modify the various XXX_VERSION variables within the individual build contexts
 # in order to control these versions.
 
+
+ARG GOLANG_IMAGE=golang:1.16.6
+
+FROM ubuntu:focal as hadolint_tools_builder
+
+ENV OUTDIR=/out
+ENV LANG=C.UTF-8
+ENV HADOLINT_VERSION=1.22.1
+
+RUN mkdir -p ${OUTDIR}/usr/bin
+WORKDIR /root
+
+# Update distro and install dependencies
+# hadolint ignore=DL3008
+COPY ./hadolint-build-src.sh /root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+       wget
+
+#Build from src for arm64(aarch64), but just pull binary directly for amd64(x86_64)
+RUN if [ X"$(uname -m)" = X"aarch64" ]; then \
+        chmod +x /root/hadolint-build-src.sh && \
+        /root/hadolint-build-src.sh && \
+        mv ~/.local/bin/hadolint ${OUTDIR}/usr/bin; \
+    else \
+        wget --no-check-certificate -O ${OUTDIR}/usr/bin/hadolint \
+          https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64; \
+    fi
+
 ################
 # Binary tools
 ################
 
-ARG GOLANG_IMAGE=golang:1.16.6
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -205,7 +233,7 @@ RUN tar -xJf "/tmp/shellcheck-${SHELLCHECK_VERSION}.linux.$(uname -m).tar.xz" -C
 RUN mv /tmp/shellcheck-${SHELLCHECK_VERSION}/shellcheck ${OUTDIR}/usr/bin
 
 # Hadolint linter
-ADD https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64 ${OUTDIR}/usr/bin/hadolint
+COPY --from=hadolint_tools_builder ${OUTDIR}/usr/bin/hadolint ${OUTDIR}/usr/bin/hadolint
 RUN chmod 555 ${OUTDIR}/usr/bin/hadolint
 
 # Hugo static site generator
