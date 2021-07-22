@@ -41,12 +41,13 @@ func (flagString *flagStrings) Set(value string) error {
 }
 
 func main() {
-	var oldBranch, newBranch, templatesDir, outDir, oldRelease, newRelease string
+	var oldBranch, newBranch, templatesDir, outDir, oldRelease, newRelease, pullRequest string
 	var validateOnly bool
 	var notesDirs flagStrings
 
 	flag.StringVar(&oldBranch, "oldBranch", "a", "branch to compare against")
 	flag.StringVar(&newBranch, "newBranch", "b", "branch containing new files")
+	flag.StringVar(&pullRequest, "pullRequest", "", "the pull request to check. Either this or oldBranch & newBranch are required.")
 	flag.Var(&notesDirs, "notes", "the directory containing release notes. Repeat for multiple notes directories")
 	flag.StringVar(&templatesDir, "templates", "./templates", "the directory containing release note templates")
 	flag.StringVar(&outDir, "outDir", ".", "the directory containing release notes")
@@ -61,7 +62,7 @@ func main() {
 
 		fmt.Printf("Looking for release notes in %s.\n", notesDir)
 		var err error
-		releaseNoteFiles, err = getNewFilesInBranch(oldBranch, newBranch, notesDir, "releasenotes/notes")
+		releaseNoteFiles, err = getNewFilesInBranch(oldBranch, newBranch, pullRequest, notesDir, "releasenotes/notes")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to list files: %s\n", err.Error())
 			os.Exit(1)
@@ -242,8 +243,13 @@ func populateTemplate(filepath string, filename string, releaseNotes []Note, old
 	return output, nil
 }
 
-func getNewFilesInBranch(oldBranch string, newBranch string, path string, notesSubpath string) ([]string, error) {
-	cmd := fmt.Sprintf("cd %s; git diff-tree -r --diff-filter=AMR --name-only --relative=%s '%s' '%s'", path, notesSubpath, oldBranch, newBranch)
+func getNewFilesInBranch(oldBranch string, newBranch string, pullRequest string, path string, notesSubpath string) ([]string, error) {
+	cmd := ""
+	if pullRequest != "" {
+		cmd = fmt.Sprintf("cd %s; gh pr view %s --json files | jq -r '.files[].path' | grep -E '^%s'", path, pullRequest, notesSubpath)
+	} else {
+		cmd = fmt.Sprintf("cd %s; git diff-tree -r --diff-filter=AMR --name-only --relative=%s '%s' '%s'", path, notesSubpath, oldBranch, newBranch)
+	}
 	fmt.Printf("Executing: %s\n", cmd)
 
 	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
