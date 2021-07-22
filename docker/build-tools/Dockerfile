@@ -158,23 +158,23 @@ RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/go-to-proto
 # Should be fixed by https://github.com/kubernetes/test-infra/issues/20421
 # hadolint ignore=DL3003
 RUN git clone https://github.com/kubernetes/test-infra --branch master --single-branch && \
-    cd test-infra && \
-    git checkout "${K8S_TEST_INFRA_VERSION}" && \
-    go install ./robots/pr-creator && \
-    go install ./prow/cmd/peribolos && \
-    go install ./pkg/benchmarkjunit && \
-    cd .. && rm -rf test-infra
+  cd test-infra && \
+  git checkout "${K8S_TEST_INFRA_VERSION}" && \
+  go install ./robots/pr-creator && \
+  go install ./prow/cmd/peribolos && \
+  go install ./pkg/benchmarkjunit && \
+  cd .. && rm -rf test-infra
 # hadolint ignore=DL3003
 RUN git clone --depth 1 https://github.com/istio/test-infra --branch master --single-branch && \
-    cd test-infra && \
-    go install ./toolbox/githubctl && \
-    go install ./boskos/cmd/mason_client && \
-    cd .. && rm -rf test-infra
+  cd test-infra && \
+  go install ./toolbox/githubctl && \
+  go install ./boskos/cmd/mason_client && \
+  cd .. && rm -rf test-infra
 # hadolint ignore=DL3003
 RUN git clone --depth 1 https://github.com/kubernetes-sigs/boskos --branch master --single-branch && \
-    cd boskos && \
-    go install ./cmd/boskosctl && \
-    cd .. && rm -rf boskos
+  cd boskos && \
+  go install ./cmd/boskosctl && \
+  cd .. && rm -rf boskos
 
 # Compress the Go tools and put them in their final location
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz /tmp
@@ -546,8 +546,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     wget \
     ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 ENV LLVM_VERSION=10.0.1
 ENV LLVM_TARGET=x86_64-linux-gnu-ubuntu-16.04
@@ -576,8 +576,8 @@ ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN wget ${BAZELISK_URL}
 RUN chmod +x ${BAZELISK_BIN}
@@ -645,8 +645,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     jq \
     tshark \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
@@ -656,8 +656,8 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
     containerd.io="${CONTAINERD_VERSION}" \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Run dockerd in CI
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
@@ -680,8 +680,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python \
     unzip \
     virtualenv \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
