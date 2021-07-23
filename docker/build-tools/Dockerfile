@@ -63,6 +63,7 @@ ENV SHELLCHECK_VERSION=v0.7.1
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.96
 ENV YQ_VERSION=3.3.0
+ENV KPT_VERSION=v0.39.3
 ENV BUF_VERSION=v0.36.0
 ENV GCLOUD_VERSION=349.0.0
 ENV KUBETEST2_VERSION=ea531e01c2406c5064aea55fa76a62dbae6da6a1
@@ -235,11 +236,13 @@ WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
 RUN make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
 
-# Install gcloud command line tool
+ADD https://github.com/GoogleContainerTools/kpt/releases/download/${KPT_VERSION}/kpt_linux_amd64 ${OUTDIR}/usr/bin/kpt
+RUN chmod 555 ${OUTDIR}/usr/bin/kpt
 
+# Install gcloud command line tool
 ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
 RUN tar -xzvf "/tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz" -C "${OUTDIR}/usr/local" && \
-    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta kpt --quiet && \
+    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta  --quiet && \
     rm -rf /usr/local/google-cloud-sdk/.install/.backup
 
 # Cleanup stuff we don't need in the final image
