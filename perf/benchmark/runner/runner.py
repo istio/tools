@@ -33,7 +33,7 @@ from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
 NAMESPACE = os.environ.get("NAMESPACE", "twopods-istio")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
-POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
+POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels', 'svc'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4"
 processes = []
 
@@ -52,8 +52,9 @@ def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
         raise Exception("no pods found with command [" + cmd + "]")
 
     i = items[0]
+    svc = "%s.%s.svc.cluster.local" % (i['metadata']['labels']['app'], i['metadata']['namespace'])
     return POD(i['metadata']['name'], i['metadata']['namespace'],
-               i['status']['podIP'], i['metadata']['labels'])
+               i['status']['podIP'], i['metadata']['labels'], svc)
 
 
 def run_command(command):
@@ -122,7 +123,8 @@ class Fortio:
             mesh="istio",
             cacert=None,
             jitter=False,
-            load_gen_type="fortio"):
+            load_gen_type="fortio",
+            grpc_xds=False):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
         self.headers = headers
         self.conn = conn
@@ -149,6 +151,7 @@ class Fortio:
         self.cacert = cacert
         self.jitter = jitter
         self.load_gen_type = load_gen_type
+        self.grpc_xds = grpc_xds
 
         if mesh == "linkerd":
             self.mesh = "linkerd"
@@ -165,6 +168,8 @@ class Fortio:
             basestr = "{protocol}://{svc}:{port}/echo?size={size}"
             if self.protocol_mode == "grpc":
                 basestr = "-payload-size {size} {svc}:{port}"
+                if self.grpc_xds:
+                    basestr = "-payload-size {size} xds:///{svc}:{port}"
             elif self.protocol_mode == "tcp":
                 basestr = "{protocol}://{svc}:{port}"
             return basestr.format(svc=svc, port=self.ports[self.protocol_mode][port_type], size=self.size, protocol=self.get_protocol_uri_fragment())
@@ -182,10 +187,10 @@ class Fortio:
         return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "port")
 
     def clientsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "direct_port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.svc, "direct_port")
 
     def bothsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.svc, "port")
 
     def ingress(self, load_gen_cmd):
         url = urlparse(self.run_ingress)
@@ -490,7 +495,8 @@ def run_perf_test(args):
             telemetry_mode=args.telemetry_mode,
             cacert=args.cacert,
             jitter=args.jitter,
-            load_gen_type=args.load_gen_type)
+            load_gen_type=args.load_gen_type,
+            grpc_xds=args.grpc_xds)
 
     if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
@@ -637,6 +643,10 @@ def get_parser():
         "--protocol_mode",
         help="http, tcp or grpc",
         default="http")
+    parser.add_argument(
+        "--grpc_xds",
+        help="Call gRPC server using the xds:/// scheme",
+        default=False)
     parser.add_argument(
         "--config_file",
         help="config yaml file",

@@ -1,3 +1,4 @@
+
 {{- define "rbac" }}
 {{- $ruleName := (randAlpha 16) | lower }}
 apiVersion: "rbac.istio.io/v1alpha1"
@@ -362,6 +363,9 @@ spec:
         {{- if $.Values.includeOutboundIPRanges }}
         traffic.sidecar.istio.io/includeOutboundIPRanges: {{ $.Values.includeOutboundIPRanges }}
         {{- end }}
+        {{- end }}
+        {{- if $.V.injectTemplate }}
+        inject.istio.io/templates: "{{ $.V.injectTemplate }}"
         {{- end }}
         sidecar.istio.io/inject: "{{ $.V.inject }}"
         linkerd.io/inject: "{{ $.V.injectL }}"

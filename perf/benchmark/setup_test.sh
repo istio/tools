@@ -33,6 +33,7 @@ RBAC_ENABLED="false"
 SERVER_REPLICA="${SERVER_REPLICA:-1}"
 CLIENT_REPLICA="${CLIENT_REPLICA:-1}"
 ISTIO_INJECT="${ISTIO_INJECT:-false}"
+ISTIO_CLIENT_INJECT_TEMPLATE="${ISTIO_CLIENT_INJECT_TEMPLATE:-}"
 LINKERD_INJECT="${LINKERD_INJECT:-disabled}"
 INTERCEPTION_MODE="${INTERCEPTION_MODE:-REDIRECT}"
 echo "linkerd inject is ${LINKERD_INJECT}"
@@ -60,11 +61,11 @@ function run_test() {
       --set client.replica="${CLIENT_REPLICA}" \
       --set server.inject="${ISTIO_INJECT}"  \
       --set client.inject="${ISTIO_INJECT}" \
+      --set client.injectTemplate="${ISTIO_CLIENT_INJECT_TEMPLATE}" \
       --set server.injectL="${LINKERD_INJECT}" \
       --set client.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
-      --set fortioImage="fortio/fortio:latest_release" \
           . > "${TMPDIR}/${NAMESPACE}.yaml"
   echo "Wrote file ${TMPDIR}/${NAMESPACE}.yaml"
 

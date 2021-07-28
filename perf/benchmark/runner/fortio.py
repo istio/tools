@@ -141,8 +141,11 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output="", 
 
     data = []
     for filename in os.listdir(temp_dir_path):
+        path = os.path.join(temp_dir_path, filename)
         print(filename)
-        with open(os.path.join(temp_dir_path, filename), 'r') as f:
+        if os.path.isdir(path):
+            continue
+        with open(path, 'r') as f:
             try:
                 data_dict = json.load(f, strict=False)
                 one_char = f.read(1)
