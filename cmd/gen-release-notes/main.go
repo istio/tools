@@ -264,9 +264,13 @@ type prView struct {
 }
 
 func getFilesFromGHPRView(path string, pullRequest string, notesSubpath string) ([]string, error) {
-	cmd := fmt.Sprintf("cd %s; gh pr view %s --json files", path, pullRequest)
-	fmt.Printf("Executing: %s\n", cmd)
-	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+	cmdStr := fmt.Sprintf("cd %s; gh pr view %s --json files", path, pullRequest)
+	fmt.Printf("Executing: %s\n", cmdStr)
+
+	cmd := exec.Command("bash", "-c", cmdStr)
+	cmd.Env = os.Environ()
+	out, err := cmd.CombinedOutput()
+	fmt.Printf("%s\n", out)
 	if err != nil {
 		return nil, fmt.Errorf("received error running GH: %s", err.Error())
 	}
