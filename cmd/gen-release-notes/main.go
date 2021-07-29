@@ -287,7 +287,7 @@ func getFilesFromGHPRView(path string, pullRequest string, notesSubpath string) 
 }
 
 func getNewFilesInBranch(oldBranch string, newBranch string, pullRequest string, path string, notesSubpath string) ([]string, error) {
-	//if there's a pull request, we can just get the changed files from GitHub. If not, we have to do it manually.
+	// if there's a pull request, we can just get the changed files from GitHub. If not, we have to do it manually.
 	if pullRequest != "" {
 		return getFilesFromGHPRView(path, pullRequest, notesSubpath)
 	}
