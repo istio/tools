@@ -55,6 +55,17 @@ func main() {
 	flag.StringVar(&newRelease, "newRelease", "x.y.z", "new release")
 	flag.Parse()
 
+	// Prow, at the time of writing this, does not use Git clone, meaning that there is no remote for the pull request. Generate a URL instead if we're using Prow.
+	RepoOwner := os.Getenv("REPO_OWNER")
+	RepoName := os.Getenv("REPO_NAME")
+	if RepoOwner != "" && RepoName != "" {
+		pullRequest = fmt.Sprintf("https://github.com/%s/%s/pull/%s", RepoOwner, RepoName, pullRequest)
+	}
+
+	if len(notesDirs) == 0 {
+		notesDirs = []string{"."}
+	}
+
 	var releaseNotes []Note
 	for _, notesDir := range notesDirs {
 		var releaseNoteFiles []string
