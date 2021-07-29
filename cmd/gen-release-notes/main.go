@@ -15,12 +15,14 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -61,8 +63,20 @@ func main() {
 		var releaseNoteFiles []string
 
 		fmt.Printf("Looking for release notes in %s.\n", notesDir)
+
+		releaseNotesDir := "releasenotes/notes"
+		if _, err := os.Stat(notesDir); os.IsNotExist(err) {
+			fmt.Printf("Could not find repository -- directory %s does not exist.", notesDir)
+			os.Exit(1)
+		}
+
+		if _, err := os.Stat(filepath.Join(notesDir, releaseNotesDir)); os.IsNotExist(err) {
+			fmt.Printf("could not find release notes directory -- %s does not exist", filepath.Join(notesDir, releaseNotesDir))
+			os.Exit(2)
+		}
+
 		var err error
-		releaseNoteFiles, err = getNewFilesInBranch(oldBranch, newBranch, pullRequest, notesDir, "releasenotes/notes")
+		releaseNoteFiles, err = getNewFilesInBranch(oldBranch, newBranch, pullRequest, notesDir, releaseNotesDir)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to list files: %s\n", err.Error())
 			os.Exit(1)
@@ -243,20 +257,48 @@ func populateTemplate(filepath string, filename string, releaseNotes []Note, old
 	return output, nil
 }
 
-func getNewFilesInBranch(oldBranch string, newBranch string, pullRequest string, path string, notesSubpath string) ([]string, error) {
-	cmd := ""
-	if pullRequest != "" {
-		cmd = fmt.Sprintf("cd %s; gh pr view %s --json files | jq -r '.files[].path' | grep -E '^%s'", path, pullRequest, notesSubpath)
-	} else {
-		cmd = fmt.Sprintf("cd %s; git diff-tree -r --diff-filter=AMR --name-only --relative=%s '%s' '%s'", path, notesSubpath, oldBranch, newBranch)
-	}
-	fmt.Printf("Executing: %s\n", cmd)
+type prView struct {
+	Files []struct {
+		Path string `json:"path"`
+	} `json:"files"`
+}
 
+func getFilesFromGHPRView(path string, pullRequest string, notesSubpath string) ([]string, error) {
+	cmd := fmt.Sprintf("cd %s; gh pr view %s --json files", path, pullRequest)
+	fmt.Printf("Executing: %s\n", cmd)
+	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("received error running GH: %s", err.Error())
+	}
+
+	var prResults prView
+	if err := json.Unmarshal(out, &prResults); err != nil {
+		return nil, fmt.Errorf("failed to parse GH results: %s", err.Error())
+	}
+
+	var results []string
+	for _, val := range prResults.Files {
+		if strings.Contains(val.Path, notesSubpath) {
+			results = append(results, val.Path)
+		}
+	}
+
+	return results, nil
+}
+
+func getNewFilesInBranch(oldBranch string, newBranch string, pullRequest string, path string, notesSubpath string) ([]string, error) {
+	// if there's a pull request, we can just get the changed files from GitHub. If not, we have to do it manually.
+	if pullRequest != "" {
+		return getFilesFromGHPRView(path, pullRequest, notesSubpath)
+	}
+
+	cmd := fmt.Sprintf("cd %s; git diff-tree -r --diff-filter=AMR --name-only --relative=%s '%s' '%s'", path, notesSubpath, oldBranch, newBranch)
+	fmt.Printf("Executing: %s\n", cmd)
 	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 	if err != nil {
 		return nil, err
 	}
-
 	outFiles := strings.Split(string(out), "\n")
+
 	return outFiles[:len(outFiles)-1], nil
 }
