@@ -48,10 +48,10 @@ function default_gke_version() {
 PROJECT_ID=${PROJECT_ID:?"project id is required"}
 
 set +u # Allow referencing unbound variable $CLUSTER
-if [[ -z ${CLUSTER} ]]; then
+if [[ -z ${CLUSTER_NAME} ]]; then
   CLUSTER_NAME=${1:?"cluster name is required"}
 else
-  CLUSTER_NAME=${CLUSTER}
+  CLUSTER_NAME=${CLUSTER_NAME}
 fi
 set -u
 
@@ -124,7 +124,7 @@ function gc() {
   SA=""
   # shellcheck disable=SC2236
   if [[ -n "${GCP_SA:-}" ]];then
-    SA=("--identity-namespace=${PROJECT_ID}.svc.id.goog" "--service-account=${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "--workload-metadata-from-node=EXPOSED")
+    SA=("--identity-provider=${PROJECT_ID}.svc.id.goog" "--service-account=${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "--workload-metadata-from-node=EXPOSED")
   fi
 
   # shellcheck disable=SC2048
