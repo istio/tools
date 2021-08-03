@@ -201,7 +201,7 @@ class Fortio:
         print('-------------- Running in {sidecar_mode} mode --------------'.format(sidecar_mode=sidecar_mode))
         if load_gen_type == "fortio":
             p = multiprocessing.Process(target=kubectl_exec,
-                                        args=[self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode)])
+                                        args=[self.client.name, sidecar_mode_func(load_gen_cmd, sidecar_mode), run_command, "uncaptured"])
             p.start()
             processes.append(p)
         elif load_gen_type == "nighthawk":
