@@ -242,7 +242,7 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kpt
 # Install gcloud command line tool
 ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz /tmp
 RUN tar -xzvf "/tmp/google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz" -C "${OUTDIR}/usr/local" && \
-    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta  --quiet && \
+    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install alpha beta --quiet && \
     rm -rf /usr/local/google-cloud-sdk/.install/.backup
 
 # Cleanup stuff we don't need in the final image
