@@ -121,6 +121,7 @@ Note:
  better to change one parameter at a time and fix other parameters
 - if you want to run with `--perf` flag to generate a flame graph, please make sure you have the permission to gather perf data, please refer to step 2 of this [README](https://github.com/istio/tools/tree/master/perf/benchmark/flame#setup-perf-tool)
 - to test your system's maximum qps before choosing the range of qps you want to measure by passing `--qps 0`
+
 For example:
 
 ### Example 1
