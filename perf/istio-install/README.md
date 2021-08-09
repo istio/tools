@@ -48,6 +48,10 @@ provides a few ways to specify which version to install:
 * `DNS_DOMAIN`: for example, `v104.qualistio.org`. This will use for TLS cert testing.
 * `GCS_URL`: for example, `gs://example/istio.tar.gz`. Same as `RELEASE_URL`, but will use `gsutil` to download.
 
+Additionally, installation values can be specified:
+
+* `IOPS`: used to specify file(s) for control plane install; defaults to `istioctl_profiles/long-running.yaml,istioctl_profiles/long-running-gateway.yaml`.
+
 Architecture will be automatically detected, but can be overrided. For example, `ARCH_SUFFIX=linux`.
 
 In addition to setting up the core Istio, the prometheus operator and gateways for the telemetry addons will be setup. Pass `SKIP_EXTRAS` to skip these.
@@ -55,5 +59,5 @@ In addition to setting up the core Istio, the prometheus operator and gateways f
 Arguments to the script will be passed to `istioctl during install`. For example, to install the latest version with the default config file:
 
 ```shell
-DNS_DOMAIN=v104.qualistio.org TAG=latest ./setup_istio.sh -f istioctl_profiles/default-overlay.yaml
+DNS_DOMAIN=v104.qualistio.org TAG=latest IOP=istioctl_profiles/custom-overlay.yaml ./setup_istio.sh
 ```

@@ -28,6 +28,8 @@ case "${OSTYPE}" in
   *) echo "unsupported: ${OSTYPE}" ;;
 esac
 
+IOPS="${IOPS:-istioctl_profiles/long-running.yaml,istioctl_profiles/long-running-gateway.yaml}"
+
 # We support many ways to reference the source to install from
 # This logic ultimately sets up the following variables:
 # * OUT_FILE: where the download will be stored. Note this is cached.
@@ -79,7 +81,9 @@ function download_release() {
 function install_istioctl() {
   release=${1:?release folder}
   shift
-  "${release}/bin/istioctl" install --skip-confirmation -d "${release}/manifests" "${@}"
+  for i in ${IOPS//,/ }; do
+    "${release}/bin/istioctl" install --skip-confirmation -d "${release}/manifests" -f "${i}" "${@}"
+  done
 }
 
 function install_extras() {
