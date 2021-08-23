@@ -162,12 +162,12 @@ class Fortio:
     def get_protocol_uri_fragment(self):
         return "https" if self.protocol_mode == "grpc" else self.protocol_mode
 
-    def compute_uri(self, svc, port_type):
+    def compute_uri(self, svc, port_type, baseline=False):
         if self.load_gen_type == "fortio":
             basestr = "{protocol}://{svc}:{port}/echo?size={size}"
             if self.protocol_mode == "grpc":
                 basestr = "-payload-size {size} {svc}:{port}"
-                if self.grpc_xds:
+                if self.grpc_xds and not baseline:
                     basestr = "-payload-size {size} xds:///{svc}:{port}"
             elif self.protocol_mode == "tcp":
                 basestr = "{protocol}://{svc}:{port}"
@@ -180,7 +180,7 @@ class Fortio:
 
     # Baseline is no sidecar mode
     def baseline(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "direct_port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "direct_port", baseline=True)
 
     def serversidecar(self, load_gen_cmd, sidecar_mode):
         return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "port")
@@ -321,7 +321,7 @@ class Fortio:
 
     def run(self, headers, conn, qps, size, duration):
         labels = self.generate_test_labels(conn, qps, size)
-
+        print("Generated test labels: {}".format(labels))
         grpc = ""
         if self.protocol_mode == "grpc":
             grpc = "-grpc -ping"
