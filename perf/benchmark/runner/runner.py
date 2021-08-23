@@ -77,7 +77,7 @@ def kubectl_cp(from_file, to_file, container):
     run_command_sync(cmd)
 
 
-def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
+def kubectl_exec(pod, remote_cmd, runfn=run_command, container="captured"):
     c = ""
     if container is not None:
         c = "-c " + container
@@ -458,6 +458,7 @@ def fortio_from_config_file(args):
         fortio.protocol_mode = job_config.get('protocol_mode', 'http')
         fortio.extra_labels = job_config.get('extra_labels')
         fortio.jitter = job_config.get("jitter", False)
+        fortio.grpc_xds = job_config.get('grpc_xds', False)
 
         return fortio
 
