@@ -25,6 +25,7 @@ cd "${WD}"
 
 NAMESPACE="${NAMESPACE:-twopods}"
 LOAD_GEN_TYPE="${LOAD_GEN_TYPE:-fortio}"
+FORTIO_IMAGE="${FORTIO_IMAGE:-fortio/fortio:latest_release}"
 DNS_DOMAIN=${DNS_DOMAIN:?"DNS_DOMAIN should be like v104.qualistio.org or local"}
 DNS_POD="${DNS_POD:-kube-dns}"
 DNS_SVC="${DNS_SVC:-kube-dns}"
@@ -33,7 +34,8 @@ RBAC_ENABLED="false"
 SERVER_REPLICA="${SERVER_REPLICA:-1}"
 CLIENT_REPLICA="${CLIENT_REPLICA:-1}"
 ISTIO_INJECT="${ISTIO_INJECT:-false}"
-ISTIO_CLIENT_INJECT_TEMPLATE="${ISTIO_CLIENT_INJECT_TEMPLATE:-}"
+INJECT_TEMPLATE="${INJECT_TEMPLATE:-}"
+GRPC_XDS="${GRPC_XDS:-}"
 LINKERD_INJECT="${LINKERD_INJECT:-disabled}"
 INTERCEPTION_MODE="${INTERCEPTION_MODE:-REDIRECT}"
 echo "linkerd inject is ${LINKERD_INJECT}"
@@ -55,17 +57,19 @@ function run_test() {
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set namespace="${NAMESPACE}" \
       --set loadGenType="${LOAD_GEN_TYPE}" \
+      --set fortioImage="${FORTIO_IMAGE}" \
       --set excludeOutboundIPRanges=$(pod_ip_range)\
       --set includeOutboundIPRanges=$(svc_ip_range) \
       --set server.replica="${SERVER_REPLICA}" \
       --set client.replica="${CLIENT_REPLICA}" \
       --set server.inject="${ISTIO_INJECT}"  \
       --set client.inject="${ISTIO_INJECT}" \
-      --set client.injectTemplate="${ISTIO_CLIENT_INJECT_TEMPLATE}" \
+      --set injectTemplate="${INJECT_TEMPLATE}" \
       --set server.injectL="${LINKERD_INJECT}" \
       --set client.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
       --set interceptionMode="${INTERCEPTION_MODE}" \
+      --set grpcXDS="${GRPC_XDS}" \
           . > "${TMPDIR}/${NAMESPACE}.yaml"
   echo "Wrote file ${TMPDIR}/${NAMESPACE}.yaml"
 

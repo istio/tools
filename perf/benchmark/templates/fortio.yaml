@@ -364,8 +364,12 @@ spec:
         traffic.sidecar.istio.io/includeOutboundIPRanges: {{ $.Values.includeOutboundIPRanges }}
         {{- end }}
         {{- end }}
-        {{- if $.V.injectTemplate }}
-        inject.istio.io/templates: "{{ $.V.injectTemplate }}"
+        {{- if $.Values.grpcXDS }}
+        # TODO we can get rid of this in a later version
+        proxy.istio.io/config: '{"holdApplicationUntilProxyStarts": true}'
+        {{- end}}
+        {{- if $.Values.injectTemplate }}
+        inject.istio.io/templates: "{{ $.Values.injectTemplate }}"
         {{- end }}
         sidecar.istio.io/inject: "{{ $.V.inject }}"
         linkerd.io/inject: "{{ $.V.injectL }}"
@@ -522,6 +526,9 @@ spec:
         image: {{ $.Values.fortioImage }}
         args:
         - server
+        {{- if $.Values.grpcXDS }}
+        - -grpc-xds
+        {{- end }}
         - -http-port
         - "8077"
         - -grpc-port

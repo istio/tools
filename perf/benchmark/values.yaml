@@ -13,7 +13,10 @@ appresources1:
     cpu: "1500m"
     memory: "1000Mi"
 
-fortioImage: slandow/fortio:latest
+injectTemplate:
+grpcXDS:
+
+fortioImage: fortio/fortio:latest_release
 curlImage: cfmanteiga/alpine-bash-curl-jq:latest
 nighthawkImage: envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4
 domain: local
@@ -38,7 +41,6 @@ client: # client overrides
   #tlsmode: DISABLE
   tlsmode: ISTIO_MUTUAL
   expose: true
-  injectTemplate:
   inject: "false"
   injectL: "disabled" # "enabled" or "disabled"
   replica: 1    # default value
