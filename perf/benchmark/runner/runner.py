@@ -33,7 +33,7 @@ from fortio import METRICS_START_SKIP_DURATION, METRICS_END_SKIP_DURATION
 
 NAMESPACE = os.environ.get("NAMESPACE", "twopods-istio")
 NIGHTHAWK_GRPC_SERVICE_PORT_FORWARD = 9999
-POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels', 'svc'])
+POD = collections.namedtuple('Pod', ['name', 'namespace', 'ip', 'labels'])
 NIGHTHAWK_DOCKER_IMAGE = "envoyproxy/nighthawk-dev:59683b759eb8f8bd8cce282795c08f9e2b3313d4"
 processes = []
 
@@ -52,9 +52,8 @@ def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
         raise Exception("no pods found with command [" + cmd + "]")
 
     i = items[0]
-    svc = "%s.%s.svc.cluster.local" % (i['metadata']['labels']['app'], i['metadata']['namespace'])
     return POD(i['metadata']['name'], i['metadata']['namespace'],
-               i['status']['podIP'], i['metadata']['labels'], svc)
+               i['status']['podIP'], i['metadata']['labels'])
 
 
 def run_command(command):
@@ -187,10 +186,10 @@ class Fortio:
         return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "port")
 
     def clientsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.svc, "direct_port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "direct_port")
 
     def bothsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.svc, "port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "port")
 
     def ingress(self, load_gen_cmd):
         url = urlparse(self.run_ingress)
