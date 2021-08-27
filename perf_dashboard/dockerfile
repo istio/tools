@@ -17,7 +17,7 @@ RUN apt-get update \
 ENV PYTHONUNBUFFERED 1
 
 # Set environment variable for current release
-ENV CUR_RELEASE=release-1.10
+ENV CUR_RELEASE=release-1.11
 # Create root directory for our project in the container
 RUN mkdir /perf_dashboard
 
