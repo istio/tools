@@ -36,10 +36,10 @@ if [[ "${JOB_TYPE:-}" == "postsubmit" ]]; then
   SHA=$(git rev-parse ${BRANCH})
 fi
 
-ADDITIONAL_BUILD_ARGS=
+ADDITIONAL_BUILD_ARGS=${ADDITIONAL_BUILD_ARGS:-}
 # Allow overriding of the GOLANG_IMAGE by having it set in the environment
 if [[ -n "${GOLANG_IMAGE:-}" ]]; then
-  ADDITIONAL_BUILD_ARGS="--build-arg GOLANG_IMAGE=${GOLANG_IMAGE}"
+  ADDITIONAL_BUILD_ARGS+=" --build-arg GOLANG_IMAGE=${GOLANG_IMAGE}"
 fi
 
 # shellcheck disable=SC2086
