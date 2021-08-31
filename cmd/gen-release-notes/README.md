@@ -17,7 +17,7 @@ git checkout release-1.7
 popd
 
 go build
-./gen-release-notes --notes ../../../istio/releasenotes/notes --oldBranch 1.7.0 --newBranch release-1.7
+./gen-release-notes --notes ../../../istio --oldBranch 1.7.0 --newBranch release-1.7
 ```
 
 ### Arguments
