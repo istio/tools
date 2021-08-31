@@ -36,6 +36,8 @@ if [[ "${JOB_TYPE:-}" == "postsubmit" ]]; then
   SHA=$(git rev-parse ${BRANCH})
 fi
 
+# To generate Docker images on a Mac, setting ADDITIONAL_BUILD_ARGS=--load will result
+# in them showing up in `docker images` after running the script.
 ADDITIONAL_BUILD_ARGS=${ADDITIONAL_BUILD_ARGS:-}
 # Allow overriding of the GOLANG_IMAGE by having it set in the environment
 if [[ -n "${GOLANG_IMAGE:-}" ]]; then
@@ -43,12 +45,12 @@ if [[ -n "${GOLANG_IMAGE:-}" ]]; then
 fi
 
 # shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER}  --target build_tools ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
+${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
 # shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER} ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
+${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_env_proxy ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
 if [[ "$(uname -m)" == "x86_64" ]]; then
 # shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER}  --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-centos:${VERSION}" -t "${HUB}/build-tools-centos:${BRANCH}-latest" -f Dockerfile.centos .
+${CONTAINER_CLI} ${CONTAINER_BUILDER} ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-centos:${VERSION}" -t "${HUB}/build-tools-centos:${BRANCH}-latest" -f Dockerfile.centos .
 fi
 
 if [[ -z "${DRY_RUN:-}" ]]; then

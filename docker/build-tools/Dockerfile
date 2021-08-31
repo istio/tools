@@ -695,7 +695,7 @@ ENV UBUNTU_RELEASE_CODE_NAME=xenial
 FROM ubuntu:bionic AS build_env_proxy_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=bionic
 # hadolint ignore=DL3006
-FROM build_env_proxy_${TARGETARCH}
+FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
 
 # Version from build arguments
 ARG VERSION
