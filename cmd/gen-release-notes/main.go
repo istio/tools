@@ -95,7 +95,7 @@ func main() {
 		fmt.Printf("Found %d files.\n\n", len(releaseNoteFiles))
 
 		fmt.Printf("Parsing release notes\n")
-		releaseNotesEntries, err := parseReleaseNotesFiles(notesDir, releaseNoteFiles)
+		releaseNotesEntries, err := parseReleaseNotesFiles(filepath.Join(notesDir, releaseNotesDir), releaseNoteFiles)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Unable to read release notes: %s\n", err.Error())
 			os.Exit(1)
