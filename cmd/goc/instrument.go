@@ -23,8 +23,7 @@ import (
 	"path"
 	"strings"
 
-	// nolint: staticcheck
-	"golang.org/x/tools/go/loader"
+	"golang.org/x/tools/go/packages"
 )
 
 // instrumenter is used to create instrumented version of the code.
@@ -48,25 +47,15 @@ func (i *instrumenter) instrument(g *gocmd) (*gocmd, error) {
 
 	i.initialPaths = g.buildPackagePaths()
 
-	var conf loader.Config
-	conf.Cwd = g.wd
-	_, err := conf.FromArgs(i.initialPaths, false)
+	cfg := packages.Config{Mode: packages.NeedFiles | packages.NeedSyntax}
+	pkgs, err := packages.Load(&cfg, i.initialPaths...)
 	if err != nil {
 		return nil, err
 	}
 
-	prog, err := conf.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if there are any compilation errors before proceeding further
-	for _, i := range prog.InitialPackages() {
-		if !i.TransitivelyErrorFree {
-			// let the downstream compilation path deal with this problem.
-			fmt.Printf("goc: There seems to be an error in compilation. Skipping instrumentation...\n")
-			return g, nil
-		}
+	if packages.PrintErrors(pkgs) > 0 {
+		fmt.Printf("goc: There seems to be an error in compilation. Skipping instrumentation...\n")
+		return g, nil
 	}
 
 	// Calculate new gopath
@@ -91,7 +80,7 @@ func (i *instrumenter) instrument(g *gocmd) (*gocmd, error) {
 		return nil, err
 	}
 
-	for _, info := range prog.AllPackages {
+	for _, info := range pkgs {
 		if !isInInstrumentationScope(info) {
 			continue
 		}
@@ -114,15 +103,15 @@ func (i *instrumenter) instrument(g *gocmd) (*gocmd, error) {
 	return g, nil
 }
 
-func isInInstrumentationScope(info *loader.PackageInfo) bool {
+func isInInstrumentationScope(info *packages.Package) bool {
 	// TODO: This needs to be repo agnostic
 	// TODO: A better way to calculate scope. (Environment variables?)
-	return strings.HasPrefix(info.Pkg.Path(), "istio.io") && !strings.Contains(info.Pkg.Path(), "istio.io/istio/vendor")
+	return strings.HasPrefix(info.PkgPath, "istio.io")
 }
 
-func (i *instrumenter) instrumentPackage(info *loader.PackageInfo) error {
-	oldPkgPath := path.Join(goPath(), "src", info.Pkg.Path())
-	newPkgPath := path.Join(i.goPath, "src", info.Pkg.Path())
+func (i *instrumenter) instrumentPackage(info *packages.Package) error {
+	oldPkgPath := path.Join(goPath(), "src", info.PkgPath)
+	newPkgPath := path.Join(i.goPath, "src", info.PkgPath)
 
 	files, err := ioutil.ReadDir(oldPkgPath)
 	if err != nil {
@@ -150,7 +139,7 @@ func (i *instrumenter) instrumentPackage(info *loader.PackageInfo) error {
 			return err
 		}
 
-		context := path.Join(info.Pkg.Path(), f.Name())
+		context := path.Join(info.PkgPath, f.Name())
 		contextVars[context] = varName
 	}
 	if err := generateRegistrationFile(info, newPkgPath, contextVars); err != nil {
@@ -160,10 +149,10 @@ func (i *instrumenter) instrumentPackage(info *loader.PackageInfo) error {
 	return nil
 }
 
-func generateRegistrationFile(info *loader.PackageInfo, pkgPath string, contextVars map[string]string) error {
+func generateRegistrationFile(info *packages.Package, pkgPath string, contextVars map[string]string) error {
 	regFile := path.Join(pkgPath, "codecovreg.go")
 
-	rendered, err := generateRegistrationCode(info.Pkg.Name(), contextVars)
+	rendered, err := generateRegistrationCode(info.Name, contextVars)
 	if err != nil {
 		return err
 	}
