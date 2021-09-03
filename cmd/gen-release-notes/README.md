@@ -12,7 +12,7 @@ single release notes file.
 If both Istio and tools are cloned in the same directory and you want to generate release notes for changes in the `release-1.7` branch since the `1.7.0` tag was created, you could run the following from the `tools/cmd/gen-release-notes` directory:
 
 ```bash
-pushd ../../../istio
+pushd ../../../istio/releasenotes/notes
 git checkout release-1.7
 popd
 
