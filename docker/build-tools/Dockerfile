@@ -42,7 +42,7 @@ ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOGO_PROTOBUF_VERSION=v1.3.2
 ENV GOIMPORTS_VERSION=v0.1.0
 ENV BENCHSTAT_VERSION=9c9101da8316
-ENV GH_VERSION=1.12.1
+ENV GH_VERSION=2.0.0
 ENV GOLANG_PROTOBUF_VERSION=v1.3.5
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v1.38.0
@@ -432,7 +432,7 @@ ENV TRIVY_VERSION=0.18.3
 
 ENV OUTDIR=/out
 
-# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
+# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7, less
 # required for general build: make, wget, curl, ssh, rpm
 # required for ruby: libcurl4-openssl-dev
 # required for python: python3, pkg-config
@@ -451,6 +451,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libltdl7 \
     libc-dev \
     libcurl4-openssl-dev \
+    less \
     make \
     pkg-config \
     python3 \
