@@ -30,7 +30,7 @@ VERSION="${BRANCH}-${DATE}"
 SHA="${BRANCH}"
 
 # The docker image runs `go get istio.io/tools@${SHA}`
-# In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull an old version
+# In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
 # In presubmit, this SHA does not exist, so we should just pull from the head of the branch (eg master)
 if [[ "${JOB_TYPE:-}" == "postsubmit" ]]; then
   SHA=$(git rev-parse ${BRANCH})
