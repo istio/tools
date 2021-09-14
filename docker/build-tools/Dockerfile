@@ -273,7 +273,8 @@ RUN set -eux; \
     rm -rf /usr/local/google-cloud-sdk/.install/.backup
 
 # Install cosign (for signing build artifacts) and verify signature
-RUN ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cp gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64 /tmp/cosign \
+RUN set -euxo pipefail; \
+    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cp gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64 /tmp/cosign \
     && ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cat gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64.sig | base64 -d > /tmp/cosign.sig \
     && curl -sL https://raw.githubusercontent.com/sigstore/cosign/main/release/release-cosign.pub > /tmp/cosign-pubkey \
     && openssl dgst -sha256 -verify /tmp/cosign-pubkey -signature /tmp/cosign.sig /tmp/cosign \
