@@ -68,7 +68,7 @@ ENV UPX_VERSION=3.96
 ENV YQ_VERSION=3.3.0
 ENV KPT_VERSION=v0.39.3
 ENV BUF_VERSION=v0.43.2
-ENV GCLOUD_VERSION=355.0.0
+ENV GCLOUD_VERSION=356.0.0
 ENV KUBETEST2_VERSION=ea531e01c2406c5064aea55fa76a62dbae6da6a1
 ENV BOSKOSCTL_VERSION=c6d730e323f06da1b56dfa14bdab6d7d5dc22e2a
 
@@ -93,6 +93,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
     unzip \
     xz-utils
+
+RUN curl https://repo.maven.apache.org
 
 # Install protoc
 RUN set -eux; \
