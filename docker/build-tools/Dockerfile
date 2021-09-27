@@ -71,7 +71,7 @@ ENV BUF_VERSION=v0.43.2
 ENV GCLOUD_VERSION=355.0.0
 ENV KUBETEST2_VERSION=ea531e01c2406c5064aea55fa76a62dbae6da6a1
 ENV BOSKOSCTL_VERSION=c6d730e323f06da1b56dfa14bdab6d7d5dc22e2a
-ENV COSIGN_VERSION=v1.1.0
+ENV COSIGN_VERSION=v1.2.1
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -220,6 +220,7 @@ RUN set -eux; \
     \
     wget -O /tmp/${HUGO_TAR} https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_TAR}; \
     tar -xzvf /tmp/${HUGO_TAR} -C /tmp; \
+
     mv /tmp/hugo ${OUTDIR}/usr/bin
 
 # Helm version 3
