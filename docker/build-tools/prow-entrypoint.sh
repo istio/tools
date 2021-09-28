@@ -16,6 +16,9 @@
 
 set -x
 
+# Workaround https://github.com/kubernetes/test-infra/issues/23741. Should be removed once its fixed upstream
+iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+
 # Output a message, with a timestamp matching istio log format
 function log() {
   echo -e "$(date -u '+%Y-%m-%dT%H:%M:%S.%NZ')\t$*"
