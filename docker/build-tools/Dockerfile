@@ -71,6 +71,7 @@ ENV BUF_VERSION=v0.43.2
 ENV GCLOUD_VERSION=355.0.0
 ENV KUBETEST2_VERSION=ea531e01c2406c5064aea55fa76a62dbae6da6a1
 ENV BOSKOSCTL_VERSION=c6d730e323f06da1b56dfa14bdab6d7d5dc22e2a
+ENV COSIGN_VERSION=v1.2.1
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -219,6 +220,7 @@ RUN set -eux; \
     \
     wget -O /tmp/${HUGO_TAR} https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_TAR}; \
     tar -xzvf /tmp/${HUGO_TAR} -C /tmp; \
+
     mv /tmp/hugo ${OUTDIR}/usr/bin
 
 # Helm version 3
@@ -270,6 +272,16 @@ RUN set -eux; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta --quiet; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install alpha --quiet; \
     rm -rf /usr/local/google-cloud-sdk/.install/.backup
+
+# Install cosign (for signing build artifacts) and verify signature
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN set -eux; \
+    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cp gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64 /tmp/cosign \
+    && ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cat gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64.sig | base64 -d > /tmp/cosign.sig \
+    && wget -O /tmp/cosign-pubkey https://raw.githubusercontent.com/sigstore/cosign/main/release/release-cosign.pub \
+    && openssl dgst -sha256 -verify /tmp/cosign-pubkey -signature /tmp/cosign.sig /tmp/cosign \
+    && chmod +x /tmp/cosign \
+    && mv /tmp/cosign ${OUTDIR}/usr/bin/ || exit 1
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
