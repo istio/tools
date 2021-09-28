@@ -38,6 +38,8 @@ containers:
 	@cd docker/build-tools && ./build-and-push.sh
 
 containers-test:
+	# Workaround https://github.com/kubernetes/test-infra/issues/23741. Should be removed once its fixed upstream
+	@iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 	@cd docker/build-tools && DRY_RUN=true ./build-and-push.sh
 
 include common/Makefile.common.mk
