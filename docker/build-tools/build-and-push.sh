@@ -16,9 +16,6 @@
 
 set -eux
 
-# Workaround https://github.com/kubernetes/test-infra/issues/23741. Should be removed once its fixed upstream
-iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
-
 # Enable docker buildx
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
