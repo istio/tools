@@ -106,7 +106,7 @@ RUN set -eux; \
     wget -O "/tmp/${PROTOC_ZIP}" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"; \
     unzip "/tmp/${PROTOC_ZIP}"; \
     mv /tmp/bin/protoc ${OUTDIR}/usr/bin; \
-    chmod +x {OUTDIR}/usr/bin/protoc
+    chmod +x ${OUTDIR}/usr/bin/protoc
 
 # Install gh
 ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.deb /tmp/
