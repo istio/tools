@@ -43,7 +43,7 @@ ENV GOGO_PROTOBUF_VERSION=v1.3.2
 ENV GOIMPORTS_VERSION=v0.1.0
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV GH_VERSION=2.0.0
-ENV GOLANG_PROTOBUF_VERSION=v1.3.5
+ENV GOLANG_PROTOBUF_VERSION=v1.27.1
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v1.38.0
 ENV HADOLINT_VERSION=v1.22.1
@@ -59,7 +59,7 @@ ENV KUBECTL_VERSION=1.20.4
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.6
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.6
 ENV PROTOC_GEN_VALIDATE_VERSION=v0.6.1
-ENV PROTOC_VERSION=3.9.2
+ENV PROTOC_VERSION=3.18.0
 ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=v1.10.0
 ENV SHELLCHECK_VERSION=v0.7.1
@@ -106,7 +106,8 @@ RUN set -eux; \
     \
     wget -O "/tmp/${PROTOC_ZIP}" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"; \
     unzip "/tmp/${PROTOC_ZIP}"; \
-    mv /tmp/bin/protoc ${OUTDIR}/usr/bin
+    mv /tmp/bin/protoc ${OUTDIR}/usr/bin; \
+    chmod +x ${OUTDIR}/usr/bin/protoc
 
 # Install gh
 ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.deb /tmp/
@@ -114,7 +115,7 @@ RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_${TARGETARCH}.deb
 RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
 # Build and install a bunch of Go tools
-RUN go install github.com/golang/protobuf/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
 RUN go install github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
 RUN go install github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
 RUN go install github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
