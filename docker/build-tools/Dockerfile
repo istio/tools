@@ -105,7 +105,7 @@ RUN set -eux; \
     \
     wget -O "/tmp/${PROTOC_ZIP}" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"; \
     unzip "/tmp/${PROTOC_ZIP}"; \
-    mv /tmp/bin/protoc ${OUTDIR}/usr/bin \
+    mv /tmp/bin/protoc ${OUTDIR}/usr/bin; \
     chmod +x {OUTDIR}/usr/bin/protoc
 
 # Install gh
