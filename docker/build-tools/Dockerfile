@@ -624,8 +624,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# 11.0.1 is the version support ubuntu:xenial & aarch64
-ENV LLVM_VERSION=11.0.1
+# 12.0.1 is the version support ubuntu:xenial & aarch64
+ENV LLVM_VERSION=12.0.1
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
