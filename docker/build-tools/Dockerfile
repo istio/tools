@@ -624,21 +624,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# 11.0.1 is the version support ubuntu:xenial & aarch64
-ENV LLVM_VERSION=11.0.1
+# 12.0.1 is the version support ubuntu:xenial & aarch64
+ENV LLVM_VERSION=12.0.1
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
 RUN set -eux; \
     \
     case $(uname -m) in \
-        x86_64) export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
-        aarch64) export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
+        x86_64) \
+               export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu- \
+               export LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
+        aarch64)  \
+               export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu \
+               export LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
-    wget ${LLVM_BASE_URL}/${LLVM_ARCHIVE}.tar.xz; \
-    tar -xJf ${LLVM_ARCHIVE}.tar.xz -C /tmp; \
+    wget ${LLVM_BASE_URL}/${LLVM_ARTIFACT}.tar.xz; \
+    tar -xJf ${LLVM_ARTIFACT}.tar.xz -C /tmp; \
     mkdir -p ${LLVM_DIRECTORY}; \
     mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
 
