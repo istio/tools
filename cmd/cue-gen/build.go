@@ -318,6 +318,9 @@ func findTypePrefix(filename string) string {
 	for _, d := range protoElems(filename) {
 		switch x := d.(type) {
 		case *proto.Package:
+			if strings.LastIndex(x.Name, ".") == -1 {
+				return x.Name
+			}
 			// as an Istio api naming convention, we strip out the last element.
 			return x.Name[:strings.LastIndex(x.Name, ".")]
 		}
