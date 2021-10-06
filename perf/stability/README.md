@@ -16,11 +16,11 @@ There is a webhook pod deployed which handles the alertmanager alerts and notifi
 1. For the pod to write monitor status to the spanner tables, you have to
     1. create the cluster with full access to Google Cloud API or configure the cluster with Workload Identity
     1. create the spanner tables first in your own project or reuse the existing one in istio-testing
-1. Optionally, corresponding alertmanager notification can be pushed to slack channel, checkout the example config for [slack webhook](https://github.com/istio/tools/blob/master/perf/stability/alertmanager/values.yaml#L21). Suspicious logs would be scanned and recorded in the istio-logs-checker Cronjob.
+1. Optionally, corresponding alertmanager notification can be pushed to slack channel, checkout the example config for [slack webhook](./alertmanager/values.yaml#L21). Suspicious logs would be scanned and recorded in the istio-logs-checker Cronjob.
 
 ### Run the script
 
-If you want to run against a public release(stable or dev), specify the target release TAG/VERSION/RELEASE_URL and you can pass extra arguments to istioctl install, check more details about accepted argument at [install_readme](https://github.com/istio/tools/tree/master/perf/istio-install#setup-istio). You can specify the namespace number of the servicegraph workloads by setting NAMESPACE_NUM var. Set the DNS_DOMAIN so that prometheus/grafana can be exposed and accessed.
+If you want to run against a public release(stable or dev), specify the target release TAG/VERSION/RELEASE_URL and you can pass extra arguments to istioctl install, check more details about accepted argument at [install_readme] (../istio-install#setup-istio). You can specify the namespace number of the servicegraph workloads by setting NAMESPACE_NUM var. Set the DNS_DOMAIN so that prometheus/grafana can be exposed and accessed.
 
 For example
 
@@ -49,12 +49,12 @@ Or if you want to skip Istio setup completely, just deploy the workloads and ale
 `VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh`
 
 Note:
-1. It is likely the script would fail in between because of transient issues such as node rescaling as more workloads being deployed. Just rerun the script again accordingly when that happens, for example it is likely that the scaling happen at the stage of deploying workload, you can just rerun from the failing namespace like:
+It is likely the script would fail in between because of transient issues such as node rescaling as more workloads being deployed. Just rerun the script again accordingly when that happens, for example it is likely that the scaling happen at the stage of deploying workload, you can just rerun from the failing namespace like:
 `VERSION=1.6.5 NAMESPACE_NUM=15 SKIP_ISTIO_SETUP=true ./long_running.sh --set hub=gcr.io/istio-prerelease-testing --set tag=1.6.5`
 
 ### Monitor List
 
-The monitors are configured via PrometheusRule CR managed by prometheus operator. Check the [list of provided monitors](https://github.com/istio/tools/blob/master/perf/stability/alertmanager/prometheusrule.yaml) and update correspondingly based on your requirements.
+The monitors are configured via PrometheusRule CR managed by prometheus operator. Check the [list of provided monitors](./alertmanager/prometheusrule.yaml) and update correspondingly based on your requirements.
 
 ### Dashboard
 
@@ -64,7 +64,7 @@ The monitors are configured via PrometheusRule CR managed by prometheus operator
 
 For release managers, to reuse the existing spanner instance and publish the result to [eng.istio.io](http://eng.istio.io/releasequal), run the test on a new cluster under istio-testing GCP project and make sure the PROJECT_ID is set to istio-testing
 
-The related params of spanner table are defined in env variables of the [webhook deployment]((./alertmanager/templates/alertmanager-webhook.yaml))
+The related params of spanner table are defined in env variables of the [webhook deployment](./alertmanager/templates/alertmanager-webhook.yaml)
 
 ### Checking Result
 
@@ -84,13 +84,15 @@ Normally the test would be running for at least 48h and here are the steps that 
 
 ### Upgrade
 
-There is an optional cronjob deployed to do a canary upgrade to the latest dev build of specific branch, to disable that just comment out [canary_upgrader_job](https://github.com/istio/tools/blob/master/perf/stability/long_running.sh#L55-L57)
+There is an optional cronjob deployed to do a canary upgrade to the latest dev build of specific branch, to enable that just
+set environment variable `CANARY_UPGRADE_MODE` to `true` before running [long_running.sh](./long_running.sh)
 
 ## Setup Tests
 
 To run the tests, run `make stability`. To delete them, run `make clean-stability`.
 
 You can also set env variables:
+
 * `DRY_RUN` to just generate the yaml files without applying
 
 To run only some tests, run `make TEST`. For example, `make mysql`.
