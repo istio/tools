@@ -22,7 +22,7 @@ spec:
             summary: 'Istio Metrics missing'
             description: '[Critical]: Check prometheus deployment or whether the prometheus filters are applied correctly'
           expr: >
-            absent(istio_request_total)==1 or absent(istio_request_duration_milliseconds_bucket)==1
+            absent(istio_requests_total)==1 or absent(istio_request_duration_milliseconds_bucket)==1
           for: 5m
     - name: ./workload.rules
       rules:
