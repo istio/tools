@@ -98,6 +98,7 @@ dt=$(date +'%Y%m%d')
 export OUTPUT_DIR="${dt}_${LOAD_GEN_TYPE}_${GIT_BRANCH}_${INSTALL_VERSION}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
+PROM_POD=""
 
 # Step 6: setup fortio and prometheus
 function setup_fortio_and_prometheus() {
@@ -141,6 +142,8 @@ function exit_handling() {
   kubectl --namespace "${NAMESPACE}" cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
   gsutil -q cp -r /tmp/rawdata "gs://${GCS_BUCKET}/${OUTPUT_DIR}/rawdata"
   # output information for debugging
+  kubectl describe pods "${PROM_POD}" -n "${PROMETHEUS_NAMESPACE}" || true
+  kubectl logs "${PROM_POD}" -n "${PROMETHEUS_NAMESPACE}" -c prometheus || true
   kubectl logs -n "${NAMESPACE}" "${FORTIO_CLIENT_POD}" -c captured || true
   kubectl top pods --containers -n "${NAMESPACE}" || true
   kubectl describe pods "${FORTIO_CLIENT_POD}" -n "${NAMESPACE}" || true
@@ -271,8 +274,8 @@ for dir in "${CONFIG_DIR}"/*; do
     echo "${PODs}"
 
     # Check pods in istio-prometheus namespace
-    PROM="$(kubectl get pods -n istio-prometheus -o=name)"
-    echo "${PROM}"
+    PROM_POD="$(kubectl get pods -n istio-prometheus -o=name)"
+    echo "${PROM_POD}"
 
     # Run test and collect data
     if [[ -e "./cpu_mem.yaml" ]]; then

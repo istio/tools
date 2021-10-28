@@ -27,7 +27,7 @@ spec:
     matchLabels:
       role: prometheus-example-rules
       prometheus: prometheus
-  image: "docker.io/prom/prometheus:v2.22.0"
+  image: quay.io/prometheus/prometheus:v2.30.3
   version: v2.22.0
   retention: 72h
   scrapeInterval: 15s
