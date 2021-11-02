@@ -93,7 +93,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 \
     software-properties-common \
     unzip \
-    xz-utils
+    xz-utils \
+    && apt-get upgrade -y
 
 # Install protoc
 RUN set -eux; \
