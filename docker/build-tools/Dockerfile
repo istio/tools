@@ -276,13 +276,20 @@ RUN set -eux; \
 
 # Install cosign (for signing build artifacts) and verify signature
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# Skip now for other non-amd64 platforms
 RUN set -eux; \
-    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cp gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64 /tmp/cosign \
-    && ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cat gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64.sig | base64 -d > /tmp/cosign.sig \
-    && wget -O /tmp/cosign-pubkey https://raw.githubusercontent.com/sigstore/cosign/main/release/release-cosign.pub \
-    && openssl dgst -sha256 -verify /tmp/cosign-pubkey -signature /tmp/cosign.sig /tmp/cosign \
-    && chmod +x /tmp/cosign \
-    && mv /tmp/cosign ${OUTDIR}/usr/bin/ || exit 1
+    \
+    case $(uname -m) in \
+        x86_64) \
+            ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cp gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64 /tmp/cosign \
+            && ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cat gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64.sig | base64 -d > /tmp/cosign.sig \
+            && wget -O /tmp/cosign-pubkey https://raw.githubusercontent.com/sigstore/cosign/main/release/release-cosign.pub \
+            && openssl dgst -sha256 -verify /tmp/cosign-pubkey -signature /tmp/cosign.sig /tmp/cosign \
+            && chmod +x /tmp/cosign \
+            && mv /tmp/cosign ${OUTDIR}/usr/bin/ || exit 1; \
+            ;; \
+        *) echo "skip" ;; \
+    esac;
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
