@@ -71,7 +71,7 @@ ENV BUF_VERSION=v0.43.2
 ENV GCLOUD_VERSION=362.0.0
 ENV KUBETEST2_VERSION=92c12f91d13cbe9f17b62c7b0803d31e4c40431c
 ENV BOSKOSCTL_VERSION=c6d730e323f06da1b56dfa14bdab6d7d5dc22e2a
-ENV COSIGN_VERSION=v1.2.1
+ENV COSIGN_VERSION=v1.3.0
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -277,8 +277,8 @@ RUN set -eux; \
 # Install cosign (for signing build artifacts) and verify signature
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -eux; \
-    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cp gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64 /tmp/cosign \
-    && ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cat gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-amd64.sig | base64 -d > /tmp/cosign.sig \
+    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cp gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-${TARGETARCH} /tmp/cosign \
+    && ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cat gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-${TARGETARCH}.sig | base64 -d > /tmp/cosign.sig \
     && wget -O /tmp/cosign-pubkey https://raw.githubusercontent.com/sigstore/cosign/main/release/release-cosign.pub \
     && openssl dgst -sha256 -verify /tmp/cosign-pubkey -signature /tmp/cosign.sig /tmp/cosign \
     && chmod +x /tmp/cosign \
