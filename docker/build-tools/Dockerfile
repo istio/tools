@@ -72,6 +72,7 @@ ENV GCLOUD_VERSION=362.0.0
 ENV KUBETEST2_VERSION=92c12f91d13cbe9f17b62c7b0803d31e4c40431c
 ENV BOSKOSCTL_VERSION=c6d730e323f06da1b56dfa14bdab6d7d5dc22e2a
 ENV COSIGN_VERSION=v1.3.0
+ENV CRANE_VERSION=v0.6.0
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -135,6 +136,7 @@ RUN go install sigs.k8s.io/kind@${KIND_VERSION}
 RUN go install github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
 RUN go install github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 RUN go install golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
+RUN go install github.com/google/go-containerregistry/cmd/crane@${CRANE_VERSION}
 
 # Install latest version of Istio-owned tools in this release
 RUN go install istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
