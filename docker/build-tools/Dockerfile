@@ -46,7 +46,7 @@ ENV GH_VERSION=2.0.0
 ENV GOLANG_PROTOBUF_VERSION=v1.27.1
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v1.38.0
-ENV HADOLINT_VERSION=v2.7.0
+ENV HADOLINT_VERSION=v2.8.0
 ENV HELM3_VERSION=v3.4.2
 ENV HUGO_VERSION=0.79.1
 ENV JB_VERSION=v0.3.1
