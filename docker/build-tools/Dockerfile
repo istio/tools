@@ -46,7 +46,7 @@ ENV GH_VERSION=2.0.0
 ENV GOLANG_PROTOBUF_VERSION=v1.27.1
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v1.38.0
-ENV HADOLINT_VERSION=v1.22.1
+ENV HADOLINT_VERSION=v2.8.0
 ENV HELM3_VERSION=v3.4.2
 ENV HUGO_VERSION=0.79.1
 ENV JB_VERSION=v0.3.1
@@ -105,7 +105,7 @@ RUN set -eux; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
-    wget -O "/tmp/${PROTOC_ZIP}" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"; \
+    wget -nv -O "/tmp/${PROTOC_ZIP}" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"; \
     unzip "/tmp/${PROTOC_ZIP}"; \
     mv /tmp/bin/protoc ${OUTDIR}/usr/bin; \
     chmod +x ${OUTDIR}/usr/bin/protoc
@@ -204,7 +204,7 @@ ADD https://raw.githubusercontent.com/istio/tools/master/cmd/gen-release-notes/t
 RUN chmod -R 555 ${OUTDIR}/usr/share/gen-release-notes
 
 # ShellCheck linter
-RUN wget -O "/tmp/shellcheck-${SHELLCHECK_VERSION}.linux.$(uname -m).tar.xz" "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.$(uname -m).tar.xz"
+RUN wget -nv -O "/tmp/shellcheck-${SHELLCHECK_VERSION}.linux.$(uname -m).tar.xz" "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.$(uname -m).tar.xz"
 RUN tar -xJf "/tmp/shellcheck-${SHELLCHECK_VERSION}.linux.$(uname -m).tar.xz" -C /tmp
 RUN mv /tmp/shellcheck-${SHELLCHECK_VERSION}/shellcheck ${OUTDIR}/usr/bin
 
@@ -221,9 +221,8 @@ RUN set -eux; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
-    wget -O /tmp/${HUGO_TAR} https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_TAR}; \
+    wget -nv -O /tmp/${HUGO_TAR} https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_TAR}; \
     tar -xzvf /tmp/${HUGO_TAR} -C /tmp; \
-
     mv /tmp/hugo ${OUTDIR}/usr/bin
 
 # Helm version 3
@@ -247,7 +246,7 @@ ADD https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/downlo
 RUN tar -xzf /tmp/docker-credential-gcr_linux_${TARGETARCH}-${GCR_AUTH_VERSION}.tar.gz -C /tmp
 RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
 
-RUN wget -O "${OUTDIR}/usr/bin/buf" "https://github.com/bufbuild/buf/releases/download/${BUF_VERSION}/buf-Linux-$(uname -m)" && \
+RUN wget -nv -O "${OUTDIR}/usr/bin/buf" "https://github.com/bufbuild/buf/releases/download/${BUF_VERSION}/buf-Linux-$(uname -m)" && \
     chmod 555 "${OUTDIR}/usr/bin/buf"
 
 # Install su-exec which is a tool that operates like sudo without the overhead
@@ -270,7 +269,7 @@ RUN set -eux; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
-    wget "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_TAR_FILE}"; \
+    wget -nv "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_TAR_FILE}"; \
     tar -xzvf ."/${GCLOUD_TAR_FILE}" -C "${OUTDIR}/usr/local" && rm "${GCLOUD_TAR_FILE}"; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta --quiet; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install alpha --quiet; \
@@ -281,7 +280,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -eux; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cp gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-${TARGETARCH} /tmp/cosign \
     && ${OUTDIR}/usr/local/google-cloud-sdk/bin/gsutil -q cat gs://cosign-releases/${COSIGN_VERSION}/cosign-linux-${TARGETARCH}.sig | base64 -d > /tmp/cosign.sig \
-    && wget -O /tmp/cosign-pubkey https://raw.githubusercontent.com/sigstore/cosign/main/release/release-cosign.pub \
+    && wget -nv -O /tmp/cosign-pubkey https://raw.githubusercontent.com/sigstore/cosign/main/release/release-cosign.pub \
     && openssl dgst -sha256 -verify /tmp/cosign-pubkey -signature /tmp/cosign.sig /tmp/cosign \
     && chmod +x /tmp/cosign \
     && mv /tmp/cosign ${OUTDIR}/usr/bin/ || exit 1
@@ -324,7 +323,7 @@ RUN set -eux; \
         aarch64) export NODEJS_TAR=node-v${NODEJS_VERSION}-linux-arm64.tar.gz;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
-    wget -O /tmp/${NODEJS_TAR} https://nodejs.org/download/release/v${NODEJS_VERSION}/${NODEJS_TAR}; \
+    wget -nv -O /tmp/${NODEJS_TAR} https://nodejs.org/download/release/v${NODEJS_VERSION}/${NODEJS_TAR}; \
     tar -xzf /tmp/${NODEJS_TAR} --strip-components=1 -C /usr/local
 
 ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-headers.tar.gz /tmp
@@ -499,10 +498,9 @@ RUN set -eux; \
             ;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
-    wget -O "/tmp/${TRVIY_DEB_NAME}" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${TRVIY_DEB_NAME}"; \
+    wget -nv -O "/tmp/${TRVIY_DEB_NAME}" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${TRVIY_DEB_NAME}"; \
     apt-get -y install --no-install-recommends -f "/tmp/${TRVIY_DEB_NAME}"; \
     rm "/tmp/${TRVIY_DEB_NAME}";
-
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
@@ -622,9 +620,7 @@ FROM clang_context_${TARGETARCH} AS clang_context
 RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     wget \
-    ca-certificates \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    ca-certificates
 
 # 12.0.1 is the version support ubuntu:xenial & aarch64
 ENV LLVM_VERSION=12.0.1
@@ -643,7 +639,7 @@ RUN set -eux; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
-    wget ${LLVM_BASE_URL}/${LLVM_ARTIFACT}.tar.xz; \
+    wget -nv ${LLVM_BASE_URL}/${LLVM_ARTIFACT}.tar.xz; \
     tar -xJf ${LLVM_ARTIFACT}.tar.xz -C /tmp; \
     mkdir -p ${LLVM_DIRECTORY}; \
     mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
@@ -661,8 +657,7 @@ RUN set -eux; \
         ca-certificates git \
         clang python ninja-build \
         libclang-dev libc++-dev \
-        ; \
-    rm -rf /var/lib/apt/lists/*
+        ;
 
 WORKDIR /tmp
 RUN git clone https://gn.googlesource.com/gn;
@@ -698,11 +693,9 @@ ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
-    ca-certificates \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    ca-certificates
 
-RUN wget ${BAZELISK_URL}
+RUN wget -nv ${BAZELISK_URL}
 RUN chmod +x ${BAZELISK_BIN}
 RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 
@@ -716,6 +709,8 @@ FROM ubuntu:bionic AS build_env_proxy_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=bionic
 # hadolint ignore=DL3006
 FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
+
+WORKDIR /
 
 # Version from build arguments
 ARG VERSION
@@ -752,7 +747,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
 # required for general build: make, wget, curl, ssh
 # required for python: python3, pkg-config
-# hadolint ignore=DL3008
+# hadolint ignore=DL3008, DL3009
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
@@ -772,21 +767,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     daemon \
     wget \
     jq \
-    tshark \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    tshark
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
 RUN apt-key add /tmp/docker-key
 ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu ${UBUNTU_RELEASE_CODE_NAME} stable"
+# hadolint ignore=DL3009
 RUN apt-get update && apt-get -y install --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
-    containerd.io="${CONTAINERD_VERSION}" \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    containerd.io="${CONTAINERD_VERSION}"
 
 # Run dockerd in CI
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
@@ -807,7 +799,7 @@ RUN set -eux; \
 
 # binary dependencies to build envoy at v1.12.0
 # https://github.com/envoyproxy/envoy/blob/v1.12.0/bazel/README.md
-# hadolint ignore=DL3008
+# hadolint ignore=DL3008,DL3009
 RUN apt-get update && apt-get install -y --no-install-recommends \
     autoconf \
     automake \
@@ -816,9 +808,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ninja-build \
     python \
     unzip \
-    virtualenv \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    virtualenv
 
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
@@ -883,7 +873,5 @@ RUN rm -fr /tmp/*
 
 # Run config setup in local environments
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-
-WORKDIR /
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
