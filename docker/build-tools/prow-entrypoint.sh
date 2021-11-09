@@ -23,14 +23,10 @@ function log() {
 
 log "Starting test..."
 
-# optionally enable ipv6 docker
-export DOCKER_IN_DOCKER_IPV6_ENABLED=${DOCKER_IN_DOCKER_IPV6_ENABLED:-false}
-if [[ "${DOCKER_IN_DOCKER_IPV6_ENABLED}" == "true" ]]; then
-  # enable ipv6
-  sysctl net.ipv6.conf.all.disable_ipv6=0
-  sysctl net.ipv6.conf.all.forwarding=1
-  log "Done enabling IPv6 in Docker config."
-fi
+# Always enable IPv6; all tests should function with it enabled so no need to be selective.
+sysctl net.ipv6.conf.all.forwarding=1
+sysctl net.ipv6.conf.all.disable_ipv6=0
+log "Done enabling IPv6 in Docker config."
 
 # Enable debug logs for docker daemon
 mkdir /etc/docker
