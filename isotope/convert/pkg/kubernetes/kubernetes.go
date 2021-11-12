@@ -21,10 +21,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ghodss/yaml"
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 
 	"istio.io/tools/isotope/convert/pkg/consts"
 	"istio.io/tools/isotope/convert/pkg/graph"

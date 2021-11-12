@@ -19,7 +19,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 
-	"github.com/ghodss/yaml"
+	"sigs.k8s.io/yaml"
 
 	"istio.io/pkg/log"
 

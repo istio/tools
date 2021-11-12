@@ -26,8 +26,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ghodss/yaml"
 	"github.com/russross/blackfriday/v2"
+	"sigs.k8s.io/yaml"
 )
 
 // golang flags don't accept arrays by default. This adds it.
