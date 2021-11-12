@@ -109,7 +109,7 @@ import (
 	"cuelang.org/go/encoding/protobuf"
 	"github.com/emicklei/proto"
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/ghodss/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 // TODO: CUE deprecates OrderedMap. We should start using ast.File and other APIs in the

@@ -26,9 +26,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"sigs.k8s.io/yaml"
 
 	authzpb "istio.io/api/security/v1beta1"
 )

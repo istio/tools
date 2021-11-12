@@ -1,6 +1,6 @@
 module istio.io/tools
 
-go 1.15
+go 1.16
 
 require (
 	cloud.google.com/go v0.66.0 // indirect
@@ -16,9 +16,7 @@ require (
 	github.com/ekzhu/minhash-lsh v0.0.0-20171225071031-5c06ee8586a1 // indirect
 	github.com/emicklei/proto v1.6.15
 	github.com/emirpasic/gods v1.12.0 // indirect
-	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/getkin/kin-openapi v0.1.1-0.20190507152207-d3180292eead
-	github.com/ghodss/yaml v1.0.0
 	github.com/gliderlabs/ssh v0.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
