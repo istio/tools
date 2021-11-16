@@ -513,6 +513,7 @@ RUN rm -fr /usr/share/locale
 RUN rm -fr /usr/share/man
 RUN rm -fr /tmp/*
 
+
 # Run dockerd in CI
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
