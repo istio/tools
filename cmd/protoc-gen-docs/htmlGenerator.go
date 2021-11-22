@@ -149,30 +149,48 @@ func (g *htmlGenerator) generateOutput(filesToGen map[*protomodel.FileDescriptor
 	response := plugin.CodeGeneratorResponse{}
 
 	for _, pkg := range g.model.Packages {
-		mode := protomodel.ModeUnset
 		g.currentPackage = pkg
 		g.currentFrontMatterProvider = pkg.FileDesc()
 
-		// anything to output for this package?
-		count := 0
+		filteredFiles := map[*protomodel.FileDescriptor]bool{}
+
+		// Set the mode. Supported configurations:
+		// * All unset. Defaults to ModeFile
+		// * Some set to the same <mode>, others unset. All get configured to <mode>
+		// * A mix of one <mode>, ModeNone, and others unset. ModeNone are filtered out, rest are configured to <mode>
+
+		mode := protomodel.ModeUnset
 		for _, file := range pkg.Files {
-			if file.Matter.Mode != protomodel.ModeUnset {
-				if mode != protomodel.ModeUnset && mode != file.Matter.Mode {
-					return nil, fmt.Errorf("all files in a package must have the same mode; have %q got %q (in %v)", mode, file.Matter.Mode, *file.Name)
-				}
+			if mode == protomodel.ModeUnset {
+				// No mode set, we assume this file dictates the mode for the rest
 				mode = file.Matter.Mode
-			}
-			if _, ok := filesToGen[file]; ok {
-				count++
+			} else if mode == protomodel.ModeNone && file.Matter.Mode != protomodel.ModeUnset {
+				// Mode was already set to none, but we overrode it. This allows single files opting out
+				mode = file.Matter.Mode
+			} else if file.Matter.Mode != protomodel.ModeUnset && file.Matter.Mode != mode && file.Matter.Mode != protomodel.ModeNone {
+				return nil, fmt.Errorf("all files in a package must have the same mode; have %q got %q (in %v)", mode, file.Matter.Mode, *file.Name)
 			}
 		}
 
-		if count > 0 {
+		for _, file := range pkg.Files {
+			fileMode := file.Matter.Mode
+			if fileMode == protomodel.ModeUnset {
+				fileMode = mode
+			}
+			if fileMode == protomodel.ModeNone {
+				continue
+			}
+			if _, ok := filesToGen[file]; ok {
+				filteredFiles[file] = true
+			}
+		}
+
+		if len(filteredFiles) > 0 {
 			switch mode {
 			case protomodel.ModeFile, protomodel.ModeUnset:
-				g.generatePerFileOutput(filesToGen, pkg, &response)
+				g.generatePerFileOutput(filteredFiles, pkg, &response)
 			case protomodel.ModePackage:
-				g.generatePerPackageOutput(filesToGen, pkg, &response)
+				g.generatePerPackageOutput(filteredFiles, pkg, &response)
 			case protomodel.ModeNone:
 			}
 		}
