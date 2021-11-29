@@ -35,6 +35,8 @@ message TypeX {
 }
 
 // Test is a message that I use for testing with <some> <funny> <characters>.
+//
+// Intra-word emphasis suppression test: foo_bar_baz
 message Test {
     // field1 is a field
     int32 field1 = 1;
@@ -117,7 +119,7 @@ message Test {
     int32 hidden = 16;
 }
 
-// My sample service
+// My sample service foo_bar_baz
 service Svc {
     // My sample method
     rpc Check(Test) returns (Test2);
