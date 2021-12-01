@@ -16,6 +16,7 @@ package srv
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -91,8 +92,12 @@ func executeRequestCommand(
 
 	// Necessary for reusing HTTP/1.x "keep-alive" TCP connections.
 	// https://golang.org/pkg/net/http/#Response
-	defer response.Body.Close()
-	defer prometheus.RecordRequestSent(destName, uint64(cmd.Size))
+	defer func() {
+		// Drain and close the body to let the Transport reuse the connection
+		io.Copy(ioutil.Discard, response.Body)
+		response.Body.Close()
+		prometheus.RecordRequestSent(destName, uint64(cmd.Size))
+	}()
 
 	log.Debugf("%s responded with %s", destName, response.Status)
 	if response.StatusCode != http.StatusOK {
