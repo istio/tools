@@ -35,7 +35,7 @@ ARG ISTIO_TOOLS_SHA
 # Pinned versions of stuff we pull in
 ENV GCR_AUTH_VERSION=1.5.0
 ENV GO_BINDATA_VERSION=v3.1.2
-ENV GO_JUNIT_REPORT_VERSION=af01ea7f8024089b458d804d5cdf190f962a9a0c
+ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOGO_PROTOBUF_VERSION=v1.3.2
 ENV GOIMPORTS_VERSION=379209517ffe
@@ -120,7 +120,7 @@ RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTO
 RUN gobin github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
 RUN gobin github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@${JB_VERSION}
 RUN gobin github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
-RUN gobin github.com/jstemmer/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN gobin github.com/istio/go-junit-report@${GO_JUNIT_REPORT_VERSION}
 RUN gobin sigs.k8s.io/kind@${KIND_VERSION}
 RUN gobin github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
 RUN gobin github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
