@@ -56,7 +56,8 @@ type AuthorizationPolicy struct {
 	// RequestAuthentication policies generated from the requestAuthN. This allows
 	// to test RequestAuthentication and AuthorizationPolicy together to verify that
 	// a request with a valid JWT token is allowed.
-	NumRequestPrincipals int `json:"numRequestPrincipals"`
+	NumRequestPrincipals int  `json:"numRequestPrincipals"`
+	DryRun               bool `json:"dryRun"`
 }
 
 type PeerAuthentication struct {
@@ -80,8 +81,9 @@ type MyPolicy struct {
 }
 
 type MetadataStruct struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
+	Name        string            `json:"name"`
+	Namespace   string            `json:"namespace"`
+	Annotations map[string]string `json:"annotations"`
 }
 
 func ToJSON(msg proto.Message) (string, error) {
@@ -255,21 +257,29 @@ func generateRules(policyData SecurityPolicy, policyHeader *MyPolicy) (string, e
 	}
 }
 
-func createPolicyHeader(namespace string, name string, kind string) *MyPolicy {
+func createPolicyHeader(namespace, name, kind string, dryRun bool) *MyPolicy {
 	if namespace == "" {
 		namespace = "twopods-istio"
 	}
-	return &MyPolicy{
+	ret := &MyPolicy{
 		APIVersion: "security.istio.io/v1beta1",
 		Kind:       kind,
 		Metadata:   MetadataStruct{Namespace: namespace, Name: name},
 	}
+	if dryRun {
+		ret.Metadata.Annotations = map[string]string{"istio.io/dry-run": "true"}
+	}
+	return ret
 }
 
 func generatePolicy(policyData SecurityPolicy, kind string, numPolicy int) error {
 	for i := 1; i <= numPolicy; i++ {
 		testName := fmt.Sprintf("test-%s-%d", strings.ToLower(kind), i)
-		policyHeader := createPolicyHeader(policyData.Namespace, testName, kind)
+		var dryRun bool
+		if kind == "AuthorizationPolicy" {
+			dryRun = policyData.AuthZ.DryRun
+		}
+		policyHeader := createPolicyHeader(policyData.Namespace, testName, kind, dryRun)
 
 		rules, err := generateRules(policyData, policyHeader)
 		if err != nil {

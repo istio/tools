@@ -1,0 +1,23 @@
+# Data: cpu/mem
+# Filter: rbac, metadata-exchange and stackdriver filters
+# VM mode: nullvm
+telemetry_mode: "v2-sd-full-nullvm"
+conn:
+    - 16
+qps:
+    - 10
+    - 100
+    - 200
+    - 400
+    - 800
+    - 1000
+duration: 240
+perf_record: true
+run_bothsidecar: true
+run_serversidecar: false
+run_clientsidecar: false
+run_baseline: false
+
+extra_labels: "security_authz_dry_run"
+
+jitter: true
