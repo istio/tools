@@ -41,6 +41,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/tools v0.1.0
 	gonum.org/v1/netlib v0.0.0-20191031114514-eccb95939662 // indirect
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0 // indirect
 	gopkg.in/src-d/go-billy-siva.v4 v4.2.2 // indirect
