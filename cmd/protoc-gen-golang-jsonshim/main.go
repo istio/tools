@@ -81,6 +81,7 @@ func FileName(file *protogen.File) string {
 	fname = strings.Replace(fname, ".", "_", -1)
 	return CamelCase(fname)
 }
+
 // CamelCase returns the CamelCased name.
 // If there is an interior underscore followed by a lower case letter,
 // drop the underscore and convert the letter to upper case.
