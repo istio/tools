@@ -52,10 +52,10 @@ ENV HUGO_VERSION=0.79.1
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.15.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
-ENV K8S_CODE_GENERATOR_VERSION=1.18.16
+ENV K8S_CODE_GENERATOR_VERSION=1.23.0
 ENV K8S_TEST_INFRA_VERSION=ae26658abae0b1213549d1326b3b252422fe0215
 ENV KIND_VERSION=v0.11.1
-ENV KUBECTL_VERSION=1.20.4
+ENV KUBECTL_VERSION=1.23.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.6
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.6
 ENV PROTOC_GEN_VALIDATE_VERSION=v0.6.1
@@ -160,6 +160,7 @@ RUN go install sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
 
 # go install does not seem to be compatible with this pesky code-generator repo
 # Install the code generator tools, and hopefully only these tools, this way
+RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/applyconfiguration-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN GO111MODULE=on go get -ldflags="-s -w" k8s.io/code-generator/cmd/lister-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
