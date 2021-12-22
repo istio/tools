@@ -35,7 +35,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: gcr.io/google-samples/microservices-demo/adservice:v0.2.1
+        image: gcr.io/google-samples/microservices-demo/adservice:v0.3.4
         ports:
         - containerPort: 9555
         env:
