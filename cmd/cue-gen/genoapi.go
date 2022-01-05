@@ -701,7 +701,7 @@ func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
 
 	// Note: this just tests basic OpenAPI 3 validity. It cannot, of course,
 	// know if the the proto files were correctly mapped.
-	_, err = openapi3.NewSwaggerLoader().LoadSwaggerFromData(b)
+	_, err = openapi3.NewLoader().LoadFromData(b)
 	if err != nil {
 		log.Fatalf("Invalid OpenAPI generated: %v", err)
 	}
