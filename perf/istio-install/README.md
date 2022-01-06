@@ -25,7 +25,7 @@ export DNS_DOMAIN=test - domain to use for TLS cert testing
 ```shell
 Optional environment:
 export MACHINE_TYPE=n1-standard-4 - will use a small machine, for testing stability in small clusters
-export IMAGE=UBUNTU - will use ubuntu instead of the recommended COS
+export IMAGE=UBUNTU - will use ubuntu instead of the recommended COS_CONTAINERD
 export MIN_NODES=1 - will start with 1 instead of default 4
 export ISTIO_VERSION - installed version of istio, will be set as a label on nodes
 

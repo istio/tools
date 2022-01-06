@@ -29,7 +29,7 @@ spec:
     machineType: "e2-standard-4" # {"type":"string","x-kustomize":{"setter":{"name":"machine-type","value":"e2-standard-4"}}
     workloadMetadataConfig:
       nodeMetadata: GKE_METADATA_SERVER
-    imageType: "COS" # {"type":"string","x-kustomize":{"setter":{"name":"image-type","value":"COS"}}
+    imageType: "COS_CONTAINERD" # {"type":"string","x-kustomize":{"setter":{"name":"image-type","value":"COS_CONTAINERD"}}
     diskType: "pd-standard"
     diskSizeGb: 64 # {"type":"integer","x-kustomize":{"setter":{"name":"diskSize","value":"64"}}}
     oauthScopes:

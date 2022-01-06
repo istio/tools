@@ -29,11 +29,11 @@ function create_clusters() {
 "https://www.googleapis.com/auth/trace.append"
   # shellcheck disable=SC2086
 	gcloud container clusters create $cluster1 --zone $zone --username "admin" \
---machine-type "n1-standard-2" --image-type "COS" --disk-size "100" \
+--machine-type "n1-standard-2" --image-type "COS_CONTAINERD" --disk-size "100" \
 --scopes $scope --num-nodes "4" --network "default" --enable-cloud-logging --enable-cloud-monitoring --enable-ip-alias
   # shellcheck disable=SC2086
 	gcloud container clusters create $cluster2 --zone $zone --username "admin" \
---machine-type "n1-standard-2" --image-type "COS" --disk-size "100" \
+--machine-type "n1-standard-2" --image-type "COS_CONTAINERD" --disk-size "100" \
 --scopes $scope \
 --num-nodes "4" --network "default" --enable-cloud-logging --enable-cloud-monitoring --enable-ip-alias
 }
