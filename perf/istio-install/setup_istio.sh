@@ -91,33 +91,28 @@ function install_extras() {
   local certmanagerEmail=${CERTMANAGER_EMAIL:-""}
   kubectl create namespace istio-prometheus || true
   # Deploy the gateways and prometheus operator.
-  # We install the prometheus operator first, then deploy the CR, to wait for the CRDs to get created
-  helm template --set domain="${domain}" --set prometheus.deploy=false "${WD}/base" | kubectl apply -f -
-  # Check CRD
-  CMDs_ARR=('kubectl get crds/prometheuses.monitoring.coreos.com' 'kubectl get crds/alertmanagers.monitoring.coreos.com'
-  'kubectl get crds/podmonitors.monitoring.coreos.com' 'kubectl get crds/prometheusrules.monitoring.coreos.com'
-  'kubectl get crds/servicemonitors.monitoring.coreos.com')
-  for CMD in "${CMDs_ARR[@]}"
-  do
-    MAXRETRIES=0
-    until $CMD || [ $MAXRETRIES -eq 60 ]
-    do
-      MAXRETRIES=$((MAXRETRIES + 1))
-      sleep 5
-    done
-    if [[ $MAXRETRIES -eq 60 ]]; then
-      echo "crds were not created successfully"
-      exit 1
-    fi
-  done
-
-  # Redeploy, this time with the Prometheus resource created
+  # Deploy CRDs with create, they are too big otherwise
+  kubectl create -f base/files || true # Might fail if we already installed, so allow failures
   if [[ "${certmanagerEmail:-}" != "" ]]; then
     kubectl apply -f "${WD}/addons/cert-manager.yaml"
+    kubectl wait --for=condition=Available deployments --all -n cert-manager
     helm template --set domain="${domain}" --set certManager.email="${certmanagerEmail}" --set certManager.enabled=true "${WD}/base" | kubectl apply -f -
   else
     helm template --set domain="${domain}" "${WD}/base" | kubectl apply -f -
   fi
+
+  # Check deployment
+  MAXRETRIES=0
+  until kubectl rollout status --watch --timeout=60s statefulset/prometheus-prometheus -n istio-prometheus || [ $MAXRETRIES -eq 60 ]
+  do
+    MAXRETRIES=$((MAXRETRIES + 1))
+    sleep 5
+  done
+  if [[ $MAXRETRIES -eq 60 ]]; then
+    echo "prometheus were not created successfully"
+    exit 1
+  fi
+
   # Also deploy relevant ServiceMonitors
   if [[ -f "${release}/samples/addons/extras/prometheus-operator.yaml" ]];then
      kubectl apply -f "${release}/samples/addons/extras/prometheus-operator.yaml" -n istio-system
