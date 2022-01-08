@@ -319,7 +319,7 @@ func getNewFilesInBranch(oldBranch string, newBranch string, pullRequest string,
 	// the git diff-tree is relative to the notesSupbpath, so we need to add the subpath back to the filenames.
 	outFileswithPath := []string{}
 	for _, f := range outFiles[:len(outFiles)-1] { // skip the last file which is empty
-		outFileswithPath = append(outFileswithPath, notesSubpath+"/"+f)
+		outFileswithPath = append(outFileswithPath, filepath.Join(notesSubpath, f))
 	}
 
 	return outFileswithPath, nil
