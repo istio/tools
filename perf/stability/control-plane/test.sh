@@ -17,33 +17,45 @@
 setup() {
   kubectl create ns twopods-istio
   kubectl create ns invalid-namespace-0
-  kubectl label namespace invalid-namespace-0 istio-injection=enabled --overwrite
+  kubectl apply -f ../../istio-install/tmp/istio-1.12.0/samples/httpbin/httpbin.yaml -n twopods-istio
   kubectl apply -f <(istioctl kube-inject -f ../../istio-install/tmp/istio-1.12.0/samples/sleep/sleep.yaml) -n invalid-namespace-0
   kubectl apply -f <(istioctl kube-inject -f ../../istio-install/tmp/istio-1.12.0/samples/httpbin/httpbin.yaml) -n twopods-istio
+  go build ../../benchmark/security/generate_policies/generate_policies.go ../../benchmark/security/generate_policies/generate.go ../../benchmark/security/generate_policies/jwt.go
 }
 
 checkResourcesInCluster() {
-  local status
-  status=$(kubectl exec "$(kubectl get pod -l app=sleep -n invalid-namespace-0 -o jsonpath={.items..metadata.name})" -c sleep -n invalid-namespace-0 -- curl http://httpbin.twopods-istio:8000/ip -sS -o /dev/null -w "%{http_code}\n")
-  if [ "$status" -ne 403 ]
+  end=$((SECONDS+30))
+  failed=true
+  while [ $SECONDS -lt $end ]; do
+      local status
+      status=$(kubectl exec "$(kubectl get pod -l app=sleep -n invalid-namespace-0 -o jsonpath={.items..metadata.name})" -c sleep -n invalid-namespace-0 -- curl http://httpbin.twopods-istio:8000/ip -sS -o /dev/null -w "%{http_code}\n")
+      if [ "$status" -eq 403 ]
+      then
+        failed=false
+        break
+      fi
+      :
+  done
+  
+  if [ "$failed" = true ]
   then
-    echo "Deny policies are not deployed properly"
+    echo "deny policies are not deployed properly"
     exit 1
   fi
 }
 
 addPolicy() {
-  go run ../../benchmark/security/generate_policies/generate_policies.go ../../benchmark/security/generate_policies/generate.go ../../benchmark/security/generate_policies/jwt.go -configFile="config.json" > deployment.yaml
+  ./generate_policies -configFile="config.json" > deployment.yaml
   kubectl apply -f deployment.yaml
   checkResourcesInCluster
   
   
-  go run ../../benchmark/security/generate_policies/generate_policies.go ../../benchmark/security/generate_policies/generate.go ../../benchmark/security/generate_policies/jwt.go -configFile="config_100.json" > deployment_100.yaml
+  ./generate_policies -configFile="config_100.json" > deployment_100.yaml
   kubectl apply -f deployment_100.yaml
   checkResourcesInCluster
   
 
-  go run ../../benchmark/security/generate_policies/generate_policies.go ../../benchmark/security/generate_policies/generate.go ../../benchmark/security/generate_policies/jwt.go -configFile="config_1000.json" > deployment_1000.yaml
+  ./generate_policies -configFile="config_1000.json" > deployment_1000.yaml
   kubectl apply -f deployment_1000.yaml
   checkResourcesInCluster
 }
@@ -52,13 +64,13 @@ updatePolicy() {
   kubectl delete AuthorizationPolicy --all -n twopods-istio
 
   # update the number of namespaces on which authz policy applies
-  go run ../../benchmark/security/generate_policies/generate_policies.go ../../benchmark/security/generate_policies/generate.go ../../benchmark/security/generate_policies/jwt.go -configFile="config_update_ns.json" > deployment_update_ns.yaml
+  ./generate_policies -configFile="config_update_ns.json" > deployment_update_ns.yaml
   checkResourcesInCluster
 
   kubectl delete AuthorizationPolicy --all -n twopods-istio
 
   # update the number of paths on which authz policy applies
-  go run ../../benchmark/security/generate_policies/generate_policies.go ../../benchmark/security/generate_policies/generate.go ../../benchmark/security/generate_policies/jwt.go -configFile="config_update_paths.json" > deployment_update_paths.yaml
+  ./generate_policies -configFile="config_update_paths.json" > deployment_update_paths.yaml
   checkResourcesInCluster
 }
 
@@ -68,10 +80,13 @@ cleanCluster() {
   kubectl delete ns invalid-namespace-0
 }
 
-setup
-addPolicy
-updatePolicy
-cleanCluster
+for iter in {0..5}
+do
+  setup
+  addPolicy
+  updatePolicy
+  cleanCluster
+done
 
 
 
