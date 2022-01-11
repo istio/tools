@@ -80,12 +80,14 @@ cleanCluster() {
   kubectl delete ns invalid-namespace-0
 }
 
-for iter in {0..5}
+for iter in {1..6}
 do
+  echo "-------- Iteration ${iter} starts ----------"
   setup
   addPolicy
   updatePolicy
   cleanCluster
+  echo "-------- Iteration ${iter} ends ----------"
 done
 
 
