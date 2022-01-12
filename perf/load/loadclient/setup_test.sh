@@ -23,6 +23,7 @@ set -ex
 
 NAMESPACE=${1:?"namespace"}
 NAMEPREFIX=${2:?"prefix name for service. typically svc-"}
+INJECTION_LABEL=${3:-"istio-injection=enabled"}
 
 HTTPS=${HTTPS:-"false"}
 
@@ -50,7 +51,7 @@ function run_test() {
 
   if [[ -z "${DELETE}" ]];then
     kubectl create ns "${NAMESPACE}" || true
-    kubectl label namespace "${NAMESPACE}" "${INJECTION_LABEL:-istio-injection=enabled}" --overwrite
+    kubectl label namespace "${NAMESPACE}" "${INJECTION_LABEL}" --overwrite
     kubectl -n "${NAMESPACE}" apply -f "${YAML}"
   else
     kubectl -n "${NAMESPACE}" delete -f "${YAML}"

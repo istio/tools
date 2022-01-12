@@ -28,5 +28,6 @@ source common.sh
 
 NUM=${1:?"number of namespaces. 20 x this number"}
 START=${2:-"0"}
+INJECTION_LABEL=${3:-"istio-injection=enabled"}
 
-start_servicegraphs "${NUM}" "${START}"
+start_servicegraphs "${NUM}" "${START}" "${INJECTION_LABEL}"

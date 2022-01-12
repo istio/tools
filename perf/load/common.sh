@@ -24,6 +24,7 @@ H2UPGRADE=${H2UPGRADE:-"false"}
 function run_test() {
   local ns=${1:?"namespaces"}
   local prefix=${2:?"prefix name for service. typically svc-"}
+  local injection_label=${3:?"injection label"}
   MULTI_CLUSTER=${MULTI_CLUSTER:-"false"}
   CLUSTER1=${CLUSTER1:-"false"}
   CLUSTER2=${CLUSTER2:-"false"}
@@ -45,7 +46,7 @@ function run_test() {
   echo "Wrote ${YAML}"
 
   kubectl create ns "${ns}" || true
-  kubectl label namespace "${ns}" "${INJECTION_LABEL:-istio-injection=enabled}" --overwrite
+  kubectl label namespace "${ns}" "${injection_label}" --overwrite
 
    if [[ -z "${DELETE}" ]];then
     sleep 3
@@ -63,17 +64,18 @@ function run_test() {
 function start_servicegraphs() {
   local nn=${1:?"number of namespaces"}
   local min=${2:-"0"}
+  local injection_label=${3:?"injection label"}
 
    # shellcheck disable=SC2004
    for ((ii=$min; ii<$nn; ii++)) {
     ns=$(printf 'service-graph%.2d' "${ii}")
     prefix=$(printf 'svc%.2d-' "${ii}")
     if [[ -z "${DELETE}" ]];then
-      ${CMD} run_test "${ns}" "${prefix}"
-      ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}"
+      ${CMD} run_test "${ns}" "${prefix}" "${injection_label}"
+      ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}" "${injection_label}"
     else
-      ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}"
-      ${CMD} run_test "${ns}" "${prefix}"
+      ${CMD} "${WD}/loadclient/setup_test.sh" "${ns}" "${prefix}" "${injection_label}"
+      ${CMD} run_test "${ns}" "${prefix}" "${injection_label}"
     fi
 
     sleep "${PERF_NAMESPACE_DELAY:-30}"
