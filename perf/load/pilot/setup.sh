@@ -26,12 +26,13 @@ WD=$(cd $WD; pwd)
 function setup_test() {
   local NAMESPACE=${NAMESPACE:-"pilot-load"}
   local HELM_FLAGS=${HELM_FLAGS:-"instances=50"}
+  local INJECTION_LABEL=${INJECTION_LABEL:-"istio-injection=enabled"}
 
   mkdir -p "${WD}/tmp"
   local OUTFILE="${WD}/tmp/${NAMESPACE}.yaml"
 
   kubectl create ns "${NAMESPACE}" || true
-  kubectl label namespace "${NAMESPACE}" istio-injection=enabled || true
+  kubectl label namespace "${NAMESPACE}" "${INJECTION_LABEL}" || true
 
   helm --namespace "${NAMESPACE}" --set "${HELM_FLAGS}" template "${WD}" > "${OUTFILE}"
 
