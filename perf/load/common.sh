@@ -65,6 +65,7 @@ function start_servicegraphs() {
   local nn=${1:?"number of namespaces"}
   local min=${2:-"0"}
   local injection_label=${3:?"injection label"}
+  local PERF_NAMESPACE_DELAY=${4:-30}
 
    # shellcheck disable=SC2004
    for ((ii=$min; ii<$nn; ii++)) {
@@ -78,6 +79,6 @@ function start_servicegraphs() {
       ${CMD} run_test "${ns}" "${prefix}" "${injection_label}"
     fi
 
-    sleep "${PERF_NAMESPACE_DELAY:-30}"
+    sleep "${PERF_NAMESPACE_DELAY}"
   }
 }
