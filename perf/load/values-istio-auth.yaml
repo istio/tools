@@ -27,12 +27,6 @@ global:
     # If set, newly injected sidecars will have core dumps enabled.
     enableCoreDump: true
 
-mixer:
-    resources:
-      requests:
-        cpu: 4000m
-        memory: 4048Mi
-
 pilot:
     resources:
       requests:
