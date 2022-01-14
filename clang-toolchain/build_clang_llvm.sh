@@ -24,7 +24,7 @@ chmod +x /home/build/test-release.sh
 mkdir -p "${BUILD_DIR}"
 chown build:build "${BUILD_DIR}"
 
-# for 1.12+ we must use python3. Their scripts don't seem to make this happen automatically.
+# for 12.0+ we must use python3. Their scripts don't seem to make this happen automatically.
 VIRTUALENV_PYTHON=$(which python3)
 export VIRTUALENV_PYTHON
 
