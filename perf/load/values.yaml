@@ -13,6 +13,10 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
+# request cpu/memory resources of istio-proxy
+proxyCPU: 100m
+proxyMemory: 128Mi
+
 # If enabled, strict mTLS will be set for the namespace
 mtls: true
 
@@ -37,7 +41,7 @@ replicasSleep: 10
 
 # tcp does not support permissive mode
 # so readinessProbe
-#tcpReadinessProbe:
+# tcpReadinessProbe:
 
 # ingress should be set correctly
 ingress: 127.0.0.1

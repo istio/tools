@@ -187,6 +187,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -243,6 +245,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -312,6 +316,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -381,6 +387,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -450,6 +458,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -519,6 +529,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -588,6 +600,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -709,6 +723,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -778,6 +794,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -847,6 +865,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -916,6 +936,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -985,6 +1007,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -1058,6 +1082,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
         {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
         {{- end }}
@@ -1127,6 +1153,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
         {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
         {{- end }}
@@ -1196,6 +1224,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
           {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
           {{- end }}
@@ -1265,6 +1295,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
         {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
         {{- end }}
@@ -1334,6 +1366,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -1403,6 +1437,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -1472,6 +1508,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
@@ -1541,6 +1579,8 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/proxyCPU: {{ .Values.proxyCPU }}
+        sidecar.istio.io/proxyMemory: {{ .Values.proxyMemory }}
 {{- if .Values.prometheus_scrape }}
         prometheus.io/scrape: "true"
 {{- end }}
