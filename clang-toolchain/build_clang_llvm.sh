@@ -28,5 +28,6 @@ chown build:build "${BUILD_DIR}"
 VIRTUALENV_PYTHON=$(which python3)
 export VIRTUALENV_PYTHON
 
-sudo -u build scl enable devtoolset-9 \
+sudo -Eu build scl enable devtoolset-9 \
   "/home/build/test-release.sh -release ${VERSION} -final -triple x86_64-linux-centos7 -configure-flags '-DCOMPILER_RT_BUILD_LIBFUZZER=off' -build-dir ${BUILD_DIR}"
+
