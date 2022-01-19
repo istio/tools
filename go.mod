@@ -3,8 +3,8 @@ module istio.io/tools
 go 1.17
 
 require (
-	cloud.google.com/go/spanner v1.28.0
-	cuelang.org/go v0.4.0
+	cloud.google.com/go/spanner v1.29.0
+	cuelang.org/go v0.4.1
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emicklei/proto v1.9.1
@@ -15,22 +15,22 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/kr/pretty v0.3.0
 	github.com/prometheus/alertmanager v0.23.0
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.12.0
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/spf13/cobra v1.3.0
-	github.com/spf13/viper v1.10.0
+	github.com/spf13/viper v1.10.1
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/tools v0.1.6-0.20210820212750-d4cc65f0b2ff
+	golang.org/x/tools v0.1.8
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-license-detector.v2 v2.0.0-20180510072912-da552ecf050b
 	gopkg.in/yaml.v2 v2.4.0
-	istio.io/api v0.0.0-20211229172919-e1d5fcda8061
-	istio.io/gogo-genproto v0.0.0-20211222041311-f51e6b23f6ea
+	istio.io/api v0.0.0-20220118173337-a3a1e91b0610
+	istio.io/gogo-genproto v0.0.0-20220110182120-ce4298c8709c
 	k8s.io/apiextensions-apiserver v0.23.1
 	k8s.io/apimachinery v0.23.1
-	k8s.io/gengo v0.0.0-20210813121822-485abfe95c7c
-	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b
-	sigs.k8s.io/controller-tools v0.7.0
+	k8s.io/gengo v0.0.0-20211129171323-c02415ce4185
+	k8s.io/utils v0.0.0-20211208161948-7d6a63dca704
+	sigs.k8s.io/controller-tools v0.8.0
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -88,8 +88,8 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.30.0 // indirect
-	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/prometheus/common v0.32.1 // indirect
+	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20201118171849-f6a6b3f636fc // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/sergi/go-diff v1.0.0 // indirect
@@ -109,18 +109,18 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/exp v0.0.0-20210126221216-84987778548c // indirect
-	golang.org/x/mod v0.5.0 // indirect
+	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20211209124913-491a49abca63 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
+	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gonum.org/v1/gonum v0.6.0 // indirect
 	gonum.org/v1/netlib v0.0.0-20191031114514-eccb95939662 // indirect
-	google.golang.org/api v0.62.0 // indirect
+	google.golang.org/api v0.63.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
-	google.golang.org/grpc v1.42.0 // indirect
+	google.golang.org/grpc v1.43.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
