@@ -29,22 +29,23 @@ RUN echo "/opt/rh/httpd24/root/usr/lib64" > /etc/ld.so.conf.d/httpd24.conf && \
 ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-265.0.0-linux-x86_64.tar.gz /tmp
 RUN tar -xzvf "/tmp/google-cloud-sdk-265.0.0-linux-x86_64.tar.gz" -C /usr/local
 
-ENV LLVM_RELEASE=clang+llvm-10.0.0-x86_64-linux-centos7
+# The folder `clang-toolchain` at the root of this repository can be used to build clang+llvm for centos. 
+ENV LLVM_RELEASE=clang+llvm-12.0.1-x86_64-linux-centos7
 # hadolint ignore=DL4006
-RUN curl -fsSL --output ${LLVM_RELEASE}.tar.xz http://storage.googleapis.com/getenvoy-package/clang-toolchain/a79bbfea57c05b5cd2708ab432192be0e187e074/${LLVM_RELEASE}.tar.xz && \
-    tar Jxf ${LLVM_RELEASE}.tar.xz && \
-    mv ./${LLVM_RELEASE} /opt/llvm && \
-    chown -R root:root /opt/llvm && \
-    rm ./${LLVM_RELEASE}.tar.xz && \
-    echo "/opt/llvm/lib" > /etc/ld.so.conf.d/llvm.conf && \
-    ldconfig
+RUN curl -fsSL --output ${LLVM_RELEASE}.tar http://storage.googleapis.com/istio-build-deps/${LLVM_RELEASE}.tar && \
+   tar -xf ${LLVM_RELEASE}.tar && \
+   mv ./${LLVM_RELEASE} /opt/llvm && \
+   chown -R root:root /opt/llvm && \
+   rm ./${LLVM_RELEASE}.tar && \
+   echo "/opt/llvm/lib" > /etc/ld.so.conf.d/llvm.conf && \
+   ldconfig
 
 ENV PATH=/opt/llvm/bin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Sha matches DEPS in the root of the wee8 tar ball in envoy's repository_locations.bzl
 # hadolint ignore=DL3003
-RUN cd /tmp && git clone https://gn.googlesource.com/gn && cd gn && \
-    git checkout 39a87c0b36310bdf06b692c098f199a0d97fc810 && \
-    python build/gen.py && ninja -C out && cp out/gn /usr/bin && rm -rf /tmp/gn
+# RUN cd /tmp && git clone https://gn.googlesource.com/gn && cd gn && \
+#    git checkout 39a87c0b36310bdf06b692c098f199a0d97fc810 && \
+#    python build/gen.py && ninja -C out && cp out/gn /usr/bin && rm -rf /tmp/gn
 
 ENV HOME=/home
