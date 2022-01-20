@@ -35,6 +35,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in
+ENV BOM_VERSION=v0.1.0
 ENV GCR_AUTH_VERSION=2.0.4
 ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
@@ -132,6 +133,7 @@ RUN go install github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
 RUN go install github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@${JB_VERSION}
 RUN go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
 RUN go install github.com/istio/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN go install sigs.k8s.io/bom/cmd/bom@${BOM_VERSION}
 RUN go install sigs.k8s.io/kind@${KIND_VERSION}
 RUN go install github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
 RUN go install github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
