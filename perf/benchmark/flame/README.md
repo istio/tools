@@ -27,7 +27,7 @@ Flame graphs are created from data collected using linux `perf_events` by the `p
     Build image and push docker image and use it in your deployment by adding the following annotation.
 
     ```plain
-    "sidecar.istio.io/proxyImag" : <name of your image>
+    "sidecar.istio.io/proxyImage" : <name of your image>
     ```
 
     This step will go away once the default debug image contains `perf` and related tools.
