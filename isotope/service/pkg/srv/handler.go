@@ -59,7 +59,7 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		err := execute(step, forwardableHeader, h.ServiceTypes)
 		if err != nil {
 			log.Errorf("%s", err)
-			respond(http.StatusInternalServerError, err.Error() + "\n")
+			respond(http.StatusInternalServerError, err.Error()+"\n")
 			return
 		}
 	}

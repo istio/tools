@@ -21,10 +21,8 @@ import (
 	"istio.io/tools/isotope/convert/pkg/graph/svctype"
 )
 
-var (
-	// DefaultService is used by UnmarshalJSON and describes the default settings.
-	DefaultService = Service{Type: svctype.ServiceHTTP, NumReplicas: 1}
-)
+// DefaultService is used by UnmarshalJSON and describes the default settings.
+var DefaultService = Service{Type: svctype.ServiceHTTP, NumReplicas: 1}
 
 // UnmarshalJSON converts b to a Service, applying the default values from
 // DefaultService.
