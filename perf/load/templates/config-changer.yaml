@@ -55,7 +55,7 @@ subjects:
     name: config-change-service-account
     namespace: {{ .Values.Namespace }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: deployment-scaler
