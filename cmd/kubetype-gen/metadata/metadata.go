@@ -58,7 +58,6 @@ type PackageMetadata interface {
 
 // Store is used to store/access the source metadata collected by the scanner
 type Store interface {
-
 	// MetadataForGV returns the package metadata associated with the Group/Version
 	MetadataForGV(gv *schema.GroupVersion) PackageMetadata
 

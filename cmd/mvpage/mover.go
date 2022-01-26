@@ -76,7 +76,7 @@ func (m *mover) move(srcFile string, dstFile string) error {
 
 	// create the target directory
 	dstDir := filepath.Dir(m.dstFile)
-	if err = os.MkdirAll(dstDir, 01755); err != nil {
+	if err = os.MkdirAll(dstDir, 0o1755); err != nil {
 		return err
 	}
 
@@ -144,7 +144,7 @@ func (m *mover) updateContentDir(contentDir string) error {
 			}
 		}
 
-		if err = ioutil.WriteFile(path, output, 0644); err != nil {
+		if err = ioutil.WriteFile(path, output, 0o644); err != nil {
 			return fmt.Errorf("unable to write file '%s': %v", path, err)
 		}
 

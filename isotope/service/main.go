@@ -58,7 +58,6 @@ var stringToLevel = map[string]log.Level{
 	"none":  log.NoneLevel,
 }
 
-
 func main() {
 	flag.Parse()
 	for _, s := range log.Scopes() {
