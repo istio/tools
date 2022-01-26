@@ -32,8 +32,8 @@ import (
 // HandlerFromServiceGraphYAML makes a handler to emulate the service with name
 // serviceName in the service graph represented by the YAML file at path.
 func HandlerFromServiceGraphYAML(
-	path string, serviceName string) (Handler, error) {
-
+	path string, serviceName string) (Handler, error,
+) {
 	serviceGraph, err := serviceGraphFromYAMLFile(path)
 	if err != nil {
 		return Handler{}, err

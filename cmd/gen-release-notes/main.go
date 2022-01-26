@@ -146,7 +146,7 @@ func main() {
 }
 
 func createDirIfNotExists(path string) error {
-	err := os.MkdirAll(path, 0755)
+	err := os.MkdirAll(path, 0o755)
 	if os.IsExist(err) {
 		return nil
 	}
@@ -156,7 +156,7 @@ func createDirIfNotExists(path string) error {
 // writeAsHTML generates HTML from markdown before writing it to a file
 func writeAsHTML(filename string, markdown string) error {
 	output := string(blackfriday.Run([]byte(markdown)))
-	if err := ioutil.WriteFile(filename+".html", []byte(output), 0644); err != nil {
+	if err := ioutil.WriteFile(filename+".html", []byte(output), 0o644); err != nil {
 		return err
 	}
 	return nil
@@ -164,7 +164,7 @@ func writeAsHTML(filename string, markdown string) error {
 
 // writeAsMarkdown writes markdown to a file
 func writeAsMarkdown(filename string, markdown string) error {
-	if err := ioutil.WriteFile(filename, []byte(markdown), 0644); err != nil {
+	if err := ioutil.WriteFile(filename, []byte(markdown), 0o644); err != nil {
 		return err
 	}
 	return nil

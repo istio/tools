@@ -80,7 +80,7 @@ func main() {
 
 		for _, module := range modules {
 			p := path.Join(basePath, module.moduleName)
-			_ = os.MkdirAll(p, 0755)
+			_ = os.MkdirAll(p, 0o755)
 
 			if len(module.licenses) > 0 {
 				for _, license := range module.licenses {
@@ -88,9 +88,9 @@ func main() {
 					targetPath := path.Join(p, license.path[len(module.path)+1:])
 					targetDir := path.Dir(targetPath)
 
-					_ = os.MkdirAll(targetDir, 0755)
+					_ = os.MkdirAll(targetDir, 0o755)
 
-					err := ioutil.WriteFile(targetPath, []byte(license.text), 0644)
+					err := ioutil.WriteFile(targetPath, []byte(license.text), 0o644)
 					if err != nil {
 						_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write license file to %s: %v\n", targetPath, err)
 						os.Exit(1)
@@ -98,7 +98,7 @@ func main() {
 				}
 			} else {
 				targetPath := path.Join(p, "NONE")
-				err := ioutil.WriteFile(targetPath, []byte("NO LICENSE FOUND\n"), 0644)
+				err := ioutil.WriteFile(targetPath, []byte("NO LICENSE FOUND\n"), 0o644)
 				if err != nil {
 					_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write file to %s: %v\n", targetPath, err)
 					os.Exit(1)
