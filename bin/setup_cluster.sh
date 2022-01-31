@@ -132,6 +132,7 @@ function get_resource() {
     fi
     sleep 10
   done
+  cat "${file_log}"
   echo 'failed to get a Boskos resource'
   return 1
 }
