@@ -17,7 +17,6 @@
 setup() {
   kubectl create ns twopods-istio
   kubectl create ns invalid-namespace-0
-  kubectl apply -f ../../istio-install/tmp/istio-1.12.0/samples/httpbin/httpbin.yaml -n twopods-istio
   kubectl apply -f <(istioctl kube-inject -f ./samples/sleep.yaml) -n invalid-namespace-0
   kubectl apply -f <(istioctl kube-inject -f ./samples/httpbin.yaml) -n twopods-istio
   go build ../../benchmark/security/generate_policies/generate_policies.go ../../benchmark/security/generate_policies/generate.go ../../benchmark/security/generate_policies/jwt.go
