@@ -1,0 +1,16 @@
+{
+    "authZ":
+    {
+        "numNamespaces":1, 
+        "numPaths":1,               
+        "numPolicies":100,            
+        "numPrincipals":1,          
+        "numSourceIP":1,            
+        "numRequestPrincipals":1   
+    },
+    "requestAuthN":
+    {
+      "numPolicies":100,
+      "NumJwks":1
+    }
+}
