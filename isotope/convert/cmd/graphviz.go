@@ -42,7 +42,7 @@ var graphvizCmd = &cobra.Command{
 		exitIfError(err)
 
 		outFileName := args[1]
-		err = ioutil.WriteFile(outFileName, []byte(dotLang), 0644)
+		err = ioutil.WriteFile(outFileName, []byte(dotLang), 0o644)
 		exitIfError(err)
 	},
 }

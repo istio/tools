@@ -74,8 +74,8 @@ func shouldSkipRequest(cmd script.RequestCommand) bool {
 func executeRequestCommand(
 	cmd script.RequestCommand,
 	forwardableHeader http.Header,
-	serviceTypes map[string]svctype.ServiceType) error {
-
+	serviceTypes map[string]svctype.ServiceType,
+) error {
 	if shouldSkipRequest(cmd) {
 		return nil
 	}

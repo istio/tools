@@ -47,7 +47,8 @@ var (
 	serviceGraphAppLabels       = map[string]string{"app": "service-graph"}
 	serviceGraphNodeLabels      = map[string]string{"role": "service"}
 	prometheusScrapeAnnotations = map[string]string{
-		"prometheus.io/scrape": "true"}
+		"prometheus.io/scrape": "true",
+	}
 )
 
 // ServiceGraphToKubernetesManifests converts a ServiceGraph to Kubernetes

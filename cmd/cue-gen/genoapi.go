@@ -179,7 +179,7 @@ func main() {
 		if split := bytes.Split(b, []byte("\n\n")); len(split) > 2 {
 			b = bytes.Join(split[2:], []byte("\n\n"))
 		}
-		fmt.Println(usage)
+		fmt.Print(usage)
 		flag.PrintDefaults()
 
 		fmt.Printf(helpTxt, b)
@@ -265,8 +265,8 @@ func main() {
 			if err != nil {
 				fatal(err, "Error formatting file: ")
 			}
-			_ = os.MkdirAll(filepath.Dir(filename), 0755)
-			if err := ioutil.WriteFile(filename, b, 0644); err != nil {
+			_ = os.MkdirAll(filepath.Dir(filename), 0o755)
+			if err := ioutil.WriteFile(filename, b, 0o644); err != nil {
 				log.Fatalf("Error writing file: %v", err)
 			}
 		}
@@ -711,7 +711,7 @@ func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
 
 	filename := filepath.Join(x.cwd, g.dir, g.OapiFilename)
 	fmt.Printf("Writing OpenAPI schemas into %v...\n", filename)
-	err = ioutil.WriteFile(filename, buf.Bytes(), 0644)
+	err = ioutil.WriteFile(filename, buf.Bytes(), 0o644)
 	if err != nil {
 		log.Fatalf("Error writing OpenAPI file %s in dir %s: %v", g.OapiFilename, g.dir, err)
 	}

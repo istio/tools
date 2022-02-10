@@ -318,7 +318,7 @@ var (
 				log.Fatalf("failed generating output Go source code %s: %v", output, err)
 			}
 
-			if err := ioutil.WriteFile(output, goSource.Bytes(), 0666); err != nil {
+			if err := ioutil.WriteFile(output, goSource.Bytes(), 0o666); err != nil {
 				log.Fatalf("Failed writing to output file %s: %v", output, err)
 			}
 
@@ -341,7 +341,7 @@ var (
 					log.Fatalf("failed generating output HTML file %s: %v", output, err)
 				}
 
-				if err := ioutil.WriteFile(htmlOutput, htmlFile.Bytes(), 0666); err != nil {
+				if err := ioutil.WriteFile(htmlOutput, htmlFile.Bytes(), 0o666); err != nil {
 					log.Fatalf("Failed writing to output file %s: %v", htmlOutput, err)
 				}
 			}
