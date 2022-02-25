@@ -15,8 +15,6 @@ This is an automatically generated rough draft of the release notes and has not 
 
 This release contains bug fixes to improve robustness. This release note describes what’s different between Istio <!--oldRelease--> and Istio <!--newRelease-->
 
-{{< relnote >}}
-
 # Changes
 
 <!-- releaseNotes action:Promoted -->
