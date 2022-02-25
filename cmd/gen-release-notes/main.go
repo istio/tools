@@ -77,12 +77,12 @@ func main() {
 
 		releaseNotesDir := "releasenotes/notes"
 		if _, err := os.Stat(notesDir); os.IsNotExist(err) {
-			fmt.Printf("Could not find repository -- directory %s does not exist.", notesDir)
+			fmt.Printf("Could not find repository -- directory %s does not exist.\n", notesDir)
 			os.Exit(1)
 		}
 
 		if _, err := os.Stat(filepath.Join(notesDir, releaseNotesDir)); os.IsNotExist(err) {
-			fmt.Printf("could not find release notes directory -- %s does not exist", filepath.Join(notesDir, releaseNotesDir))
+			fmt.Printf("Could not find release notes directory -- %s does not exist.\n", filepath.Join(notesDir, releaseNotesDir))
 			os.Exit(2)
 		}
 
