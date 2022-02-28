@@ -14,11 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+TEST_START="$(date -u +%s.%N)"
+
 set -x
 
 # Output a message, with a timestamp matching istio log format
 function log() {
-  echo -e "$(date -u '+%Y-%m-%dT%H:%M:%S.%NZ')\t$*"
+  { set +x; } 2>/dev/null
+  delta=$(date +%s.%N --date="$TEST_START seconds ago")
+  echo -e "$(date -u '+%Y-%m-%dT%H:%M:%S.%NZ')\t${delta%.*}s\t$*"
+  { set -x; } 2>/dev/null
 }
 
 log "Starting test..."
