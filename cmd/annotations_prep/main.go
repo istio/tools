@@ -32,8 +32,6 @@ import (
 	"text/template"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"sigs.k8s.io/yaml"
 )
 
@@ -432,11 +430,10 @@ func generateVariableName(v Variable) string {
 	// Strip .istio.io from the namespace portion of the annotation name.
 	ns = strings.TrimSuffix(ns, ".istio.io")
 
-	c := cases.Title(language.AmericanEnglish)
-
 	// Separate the words by spaces and capitalize each word.
 	ns = strings.ReplaceAll(ns, ".", " ")
-	ns = c.String(ns)
+	// nolint: staticcheck
+	ns = strings.Title(ns)
 
 	// Reverse the namespace words so that they increase in specificity from left to right.
 	nsParts := strings.Split(ns, " ")
@@ -449,7 +446,8 @@ func generateVariableName(v Variable) string {
 
 	// Separate the words with spaces and capitalize each word.
 	name = nameSeparator.ReplaceAllString(name, " ")
-	name = c.String(name)
+	// nolint: staticcheck
+	name = strings.Title(name)
 
 	// Remove the spaces to generate a camel case variable name.
 	name = strings.ReplaceAll(name, " ", "")
@@ -459,8 +457,8 @@ func generateVariableName(v Variable) string {
 }
 
 func getFeatureStatus(fs string) (FeatureStatus, error) {
-	c := cases.Title(language.AmericanEnglish)
-	asTitle := c.String(fs)
+	// nolint: staticcheck
+	asTitle := strings.Title(fs)
 	switch FeatureStatus(asTitle) {
 	case Alpha:
 		return Alpha, nil
@@ -469,7 +467,7 @@ func getFeatureStatus(fs string) (FeatureStatus, error) {
 	case Stable:
 		return Stable, nil
 	}
-	return "", fmt.Errorf("invalid feature status string: `%s` (cases.Title=`%s`)", fs, asTitle)
+	return "", fmt.Errorf("invalid feature status string: `%s` (stings.Title=`%s`)", fs, asTitle)
 }
 
 func generateFeatureStatus(v Variable) string {
