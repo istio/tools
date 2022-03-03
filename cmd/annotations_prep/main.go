@@ -432,6 +432,7 @@ func generateVariableName(v Variable) string {
 
 	// Separate the words by spaces and capitalize each word.
 	ns = strings.ReplaceAll(ns, ".", " ")
+	// nolint: staticcheck
 	ns = strings.Title(ns)
 
 	// Reverse the namespace words so that they increase in specificity from left to right.
@@ -445,6 +446,7 @@ func generateVariableName(v Variable) string {
 
 	// Separate the words with spaces and capitalize each word.
 	name = nameSeparator.ReplaceAllString(name, " ")
+	// nolint: staticcheck
 	name = strings.Title(name)
 
 	// Remove the spaces to generate a camel case variable name.
@@ -455,6 +457,7 @@ func generateVariableName(v Variable) string {
 }
 
 func getFeatureStatus(fs string) (FeatureStatus, error) {
+	// nolint: staticcheck
 	asTitle := strings.Title(fs)
 	switch FeatureStatus(asTitle) {
 	case Alpha:
