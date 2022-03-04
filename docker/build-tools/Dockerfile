@@ -753,7 +753,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
     ca-certificates \
     gcc \
-    git \
     ssh \
     libltdl7 \
     libc-dev \
@@ -765,6 +764,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     jq \
     tshark
+
+# Build git from source. Golang now requires a recent git version
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libssl-dev \
+    libcurl4-gnutls-dev \
+    libexpat1-dev \
+    gettext \
+    unzip && \
+    wget https://github.com/git/git/archive/v2.25.1.zip -O git.zip && \
+    unzip git.zip && \
+    cd git-* && \
+    make prefix=/usr/local all && \
+    make prefix=/usr/local install && \
+    cd .. && rm -r git-*
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
