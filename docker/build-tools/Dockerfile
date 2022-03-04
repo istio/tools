@@ -766,6 +766,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tshark
 
 # Build git from source. Golang now requires a recent git version
+# hadolint ignore=DL3003,DL3009,DL4001
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libssl-dev \
@@ -773,7 +774,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libexpat1-dev \
     gettext \
     unzip && \
-    wget https://github.com/git/git/archive/v2.25.1.zip -O git.zip && \
+    wget -q https://github.com/git/git/archive/v2.25.1.zip -O git.zip && \
     unzip git.zip && \
     cd git-* && \
     make prefix=/usr/local all && \
