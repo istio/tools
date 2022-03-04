@@ -799,6 +799,7 @@ RUN chmod +x /usr/local/bin/entrypoint
 # CMake
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # ubuntu 18.04 without arm64 version see https://apt.kitware.com/
+# hadolint ignore=DL4001
 RUN set -eux; \
     \
     case $(uname -m) in \
