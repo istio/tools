@@ -45,6 +45,7 @@ ENV GOIMPORTS_VERSION=v0.1.0
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV GH_VERSION=2.0.0
 ENV GOLANG_PROTOBUF_VERSION=v1.27.1
+ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.2.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v1.44.0
 ENV HADOLINT_VERSION=v2.8.0
@@ -118,6 +119,7 @@ RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
 # Build and install a bunch of Go tools
 RUN go install -ldflags="-s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN go install -ldflags="-s -w" google.golang.org/grpc/cmd/protoc-gen-go-grpc@@${GOLANG_GRPC_PROTOBUF_VERSION}
 RUN go install -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gofast@${GOGO_PROTOBUF_VERSION}
 RUN go install -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofast@${GOGO_PROTOBUF_VERSION}
 RUN go install -ldflags="-s -w" github.com/gogo/protobuf/protoc-gen-gogofaster@${GOGO_PROTOBUF_VERSION}
