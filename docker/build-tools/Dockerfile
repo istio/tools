@@ -774,6 +774,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     libcurl4-gnutls-dev \
     libexpat1-dev \
+    zlib1g-dev \
     gettext \
     unzip && \
     wget -q https://github.com/git/git/archive/v2.25.1.zip -O git.zip && \
