@@ -849,7 +849,7 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 	}
 
 	// turn the comment from markdown into HTML
-	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.FencedCode|blackfriday.AutoHeadingIDs))
+	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.FencedCode|blackfriday.AutoHeadingIDs|blackfriday.NoIntraEmphasis))
 
 	// compensate for a Blackfriday bug, where it incorrectly expands the & in HTML entities to &amp;
 	result = bytes.Replace(result, []byte("&amp;lt;"), []byte("&lt;"), -1)
