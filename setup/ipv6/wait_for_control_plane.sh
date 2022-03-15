@@ -25,9 +25,9 @@ function wait_for_control_plane() {
    for x in "${pods[@]}"; do
        echo "$x"
        pod_name=""
-       while [ "x$pod_name" == "x" ]; do
+       while [ "$pod_name" == "" ]; do
             pod_name=$(kubectl get pod -n kube-system | grep -G ^"$x" | awk '{print $1}')
-            if [ "x$pod_name" != "x" ]; then
+            if [ "$pod_name" != "" ]; then
                 while true; do
                     pod_status=$(kubectl get pod -n kube-system "$pod_name" -o jsonpath='{.status.phase}')
                     echo "Pod name: $pod_name status: $pod_status"

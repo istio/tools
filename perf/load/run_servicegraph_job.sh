@@ -41,7 +41,7 @@ export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
 helm init --client-only
-# shellcheck disable=SC1090
+# shellcheck disable=SC1090,SC1091
 source "${ROOT}/../bin/setup_cluster.sh"
 setup_e2e_cluster
 export GCS_BUCKET="istio-build/perf"
@@ -65,7 +65,7 @@ pushd "${ROOT}/istio-install"
 popd
 
 function service_graph() {
-  # shellcheck disable=SC1090
+  # shellcheck disable=SC1090,SC1091
   source "${WD}/common.sh"
   NAMESPACE_NUM=20
   START_NUM=0

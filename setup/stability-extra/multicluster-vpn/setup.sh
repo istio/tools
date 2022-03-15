@@ -209,14 +209,11 @@ echo
 # shellcheck disable=SC2086
 $KUBECTL2 create ns $APPS_NAMESPACE || true
 
-# shellcheck disable=SC1090
-# shellcheck disable=SC2086
+# shellcheck disable=SC1090,SC1091,SC2086
 ( . $BASE_DIR/default/setup.sh )
-# shellcheck disable=SC1090
-# shellcheck disable=SC2086
+# shellcheck disable=SC1090,SC1091,SC2086
 ( . $BASE_DIR/locality-distribute/setup.sh )
-# shellcheck disable=SC1090
-# shellcheck disable=SC2086
+# shellcheck disable=SC1090,SC1091,SC2086
 ( . $BASE_DIR/locality-failover/setup.sh )
 
 echo

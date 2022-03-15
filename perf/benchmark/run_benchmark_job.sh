@@ -55,7 +55,7 @@ export TRIALRUN=${TRIALRUN:-"False"}
 CLEANUP_PIDS=()
 
 # Step 1: setup cluster
-# shellcheck disable=SC1090
+# shellcheck disable=SC1090,SC1091
 source "${ROOT}/../bin/setup_cluster.sh"
 setup_e2e_cluster
 
