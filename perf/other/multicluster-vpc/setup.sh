@@ -81,7 +81,6 @@ function download() {
   local DIRNAME="$1"
 	# shellcheck disable=SC2086
 	rm -rf $DIRNAME && mkdir $DIRNAME
-	https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/
   local url="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/${RELEASE}/istio-${RELEASE}-linux.tar.gz"
 	# local url="https://storage.googleapis.com/istio-prerelease/daily-build/release-1.1-20190212-09-16/istio-release-1.1-20190212-09-16-linux.tar.gz"
   local outfile="${DIRNAME}/istio-${RELEASE}.tgz"

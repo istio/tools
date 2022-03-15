@@ -50,8 +50,6 @@ PROJECT_ID=${PROJECT_ID:?"project id is required"}
 set +u # Allow referencing unbound variable $CLUSTER
 if [[ -z ${CLUSTER_NAME} ]]; then
   CLUSTER_NAME=${1:?"cluster name is required"}
-else
-  CLUSTER_NAME=${CLUSTER_NAME}
 fi
 set -u
 

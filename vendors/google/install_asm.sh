@@ -74,7 +74,7 @@ function install_asm() {
 export INSTALL_ASM="${INSTALL_ASM:-}"
 export MULTI_CLUSTER="${MULTI_CLUSTER:-}"
 export SKIP_INSTALL=true
-# shellcheck disable=SC1090
+# shellcheck disable=SC1090,SC1091
 source "${ROOT}/../perf/istio-install/setup_istio.sh"
 
 download_release
