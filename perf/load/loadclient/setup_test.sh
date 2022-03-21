@@ -34,7 +34,7 @@ if [[ -z "${GATEWAY_URL:-}" ]];then
   if [[ -z "${GATEWAY_SERVICE_NAME:-}" ]];then
     GATEWAY_URL=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
   else
-    GATEWAY_URL=$(kubectl -n istio-system get service ${GATEWAY_SERVICE_NAME} -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
+    GATEWAY_URL=$(kubectl -n istio-system get service "${GATEWAY_SERVICE_NAME}" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || true)
   fi
 fi
 
