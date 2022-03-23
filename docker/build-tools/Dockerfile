@@ -364,7 +364,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Pinned versions of stuff we pull in
 ENV AWESOMEBOT_VERSION=1.20.0
-ENV FPM_VERSION=1.12.0
+# Sometime between 1.14.1 and 1.14.2 to pull in some fixes for deb
+ENV FPM_VERSION=eb5370d16e361db3f1425f8c898bafe7f3c66869
 ENV HTMLPROOFER_VERSION=3.19.0
 ENV LICENSEE_VERSION=9.15.1
 ENV MDL_VERSION=0.11.0
@@ -379,7 +380,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     cmake \
     pkg-config \
-    libssl-dev
+    libssl-dev \
+    git
 
 # RUN add-apt-repository -y ppa:brightbox/ruby-ng-experimental
 # TODO revert when arm64 version ready https://groups.google.com/g/brightbox-ruby-ubuntu-packaging/c/8JLWIsW_DWc
@@ -394,7 +396,11 @@ RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
 RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
-RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
+# hadolint ignore=DL3003,DL3028
+RUN git clone https://github.com/jordansissel/fpm && \
+    cd fpm && \
+    git reset --hard ${FPM_VERSION} && \
+    make install
 
 ##############
 # Python
