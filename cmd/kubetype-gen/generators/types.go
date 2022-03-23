@@ -15,9 +15,7 @@
 package generators
 
 import (
-	"fmt"
 	"io"
-	"os"
 
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/namer"
@@ -73,15 +71,7 @@ func (g *typesGenerator) GenerateType(c *generator.Context, t *types.Type, w io.
 	return sw.Error()
 }
 
-// getPointerType gets the prefix for a list type, based on whether we are generating for Gogo protobuf or golang protobuf.
-func getPointerType() string {
-	if os.Getenv("KUBETYPE_GOLANG_PROTOBUF") == "true" {
-		return "*"
-	}
-	return ""
-}
-
-var kubeTypeTemplate = fmt.Sprintf(`
+const kubeTypeTemplate = `
 $- range .RawType.SecondClosestCommentLines $
 // $ . $
 $- end $
@@ -94,24 +84,24 @@ $ range .RawType.CommentLines $
 // $ . $
 $- end $
 type $.KubeType.Type|public$ struct {
-	$.TypeMeta|raw$ `+"`"+`json:",inline"`+"`"+`
+	$.TypeMeta|raw$ ` + "`" + `json:",inline"` + "`" + `
 	// +optional
-	$.ObjectMeta|raw$ `+"`"+`json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`+"`"+`
+	$.ObjectMeta|raw$ ` + "`" + `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"` + "`" + `
 
 	// Spec defines the implementation of this definition.
 	// +optional
-	Spec $.RawType|raw$ `+"`"+`json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`+"`"+`
+	Spec $.RawType|raw$ ` + "`" + `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"` + "`" + `
 
-	Status $.IstioStatus|raw$ `+"`"+`json:"status"`+"`"+`
+	Status $.IstioStatus|raw$ ` + "`" + `json:"status"` + "`" + `
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // $.KubeType.Type|public$List is a collection of $.KubeType.Type|publicPlural$.
 type $.KubeType.Type|public$List struct {
-	$.TypeMeta|raw$ `+"`"+`json:",inline"`+"`"+`
+	$.TypeMeta|raw$ ` + "`" + `json:",inline"` + "`" + `
 	// +optional
-	$.ListMeta|raw$ `+"`"+`json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`+"`"+`
-	Items           []%s$.KubeType.Type|raw$ `+"`"+`json:"items" protobuf:"bytes,2,rep,name=items"`+"`"+`
+	$.ListMeta|raw$ ` + "`" + `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"` + "`" + `
+	Items           []%s$.KubeType.Type|raw$ ` + "`" + `json:"items" protobuf:"bytes,2,rep,name=items"` + "`" + `
 }
-`, getPointerType())
+`
