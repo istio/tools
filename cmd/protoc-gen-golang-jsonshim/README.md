@@ -22,24 +22,24 @@ Add the `golang-jsonshim_out` option to your `protoc` command line, for example:
 package generated
 
 import (
-	bytes "bytes"
-	jsonpb "github.com/golang/protobuf/jsonpb"
+    bytes "bytes"
+    jsonpb "github.com/golang/protobuf/jsonpb"
 )
 
 // MarshalJSON is a custom marshaler for Simple
 func (this *Simple) MarshalJSON() ([]byte, error) {
-	str, err := TypesMarshaler.MarshalToString(this)
-	return []byte(str), err
+    str, err := TypesMarshaler.MarshalToString(this)
+    return []byte(str), err
 }
 
 // UnmarshalJSON is a custom unmarshaler for Simple
 func (this *Simple) UnmarshalJSON(b []byte) error {
-	return TypesUnmarshaler.Unmarshal(bytes.NewReader(b), this)
+    return TypesUnmarshaler.Unmarshal(bytes.NewReader(b), this)
 }
 
 var (
-	TypesMarshaler   = &jsonpb.Marshaler{}
-	TypesUnmarshaler = &jsonpb.Unmarshaler{AllowUnknownFields: true}
+    TypesMarshaler   = &jsonpb.Marshaler{}
+    TypesUnmarshaler = &jsonpb.Unmarshaler{AllowUnknownFields: true}
 )
 
 ```
