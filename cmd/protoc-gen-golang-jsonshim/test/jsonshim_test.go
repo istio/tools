@@ -25,7 +25,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
 
-	"istio.io/tools/cmd/protoc-gen-jsonshim/test/generated"
+	"istio.io/tools/cmd/protoc-gen-golang-jsonshim/test/generated"
 )
 
 func TestSimpleCase(t *testing.T) {

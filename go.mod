@@ -9,7 +9,6 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emicklei/proto v1.9.1
 	github.com/getkin/kin-openapi v0.88.0
-	github.com/gogo/protobuf v1.3.2
 	github.com/golang/glog v1.0.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.6
@@ -21,11 +20,11 @@ require (
 	github.com/spf13/viper v1.10.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/tools v0.1.8
+	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-license-detector.v2 v2.0.0-20180510072912-da552ecf050b
 	gopkg.in/yaml.v2 v2.4.0
-	istio.io/api v0.0.0-20220118173337-a3a1e91b0610
-	istio.io/gogo-genproto v0.0.0-20220110182120-ce4298c8709c
+	istio.io/api v0.0.0-20220323204538-b69d80bfe899
 	k8s.io/apiextensions-apiserver v0.23.1
 	k8s.io/apimachinery v0.23.1
 	k8s.io/gengo v0.0.0-20211129171323-c02415ce4185
@@ -61,6 +60,7 @@ require (
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/gobuffalo/flect v0.2.3 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
@@ -119,7 +119,6 @@ require (
 	gonum.org/v1/netlib v0.0.0-20191031114514-eccb95939662 // indirect
 	google.golang.org/api v0.63.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	google.golang.org/grpc v1.43.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect

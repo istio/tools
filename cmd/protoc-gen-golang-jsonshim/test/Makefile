@@ -1,5 +1,5 @@
 
-go_package = istio.io/tools/cmd/protoc-gen-jsonshim/test/generated
+go_package = istio.io/tools/cmd/protoc-gen-golang-jsonshim/test/generated
 
 all: clean test
 
@@ -10,7 +10,7 @@ test: generate gobuild gotest
 
 generate:
 	if [ ! -d "generated" ]; then mkdir generated; fi
-	protoc --go_out=./generated --jsonshim_out=:./generated types.proto external.proto
+	protoc --go_out=./generated --golang-jsonshim_out=:./generated types.proto external.proto
 
 gobuild:
 	go build ./...

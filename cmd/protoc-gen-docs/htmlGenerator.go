@@ -25,14 +25,13 @@ import (
 	"unicode"
 
 	"github.com/client9/gospell"
-	gogoproto "github.com/gogo/protobuf/proto"
-	gogodescriptor "github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/russross/blackfriday/v2"
+	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/types/descriptorpb"
 
-	googleapi "istio.io/gogo-genproto/googleapis/google/api"
 	"istio.io/tools/pkg/protomodel"
 )
 
@@ -559,7 +558,7 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 					fb := getFieldBehavior(field.Options)
 					var required bool
 					for _, e := range fb {
-						if e == googleapi.REQUIRED {
+						if e == annotations.FieldBehavior_REQUIRED {
 							required = true
 						}
 					}
@@ -1090,20 +1089,20 @@ func normalizeID(id string) string {
 }
 
 // nolint: interfacer
-func getFieldBehavior(options *descriptor.FieldOptions) []googleapi.FieldBehavior {
+func getFieldBehavior(options *descriptor.FieldOptions) []annotations.FieldBehavior {
 	b, err := proto.Marshal(options)
 	if err != nil {
 		return nil
 	}
-	o := &gogodescriptor.FieldOptions{}
-	if err = gogoproto.Unmarshal(b, o); err != nil {
+	o := &descriptorpb.FieldOptions{}
+	if err = proto.Unmarshal(b, o); err != nil {
 		return nil
 	}
-	e, err := gogoproto.GetExtension(o, googleapi.E_FieldBehavior)
+	e, err := proto.GetExtension(o, annotations.E_FieldBehavior)
 	if err != nil {
 		return nil
 	}
-	s, ok := e.([]googleapi.FieldBehavior)
+	s, ok := e.([]annotations.FieldBehavior)
 	if !ok {
 		return nil
 	}

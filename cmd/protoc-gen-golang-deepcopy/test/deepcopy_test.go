@@ -20,7 +20,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
 
-	"istio.io/tools/cmd/protoc-gen-deepcopy/test/generated"
+	"istio.io/tools/cmd/protoc-gen-golang-deepcopy/test/generated"
 )
 
 func TestTagType(t *testing.T) {
