@@ -25,7 +25,7 @@
 # Binary tools
 ################
 
-ARG GOLANG_IMAGE=golang:1.18
+ARG GOLANG_IMAGE=golang:1.18.0
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -440,8 +440,8 @@ FROM ubuntu:focal as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV DOCKER_VERSION=5:20.10.12~3-0~ubuntu-focal
-ENV CONTAINERD_VERSION=1.4.12-1
+ENV DOCKER_VERSION=5:20.10.14~3-0~ubuntu-focal
+ENV CONTAINERD_VERSION=1.5.11-1
 ENV TRIVY_VERSION=0.25.0
 
 ENV OUTDIR=/out
@@ -720,8 +720,8 @@ LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
 # Docker
-ENV DOCKER_VERSION=5:20.10.6~3-0~ubuntu-${UBUNTU_RELEASE_CODE_NAME}
-ENV CONTAINERD_VERSION=1.4.4-1
+ENV DOCKER_VERSION=5:20.10.7~3-0~ubuntu-${UBUNTU_RELEASE_CODE_NAME}
+ENV CONTAINERD_VERSION=1.4.6-1
 
 # General
 ENV HOME=/home
