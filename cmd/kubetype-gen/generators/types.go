@@ -102,6 +102,6 @@ type $.KubeType.Type|public$List struct {
 	$.TypeMeta|raw$ ` + "`" + `json:",inline"` + "`" + `
 	// +optional
 	$.ListMeta|raw$ ` + "`" + `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"` + "`" + `
-	Items           []%s$.KubeType.Type|raw$ ` + "`" + `json:"items" protobuf:"bytes,2,rep,name=items"` + "`" + `
+	Items           []*$.KubeType.Type|raw$ ` + "`" + `json:"items" protobuf:"bytes,2,rep,name=items"` + "`" + `
 }
 `
