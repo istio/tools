@@ -37,14 +37,22 @@ if [[ -f /config-copy/.docker/plaintext-passwords.json ]]; then
 	# /config-copy/.docker/plaintext-passwords.json)
 	auth_value=$(jq -r '.auths."https://index.docker.io/v1/".auth' /config-copy/.docker/plaintext-passwords.json)
 
+	# Echo a message if the credentials are missing. It's only an issue if someone runs a
+	# command expecting Docker credentials.
+	if [ "$auth_value" == "null" ]; then
+		echo "Missing docker credentials."
+	fi
+
 	# decode and then encode the auth value
 	encode_value=$(echo "${auth_value}" | base64 --decode | base64)
 
 	# Use jq to set the auth value for the auth key in the config.json file
-	# Unfortuntaely jq does not support in-place editing.
+	# Unfortunately jq does not support in-place editing.
 	# This credential will be used to push the repositories' docker images.
+	# Also remove the credsStore key to prevent commands from trying to run
+	# programs on the host, you can't from the container, to retrieve creds.
 	jq --arg auth "${encode_value}" '.auths."https://index.docker.io/v1/".auth=$auth' /config-copy/.docker/config.json > /config-copy/.docker/config-tmp.json
-	mv /config-copy/.docker/config-tmp.json /config-copy/.docker/config.json
+	jq 'del(.credsStore)' /config-copy/.docker/config-tmp.json > /config-copy/.docker/config.json
 fi
 
 # Add user based upon passed UID. this means Istio need no longer host mount /etc/passwd
