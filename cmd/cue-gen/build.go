@@ -353,7 +353,6 @@ func extractCrdTags(lines []string, prefix string) map[string]map[string]string 
 		s := strings.SplitN(line[len(enableCRDGenTag+":"):], ":", 2)
 		if len(s) < 2 {
 			log.Fatalf("cannot recognize type from line: %v", line)
-			continue
 		}
 
 		t := prefix + "." + s[0]
@@ -367,7 +366,6 @@ func extractCrdTags(lines []string, prefix string) map[string]map[string]string 
 			v = ""
 		} else {
 			log.Fatalf("cannot retrieve config key value pair from line: %v", line)
-			continue
 		}
 		if _, ok := out[t]; !ok {
 			c := map[string]string{}

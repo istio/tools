@@ -70,7 +70,7 @@ func analyzeLicense(path string) (analysisResult, error) {
 	}
 
 	similarLicense := ""
-	var similarityConfidence float32 = 0.0
+	var similarityConfidence float32
 
 	if confidence < 0.85 {
 		// Not enough confidence
