@@ -25,7 +25,7 @@ import (
 type Mode string
 
 var (
-	ModeUnset   Mode = ""
+	ModeUnset   Mode
 	ModeFile    Mode = "file"
 	ModePackage Mode = "package"
 	ModeNone    Mode = "none"
