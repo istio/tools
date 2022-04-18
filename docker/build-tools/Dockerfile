@@ -227,7 +227,7 @@ RUN cp /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm3
 RUN mv /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm
 
 # yq doesn't support go modules, so install the binary instead
-ADD https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${TARGETARCH} /tmp
+ADD https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH} /tmp
 RUN mv /tmp/yq_linux_${TARGETARCH} ${OUTDIR}/usr/bin/yq
 RUN chmod 555 ${OUTDIR}/usr/bin/yq
 
