@@ -42,13 +42,13 @@ ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.1.0
 ENV BENCHSTAT_VERSION=9c9101da8316
-ENV GH_VERSION=2.7.0
+ENV GH_VERSION=2.8.0
 ENV GOLANG_PROTOBUF_VERSION=v1.27.1
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.2.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v1.44.0
 ENV HADOLINT_VERSION=v2.10.0
-ENV HELM3_VERSION=v3.8.0
+ENV HELM3_VERSION=v3.8.2
 ENV HUGO_VERSION=0.95.0
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.15.0
@@ -66,7 +66,7 @@ ENV PROTOTOOL_VERSION=v1.10.0
 ENV SHELLCHECK_VERSION=v0.8.0
 ENV SU_EXEC_VERSION=0.2
 ENV UPX_VERSION=3.96
-ENV YQ_VERSION=3.3.0
+ENV YQ_VERSION=4.24.5
 ENV KPT_VERSION=v0.39.3
 ENV BUF_VERSION=v1.1.0
 ENV GCLOUD_VERSION=377.0.0
@@ -227,7 +227,7 @@ RUN cp /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm3
 RUN mv /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm
 
 # yq doesn't support go modules, so install the binary instead
-ADD https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${TARGETARCH} /tmp
+ADD https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH} /tmp
 RUN mv /tmp/yq_linux_${TARGETARCH} ${OUTDIR}/usr/bin/yq
 RUN chmod 555 ${OUTDIR}/usr/bin/yq
 
