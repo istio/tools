@@ -49,7 +49,7 @@ ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.2.0
 ENV GOLANGCI_LINT_VERSION=v1.44.0
 ENV HADOLINT_VERSION=v2.10.0
 ENV HELM3_VERSION=v3.8.2
-ENV HUGO_VERSION=0.95.0
+ENV HUGO_VERSION=0.97.3
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.15.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
@@ -290,7 +290,7 @@ RUN rm -fr /usr/local/go/bin/gofmt
 # Nodejs
 #############
 
-FROM ubuntu:focal as nodejs_tools_context
+FROM ubuntu:jammy as nodejs_tools_context
 
 # Pinned versions of stuff we pull in
 ENV BABEL_CLI_VERSION=v7.7.4
@@ -351,7 +351,7 @@ RUN rm -rf /usr/local/share
 # Ruby
 #############
 
-FROM ubuntu:focal as ruby_tools_context
+FROM ubuntu:jammy as ruby_tools_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -376,13 +376,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     git
 
-# RUN add-apt-repository -y ppa:brightbox/ruby-ng-experimental
-# TODO revert when arm64 version ready https://groups.google.com/g/brightbox-ruby-ubuntu-packaging/c/8JLWIsW_DWc
-# ruby2.6 not in ubuntu officals
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ruby2.7 \
-    ruby2.7-dev
+    ruby3.0 \
+    ruby3.0-dev
 
 # Install istio.io verification tools
 RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
@@ -399,7 +396,7 @@ RUN git clone https://github.com/jordansissel/fpm && \
 # Python
 ##############
 
-FROM ubuntu:focal as python_context
+FROM ubuntu:jammy as python_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -436,11 +433,11 @@ RUN python3 -m pip install --no-cache-dir jwcrypto==${JWCRYPTO_VERSION}
 # Base OS
 #############
 
-FROM ubuntu:focal as base_os_context
+FROM ubuntu:jammy as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV DOCKER_VERSION=5:20.10.14~3-0~ubuntu-focal
+ENV DOCKER_VERSION=5:20.10.14~3-0~ubuntu-jammy
 ENV CONTAINERD_VERSION=1.5.11-1
 ENV TRIVY_VERSION=0.25.3
 
