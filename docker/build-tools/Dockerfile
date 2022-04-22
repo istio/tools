@@ -475,6 +475,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     locales-all \
     file
 
+# Fix Docker issue
+RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+
 # Docker including docker-ce, docker-ce-cli, and containerd.io
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
 RUN apt-key add /tmp/docker-key
