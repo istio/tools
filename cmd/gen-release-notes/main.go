@@ -294,7 +294,10 @@ func getFilesFromGHPRView(path string, pullRequest string, notesSubpath string) 
 	var results []string
 	for _, val := range prResults.Files {
 		if strings.Contains(val.Path, notesSubpath) {
-			results = append(results, val.Path)
+			// Only add file if it exists. May have been deleted in this PR.
+			if _, err := os.Stat(val.Path); !os.IsNotExist(err) {
+				results = append(results, val.Path)
+			}
 		}
 	}
 
