@@ -17,7 +17,7 @@ RUN yum install -y centos-release-scl epel-release && \
     yum clean all
 
 # Install bazel
-RUN curl -o /usr/local/bin/bazel -L https://github.com/bazelbuild/bazelisk/releases/download/v1.1.0/bazelisk-linux-amd64 && \
+RUN curl -o /usr/local/bin/bazel -L https://github.com/bazelbuild/bazelisk/releases/download/v1.9.0/bazelisk-linux-amd64 && \
     chmod +x /usr/local/bin/bazel
 
 RUN ln -s /usr/bin/cmake3 /usr/bin/cmake
