@@ -68,7 +68,8 @@ const (
 )
 
 func newHTMLGenerator(model *protomodel.Model, mode outputMode, genWarnings bool, warningsAsErrors bool, speller *gospell.GoSpell,
-	emitYAML bool, camelCaseFields bool, customStyleSheet string, perFile bool) *htmlGenerator {
+	emitYAML bool, camelCaseFields bool, customStyleSheet string, perFile bool,
+) *htmlGenerator {
 	return &htmlGenerator{
 		model:            model,
 		mode:             mode,
@@ -85,7 +86,8 @@ func newHTMLGenerator(model *protomodel.Model, mode outputMode, genWarnings bool
 func (g *htmlGenerator) getFileContents(file *protomodel.FileDescriptor,
 	messages *[]*protomodel.MessageDescriptor,
 	enums *[]*protomodel.EnumDescriptor,
-	services *[]*protomodel.ServiceDescriptor) {
+	services *[]*protomodel.ServiceDescriptor,
+) {
 	*messages = append(*messages, file.AllMessages...)
 	*enums = append(*enums, file.AllEnums...)
 	*services = append(*services, file.Services...)
@@ -96,7 +98,8 @@ func (g *htmlGenerator) getFileContents(file *protomodel.FileDescriptor,
 }
 
 func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*protomodel.FileDescriptor]bool, pkg *protomodel.PackageDescriptor,
-	response *plugin.CodeGeneratorResponse) {
+	response *plugin.CodeGeneratorResponse,
+) {
 	// We need to produce a file for each non-hidden file in this package.
 
 	// Decide which types need to be included in the generated file.
@@ -121,7 +124,8 @@ func (g *htmlGenerator) generatePerFileOutput(filesToGen map[*protomodel.FileDes
 }
 
 func (g *htmlGenerator) generatePerPackageOutput(filesToGen map[*protomodel.FileDescriptor]bool, pkg *protomodel.PackageDescriptor,
-	response *plugin.CodeGeneratorResponse) {
+	response *plugin.CodeGeneratorResponse,
+) {
 	// We need to produce a file for this package.
 
 	// Decide which types need to be included in the generated file.
@@ -224,7 +228,8 @@ func (g *htmlGenerator) hasName(descs []*protomodel.MessageDescriptor, name stri
 func (g *htmlGenerator) includeUnsituatedDependencies(messages *[]*protomodel.MessageDescriptor,
 	enums *[]*protomodel.EnumDescriptor,
 	msg *protomodel.MessageDescriptor,
-	isPackage bool) {
+	isPackage bool,
+) {
 	for _, field := range msg.Fields {
 		switch f := field.FieldType.(type) {
 		case *protomodel.MessageDescriptor:
@@ -254,7 +259,8 @@ func getPerPackageName(name string, file *protomodel.FileDescriptor) *string {
 
 // Generate a package documentation file or a collection of cross-linked files.
 func (g *htmlGenerator) generateFile(top *protomodel.FileDescriptor, messages []*protomodel.MessageDescriptor,
-	enums []*protomodel.EnumDescriptor, services []*protomodel.ServiceDescriptor) plugin.CodeGeneratorResponse_File {
+	enums []*protomodel.EnumDescriptor, services []*protomodel.ServiceDescriptor,
+) plugin.CodeGeneratorResponse_File {
 	g.buffer.Reset()
 
 	var typeList []string
