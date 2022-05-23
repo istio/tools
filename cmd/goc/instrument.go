@@ -167,9 +167,7 @@ func generateRegistrationFile(info *packages.Package, pkgPath string, contextVar
 func generateVarName(filePath string) string {
 	r := sha256.Sum256([]byte(filePath))
 	in := make([]byte, len(r))
-	for i := 0; i < len(r); i++ {
-		in[i] = r[i]
-	}
+	copy(in, r[0:])
 	return "codeCov" + hex.EncodeToString(in)
 }
 
