@@ -8,7 +8,7 @@ This directory tests the stability of istiod when security policies are deployed
 
 2) Run the following commands in different terminals.
 
-    `istioctl dashboard prometheus -n istio-promethues`
+    `istioctl dashboard prometheus -n istio-prometheus`
 
     `istioctl dashboard grafana -n istio-system`
 
@@ -16,24 +16,22 @@ This directory tests the stability of istiod when security policies are deployed
 
 4) Run the following command to run the control plane tests.
 
-    `./test.sh`
+```console
+./test.sh
+```
 
 ## Analysis
 
-1) We are analysing 3 different metrics in this test : CPU Load, Memory Usage, XDS Request Size. The graphs which you need to check must be named as : CPU, Memory, XDS Requests Size.
+1) We are analysing 3 different metrics in this test : CPU Load, Memory Usage, XDS Request Size. The graphs which you need to check must be named as: CPU, Memory, XDS Requests Size.
 
-2) CPU Load : It will increase whenever we add and delete the security policies. Istiod adds the policies and distributes the policies to envoy. So the CPU load will increase and while distributing the policies it will go little down and it will increase again while doing the same process again for the next batch of policies.
+2) CPU Load: It will increase whenever we add and delete the security policies. Istiod adds the policies and distributes the policies to envoy. So the CPU load will increase and while distributing the policies it will go little down and it will increase again while doing the same process again for the next batch of policies.
 
 <img src="./testdata/cpu_load.png" alt="CPU Load" />
 
-3) Memory Usage : Over the time when we add the policies the memory usage of control plane will go up, when we delete the policies it will go down. In the dashboard, you will see many different types of memories, you will need to focus on container memory.
+3) Memory Usage: Over the time when we add the policies the memory usage of control plane will go up, when we delete the policies it will go down. In the dashboard, you will see many different types of memories, you will need to focus on container memory.
 
 <img src="./testdata/memory_usage.png" alt="memory usage" />
 
-4) xDS Request Size : When isitod distributes the policies to envoy, it uses the xDS transport portocol. So xDS request size will go up whenever istiod distributes policies to envoy. This can help us validate that istiod to envoy connection is fine.
+4) xDS Request Size: When isitod distributes the policies to envoy, it uses the xDS transport portocol. So xDS request size will go up whenever istiod distributes policies to envoy. This can help us validate that istiod to envoy connection is fine.
 
 <img src="./testdata/xds_req_size.png" alt="xds req size" />
-
-
-
-

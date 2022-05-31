@@ -73,13 +73,13 @@ comments.  The following tags are available:
 > *.../group/version*.
 
 **+kubetype-gen:kubeType=\<name>**
-> The generated Kubenetes type should use the specified *name*.  If this tag is
+> The generated Kubernetes type should use the specified *name*.  If this tag is
 > not specified, the generated type will use the same name as the type.  This
 > tag may be specified multiple times, which will result in a generated type for
 > each specified *name*.
 
 **+kubetype-gen:\<name>:tag=\<tag>**
-> The generated Kubenetes type named *name* should have the specified *tag*
+> The generated Kubernetes type named *name* should have the specified *tag*
 > added to its generated comments.  The tag should not include the leading `+`
 > as this will be added by the generator.  This may be specified multiple times,
 > once for each *tag* that should be added to the generated type.
