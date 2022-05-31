@@ -31,7 +31,7 @@ The logs for sleep containers show number of requests that are sent to nginx and
 The logs for istio-egressgateway also show the GET requests that are routed from sleep pod's in `clientns` namespace to corresponding
 nginx pod's in `mesh-external` namespace.
 
-To download a specific version of istioctl and deploy the test worloads using that istioctl binary use:
+To download a specific version of istioctl and deploy the test workloads using that istioctl binary use:
 
     ```bash
     NUM=100 CLUSTER=gke_istio-security-testing_us-central1-a_istio-testing ./setup_test.sh 1.7.0 pre-release

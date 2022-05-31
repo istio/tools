@@ -2,7 +2,7 @@
 
 This folder provides tools to setup a cluster with Istio for performance testing.
 
-## Resource Requirment
+## Resource Requirement
 
 For load testing, the setup requires a very large cluster - at least 32 vCPUs reserved for Istio is recommended.
 The defaults values are 32vCP and at least 4 nodes.
@@ -32,6 +32,7 @@ export ISTIO_VERSION - installed version of istio, will be set as a label on nod
 ```
 
 The script will create files to be used later in the setup in ConfigMap type:
+
 - `${CLUSTER_NAME}/google-cloud-key.json` - will be used for authenticating control plane for GCP operations
 - `${CLUSTER_NAME}/kube.yaml` - credentials for accessing k8s
 - `${CLUSTER_NAME}/configmap*` - configmaps with GCP-specific configurations
@@ -41,18 +42,18 @@ The script will create files to be used later in the setup in ConfigMap type:
 The `setup_istio.sh` scripts is a helper to install Istio with specific configurations for performance testing. The script
 provides a few ways to specify which version to install:
 
-* `TAG`: for example `1.6-dev`. This will download the latest [dev build](https://github.com/istio/istio/wiki/Dev%20Builds) for the tag.
-* `DEV_VERSION`: for example, `1.4-alpha.41dee99277dbed4bfb3174dd0448ea941cf117fd`. This will download the specific [dev build](https://github.com/istio/istio/wiki/Dev%20Builds).
-* `VERSION`: for example, `1.2.3`. This will download a specific release version specified.
-* `RELEASE_URL`: for example, `https://example.com/istio.tar.gz`. This will download an arbitrary tar.gz.
-* `DNS_DOMAIN`: for example, `v104.qualistio.org`. This will use for TLS cert testing.
-* `GCS_URL`: for example, `gs://example/istio.tar.gz`. Same as `RELEASE_URL`, but will use `gsutil` to download.
+- `TAG`: for example `1.6-dev`. This will download the latest [dev build](https://github.com/istio/istio/wiki/Dev%20Builds) for the tag.
+- `DEV_VERSION`: for example, `1.4-alpha.41dee99277dbed4bfb3174dd0448ea941cf117fd`. This will download the specific [dev build](https://github.com/istio/istio/wiki/Dev%20Builds).
+- `VERSION`: for example, `1.2.3`. This will download a specific release version specified.
+- `RELEASE_URL`: for example, `https://example.com/istio.tar.gz`. This will download an arbitrary tar.gz.
+- `DNS_DOMAIN`: for example, `v104.qualistio.org`. This will use for TLS cert testing.
+- `GCS_URL`: for example, `gs://example/istio.tar.gz`. Same as `RELEASE_URL`, but will use `gsutil` to download.
 
 Additionally, installation values can be specified:
 
-* `IOPS`: used to specify file(s) for control plane install; defaults to `istioctl_profiles/long-running.yaml,istioctl_profiles/long-running-gateway.yaml`.
+- `IOPS`: used to specify file(s) for control plane install; defaults to `istioctl_profiles/long-running.yaml,istioctl_profiles/long-running-gateway.yaml`.
 
-Architecture will be automatically detected, but can be overrided. For example, `ARCH_SUFFIX=linux`.
+Architecture will be automatically detected, but can be overridden. For example, `ARCH_SUFFIX=linux`.
 
 In addition to setting up the core Istio, the prometheus operator and gateways for the telemetry addons will be setup. Pass `SKIP_EXTRAS` to skip these.
 

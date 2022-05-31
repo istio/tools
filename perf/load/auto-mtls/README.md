@@ -2,11 +2,9 @@
 
 Istio auto mutual TLS is a feature to automatically configure mutual TLS between Envoy sidecar.
 
-Since this feature can be affected by whether the destination service having Envoy sidecar or not,
-we setup the test to simulate traffic meanwhile updating deployments with or without Envoy
-sidecar simutaneously.
+Since this feature can be affected by whether the destination service having Envoy sidecar or not, we setup the test to simulate traffic meanwhile updating deployments with or without Envoy sidecar simultaneously.
 
-The service graph consists of two groups of services
+The service graph consists of two groups of services:
 
 - `svc-0-front` is the client, all with sidecars, calling `svc-0-back` service.
 - `svc-0-back-istio`, means backend, with istio sidecar injected, `*-legacy` means no sidecar.

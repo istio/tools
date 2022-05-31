@@ -549,7 +549,7 @@ ENV GOCACHE=/gocache
 ENV GOBIN=/gobin
 ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
-# Ruby suppport
+# Ruby support
 ENV RUBYOPT="-KU -E utf-8:utf-8"
 
 # Create the file system
@@ -591,7 +591,7 @@ RUN mkdir -p /go && \
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
 # They are created as root 755.  As a result they are not writeable, which fails in
 # the developer environment as a volume or bind mount inherits the permissions of
-# the directory mounted rather then overridding with the permission of the volume file.
+# the directory mounted rather then overriding with the permission of the volume file.
 RUN chmod 777 /go && \
     chmod 777 /gocache && \
     chmod 777 /gobin && \
@@ -866,7 +866,7 @@ RUN mkdir -p /go && \
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
 # They are created as root 755.  As a result they are not writeable, which fails in
 # the developer environment as a volume or bind mount inherits the permissions of
-# the directory mounted rather then overridding with the permission of the volume file.
+# the directory mounted rather then overriding with the permission of the volume file.
 RUN chmod 777 /go && \
     chmod 777 /gocache && \
     chmod 777 /gobin && \
