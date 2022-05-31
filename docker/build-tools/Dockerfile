@@ -289,8 +289,9 @@ RUN rm -fr /usr/local/go/bin/gofmt
 #############
 # Node.js
 #############
-
 FROM ubuntu:jammy as nodejs_tools_context
+
+WORKDIR /node
 
 # Pinned versions of stuff we pull in
 ENV BABEL_CLI_VERSION=v7.17.10
@@ -324,7 +325,7 @@ ADD https://nodejs.org/download/release/v${NODEJS_VERSION}/node-v${NODEJS_VERSIO
 RUN tar -xzf /tmp/node-v${NODEJS_VERSION}-headers.tar.gz --strip-components=1 -C /usr/local
 
 RUN npm init -y
-RUN npm install --production --global \
+RUN npm install --omit=dev --global \
     sass@"${SASS_VERSION}" \
     sass-lint@"${SASS_LINT_VERSION}" \
     typescript@"${TYPESCRIPT_VERSION}" \
@@ -337,7 +338,7 @@ RUN npm install --production --global \
     @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}" \
     linkinator@"${LINKINATOR_VERSION}"
 
-RUN npm install --production --save-dev \
+RUN npm install --omit=dev --save-dev \
     babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
 
 RUN npm install --save-dev \
@@ -558,7 +559,7 @@ COPY --from=binary_tools_context /usr/local/go /usr/local/go
 
 COPY --from=nodejs_tools_context /usr/local/bin /usr/local/bin
 COPY --from=nodejs_tools_context /usr/local/lib/node_modules /usr/local/lib/node_modules
-COPY --from=nodejs_tools_context /node_modules /node_modules
+COPY --from=nodejs_tools_context /node/node_modules /node_modules
 
 COPY --from=ruby_tools_context /usr/bin /usr/bin
 COPY --from=ruby_tools_context /usr/lib /usr/lib
