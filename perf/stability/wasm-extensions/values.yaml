@@ -1,0 +1,5 @@
+fortioImage: fortio/fortio:latest
+curlImage: curlimages/curl:latest
+wasmChangeIntervalSeconds: 10
+moduleExpirySeconds: 5
+kubectlImage: bitnami/kubectl:latest

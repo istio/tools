@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wasm-test-client
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: wasm-test-client
+  template:
+    metadata:
+      labels:
+        app: wasm-test-client
+    spec:
+      containers:
+        - name: wasm-test-client
+          image: {{ .Values.curlImage }}
+          args:
+            - /bin/sh
+            - -c
+            - |-
+              while true; do
+                RESULT=$(curl -sS -o /dev/null -D - wasm-test-server:8080/echo | grep x-resp-injection)
+                if [[ "$RESULT" == "" ]]; then 
+                  echo "$(date): no injected header"
+                else
+                  echo "$(date): $RESULT"
+                fi
+                sleep .1
+              done
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
