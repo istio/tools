@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wasm-configurator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: wasm-configurator
+spec:
+  selector:
+    matchLabels:
+      app: wasm-configurator
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: wasm-configurator
+    spec:
+      serviceAccount: wasm-extensions-service-account
+      containers:
+      - image: {{ .Values.kubectlImage }}
+        name: wasm-configurator
+        command:
+          - bash
+          - -c
+          - |-
+            #!/bin/bash
+            while [ 1 ] ; do 
+              sed "s/%PLACEHOLDER%/$(( $v + 1 ))/" /tmpl/wasm-extension.yaml | kubectl apply -f -
+              v=$(( ( $v + 1 ) % 2 ))
+              sleep {{ .Values.wasmChangeIntervalSeconds }}
+              kubectl delete -f /tmpl/wasm-extension.yaml 
+              sleep {{ .Values.wasmChangeIntervalSeconds }}
+            done
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        volumeMounts:
+        - name: wasm-template-volume
+          mountPath: /tmpl
+      volumes:
+        - name: wasm-template-volume
+          configMap:
+            name: wasm-template
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wasm-template
+  namespace: {{ .Release.Namespace }}
+data:
+  wasm-extension.yaml: |-
+{{ .Files.Get "wasm-extension.yaml" | indent 4 }}
+---
