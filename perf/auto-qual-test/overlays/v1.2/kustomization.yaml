@@ -1,4 +1,0 @@
-bases:
-  - ../../base
-patchesStrategicMerge:
-- qual-test-version-1.2.yaml
