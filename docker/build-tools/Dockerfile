@@ -24,7 +24,6 @@
 ################
 # Binary tools
 ################
-
 ARG GOLANG_IMAGE=golang:1.18.3
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
