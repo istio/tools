@@ -16,6 +16,15 @@
 
 set -eux
 
+function wait_for_image() {
+  img="${1?image name}"
+  SLEEP_TIME=60
+  until crane manifest "${img}" > /dev/null; do
+    echo "Image ${img} not yet ready, trying again..."
+    sleep $SLEEP_TIME
+  done
+}
+
 # Enable docker buildx
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
@@ -24,10 +33,21 @@ CONTAINER_CLI=${CONTAINER_CLI:-docker}
 # Use buildx for CI by default, allow overriding for old clients or other tools like podman
 CONTAINER_BUILDER=${CONTAINER_BUILDER:-"buildx build"}
 HUB=${HUB:-gcr.io/istio-testing}
-DATE=$(date +%Y-%m-%dT%H-%M-%S)
+# Suffix is derive from the Git SHA we are building for consistency.
+# If there is none define, we fallback to date. Note this doesn't work with MANIFEST_ARCH
+SUFFIX="${PULL_BASE_SHA:-$(date +%Y-%m-%dT%H-%M-%S)}"
 BRANCH=master
-VERSION="${BRANCH}-${DATE}"
+VERSION="${BRANCH}-${SUFFIX}"
 SHA="${BRANCH}"
+# Arch defines the architecture to tag this image as.
+# Note: it is up to the user to ensure that this matches the architecture it was built on; we could add `--platform` explicitly
+# but to keep things simple and support alternative builders, we elide it.
+# Emulation takes many hours to build, so its recommended to build natively anyways.
+ARCH="${TARGET_ARCH:-amd64}"
+# MANIFEST_ARCH, if present, defines which architectures we should join together once complete.
+# For example, if we have MANIFEST_ARCH="amd64 arm64", after the build is complete we will merge the amd64 and arm64 images
+# Generally, this should always be set even with a single architecture build or we will end up with only an image with a `-{arch}` suffix.
+MANIFEST_ARCH="${MANIFEST_ARCH:-amd64}"
 
 # The docker image runs `go get istio.io/tools@${SHA}`
 # In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
@@ -45,19 +65,67 @@ if [[ -n "${GOLANG_IMAGE:-}" ]]; then
 fi
 
 # shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools:${VERSION}" -t "${HUB}/build-tools:${BRANCH}-latest" .
+${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools \
+  ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
+  -t "${HUB}/build-tools:${VERSION}-${ARCH}" \
+  -t "${HUB}/build-tools:${BRANCH}-latest-${ARCH}" \
+  .
 # shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_env_proxy ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-proxy:${VERSION}" -t "${HUB}/build-tools-proxy:${BRANCH}-latest" .
+${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_env_proxy \
+  ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
+  -t "${HUB}/build-tools-proxy:${VERSION}-${ARCH}" \
+  -t "${HUB}/build-tools-proxy:${BRANCH}-latest-${ARCH}" \
+  .
 if [[ "$(uname -m)" == "x86_64" ]]; then
-# shellcheck disable=SC2086
-${CONTAINER_CLI} ${CONTAINER_BUILDER} ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" -t "${HUB}/build-tools-centos:${VERSION}" -t "${HUB}/build-tools-centos:${BRANCH}-latest" -f Dockerfile.centos .
+  # Multi arch is not supported for CentOS, since its legacy and multi-arch is new.
+  # shellcheck disable=SC2086
+  ${CONTAINER_CLI} ${CONTAINER_BUILDER} \
+    ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
+    -t "${HUB}/build-tools-centos:${VERSION}" \
+    -t "${HUB}/build-tools-centos:${BRANCH}-latest" \
+    -f Dockerfile.centos \
+    .
 fi
 
 if [[ -z "${DRY_RUN:-}" ]]; then
-  ${CONTAINER_CLI} push "${HUB}/build-tools:${VERSION}"
-  ${CONTAINER_CLI} push "${HUB}/build-tools:${BRANCH}-latest"
-  ${CONTAINER_CLI} push "${HUB}/build-tools-proxy:${VERSION}"
-  ${CONTAINER_CLI} push "${HUB}/build-tools-proxy:${BRANCH}-latest"
-  ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${VERSION}"
-  ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${BRANCH}-latest"
+  # CentOS images images are special, handle first
+  if [[ "$(uname -m)" == "x86_64" ]]; then
+    ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${VERSION}"
+    ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${BRANCH}-latest"
+  fi
+
+  TO_PUSH=(
+    "${HUB}/build-tools:${VERSION}"
+    "${HUB}/build-tools:${BRANCH}-latest"
+    "${HUB}/build-tools-proxy:${VERSION}"
+    "${HUB}/build-tools-proxy:${BRANCH}-latest"
+  )
+  # First, push the architecture specific images
+  for image in "${TO_PUSH[@]}"; do
+    ${CONTAINER_CLI} push "${image}-${ARCH}"
+  done
+
+
+  # Building the manifest is a bit complex due to limitations in our CI, as typical approachs are not viable:
+  # * Emulation is way to slow to build these images (many hours)
+  # * Starting up remote buildx builders is plausible, but has portability, security, and complexity concerns
+  # * Building each image on a arch-specific job, then "joining" them in a final job would work, but prow cannot do this
+  # Instead, we are forced to make one of the jobs the "lead" job, which polls for the other jobs to complete then merges the images.
+  if [[ "${MANIFEST_ARCH}" != "" ]]; then
+    echo "Build multi-arch manifests for ${MANIFEST_ARCH}"
+    IFS=" " read -r -a __arches__ <<< "${MANIFEST_ARCH}"
+
+    for image in "${TO_PUSH[@]}"; do
+      images=()
+      for arch in "${__arches__[@]}"; do
+        arch_img="${image}-${arch}"
+        # The other images are pushed by another job, wait for it to be ready
+        wait_for_image "${arch_img}"
+        images+=("${arch_img}")
+      done
+      docker manifest rm "${image}" || true
+      docker manifest create "${image}" "${images[@]}"
+      docker manifest push "${image}"
+    done
+  fi
 fi
