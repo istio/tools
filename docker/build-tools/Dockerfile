@@ -266,7 +266,8 @@ RUN set -eux; \
     tar -xzvf ."/${GCLOUD_TAR_FILE}" -C "${OUTDIR}/usr/local" && rm "${GCLOUD_TAR_FILE}"; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta --quiet; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install alpha --quiet; \
-    rm -rf /usr/local/google-cloud-sdk/.install/.backup
+    rm -rf ${OUTDIR}/usr/local/google-cloud-sdk/.install/.backup \
+    rm -rf ${OUTDIR}/usr/local/google-cloud-sdk/bin/anthoscli
 
 # Install cosign (for signing build artifacts) and verify signature
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
