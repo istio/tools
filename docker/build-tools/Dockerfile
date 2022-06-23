@@ -165,6 +165,7 @@ RUN go install sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
 RUN git clone https://github.com/kubernetes/test-infra --branch master --single-branch && \
   cd test-infra && \
   git checkout "${K8S_TEST_INFRA_VERSION}" && \
+  go install ./robots/pr-creator && \
   go install ./prow/cmd/peribolos && \
   go install ./pkg/benchmarkjunit && \
   cd .. && rm -rf test-infra
