@@ -39,7 +39,7 @@ log "Done enabling IPv6 in Docker config."
 # this may cause connectivity issues.
 mkdir /etc/docker
 primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
-hostMTU="$(cat /sys/class/net/$primaryInterface/mtu)"
+hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
 echo "{\"debug\":true, \"mtu\":\"${hostMTU:-1500}\"}" > /etc/docker/daemon.json
 
 # Start docker daemon and wait for dockerd to start
