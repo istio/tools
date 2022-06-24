@@ -47,7 +47,7 @@ ARCH="${TARGET_ARCH:-amd64}"
 # MANIFEST_ARCH, if present, defines which architectures we should join together once complete.
 # For example, if we have MANIFEST_ARCH="amd64 arm64", after the build is complete we will merge the amd64 and arm64 images
 # Generally, this should always be set even with a single architecture build or we will end up with only an image with a `-{arch}` suffix.
-MANIFEST_ARCH="${MANIFEST_ARCH:-amd64}"
+MANIFEST_ARCH="${MANIFEST_ARCH-amd64}"
 
 # The docker image runs `go get istio.io/tools@${SHA}`
 # In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
