@@ -31,7 +31,7 @@ export DOCKER_CLI_EXPERIMENTAL=enabled
 # support other container tools, e.g. podman
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 # Use buildx for CI by default, allow overriding for old clients or other tools like podman
-CONTAINER_BUILDER=${CONTAINER_BUILDER:-"buildx build"}
+CONTAINER_BUILDER=${CONTAINER_BUILDER:-"buildx build --load"}
 HUB=${HUB:-gcr.io/istio-testing}
 # Suffix is derive from the Git SHA we are building for consistency.
 # If there is none define, we fallback to date. Note this doesn't work with MANIFEST_ARCH
