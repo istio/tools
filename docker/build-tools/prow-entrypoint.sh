@@ -34,9 +34,13 @@ sysctl net.ipv6.conf.all.forwarding=1
 sysctl net.ipv6.conf.all.disable_ipv6=0
 log "Done enabling IPv6 in Docker config."
 
-# Enable debug logs for docker daemon
+# Enable debug logs for docker daemon, and set the MTU to the external NIC MTU
+# Docker will always use 1500 as the MTU; in environments where the host has <1500 as the MTU
+# this may cause connectivity issues.
 mkdir /etc/docker
-echo '{"debug":true}' > /etc/docker/daemon.json
+primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
+hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
+echo "{\"debug\":true, \"mtu\":\"${hostMTU:-1500}\"}" > /etc/docker/daemon.json
 
 # Start docker daemon and wait for dockerd to start
 service docker start
