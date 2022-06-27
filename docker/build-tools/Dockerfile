@@ -71,7 +71,6 @@ ENV KPT_VERSION=v0.39.3
 ENV BUF_VERSION=v0.43.2
 ENV GCLOUD_VERSION=377.0.0
 ENV KUBETEST2_VERSION=92c12f91d13cbe9f17b62c7b0803d31e4c40431c
-ENV BOSKOSCTL_VERSION=c6d730e323f06da1b56dfa14bdab6d7d5dc22e2a
 ENV COSIGN_VERSION=v1.3.0
 ENV CRANE_VERSION=v0.6.0
 
@@ -180,17 +179,6 @@ RUN git clone https://github.com/kubernetes/test-infra --branch master --single-
   go install ./prow/cmd/peribolos && \
   go install ./pkg/benchmarkjunit && \
   cd .. && rm -rf test-infra
-# hadolint ignore=DL3003
-RUN git clone --depth 1 https://github.com/istio/test-infra --branch master --single-branch && \
-  cd test-infra && \
-  go install ./toolbox/githubctl && \
-  go install ./boskos/cmd/mason_client && \
-  cd .. && rm -rf test-infra
-# hadolint ignore=DL3003
-RUN git clone --depth 1 https://github.com/kubernetes-sigs/boskos --branch master --single-branch && \
-  cd boskos && \
-  go install ./cmd/boskosctl && \
-  cd .. && rm -rf boskos
 
 # Compress the Go tools and put them in their final location
 ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz /tmp
@@ -232,8 +220,8 @@ RUN set -eux; \
 ADD https://get.helm.sh/helm-${HELM3_VERSION}-linux-${TARGETARCH}.tar.gz /tmp
 RUN mkdir /tmp/helm3
 RUN tar -xf /tmp/helm-${HELM3_VERSION}-linux-${TARGETARCH}.tar.gz -C /tmp/helm3
-RUN cp /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm3
-RUN mv /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm
+RUN mv /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm3
+RUN ln ${OUTDIR}/usr/bin/helm3 ${OUTDIR}/usr/bin/helm
 
 # yq doesn't support go modules, so install the binary instead
 ADD https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${TARGETARCH} /tmp
