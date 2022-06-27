@@ -40,7 +40,7 @@ log "Done enabling IPv6 in Docker config."
 mkdir /etc/docker
 primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
 hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
-echo "{\"debug\":true, \"mtu\":\"${hostMTU:-1500}\"}" > /etc/docker/daemon.json
+echo "{\"debug\":true, \"mtu\":${hostMTU:-1500}}" > /etc/docker/daemon.json
 
 # Start docker daemon and wait for dockerd to start
 service docker start
