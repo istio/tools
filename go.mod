@@ -3,11 +3,11 @@ module istio.io/tools
 go 1.17
 
 require (
-	cloud.google.com/go/spanner v1.34.0
+	cloud.google.com/go/spanner v1.34.1
 	cuelang.org/go v0.4.3
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/emicklei/proto v1.10.0
+	github.com/emicklei/proto v1.11.0
 	github.com/getkin/kin-openapi v0.97.0
 	github.com/golang/glog v1.0.0
 	github.com/golang/protobuf v1.5.2
@@ -20,22 +20,22 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/tools v0.1.11
-	google.golang.org/genproto v0.0.0-20220628213854-d9e0b6570c03
+	google.golang.org/genproto v0.0.0-20220718134204-073382fd740c
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/src-d/go-license-detector.v2 v2.0.0-20180510072912-da552ecf050b
 	gopkg.in/yaml.v2 v2.4.0
-	istio.io/api v0.0.0-20220627132838-080342889567
-	k8s.io/apiextensions-apiserver v0.24.2
-	k8s.io/apimachinery v0.24.2
+	istio.io/api v0.0.0-20220713144422-9a8420aadebb
+	k8s.io/apiextensions-apiserver v0.24.3
+	k8s.io/apimachinery v0.24.3
 	k8s.io/gengo v0.0.0-20220613173612-397b4ae3bce7
-	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
+	k8s.io/utils v0.0.0-20220713171938-56c0de1e6f5e
 	sigs.k8s.io/controller-tools v0.9.2
 	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
-	cloud.google.com/go v0.102.0 // indirect
-	cloud.google.com/go/compute v1.6.1 // indirect
+	cloud.google.com/go v0.102.1 // indirect
+	cloud.google.com/go/compute v1.7.0 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 // indirect
@@ -64,7 +64,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.0.0-20220520183353-fd19c99a87aa // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.1.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.4.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hhatto/gorst v0.0.0-20181029133204-ca9f730cac5b // indirect
@@ -113,14 +113,14 @@ require (
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/exp v0.0.0-20210126221216-84987778548c // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.0.0-20220607020251-c690dde0001d // indirect
+	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
 	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb // indirect
-	golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d // indirect
+	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	gonum.org/v1/gonum v0.6.0 // indirect
 	gonum.org/v1/netlib v0.0.0-20191031114514-eccb95939662 // indirect
-	google.golang.org/api v0.84.0 // indirect
+	google.golang.org/api v0.85.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

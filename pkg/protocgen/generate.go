@@ -19,8 +19,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/golang/protobuf/proto"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"google.golang.org/protobuf/proto"
+	plugin "google.golang.org/protobuf/types/pluginpb"
 )
 
 // GenerateFn is a function definition for encapsulating the ore logic of code generation.
