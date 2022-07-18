@@ -27,8 +27,10 @@ import (
 
 // Handler handles the default endpoint by emulating its Service.
 type Handler struct {
-	Service         svc.Service
-	ServiceTypes    map[string]svctype.ServiceType
+	Service      svc.Service
+	ServiceTypes map[string]svctype.ServiceType
+	StatusTicker *StatusTicker
+
 	responsePayload []byte
 }
 
@@ -54,6 +56,13 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		prometheus.RecordResponseSent(duration, len(h.responsePayload), status)
 	}
 
+	statusCode := <-h.StatusTicker.StatusChan
+	if statusCode == http.StatusInternalServerError {
+		log.Debug("Provoking simulated failure")
+		respond(http.StatusInternalServerError, "simulated failure")
+		return
+	}
+
 	for _, step := range h.Service.Script {
 		forwardableHeader := extractForwardableHeader(request.Header)
 		err := execute(step, forwardableHeader, h.ServiceTypes)
@@ -64,5 +73,5 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
-	respond(http.StatusOK, "")
+	respond(statusCode, "")
 }

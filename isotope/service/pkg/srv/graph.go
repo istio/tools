@@ -53,8 +53,12 @@ func HandlerFromServiceGraphYAML(
 	}
 
 	return Handler{
-		Service:         service,
-		ServiceTypes:    serviceTypes,
+		Service:      service,
+		ServiceTypes: serviceTypes,
+		StatusTicker: &StatusTicker{
+			Probability: float64(service.ErrorRate),
+			StatusChan:  make(chan int),
+		},
 		responsePayload: responsePayload,
 	}, nil
 }
