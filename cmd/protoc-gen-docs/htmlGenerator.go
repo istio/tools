@@ -25,12 +25,11 @@ import (
 	"unicode"
 
 	"github.com/client9/gospell"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/russross/blackfriday/v2"
 	"google.golang.org/genproto/googleapis/api/annotations"
-	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/proto"
+	descriptor "google.golang.org/protobuf/types/descriptorpb"
+	plugin "google.golang.org/protobuf/types/pluginpb"
 
 	"istio.io/tools/pkg/protomodel"
 )
@@ -1100,14 +1099,11 @@ func getFieldBehavior(options *descriptor.FieldOptions) []annotations.FieldBehav
 	if err != nil {
 		return nil
 	}
-	o := &descriptorpb.FieldOptions{}
+	o := &descriptor.FieldOptions{}
 	if err = proto.Unmarshal(b, o); err != nil {
 		return nil
 	}
-	e, err := proto.GetExtension(o, annotations.E_FieldBehavior)
-	if err != nil {
-		return nil
-	}
+	e := proto.GetExtension(o, annotations.E_FieldBehavior)
 	s, ok := e.([]annotations.FieldBehavior)
 	if !ok {
 		return nil
