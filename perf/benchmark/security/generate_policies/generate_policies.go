@@ -27,7 +27,10 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
+
+	// nolint: staticcheck
+	legacyproto "github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	"sigs.k8s.io/yaml"
 
 	authzpb "istio.io/api/security/v1beta1"
@@ -96,7 +99,7 @@ func ToJSONWithIndent(msg proto.Message, indent string) (string, error) {
 	}
 
 	m := jsonpb.Marshaler{Indent: indent}
-	return m.MarshalToString(msg)
+	return m.MarshalToString(legacyproto.MessageV1(msg))
 }
 
 func ToYAML(msg proto.Message) (string, error) {

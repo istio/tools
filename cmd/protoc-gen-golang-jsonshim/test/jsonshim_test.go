@@ -21,7 +21,9 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
+
+	// nolint: staticcheck
+	legacyproto "github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
 
@@ -89,7 +91,7 @@ func TestImportedReference(t *testing.T) {
 	testSerialization(t, obj)
 }
 
-func testSerialization(t *testing.T, obj proto.Message) {
+func testSerialization(t *testing.T, obj legacyproto.Message) {
 	pbm := &jsonpb.Marshaler{}
 	pbBuf := &bytes.Buffer{}
 	jsonBytes, err := json.Marshal(obj)
@@ -119,6 +121,6 @@ func testSerialization(t *testing.T, obj proto.Message) {
 	}
 }
 
-func newObject(source proto.Message) proto.Message {
-	return reflect.New(reflect.TypeOf(source).Elem()).Interface().(proto.Message)
+func newObject(source legacyproto.Message) legacyproto.Message {
+	return reflect.New(reflect.TypeOf(source).Elem()).Interface().(legacyproto.Message)
 }
