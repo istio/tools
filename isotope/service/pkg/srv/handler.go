@@ -16,6 +16,7 @@ package srv
 
 import (
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"istio.io/pkg/log"
@@ -29,12 +30,12 @@ import (
 type Handler struct {
 	Service      svc.Service
 	ServiceTypes map[string]svctype.ServiceType
-	StatusTicker *StatusTicker
 
 	responsePayload []byte
+	counter         uint64
 }
 
-func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (h *Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	startTime := time.Now()
 
 	prometheus.RecordRequestReceived()
@@ -56,8 +57,9 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		prometheus.RecordResponseSent(duration, len(h.responsePayload), status)
 	}
 
-	statusCode := <-h.StatusTicker.StatusChan
-	if statusCode == http.StatusInternalServerError {
+	// Simulate failure based on the error percentage
+	atomic.AddUint64(&h.counter, 1)
+	if h.Service.ErrorRate > 0 && atomic.CompareAndSwapUint64(&h.counter, 10000/uint64(h.Service.ErrorRate*10000), 0) {
 		log.Debug("Provoking simulated failure")
 		respond(http.StatusInternalServerError, "simulated failure")
 		return
@@ -73,5 +75,5 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
-	respond(statusCode, "")
+	respond(http.StatusOK, "")
 }

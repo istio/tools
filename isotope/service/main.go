@@ -15,7 +15,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -85,10 +84,7 @@ func main() {
 	}
 }
 
-func serveWithPrometheus(defaultHandler srv.Handler) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
+func serveWithPrometheus(defaultHandler http.Handler) error {
 	log.Infof(`exposing Prometheus endpoint "%s"`, promEndpoint)
 	http.Handle(promEndpoint, prometheus.Handler())
 
@@ -97,7 +93,6 @@ func serveWithPrometheus(defaultHandler srv.Handler) error {
 
 	addr := fmt.Sprintf(":%d", consts.ServicePort)
 	log.Infof("listening on port %v\n", consts.ServicePort)
-	defaultHandler.StatusTicker.Start(ctx)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		return err
 	}
