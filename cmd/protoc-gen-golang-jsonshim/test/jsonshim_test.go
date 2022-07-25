@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/jsonpb"
-
 	// nolint: staticcheck
 	legacyproto "github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
