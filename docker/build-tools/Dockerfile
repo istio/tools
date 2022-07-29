@@ -14,6 +14,7 @@
 
 # This is used to build Istio's primary build container, which contains all the tools
 # necessary to perform and all build activities in all Istio repos.
+# The container currently supports linux/amd64 and linux/arm64 builds.
 #
 # The container is built using different contexts, one per execution environment (plain binaries, Ruby, nodejs), and
 # then combined into the final image.
