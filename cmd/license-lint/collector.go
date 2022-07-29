@@ -187,8 +187,13 @@ func findLicenseFiles(basepath string) ([]string, error) {
 		}
 
 		if info.IsDir() {
-			if path == filepath.Join(basepath, "licenses") {
-				// don't recurse into this since it holds upstream licenses
+			// Filter out folders that are dumps of all dependencies' licenses; we will find the original license ourselves.
+			// This avoids 1000s of duplicates.
+			// licenses: Istio naming
+			// VENDOR-LICENSE: knative naming
+			isTekton := strings.Contains(path, "github.com/tektoncd/pipeline") && filepath.Base(path) == "third_party"
+			if path == filepath.Join(basepath, "licenses") || filepath.Base(path) == "VENDOR-LICENSE" || isTekton {
+				//  don't recurse into this since it holds upstream licenses
 				return filepath.SkipDir
 			}
 		} else {
