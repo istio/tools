@@ -60,7 +60,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 			// Generate UnmarshalJSON() method for this type
 			p.P(`// UnmarshalJSON is a custom unmarshaler for `, typeName)
 			p.P(`func (this *`, typeName, `) UnmarshalJSON(b []byte) error {`)
-			p.P(`return `, unmarshalerName, `.Unmarshal(`, protogen.GoIdent{"NewReader", "bytes"}, `(b), this)`)
+			p.P(`return `, unmarshalerName, `.Unmarshal(`, protogen.GoIdent{GoName: "NewReader", GoImportPath: "bytes"}, `(b), this)`)
 			p.P(`}`)
 			process(message.Messages)
 		}
@@ -69,8 +69,8 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 
 	// write out globals
 	p.P(`var (`)
-	p.P(marshalerName, ` = &`, protogen.GoIdent{"Marshaler", "github.com/golang/protobuf/jsonpb"}, `{}`)
-	p.P(unmarshalerName, ` = &`, protogen.GoIdent{"Unmarshaler", "github.com/golang/protobuf/jsonpb"}, `{AllowUnknownFields: true}`)
+	p.P(marshalerName, ` = &`, protogen.GoIdent{GoName: "Marshaler", GoImportPath: "github.com/golang/protobuf/jsonpb"}, `{}`)
+	p.P(unmarshalerName, ` = &`, protogen.GoIdent{GoName: "Unmarshaler", GoImportPath: "github.com/golang/protobuf/jsonpb"}, `{AllowUnknownFields: true}`)
 	p.P(`)`)
 }
 
