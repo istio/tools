@@ -16,7 +16,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -129,7 +128,7 @@ func (m *mover) updateContentDir(contentDir string) error {
 			return nil
 		}
 
-		input, err := ioutil.ReadFile(path)
+		input, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("unable to read file '%s': %v", path, err)
 		}
@@ -144,7 +143,7 @@ func (m *mover) updateContentDir(contentDir string) error {
 			}
 		}
 
-		if err = ioutil.WriteFile(path, output, 0o644); err != nil {
+		if err = os.WriteFile(path, output, 0o644); err != nil {
 			return fmt.Errorf("unable to write file '%s': %v", path, err)
 		}
 

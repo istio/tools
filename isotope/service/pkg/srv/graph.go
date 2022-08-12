@@ -16,8 +16,8 @@ package srv
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
+	"os"
 
 	"sigs.k8s.io/yaml"
 
@@ -81,7 +81,7 @@ func logService(service svc.Service) error {
 // serviceGraphFromYAMLFile unmarshals the ServiceGraph from the YAML at path.
 func serviceGraphFromYAMLFile(
 	path string) (serviceGraph graph.ServiceGraph, err error) {
-	graphYAML, err := ioutil.ReadFile(path)
+	graphYAML, err := os.ReadFile(path)
 	if err != nil {
 		return
 	}

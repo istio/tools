@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -69,7 +69,7 @@ func (hits Hits) scoreFile(url string) (int, int) {
 }
 
 func parseCSV(path string) (map[string]int, error) {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open CSV: %s", err.Error())
 	}

@@ -18,7 +18,6 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -170,7 +169,7 @@ func getAllFiles(path string) ([]FileEntry, error) {
 	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		relativePath := strings.TrimPrefix(path[len(rootPath):], "/")
 		if filepath.Ext(path) == ".md" && !skipFile(relativePath) {
-			fileContent, err := ioutil.ReadFile(path)
+			fileContent, err := os.ReadFile(path)
 			if err != nil {
 				return fmt.Errorf("unable to open file %s", path)
 			}

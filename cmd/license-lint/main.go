@@ -17,7 +17,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 )
@@ -90,7 +89,7 @@ func main() {
 
 					_ = os.MkdirAll(targetDir, 0o755)
 
-					err := ioutil.WriteFile(targetPath, []byte(license.text), 0o644)
+					err := os.WriteFile(targetPath, []byte(license.text), 0o644)
 					if err != nil {
 						_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write license file to %s: %v\n", targetPath, err)
 						os.Exit(1)
@@ -98,7 +97,7 @@ func main() {
 				}
 			} else {
 				targetPath := path.Join(p, "NONE")
-				err := ioutil.WriteFile(targetPath, []byte("NO LICENSE FOUND\n"), 0o644)
+				err := os.WriteFile(targetPath, []byte("NO LICENSE FOUND\n"), 0o644)
 				if err != nil {
 					_, _ = fmt.Fprintf(os.Stderr, "ERROR: unable to write file to %s: %v\n", targetPath, err)
 					os.Exit(1)
