@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"gopkg.in/src-d/go-license-detector.v2/licensedb"
 	"gopkg.in/src-d/go-license-detector.v2/licensedb/filer"
@@ -37,7 +37,7 @@ type filerImpl struct {
 }
 
 func (f *filerImpl) ReadFile(name string) ([]byte, error) {
-	return ioutil.ReadFile(name)
+	return os.ReadFile(name)
 }
 
 func (f *filerImpl) ReadDir(dir string) ([]filer.File, error) {

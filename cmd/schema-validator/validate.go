@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/xeipuuv/gojsonschema"
@@ -57,7 +56,7 @@ func main() {
 }
 
 func readYAMLAsJSON(filename string) (string, error) {
-	documentContents, err := ioutil.ReadFile(filename)
+	documentContents, err := os.ReadFile(filename)
 	if err != nil {
 		return "", fmt.Errorf("unable to read file: %s", err.Error())
 	}

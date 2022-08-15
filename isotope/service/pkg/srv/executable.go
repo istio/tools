@@ -17,7 +17,6 @@ package srv
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -94,14 +93,14 @@ func executeRequestCommand(
 	// https://golang.org/pkg/net/http/#Response
 	defer func() {
 		// Drain and close the body to let the Transport reuse the connection
-		io.Copy(ioutil.Discard, response.Body)
+		io.Copy(io.Discard, response.Body)
 		response.Body.Close()
 		prometheus.RecordRequestSent(destName, uint64(cmd.Size))
 	}()
 
 	log.Debugf("%s responded with %s", destName, response.Status)
 	if response.StatusCode != http.StatusOK {
-		body, err := ioutil.ReadAll(response.Body)
+		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			body = []byte(fmt.Sprintf("failed to read body: %v", err))
 		}
