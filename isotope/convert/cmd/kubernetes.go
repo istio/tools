@@ -16,7 +16,7 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -57,7 +57,7 @@ var kubernetesCmd = &cobra.Command{
 		environmentName, err := cmd.PersistentFlags().GetString("environment-name")
 		exitIfError(err)
 
-		yamlContents, err := ioutil.ReadFile(inPath)
+		yamlContents, err := os.ReadFile(inPath)
 		exitIfError(err)
 
 		var serviceGraph graph.ServiceGraph

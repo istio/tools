@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 
@@ -306,7 +306,7 @@ func main() {
 			fmt.Println(err)
 		}
 
-		jsonBytes, err = ioutil.ReadAll(jsonFile)
+		jsonBytes, err = io.ReadAll(jsonFile)
 		if err != nil {
 			fmt.Println(err)
 		}

@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -246,7 +245,7 @@ var (
 			"on an input YAML file.",
 		Run: func(cmd *cobra.Command, args []string) {
 			processFlags()
-			yamlContent, err := ioutil.ReadFile(input)
+			yamlContent, err := os.ReadFile(input)
 			if err != nil {
 				log.Fatalf("unable to read input YAML file: %v", err)
 			}
@@ -318,7 +317,7 @@ var (
 				log.Fatalf("failed generating output Go source code %s: %v", output, err)
 			}
 
-			if err := ioutil.WriteFile(output, goSource.Bytes(), 0o666); err != nil {
+			if err := os.WriteFile(output, goSource.Bytes(), 0o666); err != nil {
 				log.Fatalf("Failed writing to output file %s: %v", output, err)
 			}
 
@@ -341,7 +340,7 @@ var (
 					log.Fatalf("failed generating output HTML file %s: %v", output, err)
 				}
 
-				if err := ioutil.WriteFile(htmlOutput, htmlFile.Bytes(), 0o666); err != nil {
+				if err := os.WriteFile(htmlOutput, htmlFile.Bytes(), 0o666); err != nil {
 					log.Fatalf("Failed writing to output file %s: %v", htmlOutput, err)
 				}
 			}

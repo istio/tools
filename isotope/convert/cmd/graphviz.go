@@ -15,7 +15,7 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
@@ -31,7 +31,7 @@ var graphvizCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		inFileName := args[0]
-		yamlContents, err := ioutil.ReadFile(inFileName)
+		yamlContents, err := os.ReadFile(inFileName)
 		exitIfError(err)
 
 		var serviceGraph graph.ServiceGraph
@@ -42,7 +42,7 @@ var graphvizCmd = &cobra.Command{
 		exitIfError(err)
 
 		outFileName := args[1]
-		err = ioutil.WriteFile(outFileName, []byte(dotLang), 0o644)
+		err = os.WriteFile(outFileName, []byte(dotLang), 0o644)
 		exitIfError(err)
 	},
 }

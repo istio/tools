@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -156,7 +155,7 @@ func createDirIfNotExists(path string) error {
 // writeAsHTML generates HTML from markdown before writing it to a file
 func writeAsHTML(filename string, markdown string) error {
 	output := string(blackfriday.Run([]byte(markdown)))
-	if err := ioutil.WriteFile(filename+".html", []byte(output), 0o644); err != nil {
+	if err := os.WriteFile(filename+".html", []byte(output), 0o644); err != nil {
 		return err
 	}
 	return nil
@@ -164,7 +163,7 @@ func writeAsHTML(filename string, markdown string) error {
 
 // writeAsMarkdown writes markdown to a file
 func writeAsMarkdown(filename string, markdown string) error {
-	if err := ioutil.WriteFile(filename, []byte(markdown), 0o644); err != nil {
+	if err := os.WriteFile(filename, []byte(markdown), 0o644); err != nil {
 		return err
 	}
 	return nil
@@ -221,7 +220,7 @@ func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
 	notes := make([]Note, 0)
 	for _, file := range files {
 		file = path.Join(filePath, file)
-		contents, err := ioutil.ReadFile(file)
+		contents, err := os.ReadFile(file)
 		if err != nil {
 			return nil, fmt.Errorf("unable to open file %s: %s", file, err.Error())
 		}
@@ -243,7 +242,7 @@ func populateTemplate(filepath string, filename string, releaseNotes []Note, old
 	filename = path.Join(filepath, filename)
 	fmt.Printf("Processing %s\n", filename)
 
-	contents, err := ioutil.ReadFile(filename)
+	contents, err := os.ReadFile(filename)
 	if err != nil {
 		return "", fmt.Errorf("unable to open file %s: %s", filename, err.Error())
 	}
