@@ -18,7 +18,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -59,7 +58,7 @@ func (i *instrumenter) instrument(g *gocmd) (*gocmd, error) {
 	}
 
 	// Calculate new gopath
-	p, err := ioutil.TempDir(os.TempDir(), "goc")
+	p, err := os.MkdirTemp(os.TempDir(), "goc")
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +112,7 @@ func (i *instrumenter) instrumentPackage(info *packages.Package) error {
 	oldPkgPath := path.Join(goPath(), "src", info.PkgPath)
 	newPkgPath := path.Join(i.goPath, "src", info.PkgPath)
 
-	files, err := ioutil.ReadDir(oldPkgPath)
+	files, err := os.ReadDir(oldPkgPath)
 	if err != nil {
 		return err
 	}
@@ -157,7 +156,7 @@ func generateRegistrationFile(info *packages.Package, pkgPath string, contextVar
 		return err
 	}
 
-	if err = ioutil.WriteFile(regFile, []byte(rendered), os.ModePerm); err != nil {
+	if err = os.WriteFile(regFile, []byte(rendered), os.ModePerm); err != nil {
 		return err
 	}
 

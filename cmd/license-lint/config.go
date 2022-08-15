@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"sigs.k8s.io/yaml"
 )
@@ -61,7 +61,7 @@ func newConfig() config {
 func readConfig(path string) (config, error) {
 	var b []byte
 	var err error
-	if b, err = ioutil.ReadFile(path); err != nil {
+	if b, err = os.ReadFile(path); err != nil {
 		return config{}, fmt.Errorf("unable to read configuration file %s: %v", path, err)
 	}
 

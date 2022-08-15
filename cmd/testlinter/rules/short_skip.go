@@ -24,19 +24,21 @@ import (
 
 // ShortSkip requires that a test function should have one of these pattern.
 // Pattern 1
-// func TestA(t *testing.T) {
-//   if !testing.Short() {
-//    ...
-//   }
-// }
+//
+//	func TestA(t *testing.T) {
+//	  if !testing.Short() {
+//	   ...
+//	  }
+//	}
 //
 // Pattern 2
-// func TestB(t *testing.T) {
-//   if testing.Short() {
-//     t.Skip("xxx")
-//   }
-//   ...
-// }
+//
+//	func TestB(t *testing.T) {
+//	  if testing.Short() {
+//	    t.Skip("xxx")
+//	  }
+//	  ...
+//	}
 type ShortSkip struct{}
 
 // NewSkipByShort creates and returns a ShortSkip object.
@@ -52,18 +54,21 @@ func (lr *ShortSkip) GetID() string {
 // Check verifies if aNode is a valid t.Skip(). If verification fails lrp creates a new report.
 // There are two examples for valid t.Skip().
 // case 1:
-// func Testxxx(t *testing.T) {
-// 	if !testing.Short() {
-// 	...
-// 	}
-// }
-// case 2:
-// func Testxxx(t *testing.T) {
-// 	if testing.Short() {
-//		t.Skip("xxx")
+//
+//	func Testxxx(t *testing.T) {
+//		if !testing.Short() {
+//		...
+//		}
 //	}
-//	...
-// }
+//
+// case 2:
+//
+//	func Testxxx(t *testing.T) {
+//		if testing.Short() {
+//			t.Skip("xxx")
+//		}
+//		...
+//	}
 func (lr *ShortSkip) Check(aNode ast.Node, fs *token.FileSet, lrp *checker.Report) {
 	if fn, isFn := aNode.(*ast.FuncDecl); isFn && strings.HasPrefix(fn.Name.Name, "Test") {
 		if len(fn.Body.List) == 0 {

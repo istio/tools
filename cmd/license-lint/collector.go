@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -85,7 +84,7 @@ func getLicenses() ([]*moduleInfo, error) {
 
 		for _, f := range licenseFiles {
 			// read each license file
-			text, err := ioutil.ReadFile(f)
+			text, err := os.ReadFile(f)
 			if err != nil {
 				return nil, fmt.Errorf("unable to read license file %s: %v", f, err)
 			}

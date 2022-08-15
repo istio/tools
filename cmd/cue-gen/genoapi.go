@@ -22,13 +22,11 @@
 //
 // Generation involves the following steps:
 //
-//   1. Convert .proto files to CUE files
-//   2. Validate the consistency of the CUE defintions
-//   3. Convert CUE files to self-contained OpenAPI files.
+//  1. Convert .proto files to CUE files
+//  2. Validate the consistency of the CUE defintions
+//  3. Convert CUE files to self-contained OpenAPI files.
 //
 // Each of which is documented in more detail below.
-//
-//
 // 1. Converting Proto to CUE
 //
 // genoapi generates all .proto files using a single builder. As the Istio
@@ -42,13 +40,12 @@
 // fields with constraints.
 //
 // Caveats:
-// - It is assumed that the input .proto files are valid and compile with
-//   protoc. The conversion may ignore errors if files are invalid.
-// - CUE package names share the same naming conventions as Go packages. CUE
-//   requires the go_package option to exist and be well-defined. Note that
-//   some of the gogoproto go_package definition are illformed. Be sure to use
-//   the original .proto files for the google protobuf types.
-//
+//   - It is assumed that the input .proto files are valid and compile with
+//     protoc. The conversion may ignore errors if files are invalid.
+//   - CUE package names share the same naming conventions as Go packages. CUE
+//     requires the go_package option to exist and be well-defined. Note that
+//     some of the gogoproto go_package definition are illformed. Be sure to use
+//     the original .proto files for the google protobuf types.
 //
 // 2. Combine and validate generated CUE
 //
@@ -59,8 +56,6 @@
 //
 // The combines CUE definitions are validated for consistency before proceeding
 // to the next step.
-//
-//
 // 3. Converting CUE to OpenAPI
 //
 // In this step a self-contained OpenAPI definition is generated for each
@@ -69,8 +64,7 @@
 // spec itself. To avoid name collissions, types are, by convention, prefixed
 // with their proto package name.
 //
-//
-// Possible extensions to the generation pipeline
+// # Possible extensions to the generation pipeline
 //
 // The generation pipeline can be augmented by injecting CUE from other sources
 // before step 2. As combining CUE sources is a commutative operation, order
@@ -79,7 +73,6 @@
 //
 // Examples of other possible CUE sources are:
 // - constraints extracted from Go code
-//
 package main
 
 //go:generate go-bindata --nocompress --nometadata --pkg main -o assets.gen.go doc.cue
@@ -90,7 +83,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -266,7 +258,7 @@ func main() {
 				fatal(err, "Error formatting file: ")
 			}
 			_ = os.MkdirAll(filepath.Dir(filename), 0o755)
-			if err := ioutil.WriteFile(filename, b, 0o644); err != nil {
+			if err := os.WriteFile(filename, b, 0o644); err != nil {
 				log.Fatalf("Error writing file: %v", err)
 			}
 		}
@@ -560,6 +552,7 @@ func (x *builder) reference(goPkg string, path []string) string {
 // It does so my looking up the top-level items in the proto files defined
 // in g, recursively marking their dependencies, and then eliminating any
 // schema from items that was not marked.
+//
 //nolint:staticcheck
 func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *Grouping) {
 	// All references found.
@@ -711,7 +704,7 @@ func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
 
 	filename := filepath.Join(x.cwd, g.dir, g.OapiFilename)
 	fmt.Printf("Writing OpenAPI schemas into %v...\n", filename)
-	err = ioutil.WriteFile(filename, buf.Bytes(), 0o644)
+	err = os.WriteFile(filename, buf.Bytes(), 0o644)
 	if err != nil {
 		log.Fatalf("Error writing OpenAPI file %s in dir %s: %v", g.OapiFilename, g.dir, err)
 	}
