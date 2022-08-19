@@ -58,8 +58,9 @@ func (h *Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// Simulate failure based on the error percentage
-	atomic.AddUint64(&h.counter, 1)
-	if h.Service.ErrorRate > 0 && atomic.CompareAndSwapUint64(&h.counter, 10000/uint64(h.Service.ErrorRate*10000), 0) {
+	reqCount := atomic.AddUint64(&h.counter, 1)
+	if h.Service.ErrorRate > 0 && reqCount >= (10000/uint64(h.Service.ErrorRate*10000)) {
+		atomic.StoreUint64(&h.counter, 0) // atomic.CompareAndSwap potentially collides and never resolves to true
 		log.Debug("Provoking simulated failure")
 		respond(http.StatusInternalServerError, "simulated failure")
 		return
