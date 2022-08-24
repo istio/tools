@@ -100,7 +100,6 @@ func readCRDFile(t *testing.T) []*apiextv1.CustomResourceDefinition {
 		}
 		if err != nil {
 			t.Fatalf("unable to read yaml document: %v", err)
-			break
 		}
 		chunk := bytes.TrimSpace(doc)
 
