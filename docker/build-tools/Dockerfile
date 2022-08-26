@@ -48,7 +48,7 @@ ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.2.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v1.49.0
 ENV HADOLINT_VERSION=v2.10.0
-ENV HELM3_VERSION=v3.9.3
+ENV HELM3_VERSION=v3.9.4
 ENV HUGO_VERSION=0.97.3
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.15.0
@@ -428,8 +428,8 @@ FROM ubuntu:jammy as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV DOCKER_VERSION=5:20.10.14~3-0~ubuntu-jammy
-ENV CONTAINERD_VERSION=1.5.11-1
+ENV DOCKER_VERSION=5:20.10.17~3-0~ubuntu-jammy
+ENV CONTAINERD_VERSION=1.6.8-1
 ENV TRIVY_VERSION=0.31.2
 
 ENV OUTDIR=/out
