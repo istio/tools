@@ -47,12 +47,14 @@ export TESTID="${TESTID:-default}"
 
 # setup Istio
 if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then
-# shellcheck disable=SC2199
+  pushd "${ROOT}/istio-install"
+  # shellcheck disable=SC2199
   if [[ -z "${@-}" ]];then
-    "${ROOT}"/istio-install/setup_istio.sh
+    ./setup_istio.sh
   else
-    "${ROOT}"/istio-install/setup_istio.sh "${@}"
+    ./setup_istio.sh "${@}"
   fi
+  popd
 fi
 
 export NOT_INJECTED="True"
@@ -67,21 +69,22 @@ fi
 
 DT=$(date +'%Y%m%d%H')
 TESTID="${BRANCH}-${DT}"
-# deploy alertmanager related resources
+
 HELM_ARGS="--set projectID=${PROJECT_ID} --set clusterName=${CLUSTER_NAME} --set branch=${BRANCH} --set instance=${INSTANCE}\
              --set dbName=${DBNAME} --set testID=${TESTID} --set msTableName=${MS_TABLE_NAME} --set domain=${DNS_DOMAIN}"
 NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager "${HELM_ARGS}"
 kubectl apply -f ./alertmanager/prometheusrule.yaml
+# deploy alertmanager related resources
+if [[ "${AUTOMATED_MODE}" == "true" ]];then
+    # deploy log scanner
+    kubectl create ns logs-checker || true
+    kubectl create configmap logs-checker --from-file=./logs-checker/check_k8s_logs.sh -n logs-checker || true
+    ./setup_test.sh logs-checker
 
-# deploy log scanner
-kubectl create ns logs-checker || true
-kubectl create configmap logs-checker --from-file=./logs-checker/check_k8s_logs.sh -n logs-checker || true
-./setup_test.sh logs-checker
+    # This part would be only needed when we run the fully automated jobs on a dedicated cluster
+    # It would upgrade control plane and data plane to newer dev release every 48h.
+    # deploy canary upgrader
 
-# This part would be only needed when we run the fully automated jobs on a dedicated cluster
-# It would upgrade control plane and data plane to newer dev release every 48h.
-# deploy canary upgrader
-if [[ "${CANARY_UPGRADE_MODE}" == "true" ]];then
     kubectl create ns canary-upgrader || true
     kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh -n canary-upgrader || true
     ./setup_test.sh canary-upgrader

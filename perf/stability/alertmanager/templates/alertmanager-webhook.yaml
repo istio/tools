@@ -1,3 +1,4 @@
+{{- if .Values.deploywebhook }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -67,3 +68,4 @@ spec:
       name: http
   selector:
     app: am-webhook
+{{- end}}
