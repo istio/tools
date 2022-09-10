@@ -221,35 +221,40 @@ func main() {
 
 			if len(unrecognizedLicenses) > 0 {
 				failLint = true
-				fmt.Printf("ERROR: Some modules have unrecognized licenses:\n")
+				fmt.Fprintf(os.Stderr, "ERROR: Some modules have unrecognized licenses:\n")
 				for _, l := range unrecognizedLicenses {
 					if l.analysis.licenseName != "" {
-						fmt.Printf("  %s: similar to %s, %f confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
+						fmt.Fprintf(os.Stderr, "  %s: similar to %s, %f confidence, path '%s'\n", l.module.moduleName, l.analysis.licenseName, l.analysis.confidence, l.path)
 					} else if l.analysis.similarLicense != "" {
-						fmt.Printf("  %s: similar to %s, %f confidence, path '%s'\n", l.module.moduleName, l.analysis.similarLicense, l.analysis.similarityConfidence, l.path)
+						fmt.Fprintf(os.Stderr,
+							"  %s: similar to %s, %f confidence, path '%s'\n",
+							l.module.moduleName,
+							l.analysis.similarLicense,
+							l.analysis.similarityConfidence,
+							l.path)
 					} else {
-						fmt.Printf("  %s: path '%s'\n", l.module.moduleName, l.path)
+						fmt.Fprintf(os.Stderr, "  %s: path '%s'\n", l.module.moduleName, l.path)
 					}
 				}
-				fmt.Printf("\n")
+				fmt.Fprintf(os.Stderr, "\n")
 			}
 
 			if len(unlicensedModules) > 0 {
 				failLint = true
-				fmt.Printf("ERROR: Some modules have no discernible license:\n")
+				fmt.Fprintf(os.Stderr, "ERROR: Some modules have no discernible license:\n")
 				for _, m := range unlicensedModules {
-					fmt.Printf("  %s\n", m.moduleName)
+					fmt.Fprintf(os.Stderr, "  %s\n", m.moduleName)
 				}
-				fmt.Printf("\n")
+				fmt.Fprintf(os.Stderr, "\n")
 			}
 
 			if len(restrictedLicenses) > 0 {
 				failLint = true
-				fmt.Printf("ERROR: Some modules have a restricted license:\n")
+				fmt.Fprintf(os.Stderr, "ERROR: Some modules have a restricted license:\n")
 				for _, m := range restrictedLicenses {
-					fmt.Printf("  %s\n", m.module.moduleName)
+					fmt.Fprintf(os.Stderr, "  %s\n", m.module.moduleName)
 				}
-				fmt.Printf("\n")
+				fmt.Fprintf(os.Stderr, "\n")
 			}
 
 			if failLint {
