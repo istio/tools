@@ -16,7 +16,8 @@ package main
 
 import (
 	"bytes"
-	"text/template"
+
+	template "github.com/google/safetext/yamltemplate"
 )
 
 var (

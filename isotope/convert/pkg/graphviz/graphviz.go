@@ -18,7 +18,8 @@ package graphviz
 import (
 	"bytes"
 	"fmt"
-	"text/template"
+
+	template "github.com/google/safetext/yamltemplate"
 
 	"istio.io/tools/isotope/convert/pkg/graph"
 	"istio.io/tools/isotope/convert/pkg/graph/script"
