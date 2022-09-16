@@ -3,6 +3,9 @@ image:
   tag: v0.20.0
   pullPolicy: IfNotPresent
 
+# set deploywebhook to true only when we want to write alerts to spanner
+deploywebhook: false
+
 replicaCount: 2
 config:
   global:
