@@ -16,6 +16,7 @@ package srv
 
 import (
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"istio.io/pkg/log"
@@ -27,12 +28,14 @@ import (
 
 // Handler handles the default endpoint by emulating its Service.
 type Handler struct {
-	Service         svc.Service
-	ServiceTypes    map[string]svctype.ServiceType
+	Service      svc.Service
+	ServiceTypes map[string]svctype.ServiceType
+
 	responsePayload []byte
+	counter         uint64
 }
 
-func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (h *Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	startTime := time.Now()
 
 	prometheus.RecordRequestReceived()
@@ -52,6 +55,15 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		stopTime := time.Now()
 		duration := stopTime.Sub(startTime)
 		prometheus.RecordResponseSent(duration, len(h.responsePayload), status)
+	}
+
+	// Simulate failure based on the error percentage
+	reqCount := atomic.AddUint64(&h.counter, 1)
+	if h.Service.ErrorRate > 0 && reqCount >= (10000/uint64(h.Service.ErrorRate*10000)) {
+		atomic.StoreUint64(&h.counter, 0) // atomic.CompareAndSwap potentially collides and never resolves to true
+		log.Debug("Provoking simulated failure")
+		respond(http.StatusInternalServerError, "simulated failure")
+		return
 	}
 
 	for _, step := range h.Service.Script {

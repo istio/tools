@@ -32,16 +32,16 @@ import (
 // HandlerFromServiceGraphYAML makes a handler to emulate the service with name
 // serviceName in the service graph represented by the YAML file at path.
 func HandlerFromServiceGraphYAML(
-	path string, serviceName string) (Handler, error,
+	path string, serviceName string) (*Handler, error,
 ) {
 	serviceGraph, err := serviceGraphFromYAMLFile(path)
 	if err != nil {
-		return Handler{}, err
+		return nil, err
 	}
 
 	service, err := extractService(serviceGraph, serviceName)
 	if err != nil {
-		return Handler{}, err
+		return nil, err
 	}
 	_ = logService(service)
 
@@ -49,10 +49,10 @@ func HandlerFromServiceGraphYAML(
 
 	responsePayload, err := makeRandomByteArray(service.ResponseSize)
 	if err != nil {
-		return Handler{}, err
+		return nil, err
 	}
 
-	return Handler{
+	return &Handler{
 		Service:         service,
 		ServiceTypes:    serviceTypes,
 		responsePayload: responsePayload,
