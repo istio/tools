@@ -1,0 +1,14 @@
+telemetry_mode: "v2-stats-nullvm"
+conn:
+    - 64
+qps:
+    - 600
+    - 700
+    - 800
+    - 900
+    - 1000
+duration: 240
+perf: true
+jitter: true
+extra_labels: "no-ext-authz"
+load_gen_type: "fortio"
