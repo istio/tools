@@ -2,12 +2,12 @@ telemetry_mode: "v2-stats-nullvm"
 conn:
     - 64
 qps:
-    - 600
-    - 700
-    - 800
-    - 900
-    - 1000
-duration: 240
+    - 100
+    - 200
+    - 300
+    - 400
+    - 500
+duration: 100
 perf: true
 jitter: true
 headers: "x-ext-authz:allow"

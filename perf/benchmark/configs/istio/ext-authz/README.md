@@ -11,13 +11,3 @@ To start the tests,
 ```
 ./run.sh
 ```
-## Gather the results
-Refer to the [guide](https://istio.io/latest/docs/tasks/security/authorization/authz-custom/). <br>
-For gathering the results of server to ext-authz, you have to modify this line in `tools/perf/benchmark/runner/fortio.py` from
-```
-get_fortioclient_pod_cmd = "kubectl -n {namespace} get pods | grep fortioclient".format(namespace=namespace)
-```
-to
-```
-get_fortioclient_pod_cmd = "kubectl -n {namespace} get pods | grep fortioserver".format(namespace=namespace)
-```
