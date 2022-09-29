@@ -1,0 +1,13 @@
+data:
+  mesh: |-
+    extensionProviders:
+    - name: "sample-ext-authz-grpc"
+      envoyExtAuthzGrpc:
+        service: "ext-authz.twopods-istio.svc.cluster.local"
+        port: "9000"
+    - name: "sample-ext-authz-http"
+      envoyExtAuthzHttp:
+        service: "ext-authz.twopods-istio.svc.cluster.local"
+        port: "8000"
+        includeRequestHeadersInCheck: ["x-ext-authz"]
+
