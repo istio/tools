@@ -12,6 +12,13 @@ To start the tests,
 ./run.sh
 ```
 
+## Generate graphs
+First, gather the results ([guide](https://github.com/istio/tools/tree/master/perf/benchmark#gather-result-metrics)). <br>
+Then, run
+```
+python3 graph.py <output.csv>
+```
+
 ## Analysis
 1. The y-axis is the latency, in milliseconds; and the x-axis is the number of concurrent connections.
 2. We analysis 3 different loads: small (qps=100, conn=8), medium (qps=500, conn=32), and large (qps=1000, conn=64) loads.
