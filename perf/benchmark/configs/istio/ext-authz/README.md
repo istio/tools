@@ -40,7 +40,6 @@ The larger the p value is, the higher latency we can observe.
 ![](./results/p999.png) </br>
 Observing all graphs, the trend of client-to-workload with ext-authz is more similar to client-to-provider.
 
-
 ## Analysis
 
 In conclusion, the extra latency that ext-authz may introduce is related to the latency to ext-authz provider, and different kinds of provider may have different results.
