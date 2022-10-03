@@ -14,18 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+CONFIG_DIR=$(dirname "$0")
+
 # Install ext-authz
 kubectl apply -n twopods-istio -f https://raw.githubusercontent.com/istio/istio/release-1.15/samples/extauthz/ext-authz.yaml
-kubectl patch configmap -n istio-system istio --patch-file ext-authz_patch.yaml
+kubectl patch configmap -n istio-system istio --patch-file "${CONFIG_DIR}/ext-authz_patch.yaml"
 kubectl rollout restart deployment/istiod -n istio-system
 sleep 10
 
-CONFIG_DIR=$(dirname "$0")
 FORTIOCLIENT=$(kubectl get pods -n twopods-istio --selector=app=fortioclient --output=jsonpath={.items..metadata.name})
 PROVIDER=$(kubectl get services -n twopods-istio --selector=app=ext-authz --output=jsonpath={.items..spec.clusterIP})
 
 # In case the policy has benn applied, try to delete first
-kubectl delete -n twopods-istio -f ${CONFIG_DIR}/policy.yaml || true
+kubectl delete -n twopods-istio -f "${CONFIG_DIR}/policy.yaml" || true
 
 # client to server, without ext-authz
 kubectl -n twopods-istio exec "${FORTIOCLIENT}"  \
@@ -41,7 +42,7 @@ kubectl -n twopods-istio exec "${FORTIOCLIENT}"  \
     -t 300s -a -r 0.001 -httpbufferkb=128 \
     -labels qps_1000_c_64_without-ext-authz_large http://fortioserver:8080/echo?size=1024
 
-kubectl apply -n twopods-istio -f ${CONFIG_DIR}/policy.yaml
+kubectl apply -n twopods-istio -f "${CONFIG_DIR}/policy.yaml"
 
 # client to server, with ext-authz
 kubectl -n twopods-istio exec "${FORTIOCLIENT}"  \
