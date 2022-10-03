@@ -1,17 +1,14 @@
 # Ext-authz Benchmarking
 This directory contains scripts and configurations for ext-authz benchmarking.
 ## Prerequisites
-1. See [Istio Performance Benchmarking](https://github.com/istio/tools/tree/master/perf/benchmark) for environment setup.
-2. Ext-authz setup: 
-   ```
-   ./install_ext-authz.sh
-   ```
+See [Istio Performance Benchmarking](https://github.com/istio/tools/tree/master/perf/benchmark) for environment setup.
 
 ## Run the tests
 To start the tests,
 ```
 ./run.sh
 ```
+The command will setup ext-authz and start running tests.
 
 ## Generate graphs
 First, gather the results ([guide](https://github.com/istio/tools/tree/master/perf/benchmark#gather-result-metrics)). <br>
