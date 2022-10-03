@@ -16,14 +16,27 @@ To start the tests,
 
 The command will setup ext-authz and start running tests.
 
-## Generate graphs
+## Results
 
-First, gather the results ([guide](https://github.com/istio/tools/tree/master/perf/benchmark#gather-result-metrics)). <br>
-Then, run
+<figure>
+   <img src="./results/p50.png">
+   <figcaption align = "center"><b>Fig.1 - p50</b></figcaption>
+</figure>
 
-```bash
-python3 graph.py <output.csv>
-```
+<figure>
+   <img src="./results/p90.png">
+   <figcaption align = "center"><b>Fig.2 - p90</b></figcaption>
+</figure>
+
+<figure>
+   <img src="./results/p99.png">
+   <figcaption align = "center"><b>Fig.3 - p99</b></figcaption>
+</figure>
+
+<figure>
+   <img src="./results/p999.png">
+   <figcaption align = "center"><b>Fig.4 - p999</b></figcaption>
+</figure>
 
 ## Analysis
 
