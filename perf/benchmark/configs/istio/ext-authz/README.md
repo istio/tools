@@ -18,25 +18,10 @@ The command will setup ext-authz and start running tests.
 
 ## Results
 
-<figure>
-   <img src="./results/p50.png">
-   <figcaption align = "center"><b>Fig.1 - p50</b></figcaption>
-</figure>
-
-<figure>
-   <img src="./results/p90.png">
-   <figcaption align = "center"><b>Fig.2 - p90</b></figcaption>
-</figure>
-
-<figure>
-   <img src="./results/p99.png">
-   <figcaption align = "center"><b>Fig.3 - p99</b></figcaption>
-</figure>
-
-<figure>
-   <img src="./results/p999.png">
-   <figcaption align = "center"><b>Fig.4 - p999</b></figcaption>
-</figure>
+![](./results/p50.png)
+![](./results/p90.png)
+![](./results/p99.png)
+![](./results/p999.png)
 
 ## Analysis
 
