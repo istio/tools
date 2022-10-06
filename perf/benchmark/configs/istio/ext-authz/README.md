@@ -14,8 +14,6 @@ To start the tests,
 ./run.sh
 ```
 
-The command will setup ext-authz and start running tests.
-
 ## Results
 
 We draw 4 graphs: p50, p90, p99, and p999. p90 is the 90th percentile; and it means 90% of the observed requests have latency smaller or equal to the value. So on and so forth. The y-axis is the latency, in milliseconds; and the x-axis is the number of concurrent connections. We analysis 3 different loads: small (qps=100, conn=8), medium (qps=500, conn=32), and large (qps=1000, conn=64) loads.
