@@ -1,0 +1,15 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: http-allow
+spec:
+  selector:
+    matchLabels:
+      app: fortioserver
+  action: CUSTOM
+  provider:
+    name: sample-ext-authz-http
+  rules:
+  - to:
+    - operation:
+        paths: ["/*"]
