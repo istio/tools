@@ -559,22 +559,24 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 
 				g.emit("</td>")
 				g.emit("<td>")
+				var required bool
 				if field.Options != nil {
 					fb := getFieldBehavior(field.Options)
-					var required bool
 					for _, e := range fb {
 						if e == annotations.FieldBehavior_REQUIRED {
 							required = true
 						}
 					}
-					if required {
-						g.emit("Yes")
-					} else {
-						g.emit("No")
-					}
+				} else {
+					// istio do not use proto options, try get from comments
+					required = getRequiredFromComments(field.Location())
+				}
+				if required {
+					g.emit("Yes")
 				} else {
 					g.emit("No")
 				}
+
 				g.emit("</td>")
 				g.emit("</tr>")
 			}
@@ -1109,6 +1111,27 @@ func getFieldBehavior(options *descriptor.FieldOptions) []annotations.FieldBehav
 		return nil
 	}
 	return s
+}
+
+func getRequiredFromComments(loc protomodel.LocationDescriptor) bool {
+	com := loc.GetLeadingComments()
+	if com == "" {
+		com = loc.GetTrailingComments()
+		if com == "" {
+			return false
+		}
+	}
+
+	if strings.Contains(com, "Required") {
+		return true
+	}
+
+	if strings.Contains(com, "Optional") {
+		return true
+	}
+
+	// default is required.
+	return true
 }
 
 var htmlStyle = `
