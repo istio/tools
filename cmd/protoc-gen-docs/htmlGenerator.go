@@ -1113,6 +1113,11 @@ func getFieldBehavior(options *descriptor.FieldOptions) []annotations.FieldBehav
 	return s
 }
 
+var requiredStrings = []string{
+	"Required",
+	"REQUIRED",
+}
+
 func getRequiredFromComments(loc protomodel.LocationDescriptor) bool {
 	com := loc.GetLeadingComments()
 	if com == "" {
@@ -1122,12 +1127,14 @@ func getRequiredFromComments(loc protomodel.LocationDescriptor) bool {
 		}
 	}
 
-	if strings.Contains(com, "Required") {
-		return true
+	if strings.Contains(com, "Optional") {
+		return false
 	}
 
-	if strings.Contains(com, "Optional") {
-		return true
+	for _, r := range requiredStrings{
+		if strings.Contains(com, r) {
+			return true
+		}
 	}
 
 	// default is required.
