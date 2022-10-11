@@ -1131,7 +1131,7 @@ func getRequiredFromComments(loc protomodel.LocationDescriptor) bool {
 		return false
 	}
 
-	for _, r := range requiredStrings{
+	for _, r := range requiredStrings {
 		if strings.Contains(com, r) {
 			return true
 		}
