@@ -25,8 +25,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/russross/blackfriday/v2"
 	"sigs.k8s.io/yaml"
+
+	"istio.io/tools/pkg/markdown"
 )
 
 // golang flags don't accept arrays by default. This adds it.
@@ -153,8 +154,8 @@ func createDirIfNotExists(path string) error {
 }
 
 // writeAsHTML generates HTML from markdown before writing it to a file
-func writeAsHTML(filename string, markdown string) error {
-	output := string(blackfriday.Run([]byte(markdown)))
+func writeAsHTML(filename string, input string) error {
+	output := string(markdown.Run([]byte(input)))
 	if err := os.WriteFile(filename+".html", []byte(output), 0o644); err != nil {
 		return err
 	}

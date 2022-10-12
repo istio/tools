@@ -15,10 +15,10 @@ sudo apt-get install -y golang
 ```
 
 To build, first ensure you have the protocol compiler (protoc) and markdown
-processing library (blackfriday):
+processing library (goldmark):
 
 ```bash
-go get github.com/golang/protobuf/proto && go get -u gopkg.in/russross/blackfriday.v2
+go get github.com/golang/protobuf/proto && go get -u github.com/yuin/goldmark
 ```
 
 To build, run the following command from this project directory:

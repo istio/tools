@@ -25,12 +25,12 @@ import (
 	"unicode"
 
 	"github.com/client9/gospell"
-	"github.com/russross/blackfriday/v2"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 	descriptor "google.golang.org/protobuf/types/descriptorpb"
 	plugin "google.golang.org/protobuf/types/pluginpb"
 
+	"istio.io/tools/pkg/markdown"
 	"istio.io/tools/pkg/protomodel"
 )
 
@@ -853,11 +853,7 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 	}
 
 	// turn the comment from markdown into HTML
-	result := blackfriday.Run([]byte(text), blackfriday.WithExtensions(blackfriday.FencedCode|blackfriday.AutoHeadingIDs|blackfriday.NoIntraEmphasis))
-
-	// compensate for a Blackfriday bug, where it incorrectly expands the & in HTML entities to &amp;
-	result = bytes.Replace(result, []byte("&amp;lt;"), []byte("&lt;"), -1)
-	result = bytes.Replace(result, []byte("&amp;gt;"), []byte("&gt;"), -1)
+	result := markdown.Run([]byte(text))
 
 	g.buffer.Write(result)
 	g.buffer.WriteByte('\n')
