@@ -855,10 +855,6 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 	// turn the comment from markdown into HTML
 	result := markdown.Run([]byte(text))
 
-	// // compensate for a Blackfriday bug, where it incorrectly expands the & in HTML entities to &amp;
-	// result = bytes.Replace(result, []byte("&amp;lt;"), []byte("&lt;"), -1)
-	// result = bytes.Replace(result, []byte("&amp;gt;"), []byte("&gt;"), -1)
-
 	g.buffer.Write(result)
 	g.buffer.WriteByte('\n')
 }
