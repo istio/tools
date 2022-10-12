@@ -15,10 +15,10 @@ require (
 	github.com/kr/pretty v0.3.0
 	github.com/prometheus/alertmanager v0.24.0
 	github.com/prometheus/client_golang v1.12.2
-	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	github.com/xeipuuv/gojsonschema v1.2.0
+	github.com/yuin/goldmark v1.5.2
 	golang.org/x/tools v0.1.11
 	google.golang.org/genproto v0.0.0-20220718134204-073382fd740c
 	google.golang.org/protobuf v1.28.0
