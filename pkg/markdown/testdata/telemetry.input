@@ -1,0 +1,4 @@
+Telemetry defines how the telemetry is generated for workloads within a mesh.
+
+For mesh level configuration, put the resource in root configuration
+namespace for your Istio installation *without* a workload selector.
