@@ -23,8 +23,7 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 )
 
-type ifm struct {
-}
+type ifm struct{}
 
 // IFM is an extension that provides Istio Flavored markdown functionalities.
 var IFM = &ifm{}
