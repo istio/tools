@@ -23,19 +23,8 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 )
 
-type ifm struct{}
-
-// IFM is an extension that provides Istio Flavored markdown functionalities.
-var IFM = &ifm{}
-
-func (e *ifm) Extend(m goldmark.Markdown) {
-	extension.Table.Extend(m)
-	extension.Strikethrough.Extend(m)
-	extension.TaskList.Extend(m)
-}
-
 var md = goldmark.New(
-	goldmark.WithExtensions(IFM),
+	goldmark.WithExtensions(extension.GFM),
 	goldmark.WithExtensions(extension.NewTypographer()),
 	goldmark.WithParserOptions(
 		parser.WithAutoHeadingID(),
