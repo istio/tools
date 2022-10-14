@@ -1,0 +1,2 @@
+<p>Current service state of pod.
+More info: <a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions">https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions</a></p>

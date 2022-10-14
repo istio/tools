@@ -1,0 +1,4 @@
+<p>AnalysisMessageWeakSchema is the set of information that&rsquo;s needed to define a
+weakly-typed schema. The purpose of this proto is to provide a mechanism for
+validating istio/istio/galley/pkg/config/analysis/msg/messages.yaml to make
+sure that we don&rsquo;t allow committing underspecified types.</p>

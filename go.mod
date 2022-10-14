@@ -17,6 +17,7 @@ require (
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
+	github.com/stretchr/testify v1.7.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yuin/goldmark v1.5.2
 	golang.org/x/tools v0.1.11
@@ -46,6 +47,7 @@ require (
 	github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4 // indirect
 	github.com/cncf/xds/go v0.0.0-20211130200136-a8f946100490 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.1 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/dgryski/go-minhash v0.0.0-20170608043002-7fe510aff544 // indirect
 	github.com/dgryski/go-spooky v0.0.0-20170606183049-ed3d087f40e2 // indirect
@@ -90,6 +92,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect

@@ -1,0 +1,2 @@
+Current service state of pod.
+More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#pod-conditions

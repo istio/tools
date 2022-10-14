@@ -25,12 +25,12 @@ import (
 
 var md = goldmark.New(
 	goldmark.WithExtensions(extension.GFM),
+	goldmark.WithExtensions(extension.NewTypographer()),
 	goldmark.WithParserOptions(
 		parser.WithAutoHeadingID(),
 	),
 	goldmark.WithRendererOptions(
-		html.WithHardWraps(),
-		html.WithXHTML(),
+		html.WithUnsafe(),
 	),
 )
 
