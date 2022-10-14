@@ -192,8 +192,16 @@ RUN tar -xJf "/tmp/shellcheck-${SHELLCHECK_VERSION}.linux.$(uname -m).tar.xz" -C
 RUN mv /tmp/shellcheck-${SHELLCHECK_VERSION}/shellcheck ${OUTDIR}/usr/bin
 
 # Hadolint linter
-ADD https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64 ${OUTDIR}/usr/bin/hadolint
-RUN chmod 555 ${OUTDIR}/usr/bin/hadolint
+RUN set -eux; \
+    \
+    case $(uname -m) in \
+        x86_64) export HADOLINT_BINARY=hadolint-Linux-x86_64;; \
+        aarch64) export HADOLINT_BINARY=hadolint-Linux-arm64;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
+    esac; \
+    \
+    wget -nv -O ${OUTDIR}/usr/bin/hadolint https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/${HADOLINT_BINARY}; \
+    chmod 555 ${OUTDIR}/usr/bin/hadolint
 
 # Hugo static site generator
 RUN set -eux; \
