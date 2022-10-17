@@ -73,7 +73,7 @@ python runner/runner.py --config_file ./configs/istio/telemetryv2_stats/latency.
 Required fields to specified via CLI or config file:
 
 - `conn` = number of concurrent connections
-- `qps` = queries per second for each connection
+- `qps` = total queries per second across all connections
 - `duration` = number of seconds to run each test for  (the minimum value for duration should be: 92 seconds)
 - `load_gen_type` = the traffic load generator type
 - `telemetry_mode` = the telemetry mode you enabled while installing Istio (none or telemetryv2)
@@ -141,7 +141,7 @@ python runner/runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseli
 
 - This will run separate tests for the `both` and `baseline` modes with fortio as the load generator and testing telemetryv2 enabled scenario
 - Separate tests for 2 to 64 concurrent connections
-- Each connection will send **1000** QPS
+- All connections will send a total of **1000** QPS
 - Each test will run for **240** seconds
 
 ### Example 3
@@ -181,7 +181,7 @@ python runner/runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseli
 
 - This will run separate tests for the `both` and `baseline` modes with fortio tcp load test
 - Separate tests for 2 to 64 concurrent connections
-- Each connection will send **1000** QPS
+- All connections will send a total of **1000** QPS
 - Each test will run for **240** seconds
 
 ## Gather Result Metrics
