@@ -10,7 +10,7 @@ LABEL "io.istio.version"="${VERSION}"
 # hadolint ignore=DL3031,DL3033
 RUN yum install -y centos-release-scl epel-release && \
     yum update -y && \
-    yum install -y fedpkg sudo devtoolset-7-gcc devtoolset-7-gcc-c++ \
+    yum install -y --skip-broken fedpkg sudo devtoolset-7-gcc devtoolset-7-gcc-c++ \
                    devtoolset-7-binutils java-1.8.0-openjdk-headless rsync \
                    rh-git218 wget unzip which make cmake3 patch ninja-build \
                    devtoolset-7-libatomic-devel openssl python27 libtool autoconf && \
@@ -33,7 +33,7 @@ RUN echo "/opt/rh/httpd24/root/usr/lib64" > /etc/ld.so.conf.d/httpd24.conf && \
 ADD https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-265.0.0-linux-x86_64.tar.gz /tmp
 RUN tar -xzvf "/tmp/google-cloud-sdk-265.0.0-linux-x86_64.tar.gz" -C /usr/local
 
-# The folder `clang-toolchain` at the root of this repository can be used to build clang+llvm for centos. 
+# The folder `clang-toolchain` at the root of this repository can be used to build clang+llvm for centos.
 ENV LLVM_RELEASE=clang+llvm-12.0.1-x86_64-linux-centos7
 # hadolint ignore=DL4006
 RUN curl -fsSL --output ${LLVM_RELEASE}.tar http://storage.googleapis.com/istio-build-deps/${LLVM_RELEASE}.tar && \
