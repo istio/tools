@@ -73,6 +73,7 @@ ENV GCLOUD_VERSION=405.0.1
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
 ENV COSIGN_VERSION=v1.13.0
 ENV CRANE_VERSION=v0.11.0
+ENV TRIVY_VERSION=0.32.1
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -171,14 +172,6 @@ RUN git clone https://github.com/kubernetes/test-infra --branch master --single-
   go install ./pkg/benchmarkjunit && \
   cd .. && rm -rf test-infra
 
-
-# Compress the Go tools and put them in their final location
-ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz /tmp
-RUN tar -xJf upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz -C /tmp
-RUN mv /tmp/upx-${UPX_VERSION}-${TARGETARCH}_linux/upx /usr/bin
-RUN upx --lzma /tmp/go/bin/*
-RUN mv /tmp/go/bin/* ${OUTDIR}/usr/bin
-
 # Add gen-release-notes templates to filesystem
 RUN mkdir -p ${OUTDIR}/usr/share/gen-release-notes
 ADD https://raw.githubusercontent.com/istio/tools/master/cmd/gen-release-notes/templates/minorReleaseNotes.md ${OUTDIR}/usr/share/gen-release-notes
@@ -276,6 +269,31 @@ RUN set -eux; \
     && openssl dgst -sha256 -verify /tmp/cosign-pubkey -signature /tmp/cosign.sig /tmp/cosign \
     && chmod +x /tmp/cosign \
     && mv /tmp/cosign ${OUTDIR}/usr/bin/ || exit 1
+
+# Trivy container scanner
+RUN set -eux; \
+    \
+    case $(uname -m) in \
+    x86_64) \
+    export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-64bit.deb"; \
+    ;; \
+    aarch64) \
+    export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-ARM64.deb"; \
+    ;; \
+    *) echo "unsupported architecture"; exit 1 ;; \
+    esac; \
+    wget -nv -O "/tmp/${TRVIY_DEB_NAME}" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${TRVIY_DEB_NAME}"; \
+    apt-get -y install --no-install-recommends -f "/tmp/${TRVIY_DEB_NAME}"; \
+    rm "/tmp/${TRVIY_DEB_NAME}"; \
+    mv /usr/local/bin/trivy ${OUTDIR}/usr/bin/
+
+
+# Compress the Go tools and put them in their final location
+ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz /tmp
+RUN tar -xJf /tmp/upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz -C /tmp
+RUN mv /tmp/upx-${UPX_VERSION}-${TARGETARCH}_linux/upx /usr/bin
+RUN mv /tmp/go/bin/* ${OUTDIR}/usr/bin
+RUN find ${OUTDIR}/usr/bin/ -maxdepth 1 -type f  -writable | grep -v su-exec | xargs upx --lzma || true
 
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
@@ -438,7 +456,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ENV DOCKER_VERSION=5:20.10.19~3-0~ubuntu-jammy
 ENV CONTAINERD_VERSION=1.6.8-1
-ENV TRIVY_VERSION=0.32.1
+ENV RUST_VERSION=1.64.0
 
 ENV OUTDIR=/out
 
@@ -472,7 +490,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     gettext-base \
     locales-all \
-    file
+    file \
+    libclang-dev
 
 # Fix Docker issue
 RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
@@ -485,21 +504,12 @@ RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/lin
 RUN apt-get update
 RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
 
-# Trivy container scanner
-RUN set -eux; \
-    \
-    case $(uname -m) in \
-        x86_64) \
-            export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-64bit.deb"; \
-            ;; \
-        aarch64) \
-            export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-ARM64.deb"; \
-            ;; \
-        *) echo "unsupported architecture"; exit 1 ;; \
-    esac; \
-    wget -nv -O "/tmp/${TRVIY_DEB_NAME}" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${TRVIY_DEB_NAME}"; \
-    apt-get -y install --no-install-recommends -f "/tmp/${TRVIY_DEB_NAME}"; \
-    rm "/tmp/${TRVIY_DEB_NAME}";
+ENV CARGO_HOME=/home/.cargo
+ENV RUSTUP_HOME=/home/.rustup
+# hadolint ignore=DL4006
+RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
+    sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal --component rustfmt clippy &&\
+    /home/.cargo/bin/rustup default ${RUST_VERSION}
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
@@ -545,7 +555,7 @@ ENV GOROOT=/usr/local/go
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
 ENV GOBIN=/gobin
-ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
+ENV PATH=/home/.cargo/bin:/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby support
 ENV RUBYOPT="-KU -E utf-8:utf-8"
@@ -583,6 +593,7 @@ RUN mkdir -p /go && \
     mkdir -p /config/.kube && \
     mkdir -p /config-copy && \
     mkdir -p /home/.cache && \
+    mkdir -p /home/.cargo/registry && \
     mkdir -p /home/.helm && \
     mkdir -p /home/.gsutil
 
@@ -598,6 +609,8 @@ RUN chmod 777 /go && \
     chmod 777 /config/.config/gcloud && \
     chmod 777 /config/.kube && \
     chmod 777 /home/.cache && \
+    chmod 777 /home/.cargo && \
+    chmod 777 /home/.cargo/registry && \
     chmod 777 /home/.helm && \
     chmod 777 /home/.gsutil
 
