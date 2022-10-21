@@ -454,7 +454,7 @@ FROM ubuntu:jammy as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV DOCKER_VERSION=5:20.10.19~3-0~ubuntu-jammy
+ENV DOCKER_VERSION=5:20.10.20~3-0~ubuntu-jammy
 ENV CONTAINERD_VERSION=1.6.8-1
 ENV RUST_VERSION=1.64.0
 
