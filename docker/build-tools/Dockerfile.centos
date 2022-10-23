@@ -10,7 +10,7 @@ LABEL "io.istio.version"="${VERSION}"
 # hadolint ignore=DL3031,DL3033
 RUN yum install -y centos-release-scl epel-release && \
     yum update -y && \
-    yum install -y --skip-broken fedpkg sudo devtoolset-7-gcc devtoolset-7-gcc-c++ \
+    yum install -y fedpkg sudo devtoolset-7-gcc devtoolset-7-gcc-c++ \
                    devtoolset-7-binutils java-1.8.0-openjdk-headless rsync \
                    rh-git218 wget unzip which make cmake3 patch ninja-build \
                    devtoolset-7-libatomic-devel openssl python27 libtool autoconf && \
