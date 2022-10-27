@@ -74,6 +74,7 @@ ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
 ENV COSIGN_VERSION=v1.13.1
 ENV CRANE_VERSION=v0.12.0
 ENV TRIVY_VERSION=0.32.1
+ENV YTT_VERSION=v0.32.1
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -136,6 +137,7 @@ RUN go install -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION
 RUN go install -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 RUN go install -ldflags="-s -w" golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
 RUN go install -ldflags="-s -w" github.com/google/go-containerregistry/cmd/crane@${CRANE_VERSION}
+RUN go install -ldflags="-s -w" github.com/vmware-tanzu/carvel-ytt/cmd/ytt@{YTT_VERSION}
 
 # Install latest version of Istio-owned tools in this release
 RUN go install -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
