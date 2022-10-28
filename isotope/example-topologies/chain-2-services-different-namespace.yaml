@@ -8,6 +8,6 @@ services:
   script:
   - call:
       service: b
-      call-override: b.demo2.svc.cluster.local:8080
+      hostname: b.demo2.svc.cluster.local:8080
 - name: b
   namespace: demo2

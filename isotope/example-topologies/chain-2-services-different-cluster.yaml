@@ -9,7 +9,7 @@ services:
   script:
   - call:
       service: b
-      call-override: b.global:8080
+      hostname: b.global:8080
 - name: b
   namespace: demo2
   cluster: cluster2

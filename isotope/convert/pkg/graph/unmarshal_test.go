@@ -142,7 +142,7 @@ var (
 			ErrorRate:    0.1,
 			ResponseSize: 128,
 			Script: script.Script([]script.Command{
-				script.RequestCommand{ServiceName: "a", Size: 1024, CallOverride: "a:8080"},
+				script.RequestCommand{ServiceName: "a", Size: 1024, Hostname: "a:8080"},
 				script.SleepCommand(10 * time.Millisecond),
 			}),
 		},
@@ -154,8 +154,8 @@ var (
 			ResponseSize: 1024,
 			Script: script.Script([]script.Command{
 				script.ConcurrentCommand{
-					script.RequestCommand{ServiceName: "a", Size: 516, CallOverride: "a:8080"},
-					script.RequestCommand{ServiceName: "b", Size: 516, CallOverride: "b:8080"},
+					script.RequestCommand{ServiceName: "a", Size: 516, Hostname: "a:8080"},
+					script.RequestCommand{ServiceName: "b", Size: 516, Hostname: "b:8080"},
 				},
 				script.SleepCommand(10 * time.Millisecond),
 			}),
@@ -183,7 +183,7 @@ var (
 						[
 							[
 								{ "call": { "service" : "a"}}, 
-								{ "call": {"service" : "a", "call-override": "a:8080"}}
+								{ "call": {"service" : "a", "hostname": "a:8080"}}
 							],
 							{ "sleep": "20ms" }
 						]

@@ -70,7 +70,7 @@ services:
       payloadSize: 80B
   - call:
       service: b
-      call-override: b:8080 # Override the URI used in the call (i.e. when the service is deployed in a different namespace and it requires to specify the namespace in the hostname: `b.namespace.svc.cluster.local:8080`)
+      hostname: b:8080 # Override the URI used in the call (i.e. when the service is deployed in a different namespace and it requires to specify the namespace in the hostname: `b.namespace.svc.cluster.local:8080`)
       extra-header:
         foo: bar # To add headers in the request. Useful when the intermediate services (like `b`) requires some extra headers to pass the authorization mechanism applied to that service only
   # computeUsage: 10% # Inherited from default.
@@ -128,7 +128,7 @@ OR
 ```
 call:
   service: {{ ServiceName }}
-  call-override: {{ UriToUse }}
+  hostname: {{ HostnameToUse }}
   extra-header: {{ ExtraHeaders }}
     {{ HeaderName }}: {{ Headeralue }}
 ```

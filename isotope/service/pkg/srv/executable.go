@@ -79,7 +79,7 @@ func executeRequestCommand(
 		return nil
 	}
 
-	destName := cmd.CallOverride
+	destName := cmd.Hostname
 	extraHeader := cmd.ExtraHeader
 
 	_, ok := serviceTypes[cmd.ServiceName]

@@ -30,17 +30,17 @@ func TestRequestCommand_UnmarshalJSON(t *testing.T) {
 	}{
 		{
 			[]byte(`"A"`),
-			RequestCommand{ServiceName: "A", CallOverride: "A:8080"},
+			RequestCommand{ServiceName: "A", Hostname: "A:8080"},
 			nil,
 		},
 		{
 			[]byte(`{"service": "A"}`),
-			RequestCommand{ServiceName: "A", CallOverride: "A:8080"},
+			RequestCommand{ServiceName: "A", Hostname: "A:8080"},
 			nil,
 		},
 		{
-			[]byte(`{"service": "a", "size": 128, "call-override": "a:8080"}`),
-			RequestCommand{ServiceName: "a", Size: 128, CallOverride: "a:8080"},
+			[]byte(`{"service": "a", "size": 128, "hostname": "a:8080"}`),
+			RequestCommand{ServiceName: "a", Size: 128, Hostname: "a:8080"},
 			nil,
 		},
 	}
@@ -72,17 +72,17 @@ func TestRequestCommand_UnmarshalJSON_Default(t *testing.T) {
 	}{
 		{
 			[]byte(`"A"`),
-			RequestCommand{ServiceName: "A", Size: 512, CallOverride: "A:8080"},
+			RequestCommand{ServiceName: "A", Size: 512, Hostname: "A:8080"},
 			nil,
 		},
 		{
 			[]byte(`{"service": "A"}`),
-			RequestCommand{ServiceName: "A", Size: 512, CallOverride: "A:8080"},
+			RequestCommand{ServiceName: "A", Size: 512, Hostname: "A:8080"},
 			nil,
 		},
 		{
 			[]byte(`{"service": "a", "size": 128}`),
-			RequestCommand{ServiceName: "a", Size: 128, CallOverride: "a:8080"},
+			RequestCommand{ServiceName: "a", Size: 128, Hostname: "a:8080"},
 			nil,
 		},
 	}
