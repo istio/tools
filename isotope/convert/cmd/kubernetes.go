@@ -103,7 +103,7 @@ func init() {
 	kubernetesCmd.PersistentFlags().String(
 		"client-namespace", "default", "namespace where to deploy the client")
 	kubernetesCmd.PersistentFlags().String(
-		"cluster", "", "the cluster name to generate related workloads. It needs to match the cluster attribute for th services")
+		"cluster", "", "the cluster name to generate related workloads. It needs to match the cluster attribute for the services")
 	kubernetesCmd.MarkPersistentFlagRequired("cluster-name")
 }
 
