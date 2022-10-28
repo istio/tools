@@ -125,7 +125,7 @@ call:
 
 OR
 
-```
+```yaml
 call:
   service: {{ ServiceName }}
   hostname: {{ HostnameToUse }}
@@ -332,4 +332,3 @@ This ensures the data is not lost when the Prometheus instance is deleted.
 
 However, so long as you adhere to calling the "/metrics" HTTP endpoints,
 metrics could be collected by other means.
-
