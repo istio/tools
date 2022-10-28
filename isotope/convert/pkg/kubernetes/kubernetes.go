@@ -16,8 +16,8 @@
 package kubernetes
 
 import (
+	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -32,10 +32,6 @@ import (
 )
 
 const (
-	// ServiceGraphNamespace is the namespace all service graph related resources
-	// (i.e. ConfigMap, Services, and Deployments) will reside in.
-	ServiceGraphNamespace = "service-graph"
-
 	numConfigMaps          = 1
 	numManifestsPerService = 2
 
@@ -44,7 +40,7 @@ const (
 )
 
 var (
-	serviceGraphAppLabels       = map[string]string{"app": "service-graph"}
+	serviceGraphAppLabels       = map[string]string{"isotope": "service-graph"}
 	serviceGraphNodeLabels      = map[string]string{"role": "service"}
 	prometheusScrapeAnnotations = map[string]string{
 		"prometheus.io/scrape": "true",
@@ -60,10 +56,14 @@ func ServiceGraphToKubernetesManifests(
 	serviceMaxIdleConnectionsPerHost int,
 	clientNodeSelector map[string]string,
 	clientImage string,
-	environmentName string) ([]byte, error) {
+	clientNamespace string,
+	environmentName string,
+	clusterName string,
+	clientDisabled bool) ([]byte, error) {
 	numServices := len(serviceGraph.Services)
 	numManifests := numManifestsPerService*numServices + numConfigMaps
 	manifests := make([]string, 0, numManifests)
+	namespaces := []string{}
 
 	appendManifest := func(manifest interface{}) error {
 		yamlDoc, err := yaml.Marshal(manifest)
@@ -74,66 +74,97 @@ func ServiceGraphToKubernetesManifests(
 		return nil
 	}
 
-	namespace := makeServiceGraphNamespace()
-	if err := appendManifest(namespace); err != nil {
-		return nil, err
-	}
-
-	configMap, err := makeConfigMap(serviceGraph)
+	manifestHeader, err := validateServices(clusterName, serviceGraph.Services, manifests)
 	if err != nil {
 		return nil, err
 	}
-	if err := appendManifest(configMap); err != nil {
-		return nil, err
-	}
+	manifests = append(manifests, string(manifestHeader))
 
-	rand.Seed(time.Now().UTC().UnixNano())
-	hasRbacPolicy := false
+	// Find all the namespaces with the given cluster
 	for _, service := range serviceGraph.Services {
-		k8sDeployment := makeDeployment(
-			service, serviceNodeSelector, serviceImage,
-			serviceMaxIdleConnectionsPerHost)
-		innerErr := appendManifest(k8sDeployment)
-		if innerErr != nil {
-			return nil, innerErr
-		}
-
-		k8sService := makeService(service)
-		innerErr = appendManifest(k8sService)
-		if innerErr != nil {
-			return nil, innerErr
-		}
-
-		// Only generates the RBAC rules when Istio is installed.
-		if strings.EqualFold(environmentName, "ISTIO") && service.NumRbacPolicies > 0 {
-			hasRbacPolicy = true
-			var i int32
-			// Generates random RBAC rules for the service.
-			for i = 0; i < service.NumRbacPolicies; i++ {
-				manifests = append(manifests, generateRbacPolicy(service, false /* allowAll */))
+		var ommit = false
+		for _, x := range namespaces {
+			if x == service.Namespace {
+				ommit = true
+				break
 			}
-			// Generates "allow-all" RBAC rule for the service.
-			manifests = append(manifests, generateRbacPolicy(service, true /* allowAll */))
+		}
+		if ommit == false && service.Cluster == clusterName {
+			namespaces = append(namespaces, service.Namespace)
 		}
 	}
 
-	fortioDeployment := makeFortioDeployment(
-		clientNodeSelector, clientImage)
-	if err := appendManifest(fortioDeployment); err != nil {
-		return nil, err
+	if len(namespaces) == 0 {
+		configMap, err := makeConfigMap(serviceGraph, "")
+		if err != nil {
+			return nil, err
+		}
+		if err := appendManifest(configMap); err != nil {
+			return nil, err
+		}
+	} else {
+
+		for _, namespace := range namespaces {
+			configMap, err := makeConfigMap(serviceGraph, namespace)
+			if err != nil {
+				return nil, err
+			}
+			if err := appendManifest(configMap); err != nil {
+				return nil, err
+			}
+		}
 	}
 
-	fortioService := makeFortioService()
-	if err := appendManifest(fortioService); err != nil {
-		return nil, err
+	for _, service := range serviceGraph.Services {
+		if service.Cluster == clusterName || clusterName == "" {
+			k8sDeployment := makeDeployment(
+				service, serviceNodeSelector, serviceImage,
+				serviceMaxIdleConnectionsPerHost)
+			innerErr := appendManifest(k8sDeployment)
+			if innerErr != nil {
+				return nil, innerErr
+			}
+
+			k8sService := makeService(service)
+			innerErr = appendManifest(k8sService)
+			if innerErr != nil {
+				return nil, innerErr
+			}
+		}
 	}
 
-	if hasRbacPolicy {
-		manifests = append(manifests, generateRbacConfig())
+	if !clientDisabled {
+		fortioDeployment := makeFortioDeployment(
+			clientNodeSelector, clientImage, clientNamespace)
+		if err := appendManifest(fortioDeployment); err != nil {
+			return nil, err
+		}
+
+		fortioService := makeFortioService(clientNamespace)
+		if err := appendManifest(fortioService); err != nil {
+			return nil, err
+		}
 	}
 
 	yamlDocString := strings.Join(manifests, "---\n")
 	return []byte(yamlDocString), nil
+}
+
+func validateServices(clusterName string, services []svc.Service, manifest interface{}) ([]byte, error) {
+	header := []byte("")
+	if clusterName == "" {
+		header = append(header, []byte("## WARNING: Cluster name is not supplied. All services will be included in this manifest\n\n")...)
+	}
+	serviceToAppendCounter := 0
+	for _, service := range services {
+		if clusterName == service.Cluster || clusterName == "" {
+			serviceToAppendCounter++
+		}
+	}
+	if serviceToAppendCounter == 0 {
+		return nil, errors.New(fmt.Sprintf("No services found to match clusterName: '%s'", clusterName))
+	}
+	return append(header, []byte(fmt.Sprintf("## Number of services included in this manifest for cluster '%s' is: %d\n\n", clusterName, serviceToAppendCounter))...), nil
 }
 
 func combineLabels(a, b map[string]string) map[string]string {
@@ -147,17 +178,8 @@ func combineLabels(a, b map[string]string) map[string]string {
 	return c
 }
 
-func makeServiceGraphNamespace() (namespace apiv1.Namespace) {
-	namespace.APIVersion = "v1"
-	namespace.Kind = "Namespace"
-	namespace.ObjectMeta.Name = consts.ServiceGraphNamespace
-	namespace.ObjectMeta.Labels = map[string]string{"istio-injection": "enabled"}
-	timestamp(&namespace.ObjectMeta)
-	return
-}
-
 func makeConfigMap(
-	graph graph.ServiceGraph) (configMap apiv1.ConfigMap, err error) {
+	graph graph.ServiceGraph, namespace string) (configMap apiv1.ConfigMap, err error) {
 	graphYAMLBytes, err := yaml.Marshal(graph)
 	if err != nil {
 		return
@@ -165,7 +187,7 @@ func makeConfigMap(
 	configMap.APIVersion = "v1"
 	configMap.Kind = "ConfigMap"
 	configMap.ObjectMeta.Name = serviceGraphConfigName
-	configMap.ObjectMeta.Namespace = ServiceGraphNamespace
+	configMap.ObjectMeta.Namespace = namespace
 	configMap.ObjectMeta.Labels = serviceGraphAppLabels
 	timestamp(&configMap.ObjectMeta)
 	configMap.Data = map[string]string{
@@ -178,8 +200,12 @@ func makeService(service svc.Service) (k8sService apiv1.Service) {
 	k8sService.APIVersion = "v1"
 	k8sService.Kind = "Service"
 	k8sService.ObjectMeta.Name = service.Name
-	k8sService.ObjectMeta.Namespace = ServiceGraphNamespace
-	k8sService.ObjectMeta.Labels = serviceGraphAppLabels
+	k8sService.ObjectMeta.Namespace = service.Namespace
+	k8sService.ObjectMeta.Labels = combineLabels(
+		serviceGraphNodeLabels,
+		map[string]string{
+			"app": service.Name,
+		})
 	timestamp(&k8sService.ObjectMeta)
 	k8sService.Spec.Ports = []apiv1.ServicePort{{Port: consts.ServicePort, Name: consts.ServicePortName}}
 	k8sService.Spec.Selector = map[string]string{"name": service.Name}
@@ -193,8 +219,12 @@ func makeDeployment(
 	k8sDeployment.APIVersion = "apps/v1"
 	k8sDeployment.Kind = "Deployment"
 	k8sDeployment.ObjectMeta.Name = service.Name
-	k8sDeployment.ObjectMeta.Namespace = ServiceGraphNamespace
-	k8sDeployment.ObjectMeta.Labels = serviceGraphAppLabels
+	k8sDeployment.ObjectMeta.Namespace = service.Namespace
+	k8sDeployment.ObjectMeta.Labels = combineLabels(
+		serviceGraphNodeLabels,
+		map[string]string{
+			"app": service.Name,
+		})
 	timestamp(&k8sDeployment.ObjectMeta)
 	k8sDeployment.Spec = appsv1.DeploymentSpec{
 		Replicas: &service.NumReplicas,

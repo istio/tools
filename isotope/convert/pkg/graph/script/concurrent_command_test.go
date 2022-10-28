@@ -40,9 +40,9 @@ func TestConcurrentCommand_UnmarshalJSON(t *testing.T) {
 			nil,
 		},
 		{
-			[]byte(`[{"call": "A"}, {"sleep": "10ms"}]`),
+			[]byte(`[{"call": {"service": "A", "call-override": "A:8080"}}, {"sleep": "10ms"}]`),
 			ConcurrentCommand{
-				RequestCommand{ServiceName: "A"},
+				RequestCommand{ServiceName: "A", CallOverride: "A:8080"},
 				SleepCommand(10 * time.Millisecond),
 			},
 			nil,

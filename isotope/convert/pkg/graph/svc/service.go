@@ -26,6 +26,12 @@ type Service struct {
 	// Name is the DNS-addressable name of the service.
 	Name string `json:"name"`
 
+	// Name is the DNS-addressable name of the service.
+	Namespace string `json:"namespace,omitempty"`
+
+	// Name is the DNS-addressable name of the service.
+	Cluster string `json:"cluster,omitempty"`
+
 	// Type describes what protocol the service supports (e.g. HTTP, gRPC).
 	Type svctype.ServiceType `json:"type,omitempty"`
 
@@ -45,7 +51,4 @@ type Service struct {
 
 	// Script is sequentially called each time the service is called.
 	Script script.Script `json:"script,omitempty"`
-
-	// NumRbacPolicies is the number of policies generated for each service.
-	NumRbacPolicies int32 `json:"numRbacPolicies"`
 }

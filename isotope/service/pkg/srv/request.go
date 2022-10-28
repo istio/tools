@@ -21,16 +21,16 @@ import (
 
 	"istio.io/pkg/log"
 
-	"istio.io/tools/isotope/convert/pkg/consts"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
 )
 
 func sendRequest(
 	destName string,
 	size size.ByteSize,
+	extraHeader map[string]string,
 	requestHeader http.Header) (*http.Response, error) {
-	url := fmt.Sprintf("http://%s:%v", destName, consts.ServicePort)
-	request, err := buildRequest(url, size, requestHeader)
+	url := fmt.Sprintf("http://%s", destName)
+	request, err := buildRequest(url, size, extraHeader, requestHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func sendRequest(
 }
 
 func buildRequest(
-	url string, size size.ByteSize, requestHeader http.Header) (
+	url string, size size.ByteSize, extraHeader map[string]string, requestHeader http.Header) (
 	*http.Request, error) {
 	payload, err := makeRandomByteArray(size)
 	if err != nil {
@@ -49,6 +49,7 @@ func buildRequest(
 	if err != nil {
 		return nil, err
 	}
+	addExtraHeaders(request, extraHeader)
 	copyHeader(request, requestHeader)
 	return request, nil
 }
@@ -56,5 +57,11 @@ func buildRequest(
 func copyHeader(request *http.Request, header http.Header) {
 	for key, values := range header {
 		request.Header[key] = values
+	}
+}
+
+func addExtraHeaders(request *http.Request, header map[string]string) {
+	for key, value := range header {
+		request.Header.Add(key, value)
 	}
 }
