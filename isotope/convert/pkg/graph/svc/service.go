@@ -26,10 +26,10 @@ type Service struct {
 	// Name is the DNS-addressable name of the service.
 	Name string `json:"name"`
 
-	// Name is the DNS-addressable name of the service.
+	// Namespace is the namespace where the service will be deployed.
 	Namespace string `json:"namespace,omitempty"`
 
-	// Name is the DNS-addressable name of the service.
+	// Cluster is the cluster name to group certain number of services.
 	Cluster string `json:"cluster,omitempty"`
 
 	// Type describes what protocol the service supports (e.g. HTTP, gRPC).
