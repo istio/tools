@@ -16,6 +16,7 @@ package script
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 )
 
@@ -29,17 +30,17 @@ func TestRequestCommand_UnmarshalJSON(t *testing.T) {
 	}{
 		{
 			[]byte(`"A"`),
-			RequestCommand{ServiceName: "A"},
+			RequestCommand{ServiceName: "A", Hostname: "A:8080"},
 			nil,
 		},
 		{
 			[]byte(`{"service": "A"}`),
-			RequestCommand{ServiceName: "A"},
+			RequestCommand{ServiceName: "A", Hostname: "A:8080"},
 			nil,
 		},
 		{
-			[]byte(`{"service": "a", "size": 128}`),
-			RequestCommand{ServiceName: "a", Size: 128},
+			[]byte(`{"service": "a", "size": 128, "hostname": "a:8080"}`),
+			RequestCommand{ServiceName: "a", Size: 128, Hostname: "a:8080"},
 			nil,
 		},
 	}
@@ -54,7 +55,7 @@ func TestRequestCommand_UnmarshalJSON(t *testing.T) {
 			if test.err != err {
 				t.Errorf("expected %v; actual %v", test.err, err)
 			}
-			if test.command != command {
+			if !reflect.DeepEqual(test.command, command) {
 				t.Errorf("expected %v; actual %v", test.command, command)
 			}
 		})
@@ -71,17 +72,17 @@ func TestRequestCommand_UnmarshalJSON_Default(t *testing.T) {
 	}{
 		{
 			[]byte(`"A"`),
-			RequestCommand{ServiceName: "A", Size: 512},
+			RequestCommand{ServiceName: "A", Size: 512, Hostname: "A:8080"},
 			nil,
 		},
 		{
 			[]byte(`{"service": "A"}`),
-			RequestCommand{ServiceName: "A", Size: 512},
+			RequestCommand{ServiceName: "A", Size: 512, Hostname: "A:8080"},
 			nil,
 		},
 		{
 			[]byte(`{"service": "a", "size": 128}`),
-			RequestCommand{ServiceName: "a", Size: 128},
+			RequestCommand{ServiceName: "a", Size: 128, Hostname: "a:8080"},
 			nil,
 		},
 	}
@@ -96,7 +97,7 @@ func TestRequestCommand_UnmarshalJSON_Default(t *testing.T) {
 			if test.err != err {
 				t.Errorf("expected %v; actual %v", test.err, err)
 			}
-			if test.command != command {
+			if !reflect.DeepEqual(test.command, command) {
 				t.Errorf("expected %v; actual %v", test.command, command)
 			}
 		})

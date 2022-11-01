@@ -42,6 +42,7 @@ var kubernetesCmd = &cobra.Command{
 
 		clientNodeSelectorStr, err := cmd.PersistentFlags().GetString("client-node-selector")
 		exitIfError(err)
+
 		clientNodeSelector, err := extractNodeSelector(clientNodeSelectorStr)
 		exitIfError(err)
 
@@ -57,6 +58,15 @@ var kubernetesCmd = &cobra.Command{
 		environmentName, err := cmd.PersistentFlags().GetString("environment-name")
 		exitIfError(err)
 
+		clientNamespace, err := cmd.PersistentFlags().GetString("client-namespace")
+		exitIfError(err)
+
+		clusterName, err := cmd.PersistentFlags().GetString("cluster")
+		exitIfError(err)
+
+		clientDisabled, err := cmd.PersistentFlags().GetBool("client-disabled")
+		exitIfError(err)
+
 		yamlContents, err := os.ReadFile(inPath)
 		exitIfError(err)
 
@@ -65,7 +75,7 @@ var kubernetesCmd = &cobra.Command{
 
 		manifests, err := kubernetes.ServiceGraphToKubernetesManifests(
 			serviceGraph, serviceNodeSelector, serviceImage,
-			serviceMaxIdleConnectionsPerHost, clientNodeSelector, clientImage, environmentName)
+			serviceMaxIdleConnectionsPerHost, clientNodeSelector, clientImage, clientNamespace, environmentName, clusterName, clientDisabled)
 		exitIfError(err)
 
 		fmt.Println(string(manifests))
@@ -76,17 +86,25 @@ func init() {
 	rootCmd.AddCommand(kubernetesCmd)
 	kubernetesCmd.PersistentFlags().String(
 		"service-image", "", "the image to deploy for all services in the graph")
+	kubernetesCmd.MarkPersistentFlagRequired("service-image")
 	kubernetesCmd.PersistentFlags().Int(
 		"service-max-idle-connections-per-host", 0,
 		"maximum number of connections to keep open per host on each service")
 	kubernetesCmd.PersistentFlags().String(
-		"client-image", "", "the image to use for the load testing client job")
+		"client-image", "fortio/fortio", "the image to use for the load testing client job")
 	kubernetesCmd.PersistentFlags().String(
 		"environment-name", "NONE", `the environment name for the test ("NONE" or "ISTIO")`)
 	kubernetesCmd.PersistentFlags().String(
 		"client-node-selector", "", "the node selector for client workloads")
 	kubernetesCmd.PersistentFlags().String(
 		"service-node-selector", "", "the node selector for service workloads")
+	kubernetesCmd.PersistentFlags().Bool(
+		"client-disabled", false, "disabling client service (fortio) as part of the output")
+	kubernetesCmd.PersistentFlags().String(
+		"client-namespace", "default", "namespace where to deploy the client")
+	kubernetesCmd.PersistentFlags().String(
+		"cluster", "", "the cluster name to generate related workloads. It needs to match the cluster attribute for the services")
+	kubernetesCmd.MarkPersistentFlagRequired("cluster-name")
 }
 
 func splitByEquals(s string) (k string, v string, err error) {

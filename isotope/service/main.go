@@ -72,6 +72,12 @@ func main() {
 		log.Fatalf(`env var "%s" is not set`, consts.ServiceNameEnvKey)
 	}
 
+	configPath, ok := os.LookupEnv(consts.ConfigPathEnvKey)
+	if ok {
+		serviceGraphYAMLFilePath = configPath
+	}
+	log.Infof(`Config file path: "%s"`, serviceGraphYAMLFilePath)
+
 	defaultHandler, err := srv.HandlerFromServiceGraphYAML(
 		serviceGraphYAMLFilePath, serviceName)
 	if err != nil {

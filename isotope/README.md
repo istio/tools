@@ -34,14 +34,12 @@ default: # Optional. Default to empty map.
   requestSize: {{ ByteSize }} # Optional. Default 0.
   responseSize: {{ ByteSize }} # Optional. Default 0.
   script: {{ Script }} # Optional. See below for spec.
-  numRbacPolicies: {{ Int }} # Optional. Number of RBAC policies generated per service. Default 0.
 services: # Required. List of services in the graph.
 - name: {{ ServiceName }}: # Required. Name of the service.
   type: {{ "http" | "grpc" }} # Optional. Default "http".
   responseSize: {{ ByteSize }} # Optional. Default 0.
   errorRate: {{ Percentage }} # Optional. Overrides default.
   script: {{ Script }} # Optional. See below for spec.
-  numRbacPolicies: {{ Int }} # Optional. Number of RBAC policies generated per service, overrides the default numRbacPolicies.
 ```
 
 #### Default
@@ -62,7 +60,6 @@ default:
   # responseSize: 0 # Inherited from default.
   # type: "http" # Inherited from default.
   # script: [] # Inherited from default (acts like an echo server).
-  # numRbacPolicies: 0 # Inherited from default.
 services:
 - name: a
   memoryUsage: 80%
@@ -71,6 +68,11 @@ services:
   - call:
       service: b
       payloadSize: 80B
+  - call:
+      service: b
+      hostname: b:8080 # Override the URI used in the call (i.e. when the service is deployed in a different namespace and it requires to specify the namespace in the hostname: `b.namespace.svc.cluster.local:8080`)
+      extra-header:
+        foo: bar # To add headers in the request. Useful when the intermediate services (like `b`) requires some extra headers to pass the authorization mechanism applied to that service only
   # computeUsage: 10% # Inherited from default.
   # errorRate: 10% # Inherited from default.
 - name: b
@@ -119,6 +121,16 @@ OR
 call:
   service: {{ ServiceName }}
   payloadSize: {{ ByteSize (e.g. 1 KB) }}
+```
+
+OR
+
+```yaml
+call:
+  service: {{ ServiceName }}
+  hostname: {{ HostnameToUse }}
+  extra-header: {{ ExtraHeaders }}
+    {{ HeaderName }}: {{ Headeralue }}
 ```
 
 ##### Examples
@@ -320,4 +332,3 @@ This ensures the data is not lost when the Prometheus instance is deleted.
 
 However, so long as you adhere to calling the "/metrics" HTTP endpoints,
 metrics could be collected by other means.
-

@@ -27,10 +27,12 @@ var fortioClientLabels = map[string]string{"app": "client"}
 
 func makeFortioDeployment(
 	nodeSelector map[string]string,
-	clientImage string) (deployment appsv1.Deployment) {
+	clientImage string,
+	namespace string) (deployment appsv1.Deployment) {
 	deployment.APIVersion = "apps/v1"
 	deployment.Kind = "Deployment"
 	deployment.ObjectMeta.Name = "client"
+	deployment.ObjectMeta.Namespace = namespace
 	deployment.ObjectMeta.Labels = fortioClientLabels
 	timestamp(&deployment.ObjectMeta)
 	deployment.Spec = appsv1.DeploymentSpec{
@@ -65,10 +67,11 @@ func makeFortioDeployment(
 	return
 }
 
-func makeFortioService() (service apiv1.Service) {
+func makeFortioService(namespace string) (service apiv1.Service) {
 	service.APIVersion = "v1"
 	service.Kind = "Service"
 	service.ObjectMeta.Name = "client"
+	service.ObjectMeta.Namespace = namespace
 	service.ObjectMeta.Labels = fortioClientLabels
 	service.ObjectMeta.Annotations = prometheusScrapeAnnotations
 	timestamp(&service.ObjectMeta)

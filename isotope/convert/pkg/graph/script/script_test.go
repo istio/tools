@@ -44,7 +44,7 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 		{
 			[]byte(`[{"call": "A"}, {"sleep": "10ms"}]`),
 			Script{
-				RequestCommand{ServiceName: "A"},
+				RequestCommand{ServiceName: "A", Hostname: "A:8080"},
 				SleepCommand(10 * time.Millisecond),
 			},
 			nil,
@@ -53,8 +53,8 @@ func TestScript_UnmarshalJSON(t *testing.T) {
 			[]byte(`[[{"call": "A"}, {"call": "B"}], {"sleep": "10ms"}]`),
 			Script{
 				ConcurrentCommand{
-					RequestCommand{ServiceName: "A"},
-					RequestCommand{ServiceName: "B"},
+					RequestCommand{ServiceName: "A", Hostname: "A:8080"},
+					RequestCommand{ServiceName: "B", Hostname: "B:8080"},
 				},
 				SleepCommand(10 * time.Millisecond),
 			},

@@ -23,10 +23,6 @@ const (
 	// ServicePortName is the name of the service port.
 	ServicePortName = "http-web"
 
-	// ServiceGraphNamespace is the name of the namespace that all service graph
-	// related components will live in.
-	ServiceGraphNamespace = "service-graph"
-
 	// ConfigPath is the parent directory of all service configuration files.
 	ConfigPath = "/etc/config"
 	// ServiceGraphYAMLFileName is the name of the file which contains the
@@ -40,6 +36,10 @@ const (
 	// ServiceNameEnvKey is the key of the environment variable whose value is
 	// the name of the service.
 	ServiceNameEnvKey = "SERVICE_NAME"
+
+	// ConfigPathEnvKey is the key of the environment variable whose value is
+	// the path to the yaml file.
+	ConfigPathEnvKey = "CONFIG_PATH"
 
 	// FortioMetricsPort is the port on which /metrics is available.
 	FortioMetricsPort = 42422

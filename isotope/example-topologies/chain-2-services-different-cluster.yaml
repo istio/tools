@@ -1,0 +1,15 @@
+defaults:
+  requestSize: 1 KB
+  responseSize: 1 KB
+services:
+- isEntrypoint: true
+  name: a
+  namespace: demo1
+  cluster: cluster1
+  script:
+  - call:
+      service: b
+      hostname: b.global:8080
+- name: b
+  namespace: demo2
+  cluster: cluster2

@@ -79,12 +79,14 @@ func executeRequestCommand(
 		return nil
 	}
 
-	destName := cmd.ServiceName
-	_, ok := serviceTypes[destName]
+	destName := cmd.Hostname
+	extraHeader := cmd.ExtraHeader
+
+	_, ok := serviceTypes[cmd.ServiceName]
 	if !ok {
 		return fmt.Errorf("service %s does not exist", destName)
 	}
-	response, err := sendRequest(destName, cmd.Size, forwardableHeader)
+	response, err := sendRequest(destName, cmd.Size, extraHeader, forwardableHeader)
 	if err != nil {
 		return err
 	}

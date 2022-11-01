@@ -17,14 +17,16 @@ package script
 import (
 	"encoding/json"
 	"errors"
-
+	"fmt"
 	"istio.io/tools/isotope/convert/pkg/graph/size"
 )
 
 // RequestCommand describes a command to send an HTTP request to another
 // service.
 type RequestCommand struct {
-	ServiceName string `json:"service"`
+	ServiceName string            `json:"service"`
+	Hostname    string            `json:"hostname"`
+	ExtraHeader map[string]string `json:"extra-header"`
 	// Size is the number of bytes in the request body.
 	Size size.ByteSize `json:"size"`
 	// Probability is the chance a call will be made, from 1-100%. If unset, the call will always be made
@@ -48,6 +50,7 @@ func (c *RequestCommand) UnmarshalJSON(b []byte) (err error) {
 			return
 		}
 		c.ServiceName = s
+		c.Hostname = fmt.Sprintf("%s:8080", s)
 	} else {
 		// Wrap the RequestCommand to dodge the custom UnmarshalJSON.
 		unmarshallableRequestCommand := unmarshallableRequestCommand(*c)
@@ -57,7 +60,9 @@ func (c *RequestCommand) UnmarshalJSON(b []byte) (err error) {
 		}
 
 		*c = RequestCommand(unmarshallableRequestCommand)
-
+		if c.Hostname == "" {
+			c.Hostname = fmt.Sprintf("%s:8080", c.ServiceName)
+		}
 		if c.Probability < 0 || c.Probability > 100 {
 			return errors.New("math: invalid probability, outside range: [0,100]")
 		}

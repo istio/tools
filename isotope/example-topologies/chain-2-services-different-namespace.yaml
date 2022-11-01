@@ -1,0 +1,13 @@
+defaults:
+  requestSize: 1 KB
+  responseSize: 1 KB
+services:
+- isEntrypoint: true
+  name: a
+  namespace: demo1
+  script:
+  - call:
+      service: b
+      hostname: b.demo2.svc.cluster.local:8080
+- name: b
+  namespace: demo2
