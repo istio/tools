@@ -35,7 +35,7 @@ export VALUES="${VALUES:-values-istio-postsubmit.yaml}"
 # for existing resources types
 export RESOURCE_TYPE="${RESOURCE_TYPE:-gke-perf-preset}"
 export PILOT_CLUSTER="${PILOT_CLUSTER:-}"
-export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-True}"
+export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-False}"
 export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 export OWNER="${OWNER:-perf-tests}"
 
@@ -46,9 +46,10 @@ export ISTIO_INJECT=${ISTIO_INJECT:-true}
 export DNS_DOMAIN="fake-dns.org"
 export LOAD_GEN_TYPE=${LOAD_GEN_TYPE:-"fortio"}
 export FORTIO_CLIENT_URL=""
+export IOPS=${IOPS:-istioctl_profiles/default-overlay.yaml}
 
 # Other Env vars
-export GCS_BUCKET="istio-build/perf"
+export GCS_BUCKET=${GCS_BUCKET:-"istio-build/perf"}
 export TRIALRUN=${TRIALRUN:-"False"}
 
 
@@ -72,7 +73,7 @@ INSTALL_VERSION=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}
 echo "Setup istio release: ${INSTALL_VERSION}"
 
 pushd "${ROOT}/istio-install"
-   DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default-overlay.yaml
+   DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh
 popd
 
 # Step 3: setup Istio performance test
@@ -98,7 +99,6 @@ dt=$(date +'%Y%m%d')
 export OUTPUT_DIR="${dt}_${LOAD_GEN_TYPE}_${GIT_BRANCH}_${INSTALL_VERSION}"
 LOCAL_OUTPUT_DIR="/tmp/${OUTPUT_DIR}"
 mkdir -p "${LOCAL_OUTPUT_DIR}"
-PROM_POD=""
 
 # Step 6: setup fortio and prometheus
 function setup_fortio_and_prometheus() {
@@ -141,12 +141,9 @@ function exit_handling() {
   # Copy raw data from fortio client pod
   kubectl --namespace "${NAMESPACE}" cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
   gsutil -q cp -r /tmp/rawdata "gs://${GCS_BUCKET}/${OUTPUT_DIR}/rawdata"
-  # output information for debugging
-  kubectl describe pods "${PROM_POD}" -n "${PROMETHEUS_NAMESPACE}" || true
-  kubectl logs "${PROM_POD}" -n "${PROMETHEUS_NAMESPACE}" -c prometheus || true
-  kubectl logs -n "${NAMESPACE}" "${FORTIO_CLIENT_POD}" -c captured || true
-  kubectl top pods --containers -n "${NAMESPACE}" || true
-  kubectl describe pods "${FORTIO_CLIENT_POD}" -n "${NAMESPACE}" || true
+
+  # Cleanup cluster resources
+  cleanup
 }
 
 # add trap to copy raw data when exiting, also output logging information for debugging
@@ -162,7 +159,7 @@ function collect_flame_graph() {
 
 function collect_metrics() {
   # shellcheck disable=SC2155
-  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX.csv)"
+  export CSV_OUTPUT="$(mktemp /tmp/benchmark_XXXX)"
   pipenv run python3 fortio.py ${FORTIO_CLIENT_URL} --csv_output="$CSV_OUTPUT" --prometheus=${PROMETHEUS_URL} \
    --csv StartTime,ActualDuration,Labels,NumThreads,ActualQPS,p50,p90,p99,p999,cpu_mili_avg_istio_proxy_fortioclient,\
 cpu_mili_avg_istio_proxy_fortioserver,cpu_mili_avg_istio_proxy_istio-ingressgateway,mem_Mi_avg_istio_proxy_fortioclient,\
@@ -247,7 +244,7 @@ for dir in "${CONFIG_DIR}"/*; do
        extra_overlay="-f ${dir}/installation.yaml"
     fi
     pushd "${ROOT}/istio-install"
-      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh -f istioctl_profiles/default-overlay.yaml "${extra_overlay}"
+      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh "${extra_overlay}"
     popd
 
     # Custom pre-run
@@ -268,14 +265,6 @@ for dir in "${CONFIG_DIR}"/*; do
     # Collect pod spec
     collect_pod_spec "${FORTIO_CLIENT_POD}"
     collect_pod_spec "${FORTIO_SERVER_POD}"
-
-    # List all pods in istio-system namespace
-    PODs="$(kubectl get pods -n istio-system -o=name)"
-    echo "${PODs}"
-
-    # Check pods in istio-prometheus namespace
-    PROM_POD="$(kubectl get pods -n istio-prometheus -o=name)"
-    echo "${PROM_POD}"
 
     # Run test and collect data
     if [[ -e "./cpu_mem.yaml" ]]; then

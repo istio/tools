@@ -48,7 +48,7 @@ function svc_ip_range() {
     kubectl -n kube-system get svc "${DNS_SVC}" --no-headers | awk '{print $3}' | awk -F '.' '{printf "%s.%s.0.0/16\n", $1, $2}'
 }
 
-function run_test() {
+function setup_test() {
   # shellcheck disable=SC2046
   helm -n "${NAMESPACE}" template \
       --set rbac.enabled="${RBAC_ENABLED}" \
@@ -95,4 +95,4 @@ then
   kubectl annotate namespace "${NAMESPACE}" linkerd.io/inject=enabled || true
 fi
 
-run_test
+setup_test
