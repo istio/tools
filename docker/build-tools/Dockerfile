@@ -164,9 +164,12 @@ RUN go install sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
 # Go doesn't like the `replace` directives; need to do manual cloning now.
 # Should be fixed by https://github.com/kubernetes/test-infra/issues/20421
 # hadolint ignore=DL3003
-RUN git clone https://github.com/kubernetes/test-infra --branch master --single-branch && \
+RUN mkdir -p test-infra && \
   cd test-infra && \
-  git checkout "${K8S_TEST_INFRA_VERSION}" && \
+  git init && \
+  git remote add origin https://github.com/kubernetes/test-infra.git && \
+  git fetch --depth 1 origin ${K8S_TEST_INFRA_VERSION} && \
+  git checkout FETCH_HEAD && \
   go install ./robots/pr-creator && \
   go install ./prow/cmd/peribolos && \
   go install ./pkg/benchmarkjunit && \
@@ -404,10 +407,14 @@ RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSIO
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
 # hadolint ignore=DL3003,DL3028
-RUN git clone https://github.com/jordansissel/fpm && \
+RUN mkdir fpm && \
     cd fpm && \
-    git reset --hard ${FPM_VERSION} && \
-    make install
+    git init && \ 
+    git remote add origin https://github.com/jordansissel/fpm && \
+    git fetch --depth 1 origin ${FPM_VERSION} && \
+    git checkout FETCH_HEAD && \
+    make install && \
+    cd .. && rm -rf fpm
 
 ##############
 # Python
