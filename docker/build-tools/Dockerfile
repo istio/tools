@@ -407,14 +407,14 @@ RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSIO
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
 # hadolint ignore=DL3003,DL3028
-RUN mkdir -p /tmp/fpm && \
-    cd /tmp/fpm && \
+RUN mkdir fpm && \
+    cd fpm && \
     git init && \ 
     git remote add origin https://github.com/jordansissel/fpm && \
     git fetch --depth 1 origin ${FPM_VERSION} && \
     git checkout FETCH_HEAD && \
     make install && \
-    rm -rf /tmp/*
+    cd .. && rm -rf fpm
 
 ##############
 # Python
