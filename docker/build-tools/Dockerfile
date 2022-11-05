@@ -65,6 +65,7 @@ ENV PROTOLOCK_VERSION=v0.14.0
 ENV PROTOTOOL_VERSION=v1.10.0
 ENV SHELLCHECK_VERSION=v0.8.0
 ENV SU_EXEC_VERSION=0.2
+ENV UPX_VERSION=4.0.0
 ENV YQ_VERSION=4.28.2
 ENV KPT_VERSION=v0.39.3
 ENV BUF_VERSION=v1.9.0
@@ -289,6 +290,14 @@ RUN set -eux; \
     rm "/tmp/${TRVIY_DEB_NAME}"; \
     mv /usr/local/bin/trivy ${OUTDIR}/usr/bin/
 
+# Compress the Go tools and put them in their final location
+# Don't run upx against helm - Add a grep -v
+ADD https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz /tmp
+RUN tar -xJf /tmp/upx-${UPX_VERSION}-${TARGETARCH}_linux.tar.xz -C /tmp
+RUN mv /tmp/upx-${UPX_VERSION}-${TARGETARCH}_linux/upx /usr/bin
+RUN mv /tmp/go/bin/* ${OUTDIR}/usr/bin
+RUN find ${OUTDIR}/usr/bin/ -maxdepth 1 -type f -writable | grep -v su-exec | grep -v helm | xargs upx --lzma || true
+
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
 RUN rm -fr /usr/local/go/test
@@ -400,7 +409,7 @@ RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
 # hadolint ignore=DL3003,DL3028
 RUN mkdir fpm && \
     cd fpm && \
-    git init && \ 
+    git init && \
     git remote add origin https://github.com/jordansissel/fpm && \
     git fetch --depth 1 origin ${FPM_VERSION} && \
     git checkout FETCH_HEAD && \
