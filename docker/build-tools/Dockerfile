@@ -289,6 +289,9 @@ RUN set -eux; \
     rm "/tmp/${TRVIY_DEB_NAME}"; \
     mv /usr/local/bin/trivy ${OUTDIR}/usr/bin/
 
+# Move go tools to usr/bin
+RUN mv /tmp/go/bin/* ${OUTDIR}/usr/bin
+
 # Cleanup stuff we don't need in the final image
 RUN rm -fr /usr/local/go/doc
 RUN rm -fr /usr/local/go/test
@@ -400,7 +403,7 @@ RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
 # hadolint ignore=DL3003,DL3028
 RUN mkdir fpm && \
     cd fpm && \
-    git init && \ 
+    git init && \
     git remote add origin https://github.com/jordansissel/fpm && \
     git fetch --depth 1 origin ${FPM_VERSION} && \
     git checkout FETCH_HEAD && \
