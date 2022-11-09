@@ -4,7 +4,7 @@
 ############################################################
 
 # Set the base image to use to Ubuntu
-FROM ubuntu:jammy
+FROM ubuntu:bionic
 
 RUN apt-get update \
   && apt-get install -y python3-pip python3-dev \
@@ -16,13 +16,8 @@ RUN apt-get update \
 # to the terminal without buffering it first
 ENV PYTHONUNBUFFERED 1
 
-# Set environment variables
-ENV CUR_RELEASE=release-1.15
-ENV PROJECT_ID="service-mesh-296815"
-ENV BUCKET_NAME=intel-istio-build
-ENV BUCKET_PREFIX="perf/"
-ENV BUCKET_DELIMITER="/"
-
+# Set environment variable for current release
+ENV CUR_RELEASE=release-1.13
 # Create root directory for our project in the container
 RUN mkdir /perf_dashboard
 
@@ -31,10 +26,6 @@ WORKDIR /perf_dashboard
 
 # Copy the current directory contents into the container at /perf_dashboard
 COPY . /perf_dashboard/
-
-# Copy and set application default credentials
-COPY application_default_credentials.json /perf_dashboard
-ENV GOOGLE_APPLICATION_CREDENTIALS=/perf_dashboard/application_default_credentials.json
 
 # Install any needed packages specified in requirements.txt
 RUN pip3 install -r requirements.txt
