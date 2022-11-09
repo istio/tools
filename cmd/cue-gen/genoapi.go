@@ -114,6 +114,8 @@ var (
 
 	inplace = flag.Bool("inplace", false, "generate configurations in place")
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
+	include = flag.String("include", "", "comma-separated prefixes for files and folders to include when searching for .proto files to process")
+	exclude = flag.String("exclude", "", "comma-separated prefixes for files and folders to exclude when searching for .proto files to process")
 	verbose = flag.Bool("verbose", false, "print debugging output")
 
 	// manually configuring builds
@@ -190,6 +192,9 @@ func main() {
 		}
 	}
 
+	includes := strings.Split(*include, ",")
+	excludes := strings.Split(*exclude, ",")
+
 	if *configFile == "" {
 		log.Fatalf("Must specify configuration with the -f option")
 	}
@@ -216,6 +221,18 @@ func main() {
 	_ = filepath.Walk(cwd, func(path string, f os.FileInfo, _ error) (err error) {
 		if !strings.HasSuffix(path, ".proto") {
 			return nil
+		}
+		// Ignore non-included files
+		for _, i := range includes {
+			if !strings.HasPrefix(path, cwd+i) {
+				return nil
+			}
+		}
+		// Ignore explicitly excluded files
+		for _, e := range excludes {
+			if strings.HasPrefix(path, cwd+e) {
+				return nil
+			}
 		}
 		// skip the imported protos to avoid circular dependency.
 		for _, i := range importPaths[1:] {
