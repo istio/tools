@@ -18,7 +18,7 @@ get-cluster-credentials:
 
 build:
 	echo $(PROJECT_ID)
-	@$(CONTAINER_CLI) build --http-proxy --build-arg PROJECT_ID_ARG="foo" --build-arg BUCKET_NAME_ARG=$(BUCKET_NAME) --tag "$(IMG_LATEST)" --tag "$(IMG_VERSION)" .
+	@$(CONTAINER_CLI) build --http-proxy --build-arg BUCKET_NAME_ARG=$(BUCKET_NAME) --tag "$(IMG_LATEST)" --tag "$(IMG_VERSION)" .
 
 run:
 	@$(CONTAINER_CLI) run -p 8000:8000 --rm --name "$(IMG_NAME)" "$(IMG_LATEST)"
