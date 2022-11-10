@@ -122,7 +122,7 @@ function gc() {
   SA=""
   # shellcheck disable=SC2236
   if [[ -n "${GCP_SA:-}" ]];then
-    SA=("--identity-provider=${PROJECT_ID}.svc.id.goog" "--service-account=${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "--workload-metadata-from-node=EXPOSED")
+    SA=("--identity-provider=${PROJECT_ID}.svc.id.goog" "--workload-pool=${PROJECT_ID}.svc.id.goog" "--service-account=${GCP_SA}@${PROJECT_ID}.iam.gserviceaccount.com" "--workload-metadata-from-node=EXPOSED")
   fi
 
   # shellcheck disable=SC2048
@@ -204,7 +204,8 @@ function install_with_gcloudcontainer {
     --machine-type "${MACHINE_TYPE}" --image-type "${IMAGE}" --disk-type "pd-standard" --disk-size "${DISK_SIZE}" \
     --scopes "${SCOPES}" \
     --num-nodes "${MIN_NODES}" --enable-autoscaling --min-nodes "${MIN_NODES}" --max-nodes "${MAX_NODES}" --max-pods-per-node "${MAXPODS_PER_NODE}" \
-    --enable-stackdriver-kubernetes \
+    --logging=SYSTEM \
+    --monitoring=SYSTEM \
     --enable-ip-alias \
     --metadata disable-legacy-endpoints=true \
     "${NETWORK_SUBNET}" \
@@ -274,34 +275,6 @@ data:
 EOF
 )
 
-
-CONFIGMAP_GALLEY=$(cat <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: istiod-asm
-  namespace: istio-system
-data:
-  galley.json: |
-      {
-      "EnableServiceDiscovery": true,
-      "SinkAddress": "meshconfig.googleapis.com:443",
-      "SinkAuthMode": "GOOGLE",
-      "ExcludedResourceKinds": ["Pod", "Node", "Endpoints"],
-      "sds-path": "/etc/istio/proxy/SDS",
-      "SinkMeta": ["project_id=${PROJECT_ID}"]
-      }
-
-  PROJECT_ID: ${PROJECT_ID}
-  GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/google/key.json
-  ISTIOD_ADDR: istiod-asm.istio-system.svc:15012
-  WEBHOOK: istiod-asm
-  AUDIENCE: ${PROJECT_ID}.svc.id.goog
-  trustDomain: ${PROJECT_ID}.svc.id.goog
-  gkeClusterUrl: https://container.googleapis.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${CLUSTER_NAME}
-EOF
-)
-
 export KUBECONFIG="${WD}/tmp/${CLUSTER_NAME}/kube.yaml"
 gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone "${ZONE}"
 
@@ -337,4 +310,3 @@ fi
 if ! kubectl -n istio-system get secret google-cloud-key > /dev/null 2>&1; then
   kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json=<(echo "${CLOUDKEY}")
 fi
-kubectl -n istio-system apply -f <(echo "${CONFIGMAP_GALLEY}")
