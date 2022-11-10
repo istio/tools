@@ -12,22 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.shortcuts import render
-import pandas as pd
-from helpers import download
+from helpers import bucket
 import os
 
 
 # Create your views here.
 def artifact(request):
-
     current_release = request.COOKIES.get("currentRelease")
+    project_id = request.COOKIES.get("projectId")
     bucket_name = request.COOKIES.get('bucketName')
+    download_dataset_days = request.COOKIES.get('downloadDatasetDays')
 
     if not current_release:
         current_release = current_release = os.getenv('CUR_RELEASE')
 
-    cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates = download.download_benchmark_csv(
-        60, bucket_name=bucket_name, current_release=current_release)
+    cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates = bucket.download_benchmark_csv(
+        download_dataset_days=download_dataset_days, current_release=current_release, project_id=project_id, bucket_name=bucket_name)
+
     cur_release_bundle = get_artifacts_release_bundle(cur_release_dates, cur_release_names, cur_href_links)
     master_release_bundle = get_artifacts_release_bundle(master_release_dates, master_release_names, master_href_links)
 

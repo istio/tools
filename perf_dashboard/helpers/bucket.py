@@ -12,83 +12,94 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from bs4 import BeautifulSoup
-from urllib import request
 import os
-import wget
 import datetime
+from google.cloud import storage
+
 
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
 
-# TODO: add load_gen_type as a param
+load_generator_type = "fortio"
 
 
-def download_benchmark_csv(days, bucket_name, current_release):
+def download_benchmark_csv(download_dataset_days, current_release, project_id, bucket_name):
 
-    if not bucket_name:
-        bucket_name = os.getenv('BUCKET_NAME')
     if not current_release:
         current_release = os.getenv('CUR_RELEASE')
+    if not project_id:
+        project_id = os.getenv('PROJECT_ID')
+    if not bucket_name:
+        bucket_name = os.getenv('BUCKET_NAME')
+    if not download_dataset_days:
+        download_dataset_days = os.getenv('DOWNLOAD_DATASET_DAYS')
+
+    bucket_prefix = os.getenv('BUCKET_PREFIX')
+    bucket_delimiter = os.getenv('BUCKET_DELIMITER')
+
+    print(current_release, project_id, bucket_name, bucket_prefix, bucket_delimiter, download_dataset_days)
 
     if not os.path.exists(perf_data_path):
         os.makedirs(perf_data_path)
 
-    download_dateset = get_download_dateset(days)
+    download_dateset = get_download_dateset(int(download_dataset_days))
+    storage_client = storage.Client(project_id)
 
-    url_prefix = "https://gcsweb.istio.io/gcs/"
-    gcs_bucket_name = bucket_name
+    bucket = storage_client.bucket(bucket_name)
 
-    soup = get_page_soup(url_prefix + gcs_bucket_name)
+    blobs = storage_client.list_blobs(bucket_name, prefix=bucket_prefix, delimiter=bucket_delimiter)
+    print(list(blobs))
+    prefixes = blobs.prefixes
+    print(prefixes)
+
     cur_href_links = []
     cur_release_names = []
     cur_release_dates = []
     master_href_links = []
     master_release_names = []
     master_release_dates = []
-    process_current_page(download_dateset, soup, cur_href_links, cur_release_names, cur_release_dates,
-                         master_href_links, master_release_names, master_release_dates, current_release)
+    process_prefixes(download_dateset, bucket, prefixes, cur_href_links, cur_release_names, cur_release_dates,
+                     master_href_links, master_release_names, master_release_dates, current_release)
 
     delete_outdated_files(download_dateset)
     return cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates
 
 
-def process_current_page(download_dateset, soup, cur_href_links, cur_release_names, cur_release_dates,
-                         master_href_links, master_release_names, master_release_dates, current_release):
-    for link in soup.find_all('a'):
-        href_str = link.get('href')
-        if href_str == "/gcs/istio-build/":
-            continue
-        current_page_test_dates = set()
-        if "fortio" in href_str:
-            href_parts = href_str.split("/")
+def process_prefixes(download_dateset, bucket, prefixes, cur_href_links, cur_release_names, cur_release_dates,
+                     master_href_links, master_release_names, master_release_dates, current_release):
+
+    for prefix in prefixes:
+        print(f"{prefix}")
+        if load_generator_type in prefix:
             # an example benchmark_test_id would be like:
             # "20200525_fortio_master_1.7-alpha.d0e07f6e430fd99554ccc3aee3be8a730cd8a226"
-            benchmark_test_id = href_parts[4]
+            benchmark_test_id = prefix.split('/')[1]
             if current_release.split("-")[1] in benchmark_test_id or "master" in benchmark_test_id:
                 test_date, test_load_gen_type, test_branch, release_name = parse_perf_href_str(benchmark_test_id)
-                if test_date not in current_page_test_dates and test_date in download_dateset:
-                    current_page_test_dates.add(test_date)
-                    download_prefix = "https://storage.googleapis.com/istio-build/perf/"
+                print(f"date: {test_date}, test_branch: {test_branch}, release_name: {release_name}")
+                if test_date in download_dateset:
                     download_filename = "benchmark.csv"
-                    download_url = download_prefix + benchmark_test_id + "/" + download_filename
-
                     dump_filename = benchmark_test_id + "_" + download_filename
                     dump_to_filepath = perf_data_path + dump_filename
                     is_exist = check_exist(dump_filename)
 
+                    # Make the API the same as previously so view.py parsing works.
+                    fake_prefix = "/././" + prefix
                     if test_branch == "master":
-                        master_href_links.insert(0, href_str)
+                        master_href_links.insert(0, fake_prefix)
                         master_release_names.insert(0, release_name)
                         master_release_dates.insert(0, test_date)
                     else:
-                        cur_href_links.insert(0, href_str)
+                        cur_href_links.insert(0, fake_prefix)
                         cur_release_names.insert(0, release_name)
                         cur_release_dates.insert(0, test_date)
                     try:
                         if is_exist:
                             continue
-                        wget.download(download_url, dump_to_filepath)
+                        blob_id = prefix + download_filename
+                        blob = bucket.blob(blob_id)
+                        blob.download_to_filename(dump_to_filepath)
+                        print(f"downloaded: {blob_id}")
                     except Exception as e:
                         if test_branch == "master":
                             master_href_links.pop(0)
@@ -101,34 +112,12 @@ def process_current_page(download_dateset, soup, cur_href_links, cur_release_nam
                         print(e)
                 else:
                     continue
-    has_next_page, next_soup = if_has_next_page(soup)
-    if has_next_page:
-        process_current_page(download_dateset, next_soup, cur_href_links, cur_release_names, cur_release_dates,
-                             master_href_links, master_release_names, master_release_dates, current_release)
 
 
-def if_has_next_page(soup):
-    for link in soup.find_all('a'):
-        if link.get('class') == ['pure-button', 'next-button']:
-            next_page_link = link.get('href')
-            next_soup = get_page_soup("https://gcsweb.istio.io/" + next_page_link)
-            return True, next_soup
-    return False, None
-
-
-def get_page_soup(url):
-    try:
-        page = request.urlopen(url)
-    except Exception as e:
-        print(e)
-        exit(1)
-    return BeautifulSoup(page, 'html.parser')
-
-
-def get_download_dateset(days):
+def get_download_dateset(download_dataset_days):
     download_dateset = set()
-    today = datetime.date.today()
-    for day_interval in list(range(1, days)):
+    today = datetime.date.today() + datetime.timedelta(days=1)
+    for day_interval in list(range(1, download_dataset_days)):
         prev_date = (today - datetime.timedelta(day_interval)).strftime("%Y%m%d")
         download_dateset.add(prev_date)
     return download_dateset

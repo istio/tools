@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from django.shortcuts import render
-from helpers import download
+from helpers import bucket
 import pandas as pd
 import os
 
@@ -21,23 +21,25 @@ import os
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
 
-
 # Create your views here.
+
+
 def monitoring_overview(request):
     return render(request, "monitoring_overview.html")
 
 
 def cur_regression(request):
 
-    current_release = request.COOKIES.get("currentRelease")
+    current_release = request.COOKIES.get('currentRelease')
+    project_id = request.COOKIES.get('projectId')
     bucket_name = request.COOKIES.get('bucketName')
+    download_dataset_days = request.COOKIES.get('downloadDatasetDays')
 
     if not current_release:
         current_release = current_release = os.getenv('CUR_RELEASE')
 
-    cur_href_links, _, cur_release_dates, _, _, _ = download.download_benchmark_csv(60,
-                                                                                    bucket_name=bucket_name,
-                                                                                    current_release=current_release)
+    cur_href_links, _, cur_release_dates, _, _, _ = bucket.download_benchmark_csv(
+        download_dataset_days=download_dataset_days, current_release=current_release, project_id=project_id, bucket_name=bucket_name)
 
     latency_none_mtls_base_p90 = get_telemetry_mode_y_series(cur_href_links, cur_release_dates, '_none_mtls_baseline', 'p90')
     latency_none_mtls_both_p90 = get_telemetry_mode_y_series(cur_href_links, cur_release_dates, '_none_mtls_both', 'p90')
@@ -93,11 +95,13 @@ def cur_regression(request):
 # Create your views here.
 def master_regression(request):
 
-    current_release = request.COOKIES.get("currentRelease")
+    current_release = request.COOKIES.get('currentRelease')
+    project_id = request.COOKIES.get('projectId')
     bucket_name = request.COOKIES.get('bucketName')
+    download_dataset_days = request.COOKIES.get('downloadDatasetDays')
 
-    _, _, _, master_href_links, _, master_release_dates = download.download_benchmark_csv(
-        60, bucket_name=bucket_name, current_release=current_release)
+    _, _, _, master_href_links, _, master_release_dates = bucket.download_benchmark_csv(
+        download_dataset_days=download_dataset_days, current_release=current_release, project_id=project_id, bucket_name=bucket_name)
 
     latency_none_mtls_base_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_mtls_baseline', 'p90')
     latency_none_mtls_both_p90_master = get_telemetry_mode_y_series(master_href_links, master_release_dates, '_none_mtls_both', 'p90')
