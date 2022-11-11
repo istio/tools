@@ -1,9 +1,11 @@
 VERSION := $(shell date +v%Y%m%d)-$(shell git rev-parse --short HEAD)
 
-HUB ?= gcr.io/istio-testing/perf-dashboard
+HUB ?= gcr.io/istio-testing
 
-IMG_LATEST := $(HUB):latest
-IMG_VERSION := $(HUB):$(VERSION)
+CONTAINER_CLI ?= docker
+IMG_NAME ?= perf-dashboard
+IMG_LATEST := $(HUB)/$(IMG_NAME):latest
+IMG_VERSION := $(HUB)/$(IMG_NAME):$(VERSION)
 
 PROJECT ?= istio-testing
 CLUSTER ?= perf-dashboard
@@ -15,11 +17,14 @@ get-cluster-credentials:
 	gcloud container clusters get-credentials "$(CLUSTER)" --project="$(PROJECT)" --zone="$(ZONE)"
 
 build:
-	@docker build --no-cache --tag "$(IMG_LATEST)" --tag "$(IMG_VERSION)" .
+	@$(CONTAINER_CLI) build --no-cache --tag "$(IMG_LATEST)" --tag "$(IMG_VERSION)" .
+
+run:
+	@$(CONTAINER_CLI) run -p 8000:8000 --rm --name "$(IMG_NAME)" "$(IMG_LATEST)"
 
 push:
-	@docker push "$(IMG_LATEST)"
-	@docker push "$(IMG_VERSION)"
+	@$(CONTAINER_CLI) push "$(IMG_LATEST)"
+	@$(CONTAINER_CLI) push "$(IMG_VERSION)"
 
 deploy_only: get-cluster-credentials
 	@helm template "perf-dashboard" deploy/perf-dashboard --set version="$(VERSION)" | kubectl apply -f -

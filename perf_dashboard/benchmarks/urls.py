@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf.urls import url
+from django.urls import re_path
 from . import views
 
 urlpatterns = [
-    url('cpu_vs_conn/', views.cpu_vs_conn, name="cpu_conn"),
-    url('cpu_vs_qps/', views.cpu_vs_qps, name="cpu_qps"),
-    url('mem_vs_conn/', views.mem_vs_conn, name="mem_conn"),
-    url('mem_vs_qps/', views.mem_vs_qps, name="mem_qps"),
-    url('latency_vs_conn/', views.latency_vs_conn, name="latency_conn"),
-    url('latency_vs_qps/', views.latency_vs_qps, name="latency_qps"),
-    url('flame_graph/', views.flame_graph, name="flame_graph"),
-    url('micro_benchmarks/', views.micro_benchmarks, name="micro_benchmarks"),
+    re_path('cpu_vs_conn/', views.cpu_vs_conn, name="cpu_conn"),
+    re_path('cpu_vs_qps/', views.cpu_vs_qps, name="cpu_qps"),
+    re_path('mem_vs_conn/', views.mem_vs_conn, name="mem_conn"),
+    re_path('mem_vs_qps/', views.mem_vs_qps, name="mem_qps"),
+    re_path('latency_vs_conn/', views.latency_vs_conn, name="latency_conn"),
+    re_path('latency_vs_qps/', views.latency_vs_qps, name="latency_qps"),
+    re_path('flame_graph/', views.flame_graph, name="flame_graph"),
+    re_path('micro_benchmarks/', views.micro_benchmarks, name="micro_benchmarks"),
 ]

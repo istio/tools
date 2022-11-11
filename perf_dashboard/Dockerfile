@@ -4,13 +4,25 @@
 ############################################################
 
 # Set the base image to use to Ubuntu
-FROM ubuntu:bionic
+FROM ubuntu:jammy
+
+# Pip version
+ENV PIP_INSTALL_VERSION=22.3.1
 
 RUN apt-get update \
-  && apt-get install -y python3-pip python3-dev \
-  && cd /usr/local/bin \
-  && ln -s /usr/bin/python3 python \
-  && pip3 install --upgrade pip
+  && apt-get install -y --no-install-recommends \
+  python3-pip python3-dev \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Use WORKDIR to switch to a directory
+WORKDIR /usr/local/bin
+
+RUN ln -s /usr/bin/python3 python \
+  && pip3 install --no-cache-dir --upgrade pip==${PIP_INSTALL_VERSION}
+
+# Set the working directory to /perf_dashboard
+WORKDIR /perf_dashboard
 
 # The environment variable ensures that the python output is set straight
 # to the terminal without buffering it first
@@ -18,17 +30,12 @@ ENV PYTHONUNBUFFERED 1
 
 # Set environment variable for current release
 ENV CUR_RELEASE=release-1.13
-# Create root directory for our project in the container
-RUN mkdir /perf_dashboard
-
-# Set the working directory to /perf_dashboard
-WORKDIR /perf_dashboard
 
 # Copy the current directory contents into the container at /perf_dashboard
 COPY . /perf_dashboard/
 
 # Install any needed packages specified in requirements.txt
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir --requirement requirements.txt
 
 # uWSGI will listen on this port
 EXPOSE 8000
