@@ -192,8 +192,17 @@ func main() {
 		}
 	}
 
-	includes := strings.Split(*include, ",")
-	excludes := strings.Split(*exclude, ",")
+	var (
+		includes []string
+		excludes []string
+	)
+
+	if *include != "" {
+		includes = strings.Split(*include, ",")
+	}
+	if *exclude != "" {
+		excludes = strings.Split(*exclude, ",")
+	}
 
 	if *configFile == "" {
 		log.Fatalf("Must specify configuration with the -f option")
