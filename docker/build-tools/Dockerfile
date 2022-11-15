@@ -624,10 +624,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:bionic AS clang_context_amd64
-FROM ubuntu:bionic AS clang_context_arm64
-# hadolint ignore=DL3006
-FROM clang_context_${TARGETARCH} AS clang_context
+FROM ubuntu:bionic AS clang_context
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -692,10 +689,7 @@ RUN set -eux; \
 # Bazel
 ###########
 
-FROM ubuntu:bionic AS bazel_context_amd64
-FROM ubuntu:bionic AS bazel_context_arm64
-# hadolint ignore=DL3006
-FROM bazel_context_${TARGETARCH} AS bazel_context
+FROM ubuntu:bionic AS bazel_context
 
 ARG TARGETARCH
 
@@ -717,12 +711,8 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:bionic AS build_env_proxy_amd64
+FROM ubuntu:bionic AS build_env_proxy
 ENV UBUNTU_RELEASE_CODE_NAME=bionic
-FROM ubuntu:bionic AS build_env_proxy_arm64
-ENV UBUNTU_RELEASE_CODE_NAME=bionic
-# hadolint ignore=DL3006
-FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
 
 WORKDIR /
 
@@ -734,7 +724,7 @@ LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
 # Docker
-ENV DOCKER_VERSION=5:ç-${UBUNTU_RELEASE_CODE_NAME}
+ENV DOCKER_VERSION=5:20.10.21~3-0~ubuntu-${UBUNTU_RELEASE_CODE_NAME}
 ENV CONTAINERD_VERSION=1.4.6-1
 
 # General
