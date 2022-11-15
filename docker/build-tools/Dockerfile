@@ -455,7 +455,7 @@ FROM ubuntu:jammy as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV DOCKER_VERSION=5:20.10.20~3-0~ubuntu-jammy
+ENV DOCKER_VERSION=5:20.10.21~3-0~ubuntu-jammy
 ENV CONTAINERD_VERSION=1.6.8-1
 ENV RUST_VERSION=1.65.0
 
@@ -624,7 +624,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:xenial AS clang_context_amd64
+FROM ubuntu:bionic AS clang_context_amd64
 FROM ubuntu:bionic AS clang_context_arm64
 # hadolint ignore=DL3006
 FROM clang_context_${TARGETARCH} AS clang_context
@@ -635,8 +635,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates
 
-# 12.0.1 is the version support ubuntu:xenial & aarch64
-ENV LLVM_VERSION=12.0.1
+# 14.0.6 is the version support ubuntu:bionic & aarch64
+ENV LLVM_VERSION=14.0.6
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
@@ -645,7 +645,8 @@ RUN set -eux; \
     case $(uname -m) in \
         x86_64) \
                LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu- \
-               LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
+               LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-18
+               .04;; \
         aarch64)  \
                LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu \
                LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
@@ -691,14 +692,14 @@ RUN set -eux; \
 # Bazel
 ###########
 
-FROM ubuntu:xenial AS bazel_context_amd64
+FROM ubuntu:bionic AS bazel_context_amd64
 FROM ubuntu:bionic AS bazel_context_arm64
 # hadolint ignore=DL3006
 FROM bazel_context_${TARGETARCH} AS bazel_context
 
 ARG TARGETARCH
 
-ENV BAZELISK_VERSION="v1.9.0"
+ENV BAZELISK_VERSION="v1.15.0"
 ENV BAZELISK_BASE_URL="https://github.com/bazelbuild/bazelisk/releases/download"
 ENV BAZELISK_BIN="bazelisk-linux-${TARGETARCH}"
 ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
@@ -716,8 +717,8 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:xenial AS build_env_proxy_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=xenial
+FROM ubuntu:bionic AS build_env_proxy_amd64
+ENV UBUNTU_RELEASE_CODE_NAME=bionic
 FROM ubuntu:bionic AS build_env_proxy_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=bionic
 # hadolint ignore=DL3006
@@ -733,7 +734,7 @@ LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
 # Docker
-ENV DOCKER_VERSION=5:20.10.7~3-0~ubuntu-${UBUNTU_RELEASE_CODE_NAME}
+ENV DOCKER_VERSION=5:ç-${UBUNTU_RELEASE_CODE_NAME}
 ENV CONTAINERD_VERSION=1.4.6-1
 
 # General
