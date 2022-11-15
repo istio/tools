@@ -100,8 +100,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN set -eux; \
     \
     case $(uname -m) in \
-        x86_64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-x86_64.zip;; \
-        aarch64) export PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-aarch_64.zip;; \
+        x86_64) PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-x86_64.zip;; \
+        aarch64) PROTOC_ZIP=protoc-${PROTOC_VERSION}-linux-aarch_64.zip;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
@@ -190,8 +190,8 @@ RUN mv /tmp/shellcheck-${SHELLCHECK_VERSION}/shellcheck ${OUTDIR}/usr/bin
 RUN set -eux; \
     \
     case $(uname -m) in \
-        x86_64) export HADOLINT_BINARY=hadolint-Linux-x86_64;; \
-        aarch64) export HADOLINT_BINARY=hadolint-Linux-arm64;; \
+        x86_64) HADOLINT_BINARY=hadolint-Linux-x86_64;; \
+        aarch64) HADOLINT_BINARY=hadolint-Linux-arm64;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
@@ -202,8 +202,8 @@ RUN set -eux; \
 RUN set -eux; \
     \
     case $(uname -m) in \
-        x86_64) export HUGO_TAR=hugo_${HUGO_VERSION}_Linux-64bit.tar.gz;; \
-        aarch64) export HUGO_TAR=hugo_${HUGO_VERSION}_Linux-ARM64.tar.gz;; \
+        x86_64) HUGO_TAR=hugo_${HUGO_VERSION}_Linux-64bit.tar.gz;; \
+        aarch64) HUGO_TAR=hugo_${HUGO_VERSION}_Linux-ARM64.tar.gz;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
@@ -250,8 +250,8 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kpt
 RUN set -eux; \
     \
     case $(uname -m) in \
-        x86_64)  export GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz" ;; \
-        aarch64) export GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-arm.tar.gz" ;; \
+        x86_64) GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-x86_64.tar.gz" ;; \
+        aarch64) GCLOUD_TAR_FILE="google-cloud-sdk-${GCLOUD_VERSION}-linux-arm.tar.gz" ;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
@@ -277,10 +277,10 @@ RUN set -eux; \
     \
     case $(uname -m) in \
     x86_64) \
-    export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-64bit.deb"; \
+    TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-64bit.deb"; \
     ;; \
     aarch64) \
-    export TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-ARM64.deb"; \
+    TRVIY_DEB_NAME="trivy_${TRIVY_VERSION}_Linux-ARM64.deb"; \
     ;; \
     *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
@@ -327,8 +327,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN set -eux; \
     case $(uname -m) in \
-        x86_64) export NODEJS_TAR=node-v${NODEJS_VERSION}-linux-x64.tar.gz;; \
-        aarch64) export NODEJS_TAR=node-v${NODEJS_VERSION}-linux-arm64.tar.gz;; \
+        x86_64) NODEJS_TAR=node-v${NODEJS_VERSION}-linux-x64.tar.gz;; \
+        aarch64) NODEJS_TAR=node-v${NODEJS_VERSION}-linux-arm64.tar.gz;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     wget -nv -O /tmp/${NODEJS_TAR} https://nodejs.org/download/release/v${NODEJS_VERSION}/${NODEJS_TAR}; \
@@ -644,11 +644,11 @@ RUN set -eux; \
     \
     case $(uname -m) in \
         x86_64) \
-               export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu- \
-               export LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
+               LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu- \
+               LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
         aarch64)  \
-               export LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu \
-               export LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
+               LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu \
+               LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
