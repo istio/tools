@@ -636,8 +636,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates
 
-# 12.0.1 is the version support ubuntu:xenial & aarch64
-ENV LLVM_VERSION=12.0.1
+# 14.0.6 is the version support ubuntu:xenial & aarch64
+ENV LLVM_VERSION=14.0.6
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
@@ -699,7 +699,7 @@ FROM bazel_context_${TARGETARCH} AS bazel_context
 
 ARG TARGETARCH
 
-ENV BAZELISK_VERSION="v1.9.0"
+ENV BAZELISK_VERSION="v1.15.0"
 ENV BAZELISK_BASE_URL="https://github.com/bazelbuild/bazelisk/releases/download"
 ENV BAZELISK_BIN="bazelisk-linux-${TARGETARCH}"
 ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
