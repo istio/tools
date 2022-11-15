@@ -625,10 +625,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:xenial AS clang_context_amd64
-FROM ubuntu:bionic AS clang_context_arm64
-# hadolint ignore=DL3006
-FROM clang_context_${TARGETARCH} AS clang_context
+FROM ubuntu:bionic AS clang_context
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -636,7 +633,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates
 
-# 12.0.1 is the version support ubuntu:xenial & aarch64
+# 12.0.1 is the version support ubuntu:bionic & aarch64
 ENV LLVM_VERSION=12.0.1
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_DIRECTORY=/usr/lib/llvm
@@ -692,10 +689,7 @@ RUN set -eux; \
 # Bazel
 ###########
 
-FROM ubuntu:xenial AS bazel_context_amd64
-FROM ubuntu:bionic AS bazel_context_arm64
-# hadolint ignore=DL3006
-FROM bazel_context_${TARGETARCH} AS bazel_context
+FROM ubuntu:bionic AS bazel_context
 
 ARG TARGETARCH
 
@@ -717,12 +711,8 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:xenial AS build_env_proxy_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=xenial
-FROM ubuntu:bionic AS build_env_proxy_arm64
+FROM ubuntu:bionic AS build_env_proxy
 ENV UBUNTU_RELEASE_CODE_NAME=bionic
-# hadolint ignore=DL3006
-FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
 
 WORKDIR /
 
