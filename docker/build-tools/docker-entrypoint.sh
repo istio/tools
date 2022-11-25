@@ -56,8 +56,11 @@ if [[ -f /config-copy/.docker/plaintext-passwords.json ]]; then
 fi
 
 # Add user based upon passed UID. this means Istio need no longer host mount /etc/passwd
-# nor /etc/group
-su-exec 0:0 useradd --uid "${uid}" --system user
+# nor /etc/group.
+# Skip adding if run as root.
+if [[ "${uid}" -ne 0 ]]; then
+  su-exec 0:0 useradd --uid "${uid}" --system user
+fi
 
 # Set ownership of /home to UID:GID
 su-exec 0:0 chown "${uid}":"${gid}" /home
