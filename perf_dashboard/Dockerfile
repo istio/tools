@@ -28,8 +28,9 @@ WORKDIR /perf_dashboard
 # to the terminal without buffering it first
 ENV PYTHONUNBUFFERED 1
 
-# Set environment variable for current release
-ENV CUR_RELEASE=release-1.13
+# Set environment variables
+ENV CUR_RELEASE=release-1.16
+ENV BUCKET_NAME=istio-build/perf
 
 # Copy the current directory contents into the container at /perf_dashboard
 COPY . /perf_dashboard/

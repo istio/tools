@@ -52,4 +52,4 @@ In Django, MVC is corresponding to:
     - artifacts
     - regressions
     - history
-
+    - settings

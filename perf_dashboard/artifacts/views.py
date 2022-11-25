@@ -16,16 +16,22 @@ import pandas as pd
 from helpers import download
 import os
 
-current_release = [os.getenv('CUR_RELEASE')]
-
 
 # Create your views here.
 def artifact(request):
-    cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates = download.download_benchmark_csv(60)
+
+    current_release = request.COOKIES.get("currentRelease")
+    bucket_name = request.COOKIES.get('bucketName')
+
+    if not current_release:
+        current_release = current_release = os.getenv('CUR_RELEASE')
+
+    cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates = download.download_benchmark_csv(
+        60, bucket_name=bucket_name, current_release=current_release)
     cur_release_bundle = get_artifacts_release_bundle(cur_release_dates, cur_release_names, cur_href_links)
     master_release_bundle = get_artifacts_release_bundle(master_release_dates, master_release_names, master_href_links)
 
-    context = {'current_release': current_release,
+    context = {'current_release': [current_release],
                'cur_release_bundle': cur_release_bundle,
                'master_release_bundle': master_release_bundle}
 
