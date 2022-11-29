@@ -28,7 +28,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
 from django.conf.urls.static import static
@@ -36,14 +36,14 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.index, name="index_page"),
-    url(r'^healthz$', views.healthz, name="healthz"),
-    url(r'^admin/', admin.site.urls),
-    url(r'^artifacts/', include('artifacts.urls')),
-    url(r'^analyze_perf_issues/', include('analyze_perf_issues.urls')),
-    url(r'^regressions/', include('regressions.urls')),
-    url(r'^benchmarks/', include('benchmarks.urls')),
-    url(r'^history/', include('history.urls')),
+    re_path(r'^$', views.index, name="index_page"),
+    re_path(r'^healthz$', views.healthz, name="healthz"),
+    re_path(r'^admin/', admin.site.urls),
+    re_path(r'^artifacts/', include('artifacts.urls')),
+    re_path(r'^analyze_perf_issues/', include('analyze_perf_issues.urls')),
+    re_path(r'^regressions/', include('regressions.urls')),
+    re_path(r'^benchmarks/', include('benchmarks.urls')),
+    re_path(r'^history/', include('history.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

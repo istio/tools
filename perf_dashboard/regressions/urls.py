@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf.urls import url
+from django.urls import re_path
 from . import views
 
 
 urlpatterns = [
-    url('monitoring_overview', views.monitoring_overview, name="monitoring_overview"),
-    url('cur_regression', views.cur_regression, name="cur_regression"),
-    url('master_regression', views.master_regression, name="master_regression"),
+    re_path('monitoring_overview', views.monitoring_overview, name="monitoring_overview"),
+    re_path('cur_regression', views.cur_regression, name="cur_regression"),
+    re_path('master_regression', views.master_regression, name="master_regression"),
 ]
