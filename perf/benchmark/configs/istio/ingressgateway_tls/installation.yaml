@@ -1,0 +1,9 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  meshConfig:
+    # This enables viewing e.g. TLS handshake statistics
+    defaultConfig:
+      proxyStatsMatcher:
+        inclusionPrefixes:
+          - "listener"

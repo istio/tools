@@ -1,0 +1,29 @@
+# Data: cpu/mem
+# Config: Ingress gateway TLS
+telemetry_mode: "ingressgateway-tls-listener-stats"
+conn:
+    - 16
+qps:
+    - 10
+    - 100
+    - 200
+    - 400
+    - 800
+    - 1000
+
+duration: 240
+perf_record: false
+run_bothsidecar: false
+run_serversidecar: false
+run_clientsidecar: false
+run_baseline: false
+
+jitter: false
+
+run_ingress: "https://istio-ingressgateway.istio-system.svc.cluster.local"
+headers: "Host:fortioserver.fake-dns.org"
+cacert: "/tmp/gateway-secret/tls.crt"
+
+uniform: true
+nocatchup: true
+connection_reuse: '10:10'
