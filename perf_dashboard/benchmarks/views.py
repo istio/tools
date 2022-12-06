@@ -20,7 +20,6 @@ import os
 
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
-current_release = [os.getenv('CUR_RELEASE')]
 
 cur_selected_release = []
 master_selected_release = []
@@ -46,6 +45,13 @@ qps_query_str = 'ActualQPS == @ql and NumThreads == 16 and Labels.str.endswith(@
 
 # Create your views here.
 def latency_vs_conn(request, uploaded_csv_url=None):
+
+    current_release = request.COOKIES.get("currentRelease")
+    bucket_name = request.COOKIES.get('bucketName')
+
+    if not current_release:
+        current_release = os.getenv('CUR_RELEASE')
+
     if uploaded_csv_url is not None:
         uploaded_csv_path = cwd + uploaded_csv_url
         df = pd.read_csv(uploaded_csv_path)
@@ -54,7 +60,8 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         return context
     else:
         cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
-            master_release_dates = download.download_benchmark_csv(60)
+            master_release_dates = download.download_benchmark_csv(
+                60, bucket_name=bucket_name, current_release=current_release)
         cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
         master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
 
@@ -141,7 +148,7 @@ def latency_vs_conn(request, uploaded_csv_url=None):
         latency_none_security_authz_jwt_both_p999_master = get_latency_vs_conn_y_series(df, '_none_security_authz_jwt_both', 'p999')
         latency_none_security_peer_authn_both_p999_master = get_latency_vs_conn_y_series(df, '_none_security_peer_authn_both', 'p999')
 
-        other_context = {'current_release': current_release,
+        other_context = {'current_release': [current_release],
                          'cur_selected_release': cur_selected_release,
                          'master_selected_release': master_selected_release,
                          'cur_release_names': cur_benchmark_test_ids,
@@ -207,6 +214,13 @@ def get_benchmark_test_ids(href_links):
 
 
 def latency_vs_qps(request, uploaded_csv_url=None):
+
+    current_release = request.COOKIES.get("currentRelease")
+    bucket_name = request.COOKIES.get('bucketName')
+
+    if not current_release:
+        current_release = os.getenv('CUR_RELEASE')
+
     if uploaded_csv_url is not None:
         uploaded_csv_path = cwd + uploaded_csv_url
         df = pd.read_csv(uploaded_csv_path)
@@ -215,7 +229,8 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         return context
     else:
         cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
-            master_release_dates = download.download_benchmark_csv(60)
+            master_release_dates = download.download_benchmark_csv(
+                60, bucket_name=bucket_name, current_release=current_release)
         cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
         master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
 
@@ -297,7 +312,7 @@ def latency_vs_qps(request, uploaded_csv_url=None):
         latency_none_security_authz_jwt_both_p999_master = get_latency_vs_qps_y_series(df, '_none_security_authz_jwt_both', 'p999')
         latency_none_security_peer_authn_both_p999_master = get_latency_vs_qps_y_series(df, '_none_security_peer_authn_both', 'p999')
 
-        other_context = {'current_release': current_release,
+        other_context = {'current_release': [current_release],
                          'cur_selected_release': cur_selected_release,
                          'master_selected_release': master_selected_release,
                          'cur_release_names': cur_benchmark_test_ids,
@@ -355,6 +370,13 @@ def latency_vs_qps(request, uploaded_csv_url=None):
 
 
 def cpu_vs_qps(request, uploaded_csv_url=None):
+
+    current_release = request.COOKIES.get("currentRelease")
+    bucket_name = request.COOKIES.get('bucketName')
+
+    if not current_release:
+        current_release = os.getenv('CUR_RELEASE')
+
     if uploaded_csv_url is not None:
         uploaded_csv_path = cwd + uploaded_csv_url
         df = pd.read_csv(uploaded_csv_path)
@@ -363,7 +385,8 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
         return context
     else:
         cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
-            master_release_dates = download.download_benchmark_csv(60)
+            master_release_dates = download.download_benchmark_csv(
+                60, bucket_name=bucket_name, current_release=current_release)
         cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
         master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
 
@@ -428,7 +451,7 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
         cpu_ingressgw_v2_sd_nologging_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_ingressgw_metric_name)
         cpu_ingressgw_v2_sd_full_nullvm_both_master = get_cpu_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', cpu_ingressgw_metric_name)
 
-        other_context = {'current_release': current_release,
+        other_context = {'current_release': [current_release],
                          'cpu_cur_selected_release': cpu_cur_selected_release,
                          'cpu_master_selected_release': cpu_master_selected_release,
                          'cur_release_names': cur_benchmark_test_ids,
@@ -470,6 +493,13 @@ def cpu_vs_qps(request, uploaded_csv_url=None):
 
 
 def cpu_vs_conn(request, uploaded_csv_url=None):
+
+    current_release = request.COOKIES.get("currentRelease")
+    bucket_name = request.COOKIES.get('bucketName')
+
+    if not current_release:
+        current_release = os.getenv('CUR_RELEASE')
+
     if uploaded_csv_url is not None:
         uploaded_csv_path = cwd + uploaded_csv_url
         df = pd.read_csv(uploaded_csv_path)
@@ -478,7 +508,8 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
         return context
     else:
         cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
-            master_release_dates = download.download_benchmark_csv(60)
+            master_release_dates = download.download_benchmark_csv(
+                60, bucket_name=bucket_name, current_release=current_release)
         cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
         master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
 
@@ -543,7 +574,7 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
         cpu_ingressgw_v2_sd_nologging_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-nologging-nullvm_both', cpu_ingressgw_metric_name)
         cpu_ingressgw_v2_sd_full_nullvm_both_master = get_cpu_vs_conn_y_series(df, '_v2-sd-full-nullvm_both', cpu_ingressgw_metric_name)
 
-        other_context = {'current_release': current_release,
+        other_context = {'current_release': [current_release],
                          'cpu_cur_selected_release': cpu_cur_selected_release,
                          'cpu_master_selected_release': cpu_master_selected_release,
                          'cur_release_names': cur_benchmark_test_ids,
@@ -587,6 +618,13 @@ def cpu_vs_conn(request, uploaded_csv_url=None):
 
 
 def mem_vs_qps(request, uploaded_csv_url=None):
+
+    current_release = request.COOKIES.get("currentRelease")
+    bucket_name = request.COOKIES.get('bucketName')
+
+    if not current_release:
+        current_release = os.getenv('CUR_RELEASE')
+
     if uploaded_csv_url is not None:
         uploaded_csv_path = cwd + uploaded_csv_url
         df = pd.read_csv(uploaded_csv_path)
@@ -595,7 +633,8 @@ def mem_vs_qps(request, uploaded_csv_url=None):
         return context
     else:
         cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
-            master_release_dates = download.download_benchmark_csv(60)
+            master_release_dates = download.download_benchmark_csv(
+                60, bucket_name=bucket_name, current_release=current_release)
         cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
         master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
 
@@ -660,7 +699,7 @@ def mem_vs_qps(request, uploaded_csv_url=None):
         mem_ingressgw_v2_sd_nologging_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_ingressgw_metric_name)
         mem_ingressgw_v2_sd_full_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_ingressgw_metric_name)
 
-        other_context = {'current_release': current_release,
+        other_context = {'current_release': [current_release],
                          'mem_cur_selected_release': mem_cur_selected_release,
                          'mem_master_selected_release': mem_master_selected_release,
                          'cur_release_names': cur_benchmark_test_ids,
@@ -703,6 +742,13 @@ def mem_vs_qps(request, uploaded_csv_url=None):
 
 
 def mem_vs_conn(request, uploaded_csv_url=None):
+
+    current_release = request.COOKIES.get("currentRelease")
+    bucket_name = request.COOKIES.get('bucketName')
+
+    if not current_release:
+        current_release = os.getenv('CUR_RELEASE')
+
     if uploaded_csv_url is not None:
         uploaded_csv_path = cwd + uploaded_csv_url
         df = pd.read_csv(uploaded_csv_path)
@@ -711,7 +757,8 @@ def mem_vs_conn(request, uploaded_csv_url=None):
         return context
     else:
         cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, \
-            master_release_dates = download.download_benchmark_csv(60)
+            master_release_dates = download.download_benchmark_csv(
+                60, bucket_name=bucket_name, current_release=current_release)
         cur_benchmark_test_ids = get_benchmark_test_ids(cur_href_links)
         master_benchmark_test_ids = get_benchmark_test_ids(master_href_links)
 
@@ -776,7 +823,7 @@ def mem_vs_conn(request, uploaded_csv_url=None):
         mem_ingressgw_v2_sd_nologging_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-nologging-nullvm_both', mem_ingressgw_metric_name)
         mem_ingressgw_v2_sd_full_nullvm_both_master = get_mem_vs_qps_y_series(df, '_v2-sd-full-nullvm_both', mem_ingressgw_metric_name)
 
-        other_context = {'current_release': current_release,
+        other_context = {'current_release': [current_release],
                          'mem_cur_selected_release': mem_cur_selected_release,
                          'mem_master_selected_release': mem_master_selected_release,
                          'cur_release_names': cur_benchmark_test_ids,
@@ -1352,6 +1399,12 @@ def get_mem_vs_conn_context(df):
 
 
 def flame_graph(request):
+
+    current_release = request.COOKIES.get("currentRelease")
+
+    if not current_release:
+        current_release = os.getenv('CUR_RELEASE')
+
     cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates = download.download_benchmark_csv(60)
     cur_release_bundle = get_flame_graph_release_bundle(cur_release_dates, cur_release_names, cur_href_links)
     master_release_bundle = get_flame_graph_release_bundle(master_release_dates, master_release_names, master_href_links)

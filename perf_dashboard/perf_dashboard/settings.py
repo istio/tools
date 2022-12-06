@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'artifacts',
     'regressions',
     'history',
+    'settings',
 ]
 
 MIDDLEWARE = [

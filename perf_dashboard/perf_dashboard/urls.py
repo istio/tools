@@ -44,6 +44,7 @@ urlpatterns = [
     re_path(r'^regressions/', include('regressions.urls')),
     re_path(r'^benchmarks/', include('benchmarks.urls')),
     re_path(r'^history/', include('history.urls')),
+    re_path(r'^settings/', include('settings.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

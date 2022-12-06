@@ -4,9 +4,9 @@
 {% block sidebar_active %}
 <ul id="side-main-menu" class="side-menu list-unstyled">
     <li><a href="{% url 'index_page' %}"><i class="fa fa-home"></i>Overview</a></li>
-    <li><a href="#dropDown" aria-expanded="true" data-toggle="collapse">
+    <li><a href="#dropDown" aria-expanded="false" data-toggle="collapse">
     <i class="fa fa-area-chart"></i>Benchmarks</a>
-    <ul id="dropDown" class="list-unstyled">
+    <ul id="dropDown" class="collapse list-unstyled">
         <li><a href="#dropDownCPU" aria-expanded="false" data-toggle="collapse">
             <i class="fa fa-asterisk"></i>CPU Usages</a>
             <ul id="dropDownCPU" class="collapse list-unstyled">
@@ -29,7 +29,7 @@
             </ul>
         </li>
         <li><a href="{% url 'flame_graph' %}"><i class="fa fa-asterisk"></i>Flame Graphs</a></li>
-        <li class="active"><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
+        <li><a href="{% url 'micro_benchmarks' %}"><i class="fa fa-asterisk"></i>Micro Benchmarks</a></li>
     </ul>
     <li><a href="#alertDropDown" aria-expanded="false" data-toggle="collapse">
     <i class="fa fa-bullhorn"></i>Regressions</a>
@@ -41,27 +41,66 @@
     <li><a href="{% url 'artifact' %}"> <i class="fa fa-file-text"></i>Artifacts</a></li>
     <li><a href="{% url 'history' %}"> <i class="fa fa-file-archive-o"></i>History</a></li>
     <li><a href="{% url 'analyze_issues' %}"> <i class="fa fa-file-archive-o"></i>Analyze Perf & Issues</a></li>
-    <li><a href="{% url 'settings' %}"> <i class="fa fa-cog"></i>Settings</a></li>
+    <li class="active"><a href="{% url 'settings' %}"> <i class="fa fa-cog"></i>Settings</a></li>
 </ul>
 {% endblock sidebar_active %}
 
 {% block current_active %}
-<li class="breadcrumb-item">Benchmarks</li>
-<li class="breadcrumb-item active">Micro Benchmarks</li>
+<li class="breadcrumb-item active">Settings</li>
 {% endblock current_active %}
 
 {% block page_content %}
-<section class="charts">
-        <div class="container-fluid">
-          <!-- Page Header-->
-          <header>
-            <h1 class="h3 display">Micro Benchmark Demo</h1>
-          </header>
-        </div>
-      </section>
+<section class="dashboard-header section-padding">
+    <div class="container-fluid">
+      <div class="row d-flex align-items-md-stretch">
+        <!-- List-->
+        <div class="col-lg-12 col-md-3">
+          <div class="card">
+            <div class="card-header">
+              <h2>Settings</h2>
+            </div>
+            <div class="card-body">
+                <p>Settings for configuring a bucket to pull the dashboard data from.</a></p>
+              <form method="post">
+                {% csrf_token %}
+                <label for="current_release">Current Release</label><br>
+                <input type="text" id="current_release" name="current_release" placeholder="{{ current_release }}"><br>
+                <label for="bucket_name">Bucket Name</label><br>
+                <input type="text" id="bucket_name" name="bucket_name" placeholder="{{ bucket_name }}"><br>
+                <br>
+                <button type="submit" class="settings-submit-button">Save Changes</button>
+              </form>
+              <script>
+                // Take the form vals and store
+                // them to cookies for future use
+                document.querySelector('form').onsubmit = function (e) {
+                  e.preventDefault();
+                  const currentRelease = document.querySelector('#current_release').value;
+                  const bucketName = document.querySelector('#bucket_name').value;
+
+                  document.cookie = "currentRelease=" + currentRelease + ";path=/" + ';expires=' + new Date(2147483647 * 1000).toUTCString();
+                  document.cookie = "bucketName=" + bucketName + ";path=/" + ';expires=' + new Date(2147483647 * 1000).toUTCString();
+                  window.location.reload();
+                }
+              </script>
+              <style>
+                .settings-submit-button {
+                  background-color: #476ab0;
+                  color: white;
+                  text-align: center;
+                  padding: 5px;
+                  display: inline-block;
+                  border-radius: 4px;
+                }
+              </style>
+            </div>
+          </div>
+      </div>
+    </div>
+</section>
+
+
 {% endblock page_content %}
 
-
-{% block charts_js %}
-    <script src="{% static 'js/microbenchmarks.js' %}"></script>
-{% endblock charts_js %}
+{% block page_data %}
+{% endblock page_data %}

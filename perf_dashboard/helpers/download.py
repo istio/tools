@@ -20,18 +20,25 @@ import datetime
 
 cwd = os.getcwd()
 perf_data_path = cwd + "/perf_data/"
-current_release = os.getenv('CUR_RELEASE')
-
 
 # TODO: add load_gen_type as a param
-def download_benchmark_csv(days):
+
+
+def download_benchmark_csv(days, bucket_name, current_release):
+
+    if not bucket_name:
+        bucket_name = os.getenv('BUCKET_NAME')
+    if not current_release:
+        current_release = os.getenv('CUR_RELEASE')
+
     if not os.path.exists(perf_data_path):
         os.makedirs(perf_data_path)
 
     download_dateset = get_download_dateset(days)
 
     url_prefix = "https://gcsweb.istio.io/gcs/"
-    gcs_bucket_name = "istio-build/perf"
+    gcs_bucket_name = bucket_name
+
     soup = get_page_soup(url_prefix + gcs_bucket_name)
     cur_href_links = []
     cur_release_names = []
@@ -40,14 +47,14 @@ def download_benchmark_csv(days):
     master_release_names = []
     master_release_dates = []
     process_current_page(download_dateset, soup, cur_href_links, cur_release_names, cur_release_dates,
-                         master_href_links, master_release_names, master_release_dates)
+                         master_href_links, master_release_names, master_release_dates, current_release)
 
     delete_outdated_files(download_dateset)
     return cur_href_links, cur_release_names, cur_release_dates, master_href_links, master_release_names, master_release_dates
 
 
 def process_current_page(download_dateset, soup, cur_href_links, cur_release_names, cur_release_dates,
-                         master_href_links, master_release_names, master_release_dates):
+                         master_href_links, master_release_names, master_release_dates, current_release):
     for link in soup.find_all('a'):
         href_str = link.get('href')
         if href_str == "/gcs/istio-build/":
@@ -97,7 +104,7 @@ def process_current_page(download_dateset, soup, cur_href_links, cur_release_nam
     has_next_page, next_soup = if_has_next_page(soup)
     if has_next_page:
         process_current_page(download_dateset, next_soup, cur_href_links, cur_release_names, cur_release_dates,
-                             master_href_links, master_release_names, master_release_dates)
+                             master_href_links, master_release_names, master_release_dates, current_release)
 
 
 def if_has_next_page(soup):
