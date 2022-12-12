@@ -42,7 +42,7 @@ func (v *preserveUnknownFieldVisitor) Visit(schema *apiextv1.JSONSchemaProps) cr
 	}
 	if len(p) == 1 {
 		if s, ok := schema.Properties[p[0]]; ok {
-			s.XPreserveUnknownFields = pointer.BoolPtr(true)
+			s.XPreserveUnknownFields = pointer.Bool(true)
 			schema.Properties[p[0]] = s
 		}
 		return nil
