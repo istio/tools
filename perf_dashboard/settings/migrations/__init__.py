@@ -11,12 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.shortcuts import render
-import os
-
-current_release = [os.getenv('CUR_RELEASE')]
-
-
-# Create your views here.
-def analyze_issues(request):
-    return render(request, "analyze_perf_issues.html")

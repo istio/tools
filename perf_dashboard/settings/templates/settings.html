@@ -65,8 +65,12 @@
                 {% csrf_token %}
                 <label for="current_release">Current Release</label><br>
                 <input type="text" id="current_release" name="current_release" placeholder="{{ current_release }}"><br>
+                <label for="project_id">Project Id</label><br>
+                <input type="text" id="project_id" name="project_id" placeholder="{{ project_id }}"><br>
                 <label for="bucket_name">Bucket Name</label><br>
                 <input type="text" id="bucket_name" name="bucket_name" placeholder="{{ bucket_name }}"><br>
+                <label for="download_dataset_days">Download Dataset Days</label><br>
+                <input type="text" id="download_dataset_days" name="download_dataset_days" placeholder="{{ download_dataset_days }}"><br>
                 <br>
                 <button type="submit" class="settings-submit-button">Save Changes</button>
               </form>
@@ -76,10 +80,14 @@
                 document.querySelector('form').onsubmit = function (e) {
                   e.preventDefault();
                   const currentRelease = document.querySelector('#current_release').value;
+                  const projectId = document.querySelector('#project_id').value;
                   const bucketName = document.querySelector('#bucket_name').value;
+                  const downloadDatasetDays = document.querySelector('#download_dataset_days').value;
 
                   document.cookie = "currentRelease=" + currentRelease + ";path=/" + ';expires=' + new Date(2147483647 * 1000).toUTCString();
+                  document.cookie = "projectId=" + projectId + ";path=/" + ';expires=' + new Date(2147483647 * 1000).toUTCString();
                   document.cookie = "bucketName=" + bucketName + ";path=/" + ';expires=' + new Date(2147483647 * 1000).toUTCString();
+                  document.cookie = "downloadDatasetDays=" + downloadDatasetDays + ";path=/" + ';expires=' + new Date(2147483647 * 1000).toUTCString();
                   window.location.reload();
                 }
               </script>

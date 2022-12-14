@@ -21,14 +21,23 @@ from django.shortcuts import render
 # Create your views here.
 def settings(request):
 
-    current_release = request.COOKIES.get("currentRelease")
+    current_release = request.COOKIES.get('currentRelease')
+    project_id = request.COOKIES.get('projectId')
     bucket_name = request.COOKIES.get('bucketName')
+    download_dataset_days = request.COOKIES.get('downloadDatasetDays')
 
     if not current_release:
-        current_release = os.getenv("CUR_RELEASE")
+        current_release = os.getenv('CUR_RELEASE')
+    if not project_id:
+        project_id = os.getenv('PROJECT_ID')
     if not bucket_name:
         bucket_name = os.getenv('BUCKET_NAME')
+    if not download_dataset_days:
+        download_dataset_days = os.getenv('DOWNLOAD_DATASET_DAYS')
 
-    print(current_release, bucket_name)
+    print(current_release, project_id, bucket_name, download_dataset_days)
 
-    return render(request, "settings.html", {'current_release': current_release, 'bucket_name': bucket_name})
+    return render(request, 'settings.html', {'current_release': current_release,
+                                             'project_id': project_id,
+                                             'bucket_name': bucket_name,
+                                             'download_dataset_days': download_dataset_days})

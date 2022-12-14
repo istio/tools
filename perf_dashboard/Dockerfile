@@ -29,8 +29,15 @@ WORKDIR /perf_dashboard
 ENV PYTHONUNBUFFERED 1
 
 # Set environment variables
-ENV CUR_RELEASE=release-1.16
-ENV BUCKET_NAME=istio-build/perf
+ARG BUCKET_NAME_ARG="istio-build"
+ARG PROJECT_ID_ARG="istio-testing"
+
+ENV PROJECT_ID=${PROJECT_ID_ARG}
+ENV BUCKET_NAME=${BUCKET_NAME_ARG}
+ENV CUR_RELEASE=release-1.17
+ENV DOWNLOAD_DATASET_DAYS=60
+ENV BUCKET_PREFIX="perf/"
+ENV BUCKET_DELIMITER="/"
 
 # Copy the current directory contents into the container at /perf_dashboard
 COPY . /perf_dashboard/
