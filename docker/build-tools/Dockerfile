@@ -247,6 +247,7 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kpt
 
 # Install gcloud command line tool
 # Install gcloud beta component
+# Install GKE auth plugin
 RUN set -eux; \
     \
     case $(uname -m) in \
@@ -259,6 +260,7 @@ RUN set -eux; \
     tar -xzvf ."/${GCLOUD_TAR_FILE}" -C "${OUTDIR}/usr/local" && rm "${GCLOUD_TAR_FILE}"; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install beta --quiet; \
     ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install alpha --quiet; \
+    ${OUTDIR}/usr/local/google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin --quiet; \
     rm -rf ${OUTDIR}/usr/local/google-cloud-sdk/.install/.backup \
     rm -rf ${OUTDIR}/usr/local/google-cloud-sdk/bin/anthoscli
 
