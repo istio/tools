@@ -73,6 +73,7 @@ ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
 ENV COSIGN_VERSION=v1.13.1
 ENV CRANE_VERSION=v0.12.1
 ENV TRIVY_VERSION=0.35.0
+ENV CARGODENY_VERSION=0.13.5
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -903,6 +904,10 @@ RUN rm -fr /usr/share/dh-python
 RUN rm -fr /usr/share/locale
 RUN rm -fr /usr/share/man
 RUN rm -fr /tmp/*
+
+# Install cargo-deny
+RUN curl -L "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGODENY_VERSION}/cargo-deny-${CARGODENY_VERSION}-x86_64-unknown-linux-musl.tar.gz" --output - | \
+tar xz --strip-components=1 -C "/usr/bin/" "cargo-deny*/cargo-deny"
 
 # Run config setup in local environments
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
