@@ -494,7 +494,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gettext-base \
     locales-all \
     file \
-    libclang-dev
+    libclang-dev \
+    iproute2 \
+    ipset
 
 # Fix Docker issue
 RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
