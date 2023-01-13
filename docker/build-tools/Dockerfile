@@ -496,7 +496,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     file \
     libclang-dev \
     iproute2 \
-    ipset
+    ipset \
+    rsync
 
 # Fix Docker issue
 RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
