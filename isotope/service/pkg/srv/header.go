@@ -20,13 +20,27 @@ import (
 
 var (
 	forwardableHeaders = []string{
+		// Request ID
 		"X-Request-Id",
+		// B3 multi-header propagation
 		"X-B3-Traceid",
 		"X-B3-Spanid",
 		"X-B3-Parentspanid",
 		"X-B3-Sampled",
 		"X-B3-Flags",
+		// Lightstep
 		"X-Ot-Span-Context",
+		// Datadog
+		"x-datadog-trace-id",
+		"x-datadog-parent-id",
+		"x-datadog-sampling-priority",
+		// W3C Trace Context
+		"traceparent",
+		"tracestate",
+		// Cloud Trace Context
+		"X-Cloud-Trace-Context",
+		// Grpc binary trace context
+		"grpc-trace-bin",
 	}
 	forwardableHeadersSet = make(map[string]bool, len(forwardableHeaders))
 )
@@ -40,7 +54,8 @@ func init() {
 func extractForwardableHeader(header http.Header) http.Header {
 	forwardableHeader := make(http.Header, len(forwardableHeaders))
 	for key := range forwardableHeadersSet {
-		if values, ok := header[key]; ok {
+		// retrieve header values case-insensitively
+		if values := header.Values(key); len(values) > 0 {
 			forwardableHeader[key] = values
 		}
 	}
