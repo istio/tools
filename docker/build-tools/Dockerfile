@@ -906,7 +906,7 @@ RUN rm -fr /usr/share/man
 RUN rm -fr /tmp/*
 
 # Install cargo-deny
-RUN curl -L "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGODENY_VERSION}/cargo-deny-${CARGODENY_VERSION}-x86_64-unknown-linux-musl.tar.gz" --output - | \
+RUN curl -L "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGODENY_VERSION}/cargo-deny-${CARGODENY_VERSION}-${TARGETARCH}-unknown-linux-musl.tar.gz" --output - | \
 tar xz --strip-components=1 -C "/usr/bin/" "cargo-deny*/cargo-deny"
 
 # Run config setup in local environments
