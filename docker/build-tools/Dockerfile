@@ -797,7 +797,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     gettext \
     unzip && \
-    wget -q https://github.com/git/git/archive/v2.25.1.zip -O git.zip && \
+    wget -q https://github.com/git/git/archive/v2.39.1.zip -O git.zip && \
     unzip git.zip && \
     cd git-* && \
     make prefix=/usr/local all && \
