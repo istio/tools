@@ -255,6 +255,7 @@ class Fortio:
                 headers_cmd += "-H=" + header_val + " "
 
         return headers_cmd
+
     def generate_fortio_cmd(self, headers_cmd, conn, qps, duration, grpc, cacert_arg, jitter, uniform, nocatchup, keepalive, connection_reuse_arg, labels):
         if duration is None:
             duration = self.duration
@@ -344,7 +345,8 @@ class Fortio:
 
         load_gen_cmd = ""
         if self.load_gen_type == "fortio":
-            load_gen_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, self.jitter, self.uniform, self.nocatchup, self.keepalive, connection_reuse_arg, labels)
+            load_gen_cmd = self.generate_fortio_cmd(headers_cmd, conn, qps, duration, grpc, cacert_arg, self.jitter,
+                                                    self.uniform, self.nocatchup, self.keepalive, connection_reuse_arg, labels)
         elif self.load_gen_type == "nighthawk":
             # TODO(oschaaf): Figure out how to best determine the right concurrency for Nighthawk.
             # Results seem to get very noisy as the number of workers increases, are the clients
