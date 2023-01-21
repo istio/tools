@@ -47,13 +47,8 @@ function default_gke_version() {
 # Required params
 PROJECT_ID=${PROJECT_ID:?"project id is required"}
 
-set +u # Allow referencing unbound variable $CLUSTER
-if [[ -z ${CLUSTER_NAME} ]]; then
-  CLUSTER_NAME=${1:?"cluster name is required"}
-fi
-set -u
-
 # Optional params
+CLUSTER_NAME=${CLUSTER_NAME:-istio-benchmark}
 ZONE=${ZONE:-us-central1-a}
 # specify REGION to create a regional cluster
 REGION=${REGION:-}
@@ -164,12 +159,6 @@ if [[ -n "${ISTIO_ADDON:-}" ]];then
 fi
 set -u
 
-# Export CLUSTER_NAME so it will be set for the create_sa.sh script, which will
-# create set up service accounts
-export CLUSTER_NAME
-mkdir -p "${WD}/tmp/${CLUSTER_NAME}"
-"${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
-
 # set config use kpt then create cluster with anthoscli
 function install_with_anthoscli {
   if [[ $(command -v anthoscli) == "" ]];then
@@ -214,99 +203,43 @@ function install_with_gcloudcontainer {
     --enable-network-policy \
     --workload-metadata-from-node=EXPOSED \
     --enable-autoupgrade --enable-autorepair \
-    --labels csm=1,test-date="$(date +%Y-%m-%d)",version="${ISTIO_VERSION}",operator=user_"${USER}"
+    --labels csm=1,test-date="$(date +%Y-%m-%d)",version="${ISTIO_VERSION}"
 }
 
-# shellcheck disable=SC2086
-# shellcheck disable=SC2046
-if [[ "$(gcloud beta container --project "${PROJECT_ID}" clusters list --filter=name="${CLUSTER_NAME}" --format='csv[no-heading](name)')" ]]; then
-  echo "Cluster with this name already created, skipping creation and rerunning init"
-elif [[ -n "${INSTALL_WITH_ANTHOSCLI}" ]];then
-  install_with_anthoscli
-else
-  install_with_gcloudcontainer
-fi
+function cluster_create {
+  # Export CLUSTER_NAME so it will be set for the create_sa.sh script, which will
+  # create set up service accounts
+  export CLUSTER_NAME
+  mkdir -p "${WD}/tmp/${CLUSTER_NAME}"
+  "${WD}/create_sa.sh" "${GCP_SA}" "${GCP_CTL_SA}"
 
-NETWORK_NAME=$(basename "$(gcloud container clusters describe "${CLUSTER_NAME}" --project "${PROJECT_ID}" --zone="${ZONE}" \
-    --format='value(networkConfig.network)')")
-SUBNETWORK_NAME=$(basename "$(gcloud container clusters describe "${CLUSTER_NAME}" --project "${PROJECT_ID}" \
-    --zone="${ZONE}" --format='value(networkConfig.subnetwork)')")
-
-# Getting network tags is painful. Get the instance groups, map to an instance,
-# and get the node tag from it (they should be the same across all nodes -- we don't
-# know how to handle it, otherwise).
-INSTANCE_GROUP=$(gcloud container clusters describe "${CLUSTER_NAME}" --project "${PROJECT_ID}" --zone="${ZONE}" --format='flattened(nodePools[].instanceGroupUrls[].scope().segment())' |  cut -d ':' -f2 | head -n1 | sed -e 's/^[[:space:]]*//' -e 's/::space:]]*$//')
-INSTANCE_GROUP_ZONE=$(gcloud compute instance-groups list --filter="name=(${INSTANCE_GROUP})" --format="value(zone)" | sed 's|^.*/||g')
-sleep 1
-INSTANCE=$(gcloud compute instance-groups list-instances "${INSTANCE_GROUP}" --project "${PROJECT_ID}" \
-    --zone="${INSTANCE_GROUP_ZONE}" --format="value(instance)" --limit 1)
-NETWORK_TAGS=$(gcloud compute instances describe "${INSTANCE}" --zone="${INSTANCE_GROUP_ZONE}" --project "${PROJECT_ID}" --format="value(tags.items)")
-
-
-NEGZONE=""
-if [[ -n "${REGION}" ]]; then
-  NEGZONE="region = ${REGION}"
-else
-  NEGZONE="local-zone = ${ZONE}"
-fi
-
-CONFIGMAP_NEG=$(cat <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: gce-config
-  namespace: kube-system
-data:
-  gce.conf: |
-    [global]
-    token-url = nil
-    # Your cluster's project
-    project-id = ${PROJECT_ID}
-    # Your cluster's network
-    network-name =  ${NETWORK_NAME}
-    # Your cluster's subnetwork
-    subnetwork-name = ${SUBNETWORK_NAME}
-    # Prefix for your cluster's IG
-    node-instance-prefix = gke-${CLUSTER_NAME}
-    # Network tags for your cluster's IG
-    node-tags = ${NETWORK_TAGS}
-    # Zone the cluster lives in
-    ${NEGZONE}
-EOF
-)
-
-export KUBECONFIG="${WD}/tmp/${CLUSTER_NAME}/kube.yaml"
-gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone "${ZONE}"
-
-# The gcloud key create command requires you dump its service account
-# credentials to a file. Let that happen, then pull the contents into a variable
-# and delete the file.
-CLOUDKEY=""
-if [[ "${CLUSTER_NAME}" != "" ]]; then
-  if ! kubectl -n kube-system get secret google-cloud-key >/dev/null 2>&1 || ! kubectl -n istio-system get secret google-cloud-key > /dev/null 2>&1; then
-    gcloud iam service-accounts keys create "${WD}/tmp/${CLUSTER_NAME}/${CLUSTER_NAME}-cloudkey.json" --iam-account="${GCP_CTL_SA}"@"${PROJECT_ID}".iam.gserviceaccount.com
-    # Read from the named pipe into the CLOUDKEY variable
-    CLOUDKEY=$(cat "${WD}/tmp/${CLUSTER_NAME}/${CLUSTER_NAME}-cloudkey.json")
-    # Clean up
-    rm "${WD}/tmp/${CLUSTER_NAME}/${CLUSTER_NAME}-cloudkey.json"
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2046
+  if [[ "$(gcloud beta container --project "${PROJECT_ID}" clusters list --filter=name="${CLUSTER_NAME}" --format='csv[no-heading](name)')" ]]; then
+    echo "Cluster with this name already created, skipping creation and rerunning init"
+  elif [[ -n "${INSTALL_WITH_ANTHOSCLI}" ]];then
+    install_with_anthoscli
+  else
+    install_with_gcloudcontainer
   fi
+
+  gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone "${ZONE}"
+}
+
+function cluster_delete {
+  gcloud beta container clusters delete --quiet "${CLUSTER_NAME}" --zone "${ZONE}"
+}
+
+if [[ $# -ne 1 ]]; then
+  echo "usage: $(basename "$0") create | delete"
+  exit 1
 fi
 
-if ! kubectl get clusterrolebinding cluster-admin-binding > /dev/null 2>&1; then
-  kubectl create clusterrolebinding cluster-admin-binding \
-    --clusterrole=cluster-admin \
-    --user="$(gcloud config get-value core/account)"
-fi
-
-# Update the cluster with the GCP-specific configmaps
-if ! kubectl -n kube-system get secret google-cloud-key > /dev/null 2>&1; then
-  kubectl -n kube-system create secret generic google-cloud-key  --from-file key.json=<(echo "${CLOUDKEY}")
-fi
-kubectl -n kube-system apply -f <(echo "${CONFIGMAP_NEG}")
-
-if ! kubectl get ns istio-system > /dev/null; then
-  kubectl create ns istio-system
-fi
-if ! kubectl -n istio-system get secret google-cloud-key > /dev/null 2>&1; then
-  kubectl -n istio-system create secret generic google-cloud-key  --from-file key.json=<(echo "${CLOUDKEY}")
-fi
+case "$1" in
+  create)
+    cluster_create
+    ;;
+  delete)
+    cluster_delete
+    ;;
+esac
