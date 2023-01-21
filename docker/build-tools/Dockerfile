@@ -516,6 +516,11 @@ RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
     /home/.cargo/bin/rustup default ${RUST_VERSION} &&\
     mv /home/.cargo/bin/* /usr/bin
 
+# Install cargo-deny
+RUN curl -L "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGODENY_VERSION}/cargo-deny-${CARGODENY_VERSION}-${TARGETARCH}-unknown-linux-musl.tar.gz" --output - | \
+tar xz --strip-components=1 -C "/usr/bin/" "cargo-deny*/cargo-deny"
+
+
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
 RUN rm -fr /usr/share/python
@@ -904,10 +909,6 @@ RUN rm -fr /usr/share/dh-python
 RUN rm -fr /usr/share/locale
 RUN rm -fr /usr/share/man
 RUN rm -fr /tmp/*
-
-# Install cargo-deny
-RUN curl -L "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGODENY_VERSION}/cargo-deny-${CARGODENY_VERSION}-${TARGETARCH}-unknown-linux-musl.tar.gz" --output - | \
-tar xz --strip-components=1 -C "/usr/bin/" "cargo-deny*/cargo-deny"
 
 # Run config setup in local environments
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
