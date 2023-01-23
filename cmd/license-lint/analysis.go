@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	"gopkg.in/src-d/go-license-detector.v2/licensedb"
-	"gopkg.in/src-d/go-license-detector.v2/licensedb/filer"
+	"github.com/go-enry/go-license-detector/v4/licensedb"
+	"github.com/go-enry/go-license-detector/v4/licensedb/filer"
 )
 
 // analysisResult describes a license.
@@ -49,7 +49,14 @@ func (f *filerImpl) ReadDir(dir string) ([]filer.File, error) {
 	return []filer.File{{Name: f.License}}, nil
 }
 
+// Close frees all the resources allocated by this Filer.
 func (f *filerImpl) Close() {}
+
+// PathsAreAlwaysSlash indicates whether the path separator is platform-independent ("/") or
+// OS-specific.
+func (f *filerImpl) PathsAreAlwaysSlash() bool {
+	return false
+}
 
 func analyzeLicense(path string) (analysisResult, error) {
 	res, err := licensedb.Detect(&filerImpl{License: path})
@@ -63,8 +70,8 @@ func analyzeLicense(path string) (analysisResult, error) {
 	var confidence float32
 	licenseName := ""
 	for id, v := range res {
-		if v > confidence {
-			confidence = v
+		if v.Confidence > confidence {
+			confidence = v.Confidence
 			licenseName = id
 		}
 	}
