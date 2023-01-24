@@ -394,6 +394,11 @@ spec:
       volumes:
       - name: shared-data
         emptyDir: {}
+      {{- if and (eq $.name "fortioclient") ($.Values.cert.server) }}
+      - name: gateway-secret
+        secret:
+          secretName: fortio-server-ingress-cert
+      {{- end }}
       {{- if eq $.Values.loadGenType "nighthawk" }}
       - name: nighthawk-test-server-config
         configMap:
@@ -406,6 +411,10 @@ spec:
         volumeMounts:
         - name: shared-data
           mountPath: /var/lib/fortio
+        {{- if and (eq $.name "fortioclient") ($.Values.cert.server) }}
+        - name: gateway-secret
+          mountPath: /tmp/gateway-secret
+        {{- end }}
         {{- if eq $.Values.loadGenType "nighthawk" }}
         - name: nighthawk-test-server-config
           mountPath: /var/lib/nighthawk 
@@ -453,6 +462,11 @@ spec:
         volumeMounts:
         - name: shared-data
           mountPath: /var/lib/fortio
+        {{/* This enables the secret to be tested in the shell container. */}}
+        {{- if and (eq $.name "fortioclient") ($.Values.cert.server) }}
+        - name: gateway-secret
+          mountPath: /tmp/gateway-secret
+        {{- end }}
         {{- if eq $.Values.loadGenType "nighthawk" }}
         - name: nighthawk-test-server-config
           mountPath: /var/lib/nighthawk
@@ -572,6 +586,8 @@ spec:
       name: http
       number: 80
       protocol: HTTP
+{{- if $.Values.cert.client }}
+{{/* This has not been tested and has been left here if someone is interested in fixing/using it. */}}
   - hosts:
     - '*'
     port:
@@ -582,9 +598,22 @@ spec:
       mode: SIMPLE
       privateKey: /etc/istio/ingressgateway-certs/tls.key
       serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+{{- end }}
+{{- if $.Values.cert.server }}
+  - hosts:
+    - '*'
+    port:
+      name: https-fortioserver
+      number: 443
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: fortio-server-ingress-cert
+{{- end }}
 ---
 {{- end }}
-{{- if $.Values.cert }}
+{{- if $.Values.cert.client }}
+{{/* This has not been tested and has been left here if someone is interested in fixing/using it. */}}
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:

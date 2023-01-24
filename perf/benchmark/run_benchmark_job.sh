@@ -47,6 +47,12 @@ export DNS_DOMAIN="fake-dns.org"
 export LOAD_GEN_TYPE=${LOAD_GEN_TYPE:-"fortio"}
 export FORTIO_CLIENT_URL=""
 export IOPS=${IOPS:-istioctl_profiles/default-overlay.yaml}
+export ISTIO_RELEASE_VERSION="${ISTIO_RELEASE_VERSION:-}"
+# For adding or modifying configurations, refer to perf/benchmark/README.md
+export CONFIG_DIR=${CONFIG_DIR:-"${WD}/configs/istio"}
+export PERF_TEST_CONFIGURATION=${PERF_TEST_CONFIGURATION:-"${WD}/configs/run_perf_test.conf"}
+# For enabling fortio server ingress cert for testing with TLS
+export FORTIO_SERVER_INGRESS_CERT_ENABLED="${FORTIO_SERVER_INGRESS_CERT_ENABLED:-false}"
 
 # Other Env vars
 export GCS_BUCKET=${GCS_BUCKET:-"istio-build/perf"}
@@ -70,12 +76,17 @@ if [[ "${GIT_BRANCH}" != "master" ]];then
   BRANCH="${BRANCH_NUM}-dev"
 fi
 
-# Different branch tag resides in dev release directory like /latest, /1.4-dev, /1.5-dev etc.
-INSTALL_VERSION=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
-echo "Setup istio release: ${INSTALL_VERSION}"
-
 pushd "${ROOT}/istio-install"
-   DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh
+  if [[ ${ISTIO_RELEASE_VERSION} ]]; then
+    INSTALL_VERSION=${ISTIO_RELEASE_VERSION}
+    echo "Setup istio release: ${INSTALL_VERSION}"
+    VERSION=${INSTALL_VERSION} ./setup_istio.sh
+  else
+    # Different branch tag resides in dev release directory like /latest, /1.4-dev, /1.5-dev etc.
+    INSTALL_VERSION=$(curl "https://storage.googleapis.com/istio-build/dev/${BRANCH}")
+    echo "Setup istio release: ${INSTALL_VERSION}"
+    DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh
+  fi
 popd
 
 # Step 3: setup Istio performance test
@@ -228,10 +239,8 @@ apt-get update && apt-get -y install linux-tools-generic
 # Start run perf test
 echo "Start to run perf benchmark test, all collected data will be dumped to GCS bucket: ${GCS_BUCKET}/${OUTPUT_DIR}"
 
-# For adding or modifying configurations, refer to perf/benchmark/README.md
-CONFIG_DIR="${WD}/configs/istio"
 # Read through perf test configuration file to determine which group of test configuration to run or not run
-read_perf_test_conf "${WD}/configs/run_perf_test.conf"
+read_perf_test_conf "${PERF_TEST_CONFIGURATION}"  
 
 for dir in "${CONFIG_DIR}"/*; do
     # Get the last directory name after splitting dir path by '/', which is the configuration dir name
@@ -248,7 +257,11 @@ for dir in "${CONFIG_DIR}"/*; do
        extra_overlay="-f ${dir}/installation.yaml"
     fi
     pushd "${ROOT}/istio-install"
-      DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh "${extra_overlay}"
+      if [[ ${ISTIO_RELEASE_VERSION} ]]; then
+        VERSION=${INSTALL_VERSION} ./setup_istio.sh "${extra_overlay}"
+      else
+        DEV_VERSION=${INSTALL_VERSION} ./setup_istio.sh "${extra_overlay}"
+      fi
     popd
 
     # Custom pre-run

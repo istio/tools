@@ -42,7 +42,10 @@ client: # client overrides
   injectL: "disabled" # "enabled" or "disabled"
   replica: 1    # default value
 
-cert: false
+cert: 
+  client: false
+  server: false
+
 interceptionMode: REDIRECT
 
 namespace: ""
