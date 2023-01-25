@@ -38,6 +38,7 @@ export PILOT_CLUSTER="${PILOT_CLUSTER:-}"
 export USE_MASON_RESOURCE="${USE_MASON_RESOURCE:-False}"
 export CLEAN_CLUSTERS="${CLEAN_CLUSTERS:-True}"
 export OWNER="${OWNER:-perf-tests}"
+export CREATE_CLUSTER="${CREATE_CLUSTER:-false}"
 
 # Istio performance test related Env vars
 export NAMESPACE=${NAMESPACE:-'twopods-istio'}
@@ -61,12 +62,17 @@ export TRIALRUN=${TRIALRUN:-"False"}
 
 CLEANUP_PIDS=()
 
-# Step 1: create cluster
-# shellcheck disable=SC1090,SC1091
-export KUBECONFIG="${WD}/tmp/kube.yaml"
-pushd "${ROOT}/istio-install"
-  ./cluster.sh create
-popd
+# Step 1: setup/create cluster
+if [[ "${CREATE_CLUSTER}" == "true" ]]; then
+  export KUBECONFIG="${WD}/tmp/kube.yaml"
+  pushd "${ROOT}/istio-install"
+    ./cluster.sh create
+  popd
+else
+  # shellcheck disable=SC1090,SC1091
+  source "${ROOT}/../bin/setup_cluster.sh"
+  setup_e2e_cluster
+fi
 
 # Step 2: install Istio
 # Setup release info
@@ -155,10 +161,15 @@ function exit_handling() {
   kubectl --namespace "${NAMESPACE}" cp "${FORTIO_CLIENT_POD}":/var/lib/fortio /tmp/rawdata -c shell
   gsutil -q cp -r /tmp/rawdata "gs://${GCS_BUCKET}/${OUTPUT_DIR}/rawdata"
 
-  # Delete cluster
-  pushd "${ROOT}/istio-install"
-    ./cluster.sh delete
-  popd
+  if [[ "${CREATE_CLUSTER}" == "true" ]]; then
+    # Delete cluster
+    pushd "${ROOT}/istio-install"
+      ./cluster.sh delete
+    popd
+  else
+    # Cleanup cluster resources
+    cleanup
+  fi
 }
 
 # add trap to copy raw data when exiting, also output logging information for debugging
