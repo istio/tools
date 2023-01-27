@@ -475,6 +475,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg-agent \
     software-properties-common \
     ca-certificates \
+    cmake \
+    cmake-data \
     gcc \
     git \
     ssh \
@@ -840,7 +842,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     autoconf \
     automake \
     cmake \
-    cmake-data \
     libtool \
     ninja-build \
     python \
