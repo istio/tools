@@ -73,6 +73,7 @@ ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
 ENV COSIGN_VERSION=v1.13.1
 ENV CRANE_VERSION=v0.13.0
 ENV TRIVY_VERSION=0.36.1
+ENV CARGODENY_VERSION=0.13.5
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -519,6 +520,11 @@ RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
     sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal --component rustfmt clippy &&\
     /home/.cargo/bin/rustup default ${RUST_VERSION} &&\
     mv /home/.cargo/bin/* /usr/bin
+
+# Install cargo-deny
+RUN curl -L "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGODENY_VERSION}/cargo-deny-${CARGODENY_VERSION}-${TARGETARCH}-unknown-linux-musl.tar.gz" --output - | \
+tar xz --strip-components=1 -C "/usr/bin/" "cargo-deny*/cargo-deny"
+
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/*
