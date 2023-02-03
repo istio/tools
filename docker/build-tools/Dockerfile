@@ -428,6 +428,7 @@ ENV REQUESTS_VERSION=2.22.0
 ENV PYTHON_PROTOBUF_VERSION=3.11.2
 ENV PYYAML_VERSION=5.3.1
 ENV JWCRYPTO_VERSION=0.7
+ENV PYGITHUB_VERSION=1.57
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -448,6 +449,7 @@ RUN python3 -m pip install --no-cache-dir requests==${REQUESTS_VERSION}
 RUN python3 -m pip install --no-cache-dir protobuf==${PYTHON_PROTOBUF_VERSION}
 RUN python3 -m pip install --no-cache-dir PyYAML==${PYYAML_VERSION}
 RUN python3 -m pip install --no-cache-dir jwcrypto==${JWCRYPTO_VERSION}
+RUN python3 -m pip install --no-cache-dir PyGithub==${PYGITHUB_VERSION}
 
 #############
 # Base OS
