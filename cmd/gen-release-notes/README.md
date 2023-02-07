@@ -84,4 +84,3 @@ matching the action `Deprecated`, use:
 ```html
 <!-- releaseNotes action:!Deprecated -->
 ```
-

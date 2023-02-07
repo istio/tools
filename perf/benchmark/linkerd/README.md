@@ -82,4 +82,3 @@ python ./runner/graph.py linkerd.csv p50 --mesh=linkerd
 
 See the [example-comparison](example-comparison/)
 directory for a sample comparison between Istio and Linkerd from the perspective of Latency.
-

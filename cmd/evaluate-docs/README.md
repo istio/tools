@@ -20,5 +20,3 @@ go build .
 * analyticspath represents the path to the analytics CSV
 * docspath represents the path to a cloned, up to date copy of the Istio.io docs repo
 * outpath represents the file to store the evaluation results in
-
-
