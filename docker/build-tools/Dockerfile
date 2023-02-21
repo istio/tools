@@ -469,6 +469,7 @@ ENV OUTDIR=/out
 # required for general build: make, wget, curl, ssh, rpm
 # required for ruby: libcurl4-openssl-dev
 # required for python: python3, pkg-config
+# required for ebpf build: clang,llvm,libbpf-dev
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-transport-https \
@@ -501,7 +502,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libclang-dev \
     iproute2 \
     ipset \
-    rsync
+    rsync \
+    clang \
+    llvm \
+    libbpf-dev
 
 # Fix Docker issue
 RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
