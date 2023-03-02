@@ -793,6 +793,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     daemon \
     wget \
     jq \
+    rsync \
     tshark
 
 # Build git from source. Golang now requires a recent git version
