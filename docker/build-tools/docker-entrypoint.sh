@@ -22,7 +22,7 @@ shopt -s dotglob
 
 # Make a copy of the hosts's config secrets
 # Do not copy the Docker sockets
-su-exec 0:0 rsync -a --exclude=docker*.sock /config/ /config-copy/
+su-exec 0:0 rsync -a --exclude=docker*.sock --exclude=/config/.config/gcloud/logs/* /config/ /config-copy/
 
 # Set the ownershp of the host's config secrets to that of the container
 su-exec 0:0 chown -R "${uid}":"${gid}" /config-copy
