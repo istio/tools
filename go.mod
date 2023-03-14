@@ -23,7 +23,7 @@ require (
 	github.com/yuin/goldmark v1.5.4
 	golang.org/x/tools v0.7.0
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4
-	google.golang.org/protobuf v1.29.0
+	google.golang.org/protobuf v1.29.1
 	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v0.0.0-20230308201648-8dd86e0de495
 	k8s.io/apiextensions-apiserver v0.26.2
