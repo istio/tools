@@ -73,6 +73,7 @@ ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
 ENV COSIGN_VERSION=v2.0.0
 ENV CRANE_VERSION=v0.14.0
 ENV TRIVY_VERSION=0.38.3
+ENV YAMLFMT_VERSION=0.8.0
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -116,6 +117,7 @@ RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_${TARGETARCH}.deb
 RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
 # Build and install a bunch of Go tools
+RUN go install -ldflags="-s -w" github.com/google/yamlfmt/cmd/yamlfmt@${YAMLFMT_VERSION}
 RUN go install -ldflags="-s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
 RUN go install -ldflags="-s -w" google.golang.org/grpc/cmd/protoc-gen-go-grpc@${GOLANG_GRPC_PROTOBUF_VERSION}
 RUN go install -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
