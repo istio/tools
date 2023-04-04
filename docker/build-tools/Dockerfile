@@ -73,6 +73,7 @@ ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
 ENV COSIGN_VERSION=v2.0.0
 ENV CRANE_VERSION=v0.14.0
 ENV TRIVY_VERSION=0.38.3
+ENV KUBECTX_VERSION=0.9.4
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -291,6 +292,14 @@ RUN set -eux; \
     rm "/tmp/${TRVIY_DEB_NAME}"; \
     mv /usr/local/bin/trivy ${OUTDIR}/usr/bin/
 
+# Install kubectx and kubens
+ADD https://github.com/ahmetb/kubectx/releases/download/v${KUBECTX_VERSION}/kubectx /tmp
+RUN mv /tmp/kubectx ${OUTDIR}/usr/bin/kubectx
+RUN chmod 555 ${OUTDIR}/usr/bin/kubectx
+ADD https://github.com/ahmetb/kubectx/releases/download/v${KUBECTX_VERSION}/kubens /tmp
+RUN mv /tmp/kubens ${OUTDIR}/usr/bin/kubens
+RUN chmod 555 ${OUTDIR}/usr/bin/kubens
+
 # Move Go tools to their final location
 RUN mv /tmp/go/bin/* ${OUTDIR}/usr/bin
 
@@ -505,7 +514,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rsync \
     clang \
     llvm \
-    libbpf-dev
+    libbpf-dev \
+    net-tools \
+    ninja-build \
+    sudo
 
 # Fix Docker issue
 RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
