@@ -25,7 +25,7 @@ require (
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v2 v2.4.0
-	istio.io/api v0.0.0-20230410162000-d4c0b38fb002
+	istio.io/api v0.0.0-20230410230800-a94614182296
 	k8s.io/apiextensions-apiserver v0.26.3
 	k8s.io/apimachinery v0.26.3
 	k8s.io/gengo v0.0.0-20230306165830-ab3349d207d4
