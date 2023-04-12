@@ -26,8 +26,8 @@ require (
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v0.0.0-20230411172800-cb047abbdf91
-	k8s.io/apiextensions-apiserver v0.26.3
-	k8s.io/apimachinery v0.26.3
+	k8s.io/apiextensions-apiserver v0.27.0
+	k8s.io/apimachinery v0.27.0
 	k8s.io/gengo v0.0.0-20230306165830-ab3349d207d4
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
 	sigs.k8s.io/controller-tools v0.11.3
@@ -55,8 +55,8 @@ require (
 	github.com/go-git/go-billy/v5 v5.0.0 // indirect
 	github.com/go-git/go-git/v5 v5.1.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
-	github.com/go-openapi/jsonpointer v0.19.5 // indirect
-	github.com/go-openapi/jsonreference v0.20.0 // indirect
+	github.com/go-openapi/jsonpointer v0.19.6 // indirect
+	github.com/go-openapi/jsonreference v0.20.1 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/gobuffalo/flect v0.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -95,7 +95,7 @@ require (
 	github.com/prometheus/common v0.38.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20201118171849-f6a6b3f636fc // indirect
-	github.com/rogpeppe/go-internal v1.9.0 // indirect
+	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shogo82148/go-shuffle v0.0.0-20180218125048-27e6095f230d // indirect
@@ -128,8 +128,8 @@ require (
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/klog/v2 v2.80.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect
-	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
+	k8s.io/klog/v2 v2.90.1 // indirect
+	k8s.io/kube-openapi v0.0.0-20230308215209-15aac26d736a // indirect
+	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
