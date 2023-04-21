@@ -45,7 +45,6 @@ packages needed to run the benchmarking scripts and [graph_plotter](./graph_plot
 
 ```bash
 cd perf/benchmark
-pipenv --three
 pipenv shell
 pipenv install
 ```
