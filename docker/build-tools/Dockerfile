@@ -119,15 +119,15 @@ RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 RUN set -eux; \
     \
     case $(uname -m) in \
-        x86_64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}-linux_amd64.tar.gz;; \
-        aarch64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}-linux-arm64.tar.gz;; \
+        x86_64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}_linux_amd64.tar.gz;; \
+        aarch64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}_linux-arm64.tar.gz;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
     wget -nv -O "/tmp/${PROTOC_GEN_VALIDATE_GZ}" "https://github.com/bufbuild/protoc-gen-validate/releases/download/v${PROTOC_GEN_VALIDATE_VERSION}/${PROTOC_GEN_VALIDATE_GZ}"; \
     tar -xzvf "/tmp/${PROTOC_GEN_VALIDATE_GZ}" -C /tmp; \
     mv /tmp/protoc-gen-validate ${OUTDIR}/usr/bin; \
-    mv /tmp/$protoc-gen-validate-go ${OUTDIR}/usr/bin; \
+    mv /tmp/protoc-gen-validate-go ${OUTDIR}/usr/bin; \
     chmod +x ${OUTDIR}/usr/bin/protoc-gen-validate; \
     chmod +x ${OUTDIR}/usr/bin/protoc-gen-validate-go
 
