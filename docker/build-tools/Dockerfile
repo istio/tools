@@ -125,7 +125,7 @@ RUN set -eux; \
     esac; \
     \
     wget -nv -O "/tmp/${PROTOC_GEN_VALIDATE_GZ}" "https://github.com/bufbuild/protoc-gen-validate/releases/download/v${PROTOC_GEN_VALIDATE_VERSION}/${PROTOC_GEN_VALIDATE_GZ}"; \
-    tar -xzvf /tmp/${PROTOC_GEN_VALIDATE_GZ} -C /tmp; \
+    tar -xzvf "/tmp/${PROTOC_GEN_VALIDATE_GZ}" -C /tmp; \
     mv /tmp/protoc-gen-validate ${OUTDIR}/usr/bin; \
     mv /tmp/$protoc-gen-validate-go ${OUTDIR}/usr/bin; \
     chmod +x ${OUTDIR}/usr/bin/protoc-gen-validate; \
