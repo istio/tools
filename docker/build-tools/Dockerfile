@@ -120,7 +120,7 @@ RUN set -eux; \
     \
     case $(uname -m) in \
         x86_64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}_linux_amd64.tar.gz;; \
-        aarch64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}_linux-arm64.tar.gz;; \
+        aarch64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}_linux_arm64.tar.gz;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
