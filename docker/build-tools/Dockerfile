@@ -59,7 +59,7 @@ ENV KIND_VERSION=v0.18.0
 ENV KUBECTL_VERSION=1.27.1
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.6
 ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.6
-ENV PROTOC_GEN_VALIDATE_VERSION=v0.10.1
+ENV PROTOC_GEN_VALIDATE_VERSION=0.10.1
 ENV PROTOC_VERSION=22.3
 ENV PROTOLOCK_VERSION=v0.14.0
 ENV SHELLCHECK_VERSION=v0.9.0
@@ -114,6 +114,22 @@ RUN set -eux; \
 ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.deb /tmp/
 RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_${TARGETARCH}.deb
 RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
+
+# Install protoc-gen-validate
+RUN set -eux; \
+    \
+    case $(uname -m) in \
+        x86_64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}-linux_amd64.tar.gz;; \
+        aarch64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}-linux-arm64.tar.gz;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
+    esac; \
+    \
+    wget -nv -O "/tmp/${PROTOC_GEN_VALIDATE_GZ}" "https://github.com/bufbuild/protoc-gen-validate/releases/download/v${PROTOC_GEN_VALIDATE_VERSION}/${PROTOC_GEN_VALIDATE_GZ}"; \
+    tar -xzvf /tmp/${PROTOC_GEN_VALIDATE_GZ} -C /tmp; \
+    mv /tmp/protoc-gen-validate ${OUTDIR}/usr/bin; \
+    mv /tmp/$protoc-gen-validate-go ${OUTDIR}/usr/bin; \
+    chmod +x ${OUTDIR}/usr/bin/protoc-gen-validate; \
+    chmod +x ${OUTDIR}/usr/bin/protoc-gen-validate-go
 
 # Build and install a bunch of Go tools
 RUN go install -ldflags="-s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
