@@ -62,7 +62,6 @@ ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.6
 ENV PROTOC_GEN_VALIDATE_VERSION=v0.9.1
 ENV PROTOC_VERSION=22.1
 ENV PROTOLOCK_VERSION=v0.14.0
-ENV PROTOTOOL_VERSION=v1.10.0
 ENV SHELLCHECK_VERSION=v0.9.0
 ENV SU_EXEC_VERSION=0.2
 ENV YQ_VERSION=4.33.3
@@ -119,7 +118,6 @@ RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 # Build and install a bunch of Go tools
 RUN go install -ldflags="-s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
 RUN go install -ldflags="-s -w" google.golang.org/grpc/cmd/protoc-gen-go-grpc@${GOLANG_GRPC_PROTOBUF_VERSION}
-RUN go install -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
 RUN go install -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
 RUN go install -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN go install -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
