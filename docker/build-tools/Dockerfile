@@ -44,35 +44,33 @@ ENV GOIMPORTS_VERSION=v0.1.0
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV GH_VERSION=2.27.0
 ENV GOLANG_PROTOBUF_VERSION=v1.30.0
-ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.2.0
+ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.3.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
-ENV GOLANGCI_LINT_VERSION=v1.51.2
+ENV GOLANGCI_LINT_VERSION=v1.52.2
 ENV HADOLINT_VERSION=v2.12.0
-ENV HELM3_VERSION=v3.11.2
+ENV HELM3_VERSION=v3.11.3
 ENV HUGO_VERSION=0.111.3
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.15.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
-ENV K8S_CODE_GENERATOR_VERSION=1.27.0
+ENV K8S_CODE_GENERATOR_VERSION=1.27.1
 ENV K8S_TEST_INFRA_VERSION=2acdc6800510dd422bfd2a5d8c02aedc19d15f8d
 ENV KIND_VERSION=v0.18.0
-ENV KUBECTL_VERSION=1.26.3
+ENV KUBECTL_VERSION=1.27.1
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.8.6
-ENV PROTOC_GEN_SWAGGER_VERSION=v1.8.6
-ENV PROTOC_GEN_VALIDATE_VERSION=v0.9.1
-ENV PROTOC_VERSION=22.1
+ENV PROTOC_GEN_VALIDATE_VERSION=0.10.1
+ENV PROTOC_VERSION=22.3
 ENV PROTOLOCK_VERSION=v0.14.0
-ENV PROTOTOOL_VERSION=v1.10.0
 ENV SHELLCHECK_VERSION=v0.9.0
 ENV SU_EXEC_VERSION=0.2
-ENV YQ_VERSION=4.33.2
+ENV YQ_VERSION=4.33.3
 ENV KPT_VERSION=v0.39.3
-ENV BUF_VERSION=v1.13.1
-ENV GCLOUD_VERSION=425.0.0
+ENV BUF_VERSION=v1.17.0
+ENV GCLOUD_VERSION=427.0.0
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
-ENV COSIGN_VERSION=v2.0.1
+ENV COSIGN_VERSION=v2.0.2
 ENV CRANE_VERSION=v0.14.0
-ENV TRIVY_VERSION=0.39.1
+ENV TRIVY_VERSION=0.40.0
 ENV KUBECTX_VERSION=0.9.4
 
 ENV GO111MODULE=on
@@ -116,19 +114,32 @@ ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}
 RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_${TARGETARCH}.deb
 RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
+# Install protoc-gen-validate
+RUN set -eux; \
+    \
+    case $(uname -m) in \
+        x86_64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}_linux_amd64.tar.gz;; \
+        aarch64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}_linux_arm64.tar.gz;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
+    esac; \
+    \
+    wget -nv -O "/tmp/${PROTOC_GEN_VALIDATE_GZ}" "https://github.com/bufbuild/protoc-gen-validate/releases/download/v${PROTOC_GEN_VALIDATE_VERSION}/${PROTOC_GEN_VALIDATE_GZ}"; \
+    tar -xzvf "/tmp/${PROTOC_GEN_VALIDATE_GZ}" -C /tmp; \
+    mv /tmp/protoc-gen-validate ${OUTDIR}/usr/bin; \
+    mv /tmp/protoc-gen-validate-go ${OUTDIR}/usr/bin; \
+    chmod +x ${OUTDIR}/usr/bin/protoc-gen-validate; \
+    chmod +x ${OUTDIR}/usr/bin/protoc-gen-validate-go
+
 # Build and install a bunch of Go tools
 RUN go install -ldflags="-s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
 RUN go install -ldflags="-s -w" google.golang.org/grpc/cmd/protoc-gen-go-grpc@${GOLANG_GRPC_PROTOBUF_VERSION}
-RUN go install -ldflags="-s -w" github.com/uber/prototool/cmd/prototool@${PROTOTOOL_VERSION}
 RUN go install -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
 RUN go install -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN go install -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
 RUN go install -ldflags="-s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
-RUN go install -ldflags="-s -w" github.com/envoyproxy/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
 RUN go install -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
 RUN go install -ldflags="-s -w" github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
 RUN go install -ldflags="-s -w" github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@${JB_VERSION}
-RUN go install -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@${PROTOC_GEN_SWAGGER_VERSION}
 RUN go install -ldflags="-s -w" github.com/istio/go-junit-report@${GO_JUNIT_REPORT_VERSION}
 RUN go install -ldflags="-s -w" sigs.k8s.io/bom/cmd/bom@${BOM_VERSION}
 RUN go install -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
@@ -290,7 +301,7 @@ RUN set -eux; \
     wget -nv -O "/tmp/${TRVIY_DEB_NAME}" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${TRVIY_DEB_NAME}"; \
     apt-get -y install --no-install-recommends -f "/tmp/${TRVIY_DEB_NAME}"; \
     rm "/tmp/${TRVIY_DEB_NAME}"; \
-    mv /usr/local/bin/trivy ${OUTDIR}/usr/bin/
+    mv /usr/bin/trivy ${OUTDIR}/usr/bin/
 
 # Install kubectx and kubens
 ADD https://github.com/ahmetb/kubectx/releases/download/v${KUBECTX_VERSION}/kubectx /tmp
@@ -325,7 +336,7 @@ ENV BABEL_PRESET_ENV=v7.18.2
 ENV BABEL_PRESET_MINIFY_VERSION=v0.5.2
 ENV LINKINATOR_VERSION=v2.0.5
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
-ENV NODEJS_VERSION=18.13.0
+ENV NODEJS_VERSION=18.16.0
 ENV SASS_LINT_VERSION=v1.13.1
 ENV SASS_VERSION=v1.52.1
 ENV SVGO_VERSION=v1.3.2
