@@ -71,7 +71,7 @@ ENV GCLOUD_VERSION=427.0.0
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
 ENV COSIGN_VERSION=v2.0.2
 ENV CRANE_VERSION=v0.14.0
-ENV TRIVY_VERSION=0.39.1
+ENV TRIVY_VERSION=0.40.0
 ENV KUBECTX_VERSION=0.9.4
 
 ENV GO111MODULE=on
@@ -303,7 +303,7 @@ RUN set -eux; \
     wget -nv -O "/tmp/${TRVIY_DEB_NAME}" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${TRVIY_DEB_NAME}"; \
     apt-get -y install --no-install-recommends -f "/tmp/${TRVIY_DEB_NAME}"; \
     rm "/tmp/${TRVIY_DEB_NAME}"; \
-    mv /usr/local/bin/trivy ${OUTDIR}/usr/bin/
+    mv /usr/bin/trivy ${OUTDIR}/usr/bin/
 
 # Install kubectx and kubens
 ADD https://github.com/ahmetb/kubectx/releases/download/v${KUBECTX_VERSION}/kubectx /tmp
