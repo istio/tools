@@ -661,8 +661,10 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:20.04 AS clang_context_amd64
+FROM ubuntu:18.04 AS clang_context_amd64
+ENV UBUNTU_RELEASE_CODE_NAME=bionic
 FROM ubuntu:20.04 AS clang_context_arm64
+ENV UBUNTU_RELEASE_CODE_NAME=focal
 # hadolint ignore=DL3006
 FROM clang_context_${TARGETARCH} AS clang_context
 
@@ -672,6 +674,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates \
     software-properties-common \
+    curl \
+    ninja-build \
+    gpg-agent \
     libtinfo5
 
 ENV LLVM_VERSION=14.0.0
@@ -695,10 +700,22 @@ RUN set -eux; \
     mkdir -p ${LLVM_DIRECTORY}; \
     mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
 
+# CMake >=3.13.4
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# ubuntu 18.04 without arm64 version see https://apt.kitware.com/
+# hadolint ignore=DL4001
+RUN set -eux; \
+    \
+    case $(uname -m) in \
+        x86_64) \
+            curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - ; \
+            apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_RELEASE_CODE_NAME} main"; \
+            ;; \
+        *) echo "skip" ;; \
+    esac;
+RUN apt-get update && apt-get install -y --no-install-recommends cmake
+
 # TSan instrumented libc++.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    cmake \
-    ninja-build
 ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
 
 WORKDIR /tmp
@@ -764,9 +781,9 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:focal AS build_env_proxy_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=focal
-FROM ubuntu:focal AS build_env_proxy_arm64
+FROM ubuntu:18.04 AS build_env_proxy_amd64
+ENV UBUNTU_RELEASE_CODE_NAME=bionic
+FROM ubuntu:20.04 AS build_env_proxy_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=focal
 # hadolint ignore=DL3006
 FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
