@@ -891,6 +891,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 python3.10-dev python3.10-distutils
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
 
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
