@@ -889,6 +889,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Python 3.10
 RUN add-apt-repository ppa:deadsnakes/ppa
+# hadolint ignore=DL3008,DL3009
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 python3.10-dev python3.10-distutils
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
