@@ -661,8 +661,8 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:xenial AS clang_context_amd64
-FROM ubuntu:bionic AS clang_context_arm64
+FROM ubuntu:20.04 AS clang_context_amd64
+FROM ubuntu:20.04 AS clang_context_arm64
 # hadolint ignore=DL3006
 FROM clang_context_${TARGETARCH} AS clang_context
 
@@ -670,10 +670,11 @@ FROM clang_context_${TARGETARCH} AS clang_context
 RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     wget \
-    ca-certificates
+    ca-certificates \
+    software-properties-common \
+    libtinfo5
 
-# 12.0.1 is the version support ubuntu:xenial & aarch64
-ENV LLVM_VERSION=12.0.1
+ENV LLVM_VERSION=14.0.0
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
@@ -681,8 +682,8 @@ RUN set -eux; \
     \
     case $(uname -m) in \
         x86_64) \
-               LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu- \
-               LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04;; \
+               LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-18.04 \
+               LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-18.04;; \
         aarch64)  \
                LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu \
                LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
@@ -693,6 +694,14 @@ RUN set -eux; \
     tar -xJf ${LLVM_ARTIFACT}.tar.xz -C /tmp; \
     mkdir -p ${LLVM_DIRECTORY}; \
     mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
+
+# TSan instrumented libc++.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    cmake \
+    ninja-build
+ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
+COPY proxy-tsan-instrumented-libcxx.sh proxy-tsan-instrumented-libcxx.sh
+RUN ./proxy-tsan-instrumented-libcxx.sh
 
 ###########
 # GN
@@ -753,10 +762,10 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:xenial AS build_env_proxy_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=xenial
-FROM ubuntu:bionic AS build_env_proxy_arm64
-ENV UBUNTU_RELEASE_CODE_NAME=bionic
+FROM ubuntu:focal AS build_env_proxy_amd64
+ENV UBUNTU_RELEASE_CODE_NAME=focal
+FROM ubuntu:focal AS build_env_proxy_arm64
+ENV UBUNTU_RELEASE_CODE_NAME=focal
 # hadolint ignore=DL3006
 FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
 
@@ -878,6 +887,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     virtualenv
 
+# Python 3.10
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.10 python3.10-dev python3.10-distutils
+
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
 COPY --from=gn_context /gn/gn /usr/local/bin/gn
@@ -885,15 +899,10 @@ COPY --from=bazel_context /usr/local/bin /usr/local/bin
 COPY --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
 COPY --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
 COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
+COPY --from=clang_context /opt/libcxx_tsan /opt/libcxx_tsan
 
 RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
-
-COPY proxy-tsan-instrumented-libcxx.sh proxy-tsan-instrumented-libcxx.sh
-RUN ./proxy-tsan-instrumented-libcxx.sh
-
-COPY install-python-3.8.sh install-python-3.8.sh
-RUN ./install-python-3.8.sh
 
 # su-exec is used in place of complex sudo setup operations
 RUN chmod u+sx /usr/bin/su-exec

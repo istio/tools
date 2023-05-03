@@ -27,7 +27,7 @@ update-alternatives --config g++
 # Instrumented libcxx built from LLVM source, used for tsan testing.
 # See envoy dev guide for more info: https://github.com/envoyproxy/envoy/blob/v1.17.0/bazel/README.md#sanitizers
 # should use same llvm version of build env
-LLVM_VERSION=${LLVM_VERSION:-11.0.1}
+LLVM_VERSION=${LLVM_VERSION:-14.0.0}
 LLVM_ARCHIVE=llvmorg-${LLVM_VERSION}.tar.gz
 LLVM_ARCHIVE_URL=https://github.com/llvm/llvm-project/archive/${LLVM_ARCHIVE}
 wget "${LLVM_ARCHIVE_URL}"
