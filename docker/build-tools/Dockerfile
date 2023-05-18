@@ -396,6 +396,7 @@ ENV AWESOMEBOT_VERSION=1.20.0
 # Sometime between 1.14.1 and 1.14.2 to pull in some fixes for deb
 ENV FPM_VERSION=eb5370d16e361db3f1425f8c898bafe7f3c66869
 ENV HTMLPROOFER_VERSION=3.19.0
+ENV NOKOGIRI_VERSION=1.14.3
 ENV LICENSEE_VERSION=9.15.1
 ENV MDL_VERSION=0.12.0
 
@@ -419,6 +420,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install istio.io verification tools
 RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
+RUN gem install --no-wrappers --no-document nokogiri -v ${NOKOGIRI_VERSION}
 RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
