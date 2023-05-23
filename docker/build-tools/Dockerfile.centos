@@ -7,12 +7,13 @@ ARG VERSION
 LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
+# upgrade git to 2.*
 # hadolint ignore=DL3031,DL3033
-RUN yum install -y centos-release-scl epel-release && \
+RUN yum install -y centos-release-scl epel-release https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm && \
     yum update -y && \
     yum install -y fedpkg sudo devtoolset-7-gcc devtoolset-7-gcc-c++ \
                    devtoolset-7-binutils java-1.8.0-openjdk-headless rsync \
-                   rh-git218 wget unzip which make cmake3 patch ninja-build \
+                   git wget unzip which make cmake3 patch ninja-build \
                    devtoolset-7-libatomic-devel openssl python27 libtool autoconf && \
     yum clean all
 
