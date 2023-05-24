@@ -8,7 +8,7 @@ For instructions on how to run these scripts with Linkerd, see the [linkerd/](li
 
 ## Prerequisites
 
-1. [Python3](https://docs.python-guide.org/starting/installation/#installation-guides)
+1. [Python3](https://docs.python-guide.org/starting/installation/#installation-guides) >= 3.5
 1. [`pipenv`](https://docs.python-guide.org/dev/virtualenvs/#virtualenvironments-ref)
 1. [helm](https://helm.sh/docs/using_helm/#install-helm)
 
