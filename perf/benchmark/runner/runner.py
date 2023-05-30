@@ -41,15 +41,18 @@ processes = []
 def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr} -o json".format(
         namespace=namespace, filterstr=filterstr)
-    op = getoutput(cmd)
-    o = json.loads(op)
+    completed_process = subprocess.run(shlex.split(cmd), check=True, encoding="utf-8")
+    o = json.loads(completed_process.stdout)
     items = o['items']
 
+    if completed_process.stderr:
+        print("stderr while getting pod info: %s" % completed_process.stderr)
+
     if not multi_ok and len(items) > 1:
-        raise Exception("more than one found " + op)
+        raise Exception("more than one pod found stdout='%s'" % completed_process.stdout)
 
     if not items:
-        raise Exception("no pods found with command [" + cmd + "]")
+        raise Exception("no pods found with command [%s]" % cmd)
 
     i = items[0]
     return POD(i['metadata']['name'], i['metadata']['namespace'],
@@ -66,7 +69,7 @@ def run_command_sync(command):
     return op.strip()
 
 
-# kubeclt related helper funcs
+# kubectl related helper funcs
 def kubectl_cp(from_file, to_file, container):
     cmd = "kubectl --namespace {namespace} cp {from_file} {to_file} -c {container}".format(
         namespace=NAMESPACE,
@@ -559,15 +562,13 @@ def run_nighthawk(pod, remote_cmd, labels):
         remote_cmd=remote_cmd,
         namespace=NAMESPACE)
     print("nighthawk commandline: " + kube_cmd)
-    process = subprocess.Popen(shlex.split(kube_cmd), stdout=subprocess.PIPE)
-    (output, err) = process.communicate()
-    exit_code = process.wait()
+    completed_process = subprocess.run(shlex.split(kube_cmd), encoding="utf-8")
 
-    if exit_code == 0:
+    if completed_process.returncode == 0:
         with tempfile.NamedTemporaryFile(dir='/tmp', delete=True) as tmpfile:
             dest = tmpfile.name
-            with open("%s.json" % dest, 'wb') as f:
-                f.write(output)
+            with open("%s.json" % dest, 'wt') as f:
+                f.write(completed_process.stdout)
             print("Dumped Nighthawk's json to {dest}".format(dest=dest))
 
             # Send human readable output to the command line.
@@ -592,11 +593,11 @@ def run_nighthawk(pod, remote_cmd, labels):
                 dest=dest),
                 "{pod}:/var/lib/fortio/{datetime}_nighthawk_{labels}.json".format(pod=pod, labels=labels, datetime=time.strftime("%Y-%m-%d-%H%M%S")), "shell")
     else:
-        print("nighthawk remote execution error: %s" % exit_code)
-        if output:
-            print("--> stdout: %s" % output.decode("utf-8"))
-        if err:
-            print("--> stderr: %s" % err.decode("utf-8"))
+        print("nighthawk remote execution error: %s" % completed_process.returncode)
+        if completed_process.stdout:
+            print("--> stdout: %s" % completed_process.stdout)
+        if completed_process.stderr:
+            print("--> stderr: %s" % completed_process.stdout)
 
 
 def csv_to_int(s):
