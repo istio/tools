@@ -231,8 +231,11 @@ linters-settings:
       # - unnamedResult
       # - wrapperFunc
   depguard:
-    packages-with-error-message:
-      - github.com/gogo/protobuf: "gogo/protobuf is deprecated, use golang/protobuf"
+    rules:
+      Main:
+        deny:
+          - pkg: github.com/gogo/protobuf
+            desc: "gogo/protobuf is deprecated, use golang/protobuf"
   gosec:
     includes:
       - G401
