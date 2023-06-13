@@ -374,6 +374,9 @@ spec:
         traffic.sidecar.istio.io/excludeOutboundPorts: "80,8076,8077,8078, 8081"
         sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
         sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
+{{- if $.Values.proxy.image }}
+        sidecar.istio.io/proxyImage: {{ $.Values.proxy.image }}
+{{- end }}
       labels:
         app: {{ $.name }}
     spec:
