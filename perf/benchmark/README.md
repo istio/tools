@@ -2,7 +2,7 @@
 
 This directory contains Python scripts to benchmark Istio's data plane performance.
 
-See the [Istio Performance and Scalability Guide](https://istio.io/docs/concepts/performance-and-scalability/) for performance data against the latest Istio release.
+See the [Istio Performance and Scalability Guide](https://istio.io/v1.16/docs/ops/deployment/performance-and-scalability/) for performance data against the latest Istio release.
 
 For instructions on how to run these scripts with Linkerd, see the [linkerd/](linkerd/) directory.
 
