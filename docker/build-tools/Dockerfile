@@ -482,6 +482,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ENV DOCKER_VERSION=5:24.0.2-1~ubuntu.22.04~jammy
 ENV CONTAINERD_VERSION=1.6.21-1
+ENV DOCKER_BUILDX_VERSION=0.10.5-1~ubuntu.22.04~jammy
 ENV RUST_VERSION=1.70.0
 
 ENV OUTDIR=/out
@@ -540,7 +541,7 @@ RUN apt-key add /tmp/docker-key
 ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu $(lsb_release -sc) stable"
 RUN apt-get update
-RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
+RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}" docker-buildx-plugin="${DOCKER_BUILDX_VERSION}"
 
 ENV CARGO_HOME=/home/.cargo
 ENV RUSTUP_HOME=/home/.rustup
