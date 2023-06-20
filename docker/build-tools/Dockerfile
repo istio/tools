@@ -25,7 +25,7 @@
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.20.5
+ARG GOLANG_IMAGE=golang:1.20.5-bullseye
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -69,7 +69,7 @@ ENV PROTOC_GEN_VALIDATE_VERSION=1.0.1
 ENV PROTOC_VERSION=23.2
 ENV PROTOLOCK_VERSION=v0.16.0
 ENV SHELLCHECK_VERSION=v0.9.0
-ENV SU_EXEC_VERSION=0.3.1
+ENV SU_EXEC_VERSION=0.2
 ENV TRIVY_VERSION=0.42.1
 ENV YQ_VERSION=4.34.1
 
@@ -136,7 +136,7 @@ RUN go install -ldflags="-s -w" google.golang.org/grpc/cmd/protoc-gen-go-grpc@${
 RUN go install -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
 RUN go install -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 # Use static as we also use in build-tools-proxy image
-RUN go install -ldflags="-s -w -extldflags '-static'" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN go install -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
 RUN go install -ldflags="-s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
 RUN go install -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
 RUN go install -ldflags="-s -w" github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
@@ -249,8 +249,11 @@ RUN wget -nv -O "${OUTDIR}/usr/bin/buf" "https://github.com/bufbuild/buf/release
     chmod 555 "${OUTDIR}/usr/bin/buf"
 
 # Install su-exec which is a tool that operates like sudo without the overhead
-RUN wget -nv -O "${OUTDIR}/usr/bin/su-exec" https://github.com/NobodyXu/su-exec/releases/download/v${SU_EXEC_VERSION}/su-exec-musl-static && \
-    chmod 555 "${OUTDIR}/usr/bin/su-exec"
+ADD https://github.com/ncopa/su-exec/archive/v${SU_EXEC_VERSION}.tar.gz /tmp
+RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
+WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
+RUN make
+RUN cp -a su-exec ${OUTDIR}/usr/bin
 
 ADD https://github.com/GoogleContainerTools/kpt/releases/download/${KPT_VERSION}/kpt_linux_${TARGETARCH} ${OUTDIR}/usr/bin/kpt
 RUN chmod 555 ${OUTDIR}/usr/bin/kpt
