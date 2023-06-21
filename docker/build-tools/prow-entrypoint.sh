@@ -27,7 +27,23 @@ function log() {
   { set -x; } 2>/dev/null
 }
 
+function read_gcp_secrets() {
+  { set +x; } 2>/dev/null
+  readarray -t secrets < <(<<<"${GCP_SECRETS}" jq -c '.[]')
+  for item in "${secrets[@]}"; do
+    proj="$(<<<"$item" jq .project -r)"
+    secret="$(<<<"$item" jq .secret -r)"
+    env="$(<<<"$item" jq .env -r)"
+    log "Fetching secret '${secret}' in project '${proj}'"
+    value="$(gcloud secrets versions access latest --secret "${secret}" --project "${proj}")"
+    export "$env=$value"
+  done
+  { set -x; } 2>/dev/null
+}
+
 log "Starting test..."
+
+read_gcp_secrets
 
 # Always enable IPv6; all tests should function with it enabled so no need to be selective.
 sysctl net.ipv6.conf.all.forwarding=1
