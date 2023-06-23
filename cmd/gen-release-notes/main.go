@@ -16,7 +16,6 @@ package main
 
 import (
 	"embed"
-	_ "embed"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -171,7 +170,8 @@ func checkReleaseNotesLabel(info PRInfo) error {
 		log.Printf("%d release notes found.\n", len(info.ReleaseNoteFiles))
 		return nil
 	}
-	newUrl := fmt.Sprintf("https://github.com/%s/%s/new/%s/releasenotes/notes", info.Author, os.Getenv("PULL_HEAD_REF"), os.Getenv("PULL_BASE_REF"))
+	newURL := fmt.Sprintf("https://github.com/%s/%s/new/%s/releasenotes/notes", info.Author, os.Getenv("PULL_HEAD_REF"), os.Getenv("PULL_BASE_REF"))
+	// nolint: lll
 	log.Printf(`
 ERROR: Missing release notes and missing %q label.
 
@@ -180,7 +180,7 @@ If this pull request contains user facing changes, please create a release note 
 Release notes documentation can be found here: https://github.com/istio/istio/tree/master/releasenotes.
 
 If this pull request has no user facing changes, please add the %qlabel to the pull request. Note that the test will have to be manually retriggered (/retest) after adding the label.
-`, ReleaseNoteNone, newUrl, ReleaseNoteNone)
+`, ReleaseNoteNone, newURL, ReleaseNoteNone)
 	return fmt.Errorf("missing release notes and missing %q label", ReleaseNoteNone)
 }
 
