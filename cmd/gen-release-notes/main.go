@@ -15,9 +15,13 @@
 package main
 
 import (
+	"embed"
+	_ "embed"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/fs"
+	"istio.io/tools/pkg/schemavalidation"
 	"os"
 	"os/exec"
 	"path"
@@ -29,6 +33,17 @@ import (
 
 	"istio.io/tools/pkg/markdown"
 )
+
+//go:embed release_notes_schema.json
+var schema []byte
+
+//go:embed templates/*.md
+var rawTemplates embed.FS
+
+var templates = func() fs.ReadDirFS {
+	s, _ := fs.Sub(rawTemplates, "templates")
+	return s.(fs.ReadDirFS)
+}()
 
 // golang flags don't accept arrays by default. This adds it.
 type flagStrings []string
@@ -43,7 +58,7 @@ func (flagString *flagStrings) Set(value string) error {
 }
 
 func main() {
-	var oldBranch, newBranch, templatesDir, outDir, oldRelease, newRelease, pullRequest string
+	var oldBranch, newBranch, outDir, oldRelease, newRelease, pullRequest string
 	var validateOnly bool
 	var notesDirs flagStrings
 
@@ -51,7 +66,6 @@ func main() {
 	flag.StringVar(&newBranch, "newBranch", "b", "branch containing new files")
 	flag.StringVar(&pullRequest, "pullRequest", "", "the pull request to check. Either this or oldBranch & newBranch are required.")
 	flag.Var(&notesDirs, "notes", "the directory containing release notes. Repeat for multiple notes directories")
-	flag.StringVar(&templatesDir, "templates", "./templates", "the directory containing release note templates")
 	flag.StringVar(&outDir, "outDir", ".", "the directory containing release notes")
 	flag.BoolVar(&validateOnly, "validateOnly", false, "set to true to perform validation only")
 	flag.StringVar(&oldRelease, "oldRelease", "x.y.(z-1)", "old release")
@@ -113,24 +127,24 @@ func main() {
 		return
 	}
 
-	fmt.Printf("\nLooking for markdown templates in %s.\n", templatesDir)
-	templateFiles, err := getFilesWithExtension(templatesDir, "md")
+	templateFiles, err := templates.ReadDir(".")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to list files: %s\n", err.Error())
 		os.Exit(1)
 	}
 	fmt.Printf("Found %d files.\n\n", len(templateFiles))
 
-	for _, filename := range templateFiles {
-		output, err := populateTemplate(templatesDir, filename, releaseNotes, oldRelease, newRelease)
+	if err := createDirIfNotExists(outDir); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create our dir: %s\n", err.Error())
+	}
+	for _, f := range templateFiles {
+		filename := f.Name()
+		output, err := populateTemplate(filename, releaseNotes, oldRelease, newRelease)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to parse template: %s\n", err.Error())
 			os.Exit(1)
 		}
 
-		if err := createDirIfNotExists(outDir); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to create our dir: %s\n", err.Error())
-		}
 		if err := writeAsMarkdown(path.Join(outDir, filename), output); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to write markdown: %s\n", err.Error())
 		} else {
@@ -193,30 +207,6 @@ func getNotesForTemplateFormat(notes []Note, template Template) []string {
 	return parsedNotes
 }
 
-// getFilesWithExtension returns the files from filePath with extension extension
-func getFilesWithExtension(filePath string, extension string) ([]string, error) {
-	directory, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open directory: %s", err.Error())
-	}
-	defer directory.Close()
-
-	var files []string
-	files, err = directory.Readdirnames(0)
-	if err != nil {
-		return nil, fmt.Errorf("unable to list files for directory %s: %s", filePath, err.Error())
-	}
-
-	filesWithExtension := make([]string, 0)
-	for _, fileName := range files {
-		if strings.HasSuffix(fileName, extension) {
-			filesWithExtension = append(filesWithExtension, fileName)
-		}
-	}
-
-	return filesWithExtension, nil
-}
-
 func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
 	notes := make([]Note, 0)
 	for _, file := range files {
@@ -224,6 +214,10 @@ func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
 		contents, err := os.ReadFile(file)
 		if err != nil {
 			return nil, fmt.Errorf("unable to open file %s: %s", file, err.Error())
+		}
+
+		if err := schemavalidation.Validate(contents, schema); err != nil {
+			return nil, err
 		}
 
 		var note Note
@@ -239,11 +233,10 @@ func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
 	return notes, nil
 }
 
-func populateTemplate(filepath string, filename string, releaseNotes []Note, oldRelease string, newRelease string) (string, error) {
-	filename = path.Join(filepath, filename)
+func populateTemplate(filename string, releaseNotes []Note, oldRelease string, newRelease string) (string, error) {
 	fmt.Printf("Processing %s\n", filename)
 
-	contents, err := os.ReadFile(filename)
+	contents, err := fs.ReadFile(templates, filename)
 	if err != nil {
 		return "", fmt.Errorf("unable to open file %s: %s", filename, err.Error())
 	}
