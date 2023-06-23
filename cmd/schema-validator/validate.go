@@ -16,11 +16,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"istio.io/tools/pkg/schemavalidation"
 	"log"
 	"os"
 
 	"sigs.k8s.io/yaml"
+
+	"istio.io/tools/pkg/schemavalidation"
 )
 
 func main() {
@@ -41,9 +42,8 @@ func main() {
 
 	if err := schemavalidation.Validate(doc, schema); err != nil {
 		log.Fatal(err)
-	} else {
-		log.Println("document is valid")
 	}
+	log.Println("document is valid")
 }
 
 func readYAMLAsJSON(filename string) (string, error) {
