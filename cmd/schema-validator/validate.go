@@ -16,9 +16,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"istio.io/tools/pkg/schemavalidation"
+	"log"
 	"os"
 
-	"github.com/xeipuuv/gojsonschema"
 	"sigs.k8s.io/yaml"
 )
 
@@ -29,29 +30,19 @@ func main() {
 	flag.Parse()
 
 	fmt.Printf("Validating %s against %s\n", documentPath, schemaPath)
-	schemaLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", schemaPath))
-
-	documentContents, err := readYAMLAsJSON(documentPath)
+	doc, err := os.ReadFile(documentPath)
 	if err != nil {
-		fmt.Printf("Could not parse document: %s\n", err.Error())
-		os.Exit(1)
+		log.Fatalf("fail to read: %v", err)
 	}
-	documentLoader := gojsonschema.NewStringLoader(documentContents)
-
-	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	schema, err := os.ReadFile(schemaPath)
 	if err != nil {
-		fmt.Printf("Unable to validate: %s\n", err.Error())
-		os.Exit(2)
+		log.Fatalf("fail to read: %v", err)
 	}
 
-	if result.Valid() {
-		fmt.Printf("The document is valid\n")
+	if err := schemavalidation.Validate(doc, schema); err != nil {
+		log.Fatal(err)
 	} else {
-		fmt.Printf("The document is not valid. See errors :\n")
-		for _, desc := range result.Errors() {
-			fmt.Printf("- %s\n", desc)
-		}
-		os.Exit(3)
+		log.Println("document is valid")
 	}
 }
 
