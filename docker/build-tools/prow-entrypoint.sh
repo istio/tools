@@ -36,6 +36,12 @@ function read_gcp_secrets() {
   done
 }
 
+# Authenticate gcloud, allow failures
+if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
+  # Jobs that need this will fail later and jobs that don't should fail because of this
+  gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" || true
+fi
+
 read_gcp_secrets
 
 # Output a message, with a timestamp matching istio log format
@@ -92,11 +98,6 @@ function cleanup() {
 
 trap cleanup EXIT
 
-# Authenticate gcloud, allow failures
-if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
-  # Jobs that need this will fail later and jobs that don't should fail because of this
-  gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" || true
-fi
 # Always try to authenticate to GCR.
 gcloud auth configure-docker -q || true
 
