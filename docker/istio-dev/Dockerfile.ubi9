@@ -1,0 +1,76 @@
+FROM localhost/build-tools:master-latest-${TARGETARCH} as build-tools
+
+FROM registry.access.redhat.com/ubi9/ubi:9.2-696
+ARG user
+ARG group
+ARG uid=1000
+ARG gid=1000
+
+WORKDIR /tmp
+ENV GOPATH=/tmp/go
+
+ENV OUTDIR=/
+RUN mkdir -p ${OUTDIR}/usr/bin
+RUN mkdir -p ${OUTDIR}/usr/local
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+COPY --from=build-tools /usr/bin/hadolint /usr/bin/
+COPY --from=build-tools /usr/bin/helm /usr/bin/
+COPY --from=build-tools /usr/bin/hugo /usr/bin/
+COPY --from=build-tools /usr/bin/docker /usr/local/bin/
+COPY --from=build-tools /usr/bin/kind /usr/bin/
+COPY --from=build-tools /usr/bin/kubectl /usr/bin/
+COPY --from=build-tools /usr/bin/protoc /usr/bin/
+COPY --from=build-tools /usr/bin/shellcheck /usr/bin/
+COPY --from=build-tools /usr/bin/yq /usr/bin/
+COPY --from=build-tools /usr/local/go /usr/local/
+COPY --from=build-tools /usr/local/google-cloud-sdk/bin/gcloud /usr/local/bin/
+COPY --from=build-tools /usr/local/ /usr/local/
+COPY --from=build-tools /node_modules/ /node_modules/
+
+RUN chmod 755 /usr/local/go/pkg /usr/local/go/src
+
+# Install development packages.
+RUN dnf -y upgrade --refresh && dnf -y install --setopt=install_weak_deps=False \
+autoconf-0:2.69-38.el9 \
+automake-0:1.16.2-6.el9 \
+bash-completion-1:2.11-4.el9 \
+make-1:4.3-7.el9 \
+gcc-0:11.3.1-4.3.el9 gcc-c++-0:11.3.1-4.3.el9 \
+git-0:2.39.3-1.el9_2 \
+iptables-nft-0:1.8.8-6.el9_1  \
+jq-0:1.6-14.el9 \
+libtool-0:2.4.6-45.el9 \
+sudo-0:1.9.5p2-9.el9 \
+unzip-0:6.0-56.el9 \
+vim-enhanced-2:8.2.2637-20.el9_1 \
+wget-0:1.21.1-7.el9 \
+xz-0:5.2.5-8.el9_0 \
+&& dnf -y clean all
+
+# Create user and allow sudo without password.
+RUN groupadd --system --non-unique --gid $gid $group \
+&& useradd --shell /sbin/nologin --uid $uid --gid $group $user \
+&& echo "${user} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$user
+
+# Install bash completion files.
+RUN /usr/bin/kind completion bash > /etc/bash_completion.d/kind \
+&& /usr/bin/helm completion bash > /etc/bash_completion.d/helm \
+&& /usr/bin/kubectl completion bash > /etc/bash_completion.d/kubectl \
+&& curl -s -Lo - https://raw.githubusercontent.com/docker/cli/master/contrib/completion/bash/docker > /etc/bash_completion.d/docker
+
+USER $user
+
+# Fix the Docker socket access rights at login time to allow non-root access.
+RUN echo "sudo chmod o+rw /var/run/docker.sock" >> /home/${user}/.bashrc
+
+# Setup Go for the user.
+RUN echo "# Go environment." >> /home/${user}/.bashrc \
+&& echo "export GOROOT=/usr/local/go" >> /home/${user}/.bashrc \
+&& echo "export GOPATH=~/go" >> /home/${user}/.bashrc \
+&& echo "export PATH=\$GOROOT/bin:\$GOPATH/out/linux_amd64/release:\$GOPATH/bin:\$PATH" >> /home/${user}/.bashrc \
+&& echo "export GO111MODULE=on" >> /home/${user}/.bashrc
+
+WORKDIR /home/$user
+ENTRYPOINT ["/bin/bash", "-c"]

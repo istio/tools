@@ -57,6 +57,9 @@ if [[ "${CONTAINER_CLI}" == "podman" ]]; then
   CACHE_FROM_TAG=""
 fi
 
+# support other base image builds, e.g. ubi9
+DOCKER_FILE=${DOCKER_FILE:-Dockerfile}
+
 # The docker image runs `go get istio.io/tools@${SHA}`
 # In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
 # In presubmit, this SHA does not exist, so we should just pull from the head of the branch (eg master)
@@ -79,6 +82,7 @@ ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools \
   --cache-from "${HUB}/build-tools${CACHE_FROM_TAG}" \
   -t "${HUB}/build-tools:${BRANCH}-latest-${ARCH}" \
   -t "${HUB}/build-tools:${VERSION}-${ARCH}" \
+  -f "${DOCKER_FILE}" \
   .
 
 # shellcheck disable=SC2086
@@ -88,6 +92,7 @@ ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_env_proxy \
   --cache-from "${HUB}/build-tools-proxy${CACHE_FROM_TAG}" \
   -t "${HUB}/build-tools-proxy:${BRANCH}-latest-${ARCH}" \
   -t "${HUB}/build-tools-proxy:${VERSION}-${ARCH}" \
+  -f "${DOCKER_FILE}" \
   .
 
 

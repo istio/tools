@@ -47,3 +47,37 @@ clean-dev-shell:
 	if test -n "$(shell docker images -q $(DEV_IMAGE_NAME))"; then \
 		docker rmi -f "$(shell docker images -q $(DEV_IMAGE_NAME))" || true; fi
 	rm -f docker/istio-dev/image-built
+
+# Build a dev environment Podman UBI9 image
+docker/istio-dev/image-built-ubi9: docker/istio-dev/Dockerfile.ubi9
+	@echo "building \"$(DEV_IMAGE_NAME)\" Podman UBI9 image"
+	@podman build \
+		--build-arg user="${shell id -un}" \
+		--build-arg group="${shell id -gn}" \
+		--build-arg uid="${shell id -u}" \
+		--build-arg gid="${shell id -g}" \
+		--format docker \
+		--tag "$(DEV_IMAGE_NAME)" - < docker/istio-dev/Dockerfile.ubi9
+	@touch $@
+
+# Start a dev environment Podman container in a podman machine VM.
+.PHONY = dev-shell-ubi9-podman clean-dev-shell-ubi9-podman
+dev-shell-ubi9-podman: docker/istio-dev/image-built-ubi9
+	@if test -z "$(shell podman ps -a -q -f name=$(DEV_CONTAINER_NAME))"; then \
+	    echo "starting \"$(DEV_CONTAINER_NAME)\" Podman container"; \
+		podman run --detach \
+			--name "$(DEV_CONTAINER_NAME)" \
+			--network=host \
+			--volume "/var/home/core/.kube:/home/$(USER)/.kube:cached" \
+			--volume "/var/run/user/${shell id -u}/podman/podman.sock:/var/run/docker.sock" \
+			--security-opt label=disable \
+			"$(DEV_IMAGE_NAME)" \
+			'while true; do sleep 60; done';  fi
+	@echo "executing shell in \"$(DEV_CONTAINER_NAME)\" Podman container"
+	@podman exec --tty --interactive "$(DEV_CONTAINER_NAME)" /bin/bash
+
+clean-dev-shell-ubi9-podman:
+	podman rm -f "$(DEV_CONTAINER_NAME)" || true
+	if test -n "$(shell podman images -q $(DEV_IMAGE_NAME))"; then \
+		podman rmi -f "$(shell podman images -q $(DEV_IMAGE_NAME))" || true; fi
+	rm -f docker/istio-dev/image-built-ubi9
