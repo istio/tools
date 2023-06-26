@@ -30,9 +30,15 @@ function read_gcp_secrets() {
     proj="$(<<<"$item" jq .project -r)"
     secret="$(<<<"$item" jq .secret -r)"
     env="$(<<<"$item" jq .env -r)"
+    file="$(<<<"$item" jq .file -r)"
     echo "Fetching secret '${secret}' in project '${proj}'"
     value="$(gcloud secrets versions access latest --secret "${secret}" --project "${proj}")"
-    export "$env=$value"
+    if [[ "${env}" != "" ]]; then
+      export "$env=$value"
+    fi
+    if [[ "${file}" != "" ]]; then
+      echo "$value" > "${file}"
+    fi
   done
 }
 
