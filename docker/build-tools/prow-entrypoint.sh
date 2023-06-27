@@ -37,6 +37,7 @@ function read_gcp_secrets() {
       export "$env=$value"
     fi
     if [[ "${file}" != "" ]]; then
+      mkdir -p "$(dirname "${file}")"
       echo "$value" > "${file}"
     fi
   done
