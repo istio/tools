@@ -15,9 +15,12 @@
 package main
 
 import (
+	"embed"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/fs"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -28,7 +31,19 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"istio.io/tools/pkg/markdown"
+	"istio.io/tools/pkg/schemavalidation"
 )
+
+//go:embed release_notes_schema.json
+var schema []byte
+
+//go:embed templates/*.md
+var rawTemplates embed.FS
+
+var templates = func() fs.ReadDirFS {
+	s, _ := fs.Sub(rawTemplates, "templates")
+	return s.(fs.ReadDirFS)
+}()
 
 // golang flags don't accept arrays by default. This adds it.
 type flagStrings []string
@@ -43,26 +58,27 @@ func (flagString *flagStrings) Set(value string) error {
 }
 
 func main() {
-	var oldBranch, newBranch, templatesDir, outDir, oldRelease, newRelease, pullRequest string
-	var validateOnly bool
+	var oldBranch, newBranch, outDir, oldRelease, newRelease string
+	var validateOnly, checkLabel bool
 	var notesDirs flagStrings
 
 	flag.StringVar(&oldBranch, "oldBranch", "a", "branch to compare against")
 	flag.StringVar(&newBranch, "newBranch", "b", "branch containing new files")
-	flag.StringVar(&pullRequest, "pullRequest", "", "the pull request to check. Either this or oldBranch & newBranch are required.")
 	flag.Var(&notesDirs, "notes", "the directory containing release notes. Repeat for multiple notes directories")
-	flag.StringVar(&templatesDir, "templates", "./templates", "the directory containing release note templates")
 	flag.StringVar(&outDir, "outDir", ".", "the directory containing release notes")
 	flag.BoolVar(&validateOnly, "validateOnly", false, "set to true to perform validation only")
+	flag.BoolVar(&checkLabel, "checkLabel", false, "set to true to check PR has release notes OR a release-notes-none label")
 	flag.StringVar(&oldRelease, "oldRelease", "x.y.(z-1)", "old release")
 	flag.StringVar(&newRelease, "newRelease", "x.y.z", "new release")
 	flag.Parse()
 
-	// Prow, at the time of writing this, does not use Git clone, meaning that there is no remote for the pull request. Generate a URL instead if we're using Prow.
+	// Detect if we are in CI, if so we are checking a single PR...
 	RepoOwner := os.Getenv("REPO_OWNER")
 	RepoName := os.Getenv("REPO_NAME")
-	if RepoOwner != "" && RepoName != "" {
-		pullRequest = fmt.Sprintf("https://github.com/%s/%s/pull/%s", RepoOwner, RepoName, pullRequest)
+	PullRequest := os.Getenv("PULL_NUMBER")
+	var pullRequest string
+	if RepoOwner != "" && RepoName != "" && PullRequest != "" {
+		pullRequest = fmt.Sprintf("https://github.com/%s/%s/pull/%s", RepoOwner, RepoName, PullRequest)
 	}
 
 	if len(notesDirs) == 0 {
@@ -71,31 +87,36 @@ func main() {
 
 	var releaseNotes []Note
 	for _, notesDir := range notesDirs {
-		var releaseNoteFiles []string
 
-		fmt.Printf("Looking for release notes in %s.\n", notesDir)
+		log.Printf("Looking for release notes in %q.\n", notesDir)
 
 		releaseNotesDir := "releasenotes/notes"
 		if _, err := os.Stat(notesDir); os.IsNotExist(err) {
-			fmt.Printf("Could not find repository -- directory %s does not exist.\n", notesDir)
+			log.Printf("Could not find repository -- directory %s does not exist.\n", notesDir)
 			os.Exit(1)
 		}
 
 		if _, err := os.Stat(filepath.Join(notesDir, releaseNotesDir)); os.IsNotExist(err) {
-			fmt.Printf("Could not find release notes directory -- %s does not exist.\n", filepath.Join(notesDir, releaseNotesDir))
+			log.Printf("Could not find release notes directory -- %s does not exist.\n", filepath.Join(notesDir, releaseNotesDir))
 			os.Exit(2)
 		}
 
-		var err error
-		releaseNoteFiles, err = getNewFilesInBranch(oldBranch, newBranch, pullRequest, notesDir, releaseNotesDir)
+		branchInfo, err := getNewFilesInBranch(oldBranch, newBranch, pullRequest, notesDir, releaseNotesDir)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to list files: %s\n", err.Error())
 			os.Exit(1)
 		}
-		fmt.Printf("Found %d files.\n\n", len(releaseNoteFiles))
+		log.Printf("Found %d release note files.\n", len(branchInfo.ReleaseNoteFiles))
 
-		fmt.Printf("Parsing release notes\n")
-		releaseNotesEntries, err := parseReleaseNotesFiles(notesDir, releaseNoteFiles)
+		if checkLabel {
+			log.Println("Checking label or release notes are present...")
+			if err := checkReleaseNotesLabel(branchInfo); err != nil {
+				os.Exit(1)
+			}
+		}
+
+		log.Printf("Parsing release notes\n")
+		releaseNotesEntries, err := parseReleaseNotesFiles(notesDir, branchInfo.ReleaseNoteFiles)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Unable to read release notes: %s\n", err.Error())
 			os.Exit(1)
@@ -103,46 +124,64 @@ func main() {
 		releaseNotes = append(releaseNotes, releaseNotesEntries...)
 	}
 
-	if len(releaseNotes) < 1 {
-		fmt.Fprintf(os.Stderr, "failed to find any release notes.\n")
-		// maps to EX_NOINPUT, but more importantly lets us differentiate between no files found and other errors
-		os.Exit(66)
-	}
-
 	if validateOnly {
 		return
 	}
 
-	fmt.Printf("\nLooking for markdown templates in %s.\n", templatesDir)
-	templateFiles, err := getFilesWithExtension(templatesDir, "md")
+	templateFiles, err := templates.ReadDir(".")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to list files: %s\n", err.Error())
 		os.Exit(1)
 	}
-	fmt.Printf("Found %d files.\n\n", len(templateFiles))
+	log.Printf("Found %d files.\n\n", len(templateFiles))
 
-	for _, filename := range templateFiles {
-		output, err := populateTemplate(templatesDir, filename, releaseNotes, oldRelease, newRelease)
+	if err := createDirIfNotExists(outDir); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create our dir: %s\n", err.Error())
+	}
+	for _, f := range templateFiles {
+		filename := f.Name()
+		output, err := populateTemplate(filename, releaseNotes, oldRelease, newRelease)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to parse template: %s\n", err.Error())
 			os.Exit(1)
 		}
 
-		if err := createDirIfNotExists(outDir); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to create our dir: %s\n", err.Error())
-		}
 		if err := writeAsMarkdown(path.Join(outDir, filename), output); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to write markdown: %s\n", err.Error())
 		} else {
-			fmt.Printf("Wrote markdown to %s\n", filename)
+			log.Printf("Wrote markdown to %s\n", filename)
 		}
 
 		if err := writeAsHTML(path.Join(outDir, filename), output); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to write HTML: %s\n", err.Error())
 		} else {
-			fmt.Printf("Wrote markdown to %s.html\n", filename)
+			log.Printf("Wrote markdown to %s.html\n", filename)
 		}
 	}
+}
+
+// Check we have release-notes-none label OR we have release notes
+func checkReleaseNotesLabel(info PRInfo) error {
+	if info.HasReleaseNoteNoneLabel {
+		log.Printf("Found %q label. This pull request will not include release notes.\n", ReleaseNoteNone)
+		return nil
+	}
+	if len(info.ReleaseNoteFiles) > 0 {
+		log.Printf("%d release notes found.\n", len(info.ReleaseNoteFiles))
+		return nil
+	}
+	newURL := fmt.Sprintf("https://github.com/%s/%s/new/%s/releasenotes/notes", info.Author, os.Getenv("PULL_HEAD_REF"), os.Getenv("PULL_BASE_REF"))
+	// nolint: lll
+	log.Printf(`
+ERROR: Missing release notes and missing %q label.
+
+If this pull request contains user facing changes, please create a release note based on the template: https://github.com/istio/istio/blob/master/releasenotes/template.yaml by going here: %s.
+
+Release notes documentation can be found here: https://github.com/istio/istio/tree/master/releasenotes.
+
+If this pull request has no user facing changes, please add the %qlabel to the pull request. Note that the test will have to be manually retriggered (/retest) after adding the label.
+`, ReleaseNoteNone, newURL, ReleaseNoteNone)
+	return fmt.Errorf("missing release notes and missing %q label", ReleaseNoteNone)
 }
 
 func createDirIfNotExists(path string) error {
@@ -193,30 +232,6 @@ func getNotesForTemplateFormat(notes []Note, template Template) []string {
 	return parsedNotes
 }
 
-// getFilesWithExtension returns the files from filePath with extension extension
-func getFilesWithExtension(filePath string, extension string) ([]string, error) {
-	directory, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open directory: %s", err.Error())
-	}
-	defer directory.Close()
-
-	var files []string
-	files, err = directory.Readdirnames(0)
-	if err != nil {
-		return nil, fmt.Errorf("unable to list files for directory %s: %s", filePath, err.Error())
-	}
-
-	filesWithExtension := make([]string, 0)
-	for _, fileName := range files {
-		if strings.HasSuffix(fileName, extension) {
-			filesWithExtension = append(filesWithExtension, fileName)
-		}
-	}
-
-	return filesWithExtension, nil
-}
-
 func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
 	notes := make([]Note, 0)
 	for _, file := range files {
@@ -226,24 +241,26 @@ func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
 			return nil, fmt.Errorf("unable to open file %s: %s", file, err.Error())
 		}
 
+		if err := schemavalidation.Validate(contents, schema); err != nil {
+			return nil, err
+		}
+
 		var note Note
 		if err = yaml.Unmarshal(contents, &note); err != nil {
 			return nil, fmt.Errorf("unable to parse release note %s:%s", file, err.Error())
 		}
 		note.File = file
 		notes = append(notes, note)
-		fmt.Printf("found %d upgrade notes, %d release notes, and %d security notes in %s\n", len(note.UpgradeNotes),
+		log.Printf("found %d upgrade notes, %d release notes, and %d security notes in %s\n", len(note.UpgradeNotes),
 			len(note.ReleaseNotes), len(note.SecurityNotes), note.File)
-
 	}
 	return notes, nil
 }
 
-func populateTemplate(filepath string, filename string, releaseNotes []Note, oldRelease string, newRelease string) (string, error) {
-	filename = path.Join(filepath, filename)
-	fmt.Printf("Processing %s\n", filename)
+func populateTemplate(filename string, releaseNotes []Note, oldRelease string, newRelease string) (string, error) {
+	log.Printf("Processing %s\n", filename)
 
-	contents, err := os.ReadFile(filename)
+	contents, err := fs.ReadFile(templates, filename)
 	if err != nil {
 		return "", fmt.Errorf("unable to open file %s: %s", filename, err.Error())
 	}
@@ -272,23 +289,32 @@ type prView struct {
 	Files []struct {
 		Path string `json:"path"`
 	} `json:"files"`
+	Labels []struct {
+		Name string `json:"name"`
+	} `json:"labels"`
+	Author struct {
+		Login string `json:"login"`
+	} `json:"author"`
 }
 
-func getFilesFromGHPRView(path string, pullRequest string, notesSubpath string) ([]string, error) {
-	cmdStr := fmt.Sprintf("cd %s; gh pr view %s --json files", path, pullRequest)
-	fmt.Printf("Executing: %s\n", cmdStr)
-
-	cmd := exec.Command("bash", "-c", cmdStr)
-	cmd.Env = os.Environ()
-	out, err := cmd.CombinedOutput()
-	fmt.Printf("%s\n", out)
+func ReadGithubPR(path string, pullRequest string, notesSubpath string) (PRInfo, error) {
+	c := exec.Command(
+		"gh",
+		"pr",
+		"view",
+		pullRequest,
+		"--json=files,labels,author",
+	)
+	c.Dir = path
+	log.Printf("Executing: %s\n", strings.Join(c.Args, " "))
+	out, err := c.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("received error running GH: %s", err.Error())
+		return PRInfo{}, fmt.Errorf("received error running GH: %s", err.Error())
 	}
 
 	var prResults prView
 	if err := json.Unmarshal(out, &prResults); err != nil {
-		return nil, fmt.Errorf("failed to parse GH results: %s", err.Error())
+		return PRInfo{}, fmt.Errorf("failed to parse GH results: %s", err.Error())
 	}
 
 	var results []string
@@ -301,29 +327,59 @@ func getFilesFromGHPRView(path string, pullRequest string, notesSubpath string) 
 		}
 	}
 
-	return results, nil
-}
-
-func getNewFilesInBranch(oldBranch string, newBranch string, pullRequest string, path string, notesSubpath string) ([]string, error) {
-	// if there's a pull request, we can just get the changed files from GitHub. If not, we have to do it manually.
-	if pullRequest != "" {
-		return getFilesFromGHPRView(path, pullRequest, notesSubpath)
+	info := PRInfo{
+		Author:                  prResults.Author.Login,
+		ReleaseNoteFiles:        results,
+		HasReleaseNoteNoneLabel: false,
+	}
+	for _, l := range prResults.Labels {
+		if l.Name == ReleaseNoteNone {
+			info.HasReleaseNoteNoneLabel = true
+			break
+		}
 	}
 
-	cmd := fmt.Sprintf("cd %s; git diff-tree -r --diff-filter=AMR --name-only --relative=%s '%s' '%s'", path, notesSubpath, oldBranch, newBranch)
-	fmt.Printf("Executing: %s\n", cmd)
-	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
+	return info, nil
+}
+
+const ReleaseNoteNone = "release-notes-none"
+
+type PRInfo struct {
+	Author                  string
+	ReleaseNoteFiles        []string
+	HasReleaseNoteNoneLabel bool
+}
+
+func getNewFilesInBranch(oldBranch string, newBranch string, pullRequest string, path string, notesSubpath string) (PRInfo, error) {
+	// if there's a pull request, we can just get the changed files from GitHub. If not, we have to do it manually.
+	if pullRequest != "" {
+		return ReadGithubPR(path, pullRequest, notesSubpath)
+	}
+
+	c := exec.Command(
+		"git",
+		"diff-tree",
+		"-r",
+		"--diff-filter=AMR",
+		"--name-only",
+		"--relative="+notesSubpath,
+		oldBranch,
+		newBranch,
+	)
+	c.Dir = path
+	log.Printf("Executing: %s\n", strings.Join(c.Args, " "))
+	out, err := c.CombinedOutput()
 	if err != nil {
-		return nil, err
+		return PRInfo{}, err
 	}
 	outFiles := strings.Split(string(out), "\n")
 
-	// the getFilesFromGHPRView(path, pullRequest, notesSubpath) method returns file names which are relative to the repo path.
+	// the ReadGithubPR(path, pullRequest, notesSubpath) method returns file names which are relative to the repo path.
 	// the git diff-tree is relative to the notesSupbpath, so we need to add the subpath back to the filenames.
 	outFileswithPath := []string{}
 	for _, f := range outFiles[:len(outFiles)-1] { // skip the last file which is empty
 		outFileswithPath = append(outFileswithPath, filepath.Join(notesSubpath, f))
 	}
 
-	return outFileswithPath, nil
+	return PRInfo{ReleaseNoteFiles: outFileswithPath}, nil
 }
