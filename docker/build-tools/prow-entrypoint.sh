@@ -17,15 +17,47 @@
 
 TEST_START="$(date -u +%s.%N)"
 
-set -x
+function read_gcp_secrets() {
+  # Prevent calling with -x set
+  if [[ $- = *x* ]]; then
+    echo "Execution tracing must be disabled to call read_gcp_secrets"
+    exit 1
+  fi
+  # This should be impossible, but if in case the above check is wrong turn of tracing again, just in cvase...
+  { set +x; } 2>/dev/null
+  readarray -t secrets < <(<<<"${GCP_SECRETS}" jq -c '.[]')
+  for item in "${secrets[@]}"; do
+    proj="$(<<<"$item" jq .project -r)"
+    secret="$(<<<"$item" jq .secret -r)"
+    env="$(<<<"$item" jq .env -r)"
+    file="$(<<<"$item" jq .file -r)"
+    echo "Fetching secret '${secret}' in project '${proj}'"
+    value="$(gcloud secrets versions access latest --secret "${secret}" --project "${proj}")"
+    if [[ "${env}" != "" ]]; then
+      export "$env=$value"
+    fi
+    if [[ "${file}" != "" ]]; then
+      mkdir -p "$(dirname "${file}")"
+      echo "$value" > "${file}"
+    fi
+  done
+}
+
+read_gcp_secrets
 
 # Output a message, with a timestamp matching istio log format
 function log() {
+  # Disable execution tracing to avoid noise
+  { [[ $- = *x* ]] && was_execution_trace=1 || was_execution_trace=0; } 2>/dev/null
   { set +x; } 2>/dev/null
   delta=$(date +%s.%N --date="$TEST_START seconds ago")
   echo -e "$(date -u '+%Y-%m-%dT%H:%M:%S.%NZ')\t${delta%.*}s\t$*"
-  { set -x; } 2>/dev/null
+  if [[ $was_execution_trace == 1 ]]; then
+    { set -x; } 2>/dev/null
+  fi
 }
+
+set -x
 
 log "Starting test..."
 
