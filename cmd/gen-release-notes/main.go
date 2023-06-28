@@ -72,6 +72,11 @@ func main() {
 	flag.StringVar(&newRelease, "newRelease", "x.y.z", "new release")
 	flag.Parse()
 
+	if os.Getenv("JOB_TYPE") == "batch" {
+		log.Println("Release notes checker not applicable for batch jobs. Skipping")
+		return
+	}
+
 	// Detect if we are in CI, if so we are checking a single PR...
 	RepoOwner := os.Getenv("REPO_OWNER")
 	RepoName := os.Getenv("REPO_NAME")
