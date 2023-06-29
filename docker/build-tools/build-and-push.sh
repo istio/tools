@@ -82,26 +82,8 @@ ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_env_proxy \
   -t "${HUB}/build-tools-proxy:${VERSION}-${ARCH}" \
   .
 
-if [[ "$(uname -m)" == "x86_64" ]]; then
-  # Multi arch is not supported for CentOS, since its legacy and multi-arch is new.
-  # shellcheck disable=SC2086
-  ${CONTAINER_CLI} ${CONTAINER_BUILDER} \
-    ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
-    --build-arg BUILDKIT_INLINE_CACHE=1 \
-    --cache-from "${HUB}/build-tools-centos:${BRANCH}-latest" \
-    -t "${HUB}/build-tools-centos:${BRANCH}-latest" \
-    -t "${HUB}/build-tools-centos:${VERSION}" \
-    -f Dockerfile.centos \
-    .
-fi
 
 if [[ -z "${DRY_RUN:-}" ]]; then
-  # CentOS images images are special, handle first
-  if [[ "$(uname -m)" == "x86_64" ]]; then
-    ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${VERSION}"
-    ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${BRANCH}-latest"
-  fi
-
   TO_PUSH=(
     "${HUB}/build-tools:${VERSION}"
     "${HUB}/build-tools:${BRANCH}-latest"
