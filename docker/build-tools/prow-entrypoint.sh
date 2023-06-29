@@ -29,8 +29,8 @@ function read_gcp_secrets() {
   for item in "${secrets[@]}"; do
     proj="$(<<<"$item" jq .project -r)"
     secret="$(<<<"$item" jq .secret -r)"
-    env="$(<<<"$item" jq .env -r)"
-    file="$(<<<"$item" jq .file -r)"
+    env="$(<<<"$item" jq .env -r // "")"
+    file="$(<<<"$item" jq .file -r // "")"
     echo "Fetching secret '${secret}' in project '${proj}'"
     value="$(gcloud secrets versions access latest --secret "${secret}" --project "${proj}")"
     if [[ "${env}" != "" ]]; then
@@ -66,40 +66,48 @@ sysctl net.ipv6.conf.all.forwarding=1
 sysctl net.ipv6.conf.all.disable_ipv6=0
 log "Done enabling IPv6 in Docker config."
 
-# Enable debug logs for docker daemon, and set the MTU to the external NIC MTU
-# Docker will always use 1500 as the MTU; in environments where the host has <1500 as the MTU
-# this may cause connectivity issues.
-mkdir /etc/docker
-primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
-hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
-echo "{\"debug\":true, \"mtu\":${hostMTU:-1500}}" > /etc/docker/daemon.json
+# Set ENABLE_DOCKER to what they specify, or otherwise enable if /var/lib/docker is enabled (required for docker)
+[[ -d "/var/lib/docker" ]] && HAS_DOCKER="true"
+ENABLE_DOCKER="${ENABLE_DOCKER:-"${HAS_DOCKER}"}"
 
-# Start docker daemon and wait for dockerd to start
-service docker start
+if [[ "${ENABLE_DOCKER}" == "true" ]]; then
+  log "Enabling docker..."
+  # Enable debug logs for docker daemon, and set the MTU to the external NIC MTU
+  # Docker will always use 1500 as the MTU; in environments where the host has <1500 as the MTU
+  # this may cause connectivity issues.
+  mkdir -p /etc/docker
+  primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
+  hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
+  echo "{\"debug\":true, \"mtu\":${hostMTU:-1500}}" > /etc/docker/daemon.json
 
-log "Waiting for dockerd to start..."
-while :
-do
-  log "Checking for running docker daemon."
-  if docker ps -q > /dev/null 2>&1; then
-    log "The docker daemon is running."
-    break
-  fi
-  sleep 1
-done
+  # Start docker daemon and wait for dockerd to start
+  service docker start
+
+  log "Waiting for dockerd to start..."
+  while :
+  do
+    log "Checking for running docker daemon."
+    if docker ps -q > /dev/null 2>&1; then
+      log "The docker daemon is running."
+      break
+    fi
+    sleep 1
+  done
+fi
 
 function cleanup() {
-  log "Starting cleanup..."
-  # Cleanup all docker artifacts
-  # shellcheck disable=SC2046
-  docker kill $(docker ps -q) || true
-  docker system prune -af || true
-  log "Cleanup complete"
+  if [[ "${ENABLE_DOCKER}" == "true" ]]; then
+    log "Starting cleanup..."
+    # Cleanup all docker artifacts
+    docker ps -q | xargs -r docker kill
+    docker system prune -af || true
+    log "Cleanup complete"
+  fi
 }
 
 trap cleanup EXIT
 
-# Authenticate gcloud, allow failures
+# Authenticate gcloud, allow failures. TODO: cleanup? We should be using workload identity everywhere
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   # Jobs that need this will fail later and jobs that don't should fail because of this
   gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" || true
