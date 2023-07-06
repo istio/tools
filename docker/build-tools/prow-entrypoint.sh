@@ -103,9 +103,10 @@ trap cleanup EXIT
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   # Jobs that need this will fail later and jobs that don't should fail because of this
   gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" || true
+  log "WARNING: using insecure Service Account key authentication"
 fi
-# Always try to authenticate to GCR.
-gcloud auth configure-docker -q || true
+# Always try to authenticate to GCR and AR.
+gcloud auth configure-docker us-docker.pkg.dev -q || true
 
 set +x
 "$@"
