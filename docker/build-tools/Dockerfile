@@ -58,7 +58,8 @@ ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.15.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.27.1
-ENV K8S_TEST_INFRA_VERSION=60794d470c0fb4da1fb14b4fd1abb80307c1e128
+# From 7/6/2023
+ENV K8S_TEST_INFRA_VERSION=91ecbd6a270f879e309760d65eccc60f466e726b
 ENV KIND_VERSION=v0.20.0
 ENV KPT_VERSION=v1.0.0-beta.35
 ENV KUBECTL_VERSION=1.27.3
@@ -160,6 +161,8 @@ RUN go install -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-golang-jsonshim@${
 RUN go install -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
 RUN go install -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
 RUN go install -ldflags="-s -w" istio.io/tools/cmd/gen-release-notes@${ISTIO_TOOLS_SHA}
+# TODO:
+# RUN go install -ldflags="-s -w" istio.io/tools/cmd/org-gen@${ISTIO_TOOLS_SHA}
 RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/applyconfiguration-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
 RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
