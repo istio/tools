@@ -662,7 +662,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:xenial AS clang_context_amd64
+FROM ubuntu:eoan AS clang_context_amd64
 FROM ubuntu:bionic AS clang_context_arm64
 # hadolint ignore=DL3006
 FROM clang_context_${TARGETARCH} AS clang_context
