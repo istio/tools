@@ -114,7 +114,7 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   log "WARNING: using insecure Service Account key authentication"
 fi
 # Always try to authenticate to GCR and AR.
-gcloud auth configure-docker us-docker.pkg.dev -q || true
+gcloud auth configure-docker gcr.io,us-docker.pkg.dev -q || true
 
 set +x
 "$@"
