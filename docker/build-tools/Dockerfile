@@ -70,7 +70,7 @@ ENV PROTOC_GEN_VALIDATE_VERSION=1.0.1
 ENV PROTOC_VERSION=23.3
 ENV PROTOLOCK_VERSION=v0.16.0
 ENV SHELLCHECK_VERSION=v0.9.0
-ENV SU_EXEC_VERSION=0.2
+ENV SU_EXEC_VERSION=0.3.1
 ENV TRIVY_VERSION=0.43.0
 ENV YQ_VERSION=4.34.1
 
@@ -250,10 +250,11 @@ RUN wget -nv -O "${OUTDIR}/usr/bin/buf" "https://github.com/bufbuild/buf/release
     chmod 555 "${OUTDIR}/usr/bin/buf"
 
 # Install su-exec which is a tool that operates like sudo without the overhead
-ADD https://github.com/ncopa/su-exec/archive/v${SU_EXEC_VERSION}.tar.gz /tmp
+ADD https://github.com/NobodyXu/su-exec/archive/refs/tags/v${SU_EXEC_VERSION}.tar.gz /tmp
 RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
 WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
-RUN make
+# Setting LDFLAGS is needed here, upstream uses '--icf=all' which our linker  doesn't have
+RUN LDFLAGS="-fvisibility=hidden -Wl,-O2 -Wl,--discard-all -Wl,--strip-all -Wl,--as-needed -Wl,--gc-sections" make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
 
 ADD https://github.com/GoogleContainerTools/kpt/releases/download/${KPT_VERSION}/kpt_linux_${TARGETARCH} ${OUTDIR}/usr/bin/kpt
