@@ -16,6 +16,7 @@
 
 
 TEST_START="$(date -u +%s.%N)"
+GCP_REGISTRIES=${GCP_REGISTRIES:-"gcr.io,us-docker.pkg.dev"}
 
 function read_gcp_secrets() {
   # Prevent calling with -x set
@@ -114,7 +115,7 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   log "WARNING: using insecure Service Account key authentication"
 fi
 # Always try to authenticate to GCR and AR.
-gcloud auth configure-docker gcr.io,us-docker.pkg.dev -q || true
+gcloud auth configure-docker "${GCP_REGISTRIES}" -q || true
 
 set +x
 "$@"
