@@ -140,40 +140,37 @@ description: Resource {{ .Collection.NameLowercasePlural }} used by Istio.
 location: {{ .Collection.Link }}
 weight: 60
 ---
+
 <p>
 This page presents the various resource <a href="{{ .Collection.ConceptLink }}">{{ .Collection.NameLowercasePlural }}</a> that
 Istio supports to control its behavior.
 </p>
 
 <table class="annotations">
-	<thead>
-		<tr>
-			<th>{{ .Collection.Name }} Name</th>
-			<th>Feature Status</th>
-			<th>Resource Types</th>
-			<th>Description</th>
-		</tr>
-	</thead>
-	<tbody>
-		{{ range .Variables }}
-			{{ if not .Hidden }}
-				{{ if .Deprecated }}
-					<tr class="deprecated">
-				{{ else }}
-					<tr>
-				{{ end }}
-					<td><code>{{ .Name }}</code></td>
-				{{ if .Deprecated }}
-					<td>Deprecated</td>
-				{{ else }}
-					<td>{{ .FeatureStatus }}</td>
-				{{ end }}
-					<td>{{ .Resources }}</td>
-					<td>{{ processHTMLDescription .Description }}</td>
-				</tr>
-			{{ end }}
-		{{ end }}
-	</tbody>
+  <thead>
+    <tr>
+      <th>{{ .Collection.Name }} Name</th>
+      <th>Feature Status</th>
+      <th>Resource Types</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+  {{- range .Variables -}}
+  {{- if not .Hidden }}
+    <tr{{ if .Deprecated }} class="deprecated"{{ end }}>
+      <td><code>{{ .Name }}</code></td>
+    {{- if .Deprecated }}
+      <td>Deprecated</td>
+    {{- else }}
+      <td>{{ .FeatureStatus }}</td>
+    {{- end }}
+      <td>{{ .Resources }}</td>
+      <td>{{ processHTMLDescription .Description }}</td>
+    </tr>
+  {{- end -}}
+  {{- end -}}
+  </tbody>
 </table>
 `
 )
