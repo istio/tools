@@ -65,6 +65,8 @@ ENV KPT_VERSION=v1.0.0-beta.35
 ENV KUBECTL_VERSION=1.27.3
 ENV KUBECTX_VERSION=0.9.4
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
+# TODO: switch to v0.4.0 when its out; we depend on some bug fixes since v0.3.0
+ENV OTEL_CLI_VERSION=159cd1ec2e3f992e5f963dc70269b068c1038738
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
 ENV PROTOC_GEN_VALIDATE_VERSION=1.0.1
 ENV PROTOC_VERSION=23.4
@@ -148,6 +150,7 @@ RUN go install -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION
 RUN go install -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 RUN go install -ldflags="-s -w" golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
 RUN go install -ldflags="-s -w" github.com/google/go-containerregistry/cmd/crane@${CRANE_VERSION}
+RUN go install -ldflags="-s -w" github.com/equinix-labs/otel-cli@${OTEL_CLI_VERSION}
 # Install latest version of Istio-owned tools in this release
 RUN go install -ldflags="-s -w" \
   istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA} \
