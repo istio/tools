@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this file, they are all false positives due to tracing
 
 TEST_START="$(date -u +%s.%N)"
 GCP_REGISTRIES=${GCP_REGISTRIES:-"gcr.io,us-docker.pkg.dev"}
@@ -58,6 +59,18 @@ function log() {
   fi
 }
 
+function tracing::run() {
+  # Setup a default implementation that just logs May be overridden if the repo has tracing support.
+  log "Running ${1}"
+  "${@:2}"
+  log "Completed ${1}"
+}
+if [[ -f common/scripts/tracing.sh ]]; then
+  # shellcheck source=/dev/null
+  source "common/scripts/tracing.sh"
+  tracing::extract_prow_trace
+fi
+
 set -x
 
 log "Starting test..."
@@ -66,47 +79,52 @@ log "Starting test..."
 sysctl net.ipv6.conf.all.forwarding=1
 sysctl net.ipv6.conf.all.disable_ipv6=0
 log "Done enabling IPv6 in Docker config."
+function run_docker() {
+  # Set ENABLE_DOCKER to what they specify, or otherwise enable if /var/lib/docker is enabled (required for docker)
+  [[ -d "/var/lib/docker" ]] && HAS_DOCKER="true"
+  ENABLE_DOCKER="${ENABLE_DOCKER:-"${HAS_DOCKER}"}"
 
-# Set ENABLE_DOCKER to what they specify, or otherwise enable if /var/lib/docker is enabled (required for docker)
-[[ -d "/var/lib/docker" ]] && HAS_DOCKER="true"
-ENABLE_DOCKER="${ENABLE_DOCKER:-"${HAS_DOCKER}"}"
-
-if [[ "${ENABLE_DOCKER}" == "true" ]]; then
-  log "Enabling docker..."
-  # Enable debug logs for docker daemon, and set the MTU to the external NIC MTU
-  # Docker will always use 1500 as the MTU; in environments where the host has <1500 as the MTU
-  # this may cause connectivity issues.
-  mkdir -p /etc/docker
-  primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
-  hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
-  echo "{\"debug\":true, \"mtu\":${hostMTU:-1500}}" > /etc/docker/daemon.json
-
-  # Start docker daemon and wait for dockerd to start
-  service docker start
-
-  log "Waiting for dockerd to start..."
-  while :
-  do
-    log "Checking for running docker daemon."
-    if docker ps -q > /dev/null 2>&1; then
-      log "The docker daemon is running."
-      break
-    fi
-    sleep 1
-  done
-fi
-
-function cleanup() {
   if [[ "${ENABLE_DOCKER}" == "true" ]]; then
-    log "Starting cleanup..."
-    # Cleanup all docker artifacts
-    docker ps -q | xargs -r docker kill
-    docker system prune -af || true
-    log "Cleanup complete"
+    log "Enabling docker..."
+    # Enable debug logs for docker daemon, and set the MTU to the external NIC MTU
+    # Docker will always use 1500 as the MTU; in environments where the host has <1500 as the MTU
+    # this may cause connectivity issues.
+    mkdir -p /etc/docker
+    primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
+    hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
+    echo "{\"debug\":true, \"mtu\":${hostMTU:-1500}}" > /etc/docker/daemon.json
+
+    # Start docker daemon and wait for dockerd to start
+    service docker start
+
+    log "Waiting for dockerd to start..."
+    while :
+    do
+      log "Checking for running docker daemon."
+      if docker ps -q > /dev/null 2>&1; then
+        log "The docker daemon is running."
+        break
+      fi
+      sleep 1
+    done
   fi
+  function cleanup() {
+    if [[ "${ENABLE_DOCKER}" == "true" ]]; then
+      log "Starting cleanup..."
+      # Cleanup all docker artifacts
+      docker ps -q | xargs -r docker kill
+      docker system prune -af || true
+      log "Cleanup complete"
+    fi
+  }
+
+  trap cleanup EXIT
+
+  # Always try to authenticate to GCR and AR.
+  gcloud auth configure-docker "${GCP_REGISTRIES}" -q || true
 }
 
-trap cleanup EXIT
+tracing::run "docker" run_docker
 
 # Authenticate gcloud, allow failures. TODO: cleanup? We should be using workload identity everywhere
 if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
@@ -114,16 +132,14 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" || true
   log "WARNING: using insecure Service Account key authentication"
 fi
-# Always try to authenticate to GCR and AR.
-gcloud auth configure-docker "${GCP_REGISTRIES}" -q || true
 
 set +x
-"$@"
+tracing::run "test" "$@"
 EXIT_VALUE=$?
 set -x
 
 # We cleanup in the trap as well, but just in case try to clean up here as well
 # shellcheck disable=SC2046
-cleanup
+tracing::run "cleanup" cleanup
 
 exit "${EXIT_VALUE}"
