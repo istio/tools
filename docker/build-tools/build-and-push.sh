@@ -50,15 +50,11 @@ ARCH="${TARGET_ARCH:-amd64}"
 MANIFEST_ARCH="${MANIFEST_ARCH-amd64}"
 
 # CACHE_FROM_TAG, if present, defines an image tag which is used in the build --cache-from option.
-# Allow overriding for other tools like podman
-CACHE_FROM_TAG="${CACHE_FROM_TAG:-:master-latest-amd64}"
-
+CACHE_FROM_TAG=":${BRANCH}-latest-${ARCH}"
 # The podman build --cache-from option value must contain neither a tag nor digest.
-# Allow overriding of the CACHE_FROM_TAG by setting an empty string.
+# Overriding of the CACHE_FROM_TAG by setting an empty string when running podman build.
 if [[ "${CONTAINER_CLI}" == "podman" ]]; then
   CACHE_FROM_TAG=""
-else
-  CACHE_FROM_TAG=":${BRANCH}-latest-${ARCH}"
 fi
 
 # The docker image runs `go get istio.io/tools@${SHA}`
