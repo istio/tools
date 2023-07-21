@@ -63,7 +63,6 @@ function tracing::run() {
   # Setup a default implementation that just logs May be overridden if the repo has tracing support.
   log "Running ${1}"
   "${@:2}"
-  log "Completed ${1}"
 }
 if [[ -f common/scripts/tracing.sh ]]; then
   # shellcheck source=/dev/null
