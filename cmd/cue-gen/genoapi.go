@@ -75,8 +75,6 @@
 // - constraints extracted from Go code
 package main
 
-//go:generate go-bindata --nocompress --nometadata --pkg main -o assets.gen.go doc.cue
-
 import (
 	"bytes"
 	"encoding/json"
@@ -155,7 +153,7 @@ over to original Google files.
 
 Configuration File
 
-The configuration file has the followign format, expressed in CUE:
+The configuration file has the following format, expressed in CUE:
 
 %s
 `
@@ -166,10 +164,7 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 
 	if *help {
-		b, err := docCueBytes()
-		if err != nil {
-			log.Fatal(err)
-		}
+		b := cueDoc
 		if split := bytes.Split(b, []byte("\n\n")); len(split) > 2 {
 			b = bytes.Join(split[2:], []byte("\n\n"))
 		}

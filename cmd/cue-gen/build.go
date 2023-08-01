@@ -15,6 +15,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"log"
 	"os"
@@ -33,6 +34,9 @@ import (
 const (
 	enableCRDGenTag = "+cue-gen"
 )
+
+//go:embed doc.cue
+var cueDoc []byte
 
 // A mapping from CRD name to proto type name
 var crdToType map[string]string
@@ -114,11 +118,7 @@ type CrdConfig struct {
 func loadConfig(filename string) (c *Config, err error) {
 	r := &cue.Runtime{} //nolint:staticcheck
 
-	f, err := docCueBytes()
-	if err != nil {
-		return nil, err
-	}
-	inst, err := r.Compile("doc.cue", f) //nolint:staticcheck
+	inst, err := r.Compile("doc.cue", cueDoc) //nolint:staticcheck
 	if err != nil {
 		log.Fatal(err)
 	}
