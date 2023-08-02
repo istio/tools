@@ -77,7 +77,6 @@ package main
 
 import (
 	"bytes"
-	"cuelang.org/go/cue/cuecontext"
 	"flag"
 	"fmt"
 	"io"
@@ -91,6 +90,7 @@ import (
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/ast/astutil"
 	"cuelang.org/go/cue/build"
+	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/load"
@@ -111,7 +111,7 @@ var (
 	verbose = flag.Bool("verbose", false, "print debugging output")
 
 	// Unused, for backwards compat
-	crd = flag.Bool("crd", false, "generate CRD validation yaml based on the Istio protos and cue files")
+	_ = flag.Bool("crd", false, "generate CRD validation yaml based on the Istio protos and cue files")
 
 	snake = flag.String("snake", "", "comma-separated fields to add a snake case")
 
@@ -463,9 +463,6 @@ func (x *builder) genOpenAPI(name string, inst cue.Value) (cue.Value, error) {
 	ctx := cuecontext.New()
 	val := ctx.BuildFile(file).Value()
 	return val, nil
-	//res, err := yaml.Marshal(val)
-	//fatal(nil, string(res))
-	//return nil, err
 }
 
 // reference defines the references format based on the protobuf naming.

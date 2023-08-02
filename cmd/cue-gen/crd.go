@@ -15,15 +15,15 @@
 package main
 
 import (
-	"cuelang.org/go/cue"
 	"encoding/json"
 	"fmt"
 	"log"
 
+	"cuelang.org/go/cue"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	crdutil "sigs.k8s.io/controller-tools/pkg/crd"
 )
 
@@ -75,7 +75,7 @@ func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string
 			if statusSchema == (cue.Value{}) {
 				status = &apiextv1.JSONSchemaProps{
 					Type:                   "object",
-					XPreserveUnknownFields: pointer.BoolPtr(true),
+					XPreserveUnknownFields: ptr.To(true),
 				}
 			} else {
 				o, err := statusSchema.MarshalJSON()

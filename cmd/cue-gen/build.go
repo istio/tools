@@ -15,16 +15,16 @@
 package main
 
 import (
-	"cuelang.org/go/encoding/openapi"
 	_ "embed"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/cuecontext"
+	"cuelang.org/go/encoding/openapi"
 	"cuelang.org/go/encoding/yaml"
 	"github.com/emicklei/proto"
 	"github.com/kr/pretty"
@@ -62,17 +62,10 @@ type Config struct {
 	Crd *CrdGen
 }
 
-const (
-	perFile  = "perFile"
-	allFiles = "all"
-)
-
 // Grouping defines the source and settings for a single file.
 //
 // See doc.cue for more information on these fields.
 type Grouping struct {
-	dir string
-
 	OapiFilename string // empty indicates the default name
 
 	// Mode defines the set of files to include by default:
@@ -116,23 +109,29 @@ type CrdConfig struct {
 }
 
 func loadConfig(filename string) (c *Config, err error) {
-	r := &cue.Runtime{} //nolint:staticcheck
-
-	inst, err := r.Compile("doc.cue", cueDoc) //nolint:staticcheck
-	if err != nil {
-		log.Fatal(err)
+	r := cuecontext.New()
+	inst := r.CompileBytes(cueDoc)
+	if inst.Err() != nil {
+		log.Fatal(inst.Err())
 	}
 
-	var cfg *cue.Instance
-
+	var cfg cue.Value
 	switch filepath.Ext(filename) {
 	case ".cue", ".json":
-		cfg, err = r.Compile(filename, nil) //nolint:staticcheck
+		b, err := os.ReadFile(filename)
+		if err != nil {
+			return nil, err
+		}
+		cfg = r.CompileBytes(b)
 	case ".yaml", ".yml":
-		cfg, err = yaml.Decode(r, filename, nil)
+		f, err := yaml.Extract(filename, nil)
+		if err != nil {
+			return nil, err
+		}
+		cfg = r.BuildFile(f)
 	}
-	if err != nil {
-		return nil, err
+	if cfg.Err() != nil {
+		return nil, cfg.Err()
 	}
 
 	v := inst.Value().Unify(cfg.Value())
@@ -158,86 +157,6 @@ func loadConfig(filename string) (c *Config, err error) {
 	}
 
 	return c, nil
-}
-
-// fileFromDir computes the openapi json filename from the directory name.
-// If filename is not "", it is assumed to be the proto filename in perFile
-// mode.
-func fileFromDir(dir, filename string) string {
-	if filename != "" {
-		filename = filename[:len(filename)-len(".proto")]
-		return filename + ".gen.json"
-	}
-	comps := strings.Split(dir, "/")
-	if len(comps) == 0 {
-		return "istio.gen.json"
-	}
-
-	comps = append([]string{"istio"}, comps...)
-
-	return strings.Join(append(comps, "gen.json"), ".")
-}
-
-func (c *Config) completeBuildPlan() error {
-	root := c.cwd
-
-	buildPlan := c.Directories
-
-	// Walk over all .proto files in the root and add them to groupin entries
-	// that requested all files in the directory to be added.
-	err := filepath.Walk(root, func(path string, f os.FileInfo, _ error) (err error) {
-		if !strings.HasSuffix(path, ".proto") {
-			return nil
-		}
-
-		rel, _ := filepath.Rel(root, path)
-		dir, file := filepath.Split(rel)
-		dir = filepath.Clean(dir)
-		switch {
-		case len(buildPlan[dir]) == 0:
-			return nil
-		case buildPlan[dir][0].Mode == perFile:
-			if len(buildPlan[dir][0].ProtoFiles) > 0 {
-				buildPlan[dir] = append(buildPlan[dir], Grouping{
-					ProtoFiles: []string{file},
-					Mode:       perFile,
-				})
-				break
-			}
-			fallthrough
-		case buildPlan[dir][0].Mode == allFiles:
-			buildPlan[dir][0].ProtoFiles = append(buildPlan[dir][0].ProtoFiles, file)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// Complete version, titles, and file names
-	for dir, all := range buildPlan {
-		for i := range all {
-			(&all[i]).update(root, dir)
-		}
-	}
-
-	if *verbose {
-		pretty.Print(buildPlan)
-		fmt.Println()
-	}
-
-	// Validate
-	for dir, all := range buildPlan {
-		for _, g := range all {
-			if g.Title == "" {
-				g.Title = "NO TITLE"
-				fmt.Printf("No $description set for package %q in any .proto file\n", dir)
-			}
-		}
-	}
-
-	return nil
 }
 
 func (c *Config) getCrdConfig(filename string) {
@@ -267,50 +186,6 @@ func (c *Config) getCrdConfig(filename string) {
 			}
 		}
 	}
-}
-
-func (g *Grouping) update(root, dir string) {
-	g.dir = dir
-
-	if g.OapiFilename == "" {
-		filename := ""
-		if g.Mode == perFile && len(g.ProtoFiles) > 0 {
-			filename = g.ProtoFiles[0]
-		}
-		g.OapiFilename = fileFromDir(dir, filename)
-	}
-
-	g.Version = filepath.Base(dir)
-
-	if g.Title == "" {
-		for _, file := range g.ProtoFiles {
-			if title, ok := findTitle(filepath.Join(root, dir, file)); ok {
-				if g.Title != "" && g.Title != title {
-					fmt.Printf("found two incompatible titles for %s:\n\t%q, and\n\t%q\n", g.OapiFilename, g.Title, title)
-				}
-				g.Title = title
-			}
-		}
-	}
-}
-
-var descRe = regexp.MustCompile(`\$description: (.*)`)
-
-func findTitle(filename string) (title string, ok bool) {
-	for _, d := range protoElems(filename) {
-		switch x := d.(type) {
-		case *proto.Comment:
-			for _, str := range x.Lines {
-				m := descRe.FindStringSubmatch(str)
-				if m != nil {
-					return m[1], true
-				}
-			}
-		case *proto.Package:
-			return "", false
-		}
-	}
-	return "", false
 }
 
 // find the prefix of the type in FQDN, e.g. istio.networking

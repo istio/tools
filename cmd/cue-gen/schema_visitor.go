@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	crdutil "sigs.k8s.io/controller-tools/pkg/crd"
 )
 
@@ -42,7 +42,7 @@ func (v *preserveUnknownFieldVisitor) Visit(schema *apiextv1.JSONSchemaProps) cr
 	}
 	if len(p) == 1 {
 		if s, ok := schema.Properties[p[0]]; ok {
-			s.XPreserveUnknownFields = pointer.Bool(true)
+			s.XPreserveUnknownFields = ptr.To(true)
 			schema.Properties[p[0]] = s
 		}
 		return nil
