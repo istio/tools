@@ -152,7 +152,7 @@ func loadConfig(filename string) (c *Config, err error) {
 		c.Crd.CrdConfigs = map[string]*CrdConfig{}
 	}
 
-	if *verbose && *crd {
+	if *verbose {
 		pretty.Print(c)
 		fmt.Println()
 	}
