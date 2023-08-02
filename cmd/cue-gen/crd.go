@@ -15,11 +15,11 @@
 package main
 
 import (
+	"cuelang.org/go/cue"
 	"encoding/json"
 	"fmt"
 	"log"
 
-	"cuelang.org/go/encoding/openapi"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
@@ -43,7 +43,7 @@ status:
 // Build CRDs based on the configuration and schema.
 //
 //nolint:staticcheck,interfacer,lll
-func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string]*openapi.OrderedMap, statusSchema *openapi.OrderedMap, preserveUnknownFields map[string][]string) {
+func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string]cue.Value, statusSchema cue.Value, preserveUnknownFields map[string][]string) {
 	for i, version := range c.Spec.Versions {
 
 		b, err := versionSchemas[version.Name].MarshalJSON()
@@ -74,7 +74,7 @@ func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string
 		// only add status schema validation when status subresource is enabled in the CRD.
 		if version.Subresources != nil {
 			status := &apiextv1.JSONSchemaProps{}
-			if statusSchema == nil {
+			if statusSchema == (cue.Value{}) {
 				status = &apiextv1.JSONSchemaProps{
 					Type:                   "object",
 					XPreserveUnknownFields: pointer.BoolPtr(true),

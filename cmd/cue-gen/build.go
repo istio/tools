@@ -15,6 +15,7 @@
 package main
 
 import (
+	"cuelang.org/go/encoding/openapi"
 	_ "embed"
 	"fmt"
 	"log"
@@ -47,6 +48,9 @@ type Config struct {
 	Module string
 
 	cwd string // the current working directory
+
+	// The generator configuration.
+	Openapi *openapi.Config
 
 	// Directories is a list of files to generate per directory.
 	Directories map[string][]Grouping

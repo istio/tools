@@ -81,7 +81,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"golang.org/x/exp/maps"
 	"io"
 	"log"
 	"os"
@@ -353,18 +352,21 @@ func (x *builder) genCRD() {
 		fatal(err, "Instance failed")
 	}
 
-	schemas := map[string]*openapi.OrderedMap{} //nolint:staticcheck
+	schemas := map[string]cue.Value{}
 	for _, inst := range all {
 		items, err := x.genOpenAPI(inst.BuildInstance().ImportPath, inst)
 		if err != nil {
 			fatal(err, "Error generating OpenAPI schema")
 		}
-		_ = items
-		log.Println("got schema %T", items)
-
-		//for _, kv := range items.Pairs() {
-		//	schemas[kv.Key] = kv.Value.(*openapi.OrderedMap) //nolint:staticcheck
-		//}
+		schema := items.LookupPath(cue.ParsePath("components.schemas"))
+		i, err := schema.Fields()
+		if err != nil {
+			fatal(err, "cannot iterate")
+		}
+		for i.Next() {
+			key := i.Label()
+			schemas[key] = i.Value()
+		}
 	}
 
 	statusSchema, ok := schemas[*status]
@@ -377,18 +379,15 @@ func (x *builder) genCRD() {
 		group := c[:strings.LastIndex(c, ".")]
 		tp := crdToType[c]
 
-		versionSchemas := map[string]*openapi.OrderedMap{} //nolint:staticcheck
+		versionSchemas := map[string]cue.Value{} //nolint:staticcheck
 
 		for _, version := range v.CustomResourceDefinition.Spec.Versions {
 			var schemaName string
-			log.Println("howardjohn", schemaName)
-			log.Println(maps.Keys(v.VersionToSchema))
 			if n, ok := v.VersionToSchema[version.Name]; ok {
 				schemaName = n
 			} else {
 				schemaName = fmt.Sprintf("%v.%v.%v", group, version.Name, tp)
 			}
-			log.Println("howardjohn", schemaName)
 			sc, ok := schemas[schemaName]
 			if !ok {
 				log.Fatalf("cannot find schema for %v", schemaName)
@@ -426,45 +425,44 @@ func (x *builder) genOpenAPI(name string, inst cue.Value) (cue.Value, error) {
 		fatal(err, "Validation failed.")
 	}
 
-	cfg := &openapi.Config{
-		NameFunc: func(val cue.Value, path cue.Path) string {
-			sels := path.Selectors()
-			labels := make([]string, len(sels))
-			for i, sel := range sels {
-				labels[i] = selectorLabel(sel)
+	cfg := x.Openapi
+	cfg.NameFunc = func(val cue.Value, path cue.Path) string {
+		sels := path.Selectors()
+		labels := make([]string, len(sels))
+		for i, sel := range sels {
+			labels[i] = selectorLabel(sel)
+		}
+		return x.reference(val.BuildInstance().ImportPath, labels)
+	}
+	cfg.DescriptionFunc = func(v cue.Value) string {
+		n := strings.Split(inst.BuildInstance().ImportPath, "/")
+		l, _ := v.Label()
+		l = l[1:] // Remove leading '#' from definition
+		schema := "istio." + n[len(n)-2] + "." + n[len(n)-1] + "." + l
+		if res, ok := frontMatterMap[schema]; ok {
+			return res[0] + " See more details at: " + res[1]
+		}
+		// get the first sentence out of the paragraphs.
+		for _, doc := range v.Doc() {
+			if doc.Text() == "" {
+				continue
 			}
-			return x.reference(val.BuildInstance().ImportPath, []string{path.String()})
-		},
-		DescriptionFunc: func(v cue.Value) string {
-			n := strings.Split(inst.BuildInstance().ImportPath, "/")
-			l, _ := v.Label()
-			l = l[1:] // Remove leading '#' from definition
-			schema := "istio." + n[len(n)-2] + "." + n[len(n)-1] + "." + l
-			if res, ok := frontMatterMap[schema]; ok {
-				return res[0] + " See more details at: " + res[1]
+			if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
+				return ""
 			}
-			// get the first sentence out of the paragraphs.
-			for _, doc := range v.Doc() {
-				if doc.Text() == "" {
-					continue
-				}
-				if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
-					return ""
-				}
-				if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
-					words := strings.Split(paras[0], " ")
-					for i, w := range words {
-						if strings.HasSuffix(w, ".") {
-							return strings.Join(words[:i+1], " ")
-						}
+			if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
+				words := strings.Split(paras[0], " ")
+				for i, w := range words {
+					if strings.HasSuffix(w, ".") {
+						return strings.Join(words[:i+1], " ")
 					}
 				}
 			}
-			return ""
-		},
-		// CRD schema does not allow $ref fields.
-		ExpandReferences: true,
+		}
+		return ""
 	}
+	// CRD schema does not allow $ref fields.
+	cfg.ExpandReferences = true
 	file, err := openapi.Generate(inst, cfg)
 	if err != nil {
 		return cue.Value{}, err
