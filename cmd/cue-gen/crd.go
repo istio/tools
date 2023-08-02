@@ -41,8 +41,6 @@ status:
 )
 
 // Build CRDs based on the configuration and schema.
-//
-//nolint:staticcheck,interfacer,lll
 func completeCRD(c *apiextv1.CustomResourceDefinition, versionSchemas map[string]cue.Value, statusSchema cue.Value, preserveUnknownFields map[string][]string) {
 	for i, version := range c.Spec.Versions {
 

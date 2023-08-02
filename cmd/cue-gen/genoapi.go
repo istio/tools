@@ -78,7 +78,6 @@ package main
 import (
 	"bytes"
 	"cuelang.org/go/cue/cuecontext"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -97,14 +96,9 @@ import (
 	"cuelang.org/go/cue/load"
 	"cuelang.org/go/encoding/openapi"
 	"cuelang.org/go/encoding/protobuf"
-	"github.com/getkin/kin-openapi/openapi3"
 	"golang.org/x/exp/slices"
 	"sigs.k8s.io/yaml"
 )
-
-// TODO: CUE deprecates OrderedMap. We should start using ast.File and other APIs in the
-// ast package to manipulate the schemas. This requires some more support from ast package
-// thus leaving this as a TODO. After this is done, staticcheck nolint comment can be removed.
 
 var (
 	configFile = flag.String("f", "", "configuration file; by default the directory  in which this file is located is assumed to be the root")
@@ -379,7 +373,7 @@ func (x *builder) genCRD() {
 		group := c[:strings.LastIndex(c, ".")]
 		tp := crdToType[c]
 
-		versionSchemas := map[string]cue.Value{} //nolint:staticcheck
+		versionSchemas := map[string]cue.Value{}
 
 		for _, version := range v.CustomResourceDefinition.Spec.Versions {
 			var schemaName string
@@ -417,7 +411,6 @@ func selectorLabel(sel cue.Selector) string {
 	panic(fmt.Sprintf("unreachable %v", sel.Type()))
 }
 
-//nolint:staticcheck
 func (x *builder) genOpenAPI(name string, inst cue.Value) (cue.Value, error) {
 	fmt.Printf("Building OpenAPIs for %s...\n", name)
 
@@ -569,40 +562,6 @@ func protobufName(f *ast.Field) string {
 		}
 	}
 	return ""
-}
-
-//nolint:staticcheck
-func (x *builder) writeOpenAPI(schemas cue.Value, g *Grouping) {
-	//oapi := &openapi.OrderedMap{} //nolint:staticcheck
-	//oapi.Set("openapi", "3.0.0")  //nolint:staticcheck
-	//
-	//info := &openapi.OrderedMap{}  //nolint:staticcheck
-	//info.Set("title", g.Title)     //nolint:staticcheck
-	//info.Set("version", g.Version) //nolint:staticcheck
-	//oapi.Set("info", info)         //nolint:staticcheck
-	//
-	//comps := &openapi.OrderedMap{} //nolint:staticcheck
-	//comps.Set("schemas", schemas)  //nolint:staticcheck
-	//oapi.Set("components", comps)  //nolint:staticcheck
-
-	b, err := json.MarshalIndent(schemas, "", "  ")
-	if err != nil {
-		log.Fatalf("Failed to JSON marshal generated OpenAPI: %v", err)
-	}
-
-	// Note: this just tests basic OpenAPI 3 validity. It cannot, of course,
-	// know if the the proto files were correctly mapped.
-	_, err = openapi3.NewLoader().LoadFromData(b)
-	if err != nil {
-		log.Fatalf("Invalid OpenAPI generated: %v", err)
-	}
-
-	filename := filepath.Join(x.cwd, g.dir, g.OapiFilename)
-	fmt.Printf("Writing OpenAPI schemas into %v...\n", filename)
-	err = os.WriteFile(filename, b, 0o644)
-	if err != nil {
-		log.Fatalf("Error writing OpenAPI file %s in dir %s: %v", g.OapiFilename, g.dir, err)
-	}
 }
 
 func (x *builder) writeCRDFiles() {
