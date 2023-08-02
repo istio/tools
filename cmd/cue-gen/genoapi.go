@@ -77,9 +77,11 @@ package main
 
 import (
 	"bytes"
+	"cuelang.org/go/cue/cuecontext"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"golang.org/x/exp/maps"
 	"io"
 	"log"
 	"os"
@@ -345,22 +347,24 @@ func (x *builder) genCRD() {
 	frontMatterMap = make(map[string][]string)
 	extractFrontMatter(instances, frontMatterMap)
 
-	all := cue.Build(instances) //nolint:staticcheck
-	for _, inst := range all {
-		if inst.Err != nil {
-			fatal(inst.Err, "Instance failed")
-		}
+	c := cuecontext.New()
+	all, err := c.BuildInstances(instances)
+	if err != nil {
+		fatal(err, "Instance failed")
 	}
 
 	schemas := map[string]*openapi.OrderedMap{} //nolint:staticcheck
 	for _, inst := range all {
-		items, err := x.genOpenAPI(inst.ImportPath, inst)
+		items, err := x.genOpenAPI(inst.BuildInstance().ImportPath, inst)
 		if err != nil {
 			fatal(err, "Error generating OpenAPI schema")
 		}
-		for _, kv := range items.Pairs() {
-			schemas[kv.Key] = kv.Value.(*openapi.OrderedMap) //nolint:staticcheck
-		}
+		_ = items
+		log.Println("got schema %T", items)
+
+		//for _, kv := range items.Pairs() {
+		//	schemas[kv.Key] = kv.Value.(*openapi.OrderedMap) //nolint:staticcheck
+		//}
 	}
 
 	statusSchema, ok := schemas[*status]
@@ -377,11 +381,14 @@ func (x *builder) genCRD() {
 
 		for _, version := range v.CustomResourceDefinition.Spec.Versions {
 			var schemaName string
+			log.Println("howardjohn", schemaName)
+			log.Println(maps.Keys(v.VersionToSchema))
 			if n, ok := v.VersionToSchema[version.Name]; ok {
 				schemaName = n
 			} else {
 				schemaName = fmt.Sprintf("%v.%v.%v", group, version.Name, tp)
 			}
+			log.Println("howardjohn", schemaName)
 			sc, ok := schemas[schemaName]
 			if !ok {
 				log.Fatalf("cannot find schema for %v", schemaName)
@@ -395,51 +402,79 @@ func (x *builder) genCRD() {
 	x.writeCRDFiles()
 }
 
+func selectorLabel(sel cue.Selector) string {
+	if sel.Type().ConstraintType() == cue.PatternConstraint {
+		return "*"
+	}
+	switch sel.LabelType() {
+	case cue.StringLabel:
+		return sel.Unquoted()
+	case cue.DefinitionLabel:
+		return sel.String()[1:]
+	}
+	// We shouldn't get anything other than non-hidden
+	// fields and definitions because we've not asked the
+	// Fields iterator for those or created them explicitly.
+	panic(fmt.Sprintf("unreachable %v", sel.Type()))
+}
+
 //nolint:staticcheck
-func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedMap, error) {
+func (x *builder) genOpenAPI(name string, inst cue.Value) (cue.Value, error) {
 	fmt.Printf("Building OpenAPIs for %s...\n", name)
 
 	if err := inst.Value().Validate(); err != nil {
 		fatal(err, "Validation failed.")
 	}
 
-	gen := *x.Openapi
-	gen.ReferenceFunc = func(p *cue.Instance, path []string) string {
-		return x.reference(p.ImportPath, path)
-	}
-
-	gen.DescriptionFunc = func(v cue.Value) string {
-		n := strings.Split(inst.ImportPath, "/")
-		l, _ := v.Label()
-		l = l[1:] // Remove leading '#' from definition
-		schema := "istio." + n[len(n)-2] + "." + n[len(n)-1] + "." + l
-		if res, ok := frontMatterMap[schema]; ok {
-			return res[0] + " See more details at: " + res[1]
-		}
-		// get the first sentence out of the paragraphs.
-		for _, doc := range v.Doc() {
-			if doc.Text() == "" {
-				continue
+	cfg := &openapi.Config{
+		NameFunc: func(val cue.Value, path cue.Path) string {
+			sels := path.Selectors()
+			labels := make([]string, len(sels))
+			for i, sel := range sels {
+				labels[i] = selectorLabel(sel)
 			}
-			if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
-				return ""
+			return x.reference(val.BuildInstance().ImportPath, []string{path.String()})
+		},
+		DescriptionFunc: func(v cue.Value) string {
+			n := strings.Split(inst.BuildInstance().ImportPath, "/")
+			l, _ := v.Label()
+			l = l[1:] // Remove leading '#' from definition
+			schema := "istio." + n[len(n)-2] + "." + n[len(n)-1] + "." + l
+			if res, ok := frontMatterMap[schema]; ok {
+				return res[0] + " See more details at: " + res[1]
 			}
-			if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
-				words := strings.Split(paras[0], " ")
-				for i, w := range words {
-					if strings.HasSuffix(w, ".") {
-						return strings.Join(words[:i+1], " ")
+			// get the first sentence out of the paragraphs.
+			for _, doc := range v.Doc() {
+				if doc.Text() == "" {
+					continue
+				}
+				if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
+					return ""
+				}
+				if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
+					words := strings.Split(paras[0], " ")
+					for i, w := range words {
+						if strings.HasSuffix(w, ".") {
+							return strings.Join(words[:i+1], " ")
+						}
 					}
 				}
 			}
-		}
-		return ""
+			return ""
+		},
+		// CRD schema does not allow $ref fields.
+		ExpandReferences: true,
 	}
-
-	// CRD schema does not allow $ref fields.
-	gen.ExpandReferences = true
-
-	return gen.Schemas(inst)
+	file, err := openapi.Generate(inst, cfg)
+	if err != nil {
+		return cue.Value{}, err
+	}
+	ctx := cuecontext.New()
+	val := ctx.BuildFile(file).Value()
+	return val, nil
+	//res, err := yaml.Marshal(val)
+	//fatal(nil, string(res))
+	//return nil, err
 }
 
 // reference defines the references format based on the protobuf naming.
@@ -539,20 +574,20 @@ func protobufName(f *ast.Field) string {
 }
 
 //nolint:staticcheck
-func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
-	oapi := &openapi.OrderedMap{} //nolint:staticcheck
-	oapi.Set("openapi", "3.0.0")  //nolint:staticcheck
+func (x *builder) writeOpenAPI(schemas cue.Value, g *Grouping) {
+	//oapi := &openapi.OrderedMap{} //nolint:staticcheck
+	//oapi.Set("openapi", "3.0.0")  //nolint:staticcheck
+	//
+	//info := &openapi.OrderedMap{}  //nolint:staticcheck
+	//info.Set("title", g.Title)     //nolint:staticcheck
+	//info.Set("version", g.Version) //nolint:staticcheck
+	//oapi.Set("info", info)         //nolint:staticcheck
+	//
+	//comps := &openapi.OrderedMap{} //nolint:staticcheck
+	//comps.Set("schemas", schemas)  //nolint:staticcheck
+	//oapi.Set("components", comps)  //nolint:staticcheck
 
-	info := &openapi.OrderedMap{}  //nolint:staticcheck
-	info.Set("title", g.Title)     //nolint:staticcheck
-	info.Set("version", g.Version) //nolint:staticcheck
-	oapi.Set("info", info)         //nolint:staticcheck
-
-	comps := &openapi.OrderedMap{} //nolint:staticcheck
-	comps.Set("schemas", schemas)  //nolint:staticcheck
-	oapi.Set("components", comps)  //nolint:staticcheck
-
-	b, err := json.Marshal(oapi)
+	b, err := json.MarshalIndent(schemas, "", "  ")
 	if err != nil {
 		log.Fatalf("Failed to JSON marshal generated OpenAPI: %v", err)
 	}
@@ -564,12 +599,9 @@ func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
 		log.Fatalf("Invalid OpenAPI generated: %v", err)
 	}
 
-	var buf bytes.Buffer
-	_ = json.Indent(&buf, b, "", "  ")
-
 	filename := filepath.Join(x.cwd, g.dir, g.OapiFilename)
 	fmt.Printf("Writing OpenAPI schemas into %v...\n", filename)
-	err = os.WriteFile(filename, buf.Bytes(), 0o644)
+	err = os.WriteFile(filename, b, 0o644)
 	if err != nil {
 		log.Fatalf("Error writing OpenAPI file %s in dir %s: %v", g.OapiFilename, g.dir, err)
 	}

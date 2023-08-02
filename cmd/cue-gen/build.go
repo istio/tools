@@ -24,7 +24,6 @@ import (
 	"strings"
 
 	"cuelang.org/go/cue"
-	"cuelang.org/go/encoding/openapi"
 	"cuelang.org/go/encoding/yaml"
 	"github.com/emicklei/proto"
 	"github.com/kr/pretty"
@@ -48,9 +47,6 @@ type Config struct {
 	Module string
 
 	cwd string // the current working directory
-
-	// The generator configuration.
-	Openapi *openapi.Generator
 
 	// Directories is a list of files to generate per directory.
 	Directories map[string][]Grouping
