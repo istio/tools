@@ -36,7 +36,7 @@ HUB=${HUB:-gcr.io/istio-testing}
 # Suffix is derive from the Git SHA we are building for consistency.
 # If there is none define, we fallback to date. Note this doesn't work with MANIFEST_ARCH
 SUFFIX="${PULL_BASE_SHA:-$(date +%Y-%m-%dT%H-%M-%S)}"
-BRANCH=master
+BRANCH=release-1.19
 VERSION="${BRANCH}-${SUFFIX}"
 SHA="${BRANCH}"
 # Arch defines the architecture to tag this image as.
