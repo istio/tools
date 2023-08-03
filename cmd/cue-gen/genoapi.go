@@ -75,11 +75,8 @@
 // - constraints extracted from Go code
 package main
 
-//go:generate go-bindata --nocompress --nometadata --pkg main -o assets.gen.go doc.cue
-
 import (
 	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -87,41 +84,32 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/ast/astutil"
 	"cuelang.org/go/cue/build"
+	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
-	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/load"
 	"cuelang.org/go/encoding/openapi"
 	"cuelang.org/go/encoding/protobuf"
-	"github.com/emicklei/proto"
-	"github.com/getkin/kin-openapi/openapi3"
+	"golang.org/x/exp/slices"
 	"sigs.k8s.io/yaml"
 )
-
-// TODO: CUE deprecates OrderedMap. We should start using ast.File and other APIs in the
-// ast package to manipulate the schemas. This requires some more support from ast package
-// thus leaving this as a TODO. After this is done, staticcheck nolint comment can be removed.
 
 var (
 	configFile = flag.String("f", "", "configuration file; by default the directory  in which this file is located is assumed to be the root")
 	help       = flag.Bool("help", false, "show documentation for this tool")
 
-	inplace = flag.Bool("inplace", false, "generate configurations in place")
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
 	include = flag.String("include", "", "comma-separated prefixes for files and folders to include when searching for .proto files to process")
 	exclude = flag.String("exclude", "", "comma-separated prefixes for files and folders to exclude when searching for .proto files to process")
 	verbose = flag.Bool("verbose", false, "print debugging output")
 
-	// manually configuring builds
-	all = flag.Bool("all", false, "combine all the matched outputs in a single file; the 'all' section must be specified in the configuration")
-
-	crd = flag.Bool("crd", false, "generate CRD validation yaml based on the Istio protos and cue files")
+	// Unused, for backwards compat
+	_ = flag.Bool("crd", false, "generate CRD validation yaml based on the Istio protos and cue files")
 
 	snake = flag.String("snake", "", "comma-separated fields to add a snake case")
 
@@ -155,7 +143,7 @@ over to original Google files.
 
 Configuration File
 
-The configuration file has the followign format, expressed in CUE:
+The configuration file has the following format, expressed in CUE:
 
 %s
 `
@@ -166,10 +154,7 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 
 	if *help {
-		b, err := docCueBytes()
-		if err != nil {
-			log.Fatal(err)
-		}
+		b := cueDoc
 		if split := bytes.Split(b, []byte("\n\n")); len(split) > 2 {
 			b = bytes.Join(split[2:], []byte("\n\n"))
 		}
@@ -250,9 +235,7 @@ func main() {
 			}
 		}
 		// Complete the CrdConfig using the CRD annotations.
-		if *crd {
-			c.getCrdConfig(path)
-		}
+		c.getCrdConfig(path)
 		return b.AddFile(path, nil)
 	})
 
@@ -273,22 +256,10 @@ func main() {
 		// TODO: remove fix snake case here
 		// temporary solution to accommodate for fields that can be
 		// used in snake cases.
-		if *crd && len(snakeFields) > 0 {
+		if len(snakeFields) > 0 {
 			fixSnakes(f, snakeFields)
 		}
 		overlay[filename] = load.FromFile(f)
-
-		if *inplace {
-			b, err := format.Node(f)
-			if err != nil {
-				fatal(err, "Error formatting file: ")
-			}
-			_ = os.MkdirAll(filepath.Dir(filename), 0o755)
-			if err := os.WriteFile(filename, b, 0o644); err != nil {
-				log.Fatalf("Error writing file: %v", err)
-			}
-		}
-
 	}
 
 	// Generate the OpenAPI
@@ -307,107 +278,22 @@ func main() {
 	}
 
 	// Build the OpenAPI files.
-	if *all {
-		if c.All == nil {
-			log.Fatalf("Must specify the all section in the configuration")
-		}
-		builder.genAll(c.All)
-	} else if *crd {
-		if c.Crd == nil {
-			log.Fatalf("Must specify the crd section in the configuration")
-		}
-		if c.Crd.Filename == "" {
-			c.Crd.Filename = "customresourcedefinitions"
-		}
-		if c.Crd.Dir == "" {
-			c.Crd.Dir = "kubernetes"
-		}
-		builder.genCRD()
-	} else {
-		err := c.completeBuildPlan()
-		if err != nil {
-			log.Fatalf("Error completing build plan: %v", err)
-		}
-		dirList := make([]string, len(c.Directories))
-		for dir := range c.Directories {
-			dirList = append(dirList, dir)
-		}
-		sort.Strings(dirList)
-		for _, dir := range dirList {
-			groupings := c.Directories[dir]
-			for _, g := range groupings {
-				builder.gen(dir, &g)
-			}
-		}
+	if c.Crd == nil {
+		log.Fatalf("Must specify the crd section in the configuration")
 	}
+	if c.Crd.Filename == "" {
+		c.Crd.Filename = "customresourcedefinitions"
+	}
+	if c.Crd.Dir == "" {
+		c.Crd.Dir = "kubernetes"
+	}
+	builder.genCRD()
 }
 
 type builder struct {
 	*Config
 	protoNames map[string]string
 	overlay    map[string]load.Source
-}
-
-func (x *builder) gen(dir string, g *Grouping) {
-	cfg := &load.Config{
-		Dir:     x.cwd,
-		Module:  x.Module,
-		Overlay: x.overlay,
-	}
-
-	instances := load.Instances([]string{"./" + dir}, cfg)
-	inst := cue.Build(instances)[0] //nolint:staticcheck
-	if inst.Err != nil {
-		fatal(inst.Err, "Instance failed")
-	}
-
-	schemas, err := x.genOpenAPI(g.OapiFilename, inst)
-	if err != nil {
-		fatal(err, "Error generating OpenAPI file")
-	}
-
-	if g.Mode != allFiles {
-		x.filterOpenAPI(schemas, g)
-	}
-
-	x.writeOpenAPI(schemas, g)
-}
-
-func (x *builder) genAll(g *Grouping) {
-	cfg := &load.Config{
-		Dir:     x.cwd,
-		Module:  x.Module,
-		Overlay: x.overlay,
-	}
-
-	instances := load.Instances([]string{"./..."}, cfg)
-	all := cue.Build(instances) //nolint:staticcheck
-	for _, inst := range all {
-		if inst.Err != nil {
-			fatal(inst.Err, "Instance failed")
-		}
-	}
-
-	found := map[string]bool{}
-
-	schemas := &openapi.OrderedMap{} //nolint:staticcheck
-
-	for _, inst := range all {
-		items, err := x.genOpenAPI(inst.ImportPath, inst)
-		if err != nil {
-			fatal(err, "Error generating OpenAPI file")
-		}
-		for _, kv := range items.Pairs() {
-			if found[kv.Key] {
-				continue
-			}
-			found[kv.Key] = true
-
-			schemas.Set(kv.Key, kv.Value) //nolint:staticcheck
-		}
-	}
-
-	x.writeOpenAPI(schemas, g)
 }
 
 func (x *builder) genCRD() {
@@ -440,21 +326,26 @@ func (x *builder) genCRD() {
 	frontMatterMap = make(map[string][]string)
 	extractFrontMatter(instances, frontMatterMap)
 
-	all := cue.Build(instances) //nolint:staticcheck
-	for _, inst := range all {
-		if inst.Err != nil {
-			fatal(inst.Err, "Instance failed")
-		}
+	c := cuecontext.New()
+	all, err := c.BuildInstances(instances)
+	if err != nil {
+		fatal(err, "Instance failed")
 	}
 
-	schemas := map[string]*openapi.OrderedMap{} //nolint:staticcheck
+	schemas := map[string]cue.Value{}
 	for _, inst := range all {
-		items, err := x.genOpenAPI(inst.ImportPath, inst)
+		items, err := x.genOpenAPI(inst.BuildInstance().ImportPath, inst)
 		if err != nil {
 			fatal(err, "Error generating OpenAPI schema")
 		}
-		for _, kv := range items.Pairs() {
-			schemas[kv.Key] = kv.Value.(*openapi.OrderedMap) //nolint:staticcheck
+		schema := items.LookupPath(cue.ParsePath("components.schemas"))
+		i, err := schema.Fields()
+		if err != nil {
+			fatal(err, "cannot iterate")
+		}
+		for i.Next() {
+			key := i.Label()
+			schemas[key] = i.Value()
 		}
 	}
 
@@ -468,7 +359,7 @@ func (x *builder) genCRD() {
 		group := c[:strings.LastIndex(c, ".")]
 		tp := crdToType[c]
 
-		versionSchemas := map[string]*openapi.OrderedMap{} //nolint:staticcheck
+		versionSchemas := map[string]cue.Value{}
 
 		for _, version := range v.CustomResourceDefinition.Spec.Versions {
 			var schemaName string
@@ -490,74 +381,74 @@ func (x *builder) genCRD() {
 	x.writeCRDFiles()
 }
 
-//nolint:staticcheck
-func (x *builder) genOpenAPI(name string, inst *cue.Instance) (*openapi.OrderedMap, error) {
+func selectorLabel(sel cue.Selector) string {
+	if sel.Type().ConstraintType() == cue.PatternConstraint {
+		return "*"
+	}
+	switch sel.LabelType() {
+	case cue.StringLabel:
+		return sel.Unquoted()
+	case cue.DefinitionLabel:
+		return sel.String()[1:]
+	}
+	// We shouldn't get anything other than non-hidden
+	// fields and definitions because we've not asked the
+	// Fields iterator for those or created them explicitly.
+	panic(fmt.Sprintf("unreachable %v", sel.Type()))
+}
+
+func (x *builder) genOpenAPI(name string, inst cue.Value) (cue.Value, error) {
 	fmt.Printf("Building OpenAPIs for %s...\n", name)
 
 	if err := inst.Value().Validate(); err != nil {
 		fatal(err, "Validation failed.")
 	}
 
-	gen := *x.Openapi
-	gen.ReferenceFunc = func(p *cue.Instance, path []string) string {
-		return x.reference(p.ImportPath, path)
-	}
-
-	gen.DescriptionFunc = func(v cue.Value) string {
-		if *crd {
-			n := strings.Split(inst.ImportPath, "/")
-			l, _ := v.Label()
-			l = l[1:] // Remove leading '#' from definition
-			schema := "istio." + n[len(n)-2] + "." + n[len(n)-1] + "." + l
-			if res, ok := frontMatterMap[schema]; ok {
-				return res[0] + " See more details at: " + res[1]
-			}
-			// get the first sentence out of the paragraphs.
-			for _, doc := range v.Doc() {
-				if doc.Text() == "" {
-					continue
-				}
-				if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
-					return ""
-				}
-				if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
-					words := strings.Split(paras[0], " ")
-					for i, w := range words {
-						if strings.HasSuffix(w, ".") {
-							return strings.Join(words[:i+1], " ")
-						}
-					}
-				}
-			}
-			return ""
+	cfg := x.Openapi
+	cfg.NameFunc = func(val cue.Value, path cue.Path) string {
+		sels := path.Selectors()
+		labels := make([]string, len(sels))
+		for i, sel := range sels {
+			labels[i] = selectorLabel(sel)
 		}
+		return x.reference(val.BuildInstance().ImportPath, labels)
+	}
+	cfg.DescriptionFunc = func(v cue.Value) string {
+		n := strings.Split(inst.BuildInstance().ImportPath, "/")
+		l, _ := v.Label()
+		l = l[1:] // Remove leading '#' from definition
+		schema := "istio." + n[len(n)-2] + "." + n[len(n)-1] + "." + l
+		if res, ok := frontMatterMap[schema]; ok {
+			return res[0] + " See more details at: " + res[1]
+		}
+		// get the first sentence out of the paragraphs.
 		for _, doc := range v.Doc() {
 			if doc.Text() == "" {
 				continue
 			}
-			// Cut off first section, but don't stop if this ends with
-			// an example, list, or the like, as it will end weirdly.
-			// Also remove any protoc-gen-docs annotations at the beginning
-			// and any new-line.
-			split := strings.Split(doc.Text(), "\n\n")
-			k := 1
-			for ; k < len(split) && strings.HasSuffix(split[k-1], ":"); k++ {
+			if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
+				return ""
 			}
-			s := strings.Fields(strings.Join(split[:k], "\n"))
-			for i := 0; i < len(s) && strings.HasPrefix(s[i], "$"); i++ {
-				s[i] = ""
+			if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
+				words := strings.Split(paras[0], " ")
+				for i, w := range words {
+					if strings.HasSuffix(w, ".") {
+						return strings.Join(words[:i+1], " ")
+					}
+				}
 			}
-			return strings.Join(s, " ")
 		}
 		return ""
 	}
-
-	if *crd {
-		// CRD schema does not allow $ref fields.
-		gen.ExpandReferences = true
+	// CRD schema does not allow $ref fields.
+	cfg.ExpandReferences = true
+	file, err := openapi.Generate(inst, cfg)
+	if err != nil {
+		return cue.Value{}, err
 	}
-
-	return gen.Schemas(inst)
+	ctx := cuecontext.New()
+	val := ctx.BuildFile(file).Value()
+	return val, nil
 }
 
 // reference defines the references format based on the protobuf naming.
@@ -572,49 +463,6 @@ func (x *builder) reference(goPkg string, path []string) string {
 	// Map CUE names to proto names.
 	name = strings.Replace(name, "_", ".", -1)
 	return pkg + "." + name
-}
-
-// filterOpenAPI filters out unneeded elements from a generated OpenAPI.
-// It does so my looking up the top-level items in the proto files defined
-// in g, recursively marking their dependencies, and then eliminating any
-// schema from items that was not marked.
-//
-//nolint:staticcheck
-func (x *builder) filterOpenAPI(items *openapi.OrderedMap, g *Grouping) {
-	// All references found.
-	m := marker{
-		found:   map[string]bool{},
-		schemas: items,
-	}
-
-	// Get top-level definitions for the files in the given Grouping
-	for _, f := range g.ProtoFiles {
-		goPkg := ""
-		for _, e := range protoElems(filepath.Join(x.cwd, g.dir, f)) {
-			switch v := e.(type) {
-			case *proto.Option:
-				if v.Name == "go_package" {
-					goPkg, _ = strconv.Unquote(v.Constant.SourceRepresentation())
-				}
-			case *proto.Message:
-				m.markReference(x.reference(goPkg, []string{v.Name}))
-
-			case *proto.Enum:
-				m.markReference(x.reference(goPkg, []string{v.Name}))
-			}
-		}
-	}
-
-	// Now eliminate unused top-level items.
-	k := 0
-	pairs := m.schemas.Pairs()
-	for i := 0; i < len(pairs); i++ {
-		if m.found[pairs[i].Key] {
-			pairs[k] = pairs[i]
-			k++
-		}
-	}
-	m.schemas.SetAll(pairs[:k])
 }
 
 // extracts the front comments in istio protos.
@@ -668,7 +516,7 @@ func fixSnakes(f *ast.File, sf []string) {
 // snakeField returns a Field with snake_case naming, if the field is in
 // the list provided.
 func snakeField(f *ast.Field, sf []string) *ast.Field {
-	if n, i, _ := ast.LabelName(f.Label); !i || !contains(sf, n) {
+	if n, i, _ := ast.LabelName(f.Label); !i || !slices.Contains(sf, n) {
 		return nil
 	}
 	snakeCase := protobufName(f)
@@ -697,43 +545,6 @@ func protobufName(f *ast.Field) string {
 		}
 	}
 	return ""
-}
-
-//nolint:staticcheck
-func (x *builder) writeOpenAPI(schemas *openapi.OrderedMap, g *Grouping) {
-	oapi := &openapi.OrderedMap{} //nolint:staticcheck
-	oapi.Set("openapi", "3.0.0")  //nolint:staticcheck
-
-	info := &openapi.OrderedMap{}  //nolint:staticcheck
-	info.Set("title", g.Title)     //nolint:staticcheck
-	info.Set("version", g.Version) //nolint:staticcheck
-	oapi.Set("info", info)         //nolint:staticcheck
-
-	comps := &openapi.OrderedMap{} //nolint:staticcheck
-	comps.Set("schemas", schemas)  //nolint:staticcheck
-	oapi.Set("components", comps)  //nolint:staticcheck
-
-	b, err := json.Marshal(oapi)
-	if err != nil {
-		log.Fatalf("Failed to JSON marshal generated OpenAPI: %v", err)
-	}
-
-	// Note: this just tests basic OpenAPI 3 validity. It cannot, of course,
-	// know if the the proto files were correctly mapped.
-	_, err = openapi3.NewLoader().LoadFromData(b)
-	if err != nil {
-		log.Fatalf("Invalid OpenAPI generated: %v", err)
-	}
-
-	var buf bytes.Buffer
-	_ = json.Indent(&buf, b, "", "  ")
-
-	filename := filepath.Join(x.cwd, g.dir, g.OapiFilename)
-	fmt.Printf("Writing OpenAPI schemas into %v...\n", filename)
-	err = os.WriteFile(filename, buf.Bytes(), 0o644)
-	if err != nil {
-		log.Fatalf("Error writing OpenAPI file %s in dir %s: %v", g.OapiFilename, g.dir, err)
-	}
 }
 
 func (x *builder) writeCRDFiles() {
@@ -783,57 +594,8 @@ func (x *builder) writeCRDFiles() {
 	}
 }
 
-type marker struct {
-	found   map[string]bool
-	schemas *openapi.OrderedMap //nolint:staticcheck
-}
-
-func (x *marker) markReference(ref string) {
-	if x.found[ref] {
-		return
-	}
-	x.found[ref] = true
-
-	for _, kv := range x.schemas.Pairs() {
-		if kv.Key == ref {
-			x.markRecursive(kv.Value.(*openapi.OrderedMap)) //nolint:staticcheck
-			return
-		}
-	}
-	panic("should not happen")
-}
-
-//nolint:staticcheck
-func (x *marker) markRecursive(m *openapi.OrderedMap) {
-	for _, kv := range m.Pairs() {
-		switch v := kv.Value.(type) {
-		//nolint:staticcheck
-		case *openapi.OrderedMap:
-			x.markRecursive(v)
-		//nolint:staticcheck
-		case []*openapi.OrderedMap:
-			for _, m := range v {
-				x.markRecursive(m)
-			}
-		case string:
-			if kv.Key == "$ref" {
-				x.markReference(kv.Value.(string)[len("#/components/schemas/"):])
-			}
-		}
-	}
-}
-
 func fatal(err error, msg string) {
 	errors.Print(os.Stderr, err, nil)
 	_ = log.Output(2, msg)
 	os.Exit(1)
-}
-
-func contains(l []string, s string) bool {
-	for _, e := range l {
-		if e == s {
-			return true
-		}
-	}
-	return false
 }
