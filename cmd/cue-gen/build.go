@@ -52,35 +52,8 @@ type Config struct {
 	// The generator configuration.
 	Openapi *openapi.Config
 
-	// Directories is a list of files to generate per directory.
-	Directories map[string][]Grouping
-
-	// Information about the output of an aggregate OpenAPI file.
-	All *Grouping
-
 	// Crd is the configuration for CRD generation.
 	Crd *CrdGen
-}
-
-// Grouping defines the source and settings for a single file.
-//
-// See doc.cue for more information on these fields.
-type Grouping struct {
-	OapiFilename string // empty indicates the default name
-
-	// Mode defines the set of files to include by default:
-	//   manual   user defines ProtoFiles
-	//   all      all proto files in this directory are automatically added
-	//   perFile  a single file is generated for each proto file in the directory
-	Mode string
-
-	// ProtoFiles defines the list of proto files to include as the bases
-	// of the generated file. The paths are relative the the directory.
-	ProtoFiles []string
-
-	// derived automatically if unspecified.
-	Title   string
-	Version string
 }
 
 // CrdGen defines the output of the CRD file.

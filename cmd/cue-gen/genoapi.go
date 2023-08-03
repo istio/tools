@@ -92,7 +92,6 @@ import (
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
-	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/load"
 	"cuelang.org/go/encoding/openapi"
 	"cuelang.org/go/encoding/protobuf"
@@ -104,7 +103,6 @@ var (
 	configFile = flag.String("f", "", "configuration file; by default the directory  in which this file is located is assumed to be the root")
 	help       = flag.Bool("help", false, "show documentation for this tool")
 
-	inplace = flag.Bool("inplace", false, "generate configurations in place")
 	paths   = flag.String("paths", "/protobuf", "comma-separated path to search for .proto imports")
 	include = flag.String("include", "", "comma-separated prefixes for files and folders to include when searching for .proto files to process")
 	exclude = flag.String("exclude", "", "comma-separated prefixes for files and folders to exclude when searching for .proto files to process")
@@ -262,18 +260,6 @@ func main() {
 			fixSnakes(f, snakeFields)
 		}
 		overlay[filename] = load.FromFile(f)
-
-		if *inplace {
-			b, err := format.Node(f)
-			if err != nil {
-				fatal(err, "Error formatting file: ")
-			}
-			_ = os.MkdirAll(filepath.Dir(filename), 0o755)
-			if err := os.WriteFile(filename, b, 0o644); err != nil {
-				log.Fatalf("Error writing file: %v", err)
-			}
-		}
-
 	}
 
 	// Generate the OpenAPI
