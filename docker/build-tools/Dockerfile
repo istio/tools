@@ -601,6 +601,8 @@ ENV GOROOT=/usr/local/go
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
 ENV GOBIN=/gobin
+# Go sleeps for 1s after tests with out this, see https://github.com/golang/go/issues/61852
+ENV GORACE="atexit_sleep_ms=0"
 ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby support
