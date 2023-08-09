@@ -642,6 +642,7 @@ RUN mkdir -p /go && \
     mkdir -p /config-copy && \
     mkdir -p /home/.cache && \
     mkdir -p /home/.cargo/registry && \
+    mkdir -p /home/.cargo/git && \
     mkdir -p /home/.helm && \
     mkdir -p /home/.gsutil
 
@@ -659,6 +660,7 @@ RUN chmod 777 /go && \
     chmod 777 /home/.cache && \
     chmod 777 /home/.cargo && \
     chmod 777 /home/.cargo/registry && \
+    chmod 777 /home/.cargo/git && \
     chmod 777 /home/.helm && \
     chmod 777 /home/.gsutil
 
