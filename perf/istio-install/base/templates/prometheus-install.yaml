@@ -10,7 +10,7 @@ parameters:
 provisioner: kubernetes.io/gce-pd
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
-
+---
 # IBM cluster storage
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
