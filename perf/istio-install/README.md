@@ -51,7 +51,7 @@ The script will create files to be used later in the setup in ConfigMap type:
 
 ## Istio Setup
 
-When installing storage for prometheus note that each cloud provider has its own labeling for storage.  
+When installing storage for prometheus note that each cloud provider has its own labeling for storage.
 In the base/templates/prometheus-install.yaml file it has both the IBM cluster setup and GKE cluster setup.
 Before running the setup_istio.sh script please remove from the base/templates/prometheus-install.yaml the section that does not correspond to the cluster provider.
 
