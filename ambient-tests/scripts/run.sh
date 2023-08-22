@@ -3,7 +3,8 @@
 
 set -eux
 
-source scripts/config.sh
+# shellcheck disable=SC1091
+source scripts/config
 
 INTER_TEST_SLEEP=0.1s
 
@@ -17,6 +18,7 @@ function run-tests() {
     server_ns=$2
     for _ in $(seq "$N_RUNS")
     do
+        # shellcheck disable=SC2086
         kubectl exec "deploy/$BENCHMARK_CLIENT" -n "$client_ns" \
         -- netperf $GLOBAL_ARGS -H "$BENCHMARK_SERVER.$server_ns" -t TCP_STREAM \
         -- $TEST_ARGS
@@ -27,6 +29,7 @@ function run-tests() {
 
     for _ in $(seq "$N_RUNS")
     do
+        # shellcheck disable=SC2086
         kubectl exec "deploy/$BENCHMARK_CLIENT" -n "$client_ns" \
         -- netperf $GLOBAL_ARGS -H "$BENCHMARK_SERVER.$server_ns" -t TCP_CRR \
         -- $TEST_ARGS $RR_ARGS 
@@ -37,6 +40,7 @@ function run-tests() {
 
     for _ in $(seq "$N_RUNS")
     do
+        # shellcheck disable=SC2086
         kubectl exec "deploy/$BENCHMARK_CLIENT" -n "$client_ns" \
         -- netperf $GLOBAL_ARGS -H "$BENCHMARK_SERVER.$server_ns" -t TCP_RR \
         -- $TEST_ARGS $RR_ARGS 

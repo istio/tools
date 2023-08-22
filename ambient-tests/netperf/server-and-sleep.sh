@@ -2,7 +2,7 @@
 
 set -eux
 # Couldn't find a way to run netserver in the foreground.
-netserver $@
+netserver "$@"
 echo "Started echo server."
 ncat -e /bin/cat -k -l 6789 &
 echo "Started netserver."

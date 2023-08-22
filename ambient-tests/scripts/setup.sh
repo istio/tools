@@ -3,12 +3,13 @@
 set -eux
 
 # set up config variables
-source scripts/config.sh
+# shellcheck disable=SC1091
+source scripts/config
 
 # create the namespaces
-kubectl create namespace $NS_NO_MESH || true # in case the namespace already exists
-kubectl create namespace $NS_SIDECAR   || true
-kubectl create namespace $NS_AMBIENT || true
+kubectl create namespace "$NS_NO_MESH" || true # in case the namespace already exists
+kubectl create namespace "$NS_SIDECAR" || true
+kubectl create namespace "$NS_AMBIENT" || true
 
 # install both ambient and normal Istio
 # they should be both work on the same mesh

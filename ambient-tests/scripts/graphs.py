@@ -6,7 +6,7 @@ import pandas as pd
 
 # load data
 # TCP_STREAM figure
-dotenv.load_dotenv("./scripts/config.sh")
+dotenv.load_dotenv("./scripts/config")
 RESULTS = os.environ["RESULTS"]
 GRAPHS = os.environ["GRAPHS"]
 
