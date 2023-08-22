@@ -1,0 +1,7 @@
+data
+graphs
+results
+secrets
+.venv
+*.pcap
+dumps

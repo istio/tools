@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: stjinxuan.azurecr.io/iperf
+    ports:
+    - containerPort: 80
+    command: [sleep, 365d]

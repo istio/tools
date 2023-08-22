@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: client
+apiVersion: v1
+kind: Service
+metadata:
+  name: server
+spec:
+  ports:
+  - name: control
+    port: 12865
+    protocol: TCP
+  - name: data0
+    port: 35000
+    protocol: TCP
+  - name: echo
+    port: 6789
+    protocol: TCP
+  selector:
+    app: server
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: server
+  name: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      nodeSelector:
+        role: server
+      containers:
+      - name: server
+        image: stjinxuan.azurecr.io/netperf
+        imagePullPolicy: Always
+        command: ["./server-and-sleep.sh"]
+        ports:
+        - containerPort: 12865
+          name: control
+        - containerPort: 6789
+          name: echo
+        - containerPort: 35000
+          name: data0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: client
+  name: client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      nodeSelector:
+        role: client
+      containers:
+      - name: client
+        image: stjinxuan.azurecr.io/netperf
+        imagePullPolicy: Always
+        command: ["/bin/sleep", "365d"]
