@@ -19,15 +19,15 @@
 set -eu
 shopt -s extglob
 # shellcheck disable=SC1091
-source scripts/config
+source scripts/config.sh
 
 # non csv files
-for file in $RESULTS/{TCP_STREAM,TCP_CRR,TCP_RR}
+for file in $NETPERF_RESULTS/{TCP_STREAM,TCP_CRR,TCP_RR}
 do
     echo "$file"
     base=$(basename "$file")
-    python ./scripts/results_to_csv.py \
+    python ./scripts/netperf/results_to_csv.py \
         "$TEST_RUN_SEPARATOR"          \
         < "$file"                      \
-        > "$RESULTS/$base.csv"
+        > "$NETPERF_RESULTS/$base.csv"
 done

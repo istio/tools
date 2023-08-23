@@ -17,11 +17,11 @@
 set -eux
 
 # shellcheck disable=SC1091
-source scripts/config
+source scripts/config.sh
 
 INTER_TEST_SLEEP=0.1s
 
-mkdir -p "$RESULTS"
+mkdir -p "$NETPERF_RESULTS"
 
 # First argument is the client namespace
 # Second argument is the server namespace
@@ -33,44 +33,45 @@ function run-tests() {
     do
         # shellcheck disable=SC2086
         kubectl exec "deploy/$BENCHMARK_CLIENT" -n "$client_ns" \
-        -- netperf $GLOBAL_ARGS -H "$BENCHMARK_SERVER.$server_ns" -t TCP_STREAM \
-        -- $TEST_ARGS
+        -- netperf $NETPERF_GLOBAL_ARGS -H "$BENCHMARK_SERVER.$server_ns" -t TCP_STREAM \
+        -- $NETPERF_TEST_ARGS
         echo "NAMESPACES=$client_ns:$server_ns"
         echo "$TEST_RUN_SEPARATOR"
         sleep "$INTER_TEST_SLEEP"
-    done >> "$RESULTS/TCP_STREAM"
+    done >> "$NETPERF_RESULTS/TCP_STREAM"
 
     for _ in $(seq "$N_RUNS")
     do
         # shellcheck disable=SC2086
         kubectl exec "deploy/$BENCHMARK_CLIENT" -n "$client_ns" \
-        -- netperf $GLOBAL_ARGS -H "$BENCHMARK_SERVER.$server_ns" -t TCP_CRR \
-        -- $TEST_ARGS $RR_ARGS 
+        -- netperf $NETPERF_GLOBAL_ARGS -H "$BENCHMARK_SERVER.$server_ns" -t TCP_CRR \
+        -- $NETPERF_TEST_ARGS $NETPERF_RR_ARGS 
         echo "NAMESPACES=$client_ns:$server_ns"
         echo "$TEST_RUN_SEPARATOR"
         sleep "$INTER_TEST_SLEEP"
-    done >> "$RESULTS/TCP_CRR"
+    done >> "$NETPERF_RESULTS/TCP_CRR"
 
     for _ in $(seq "$N_RUNS")
     do
         # shellcheck disable=SC2086
         kubectl exec "deploy/$BENCHMARK_CLIENT" -n "$client_ns" \
-        -- netperf $GLOBAL_ARGS -H "$BENCHMARK_SERVER.$server_ns" -t TCP_RR \
-        -- $TEST_ARGS $RR_ARGS 
+        -- netperf $NETPERF_GLOBAL_ARGS -H "$BENCHMARK_SERVER.$server_ns" -t TCP_RR \
+        -- $NETPERF_TEST_ARGS $NETPERF_RR_ARGS 
         echo "NAMESPACES=$client_ns:$server_ns"
         echo "$TEST_RUN_SEPARATOR"
         sleep "$INTER_TEST_SLEEP"
-    done >> "$RESULTS/TCP_RR" 
+    done >> "$NETPERF_RESULTS/TCP_RR" 
 }
 
 # clear output files
-true > "$RESULTS/TCP_STREAM"
-true > "$RESULTS/TCP_CRR"
-true > "$RESULTS/TCP_RR"
+true > "$NETPERF_RESULTS/TCP_STREAM"
+true > "$NETPERF_RESULTS/TCP_CRR"
+true > "$NETPERF_RESULTS/TCP_RR"
 
-run-tests "$NS_AMBIENT" "$NS_AMBIENT" 
-run-tests "$NS_NO_MESH" "$NS_NO_MESH" 
-run-tests "$NS_SIDECAR" "$NS_SIDECAR"   
+run-tests "$NS_AMBIENT"  "$NS_AMBIENT" 
+run-tests "$NS_NO_MESH"  "$NS_NO_MESH" 
+run-tests "$NS_SIDECAR"  "$NS_SIDECAR"   
+run-tests "$NS_WAYPOINT" "$NS_WAYPOINT"
 # For cross-mesh tests
 # run-tests "$NS_SIDECAR" "$NS_AMBIENT"   
 

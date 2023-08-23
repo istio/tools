@@ -2,7 +2,11 @@
 
 ## Setup
 
-To run, first set up a cluster with six user nodes: three with the `role=server` label and three with the `role=client` label.
+To run, first set up a cluster with two user nodes: one with the `role=server` label and one with the `role=client` label.
+You can recreate this in a kind cluster using `yaml/cluster.yaml`.
+If you use a kind cluster, will either have to connect it to a local registry, or upload the images using `make push-local` in the `docker` directory.
+You will also have to modify the `imagePullPolicy` fields of the pods in `yaml/deploy.yaml` to `Never`.
+
 Note that if you are using AKS to set up your cluster, make sure that you use Azure CNI as your network plugin and **DO NOT** use a network policy.
 Also, make sure to attach to container registry to your cluster/that your container registry is accessible from your cluster.
 This ensures that `netperf` and `netserver` pods get deployed in different servers.
@@ -10,7 +14,8 @@ This ensures that `netperf` and `netserver` pods get deployed in different serve
 Next, go into `netperf/Makefile` and change the value of `CR` to your container registry and the image names in `yaml/deploy.yaml` accordingly.
 
 You will also need a Python 3 with `matplotlib`, `pandas`, and `python-dotenv`.
-Also, make sure that `python -V` is some version of Python 3. An easy way to get this on Ubuntu is running
+Also, make sure that `python -V` is some version of Python 3.
+An easy way to get this on Ubuntu is running
 
 ```bash
 sudo apt install python-is-python3
@@ -33,6 +38,7 @@ To build the necessary containers, inside `netperf/`, run
 ```bash
 make build
 make push-cr
+# or `push-local` if running in a kind cluster.
 ```
 
 ## Running Benchmarks

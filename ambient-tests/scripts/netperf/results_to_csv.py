@@ -16,10 +16,10 @@ import csv
 from typing import Set, List, Dict
 import sys
 
-TEST_RUN_SEPARATOR=sys.argv[1]
+TEST_RUN_SEPARATOR = sys.argv[1]
 
 fieldnames: Set[str] = set()
-rows: List[Dict[str,str]] = []
+rows: List[Dict[str, str]] = []
 row: Dict[str, str] = dict()
 
 for line in sys.stdin:
@@ -31,7 +31,7 @@ for line in sys.stdin:
         continue
 
     line = line.split("=")
-    if (len(line) != 2):
+    if len(line) != 2:
         continue
 
     row[line[0]] = line[1]
@@ -41,6 +41,3 @@ writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
 writer.writeheader()
 for row in rows:
     writer.writerow(row)
-
-
-

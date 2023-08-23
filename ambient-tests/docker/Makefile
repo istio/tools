@@ -1,8 +1,6 @@
 CR=stjinxuan.azurecr.io
-NAME=netperf
+NAME=ambient-performance
 CR_NAME=$(CR)/$(NAME)
-CONTROL_PORT=12865
-DATA_PORTS=35000-35004
 
 .PHONY: build push run push-cr push-local
 
