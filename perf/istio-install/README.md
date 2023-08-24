@@ -9,6 +9,18 @@ The defaults values are 32vCP and at least 4 nodes.
 
 For testing stability and e2e behavior in small clusters - 4vCPU per node and 1 node with autoscale enabled should work.
 
+## IBM Cluster Setup
+
+Required environment:
+
+```shell
+
+export CLUSTER_NAME=istio14test1 - name of the cluster to setup
+export ZONE=us-central1-a - zone where the cluster will be setup
+export REGION=us-central2 - region where a regional cluster will be set up, overrides ZONE
+export DNS_DOMAIN=test - domain to use for TLS cert testing
+```
+
 ## GKE Cluster Setup
 
 Required environment:
@@ -38,6 +50,10 @@ The script will create files to be used later in the setup in ConfigMap type:
 - `${CLUSTER_NAME}/configmap*` - configmaps with GCP-specific configurations
 
 ## Istio Setup
+
+When installing storage for prometheus note that each cloud provider has its own labeling for storage.
+In the base/templates/prometheus-install.yaml file it has both the IBM cluster setup and GKE cluster setup.
+Before running the setup_istio.sh script please remove from the base/templates/prometheus-install.yaml the section that does not correspond to the cluster provider.
 
 The `setup_istio.sh` scripts is a helper to install Istio with specific configurations for performance testing. The script
 provides a few ways to specify which version to install:

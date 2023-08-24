@@ -41,12 +41,14 @@ processes = []
 def pod_info(filterstr="", namespace=NAMESPACE, multi_ok=True):
     cmd = "kubectl -n {namespace} get pod {filterstr} -o json".format(
         namespace=namespace, filterstr=filterstr)
-    completed_process = subprocess.run(shlex.split(cmd), check=True, encoding="utf-8")
-    o = json.loads(completed_process.stdout)
-    items = o['items']
-
+    completed_process = subprocess.run(shlex.split(cmd), capture_output=True, check=True, encoding="utf-8")
+    if not completed_process.stdout:
+        raise Exception("stdout returned empty for command [%s]" % cmd)
     if completed_process.stderr:
         print("stderr while getting pod info: %s" % completed_process.stderr)
+
+    o = json.loads(completed_process.stdout)
+    items = o['items']
 
     if not multi_ok and len(items) > 1:
         raise Exception("more than one pod found stdout='%s'" % completed_process.stdout)
@@ -84,6 +86,8 @@ def kubectl_exec(pod, remote_cmd, runfn=run_command, container=None):
     c = ""
     if container is not None:
         c = "-c " + container
+    else:
+        c = "-c " + "uncaptured"
     cmd = "kubectl --namespace {namespace} exec {pod} {c} -- {remote_cmd}".format(
         pod=pod,
         remote_cmd=remote_cmd,
@@ -562,7 +566,7 @@ def run_nighthawk(pod, remote_cmd, labels):
         remote_cmd=remote_cmd,
         namespace=NAMESPACE)
     print("nighthawk commandline: " + kube_cmd)
-    completed_process = subprocess.run(shlex.split(kube_cmd), encoding="utf-8")
+    completed_process = subprocess.run(shlex.split(kube_cmd), capture_output=True, encoding="utf-8")
 
     if completed_process.returncode == 0:
         with tempfile.NamedTemporaryFile(dir='/tmp', delete=True) as tmpfile:
