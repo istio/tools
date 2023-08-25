@@ -25,7 +25,7 @@
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.20.5
+ARG GOLANG_IMAGE=golang:1.21.0-bullseye
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -37,41 +37,44 @@ ARG ISTIO_TOOLS_SHA
 # Pinned versions of stuff we pull in
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.5.1
-ENV BUF_VERSION=v1.20.0
-ENV COSIGN_VERSION=v2.0.2
-ENV CRANE_VERSION=v0.15.2
-ENV GCLOUD_VERSION=434.0.0
+ENV BUF_VERSION=v1.26.1
+ENV COSIGN_VERSION=v2.1.1
+ENV CRANE_VERSION=v0.16.1
+ENV GCLOUD_VERSION=444.0.0
 ENV GCR_AUTH_VERSION=2.1.6
-ENV GH_VERSION=2.30.0
+ENV GH_VERSION=2.33.0
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.9.1
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
-ENV GOLANGCI_LINT_VERSION=v1.53.2
+ENV GOLANGCI_LINT_VERSION=v1.54.1
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.3.0
-ENV GOLANG_PROTOBUF_VERSION=v1.30.0
+ENV GOLANG_PROTOBUF_VERSION=v1.31.0
 ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV HADOLINT_VERSION=v2.12.0
-ENV HELM3_VERSION=v3.12.0
-ENV HUGO_VERSION=0.112.5
+ENV HELM3_VERSION=v3.12.2
+ENV HUGO_VERSION=0.117.0
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.15.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
-ENV K8S_CODE_GENERATOR_VERSION=1.27.1
-ENV K8S_TEST_INFRA_VERSION=60794d470c0fb4da1fb14b4fd1abb80307c1e128
-ENV KIND_VERSION=v0.19.0
-ENV KPT_VERSION=v0.39.3
-ENV KUBECTL_VERSION=1.27.2
+ENV K8S_CODE_GENERATOR_VERSION=1.28.0
+# From 7/6/2023
+ENV K8S_TEST_INFRA_VERSION=91ecbd6a270f879e309760d65eccc60f466e726b
+ENV KIND_VERSION=v0.20.0
+ENV KPT_VERSION=v1.0.0-beta.35
+ENV KUBECTL_VERSION=1.28.1
 ENV KUBECTX_VERSION=0.9.4
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
+# TODO: switch to v0.4.0 when its out; we depend on some bug fixes since v0.3.0
+ENV OTEL_CLI_VERSION=159cd1ec2e3f992e5f963dc70269b068c1038738
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
 ENV PROTOC_GEN_VALIDATE_VERSION=1.0.1
-ENV PROTOC_VERSION=22.5
+ENV PROTOC_VERSION=24.1
 ENV PROTOLOCK_VERSION=v0.16.0
 ENV SHELLCHECK_VERSION=v0.9.0
-ENV SU_EXEC_VERSION=0.2
-ENV TRIVY_VERSION=0.42.0
-ENV YQ_VERSION=4.33.3
+ENV SU_EXEC_VERSION=0.3.1
+ENV TRIVY_VERSION=0.44.1
+ENV YQ_VERSION=4.35.1
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -147,30 +150,32 @@ RUN go install -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION
 RUN go install -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 RUN go install -ldflags="-s -w" golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
 RUN go install -ldflags="-s -w" github.com/google/go-containerregistry/cmd/crane@${CRANE_VERSION}
-
+RUN go install -ldflags="-s -w" github.com/equinix-labs/otel-cli@${OTEL_CLI_VERSION}
 # Install latest version of Istio-owned tools in this release
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-golang-deepcopy@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/protoc-gen-golang-jsonshim@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" istio.io/tools/cmd/gen-release-notes@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/applyconfiguration-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/lister-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/informer-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/deepcopy-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN go install -ldflags="-s -w" k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-
-# Install istio/test-infra tools
-RUN go install sigs.k8s.io/kubetest2@${KUBETEST2_VERSION}
-RUN go install sigs.k8s.io/kubetest2/kubetest2-gke@${KUBETEST2_VERSION}
-RUN go install sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
+RUN go install -ldflags="-s -w" \
+  istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/protoc-gen-golang-deepcopy@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/protoc-gen-golang-jsonshim@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/kubetype-gen@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/license-lint@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/gen-release-notes@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/org-gen@${ISTIO_TOOLS_SHA}
+RUN go install -ldflags="-s -w" \
+  k8s.io/code-generator/cmd/applyconfiguration-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
+  k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
+  k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
+  k8s.io/code-generator/cmd/lister-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
+  k8s.io/code-generator/cmd/informer-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
+  k8s.io/code-generator/cmd/deepcopy-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
+  k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${K8S_CODE_GENERATOR_VERSION}
+RUN go install -ldflags="-s -w" \
+    sigs.k8s.io/kubetest2@${KUBETEST2_VERSION} \
+    sigs.k8s.io/kubetest2/kubetest2-gke@${KUBETEST2_VERSION} \
+    sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
 
 # Go doesn't like the `replace` directives; need to do manual cloning now.
 # Should be fixed by https://github.com/kubernetes/test-infra/issues/20421
@@ -248,10 +253,11 @@ RUN wget -nv -O "${OUTDIR}/usr/bin/buf" "https://github.com/bufbuild/buf/release
     chmod 555 "${OUTDIR}/usr/bin/buf"
 
 # Install su-exec which is a tool that operates like sudo without the overhead
-ADD https://github.com/ncopa/su-exec/archive/v${SU_EXEC_VERSION}.tar.gz /tmp
+ADD https://github.com/NobodyXu/su-exec/archive/refs/tags/v${SU_EXEC_VERSION}.tar.gz /tmp
 RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
 WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
-RUN make
+# Setting LDFLAGS is needed here, upstream uses '--icf=all' which our linker  doesn't have
+RUN LDFLAGS="-fvisibility=hidden -Wl,-O2 -Wl,--discard-all -Wl,--strip-all -Wl,--as-needed -Wl,--gc-sections" make
 RUN cp -a su-exec ${OUTDIR}/usr/bin
 
 ADD https://github.com/GoogleContainerTools/kpt/releases/download/${KPT_VERSION}/kpt_linux_${TARGETARCH} ${OUTDIR}/usr/bin/kpt
@@ -336,7 +342,7 @@ ENV BABEL_PRESET_ENV=v7.18.2
 ENV BABEL_PRESET_MINIFY_VERSION=v0.5.2
 ENV LINKINATOR_VERSION=v2.0.5
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
-ENV NODEJS_VERSION=18.16.0
+ENV NODEJS_VERSION=18.17.1
 ENV SASS_LINT_VERSION=v1.13.1
 ENV SASS_VERSION=v1.52.1
 ENV SVGO_VERSION=v1.3.2
@@ -393,12 +399,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Pinned versions of stuff we pull in
 ENV AWESOMEBOT_VERSION=1.20.0
-# Sometime between 1.14.1 and 1.14.2 to pull in some fixes for deb
-ENV FPM_VERSION=eb5370d16e361db3f1425f8c898bafe7f3c66869
-ENV HTMLPROOFER_VERSION=3.19.0
-ENV NOKOGIRI_VERSION=1.14.3
-ENV LICENSEE_VERSION=9.15.1
+ENV FPM_VERSION=v1.15.1
+ENV HTMLPROOFER_VERSION=3.19.4
+ENV LICENSEE_VERSION=9.16.0
 ENV MDL_VERSION=0.12.0
+ENV NOKOGIRI_VERSION=1.14.5
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -443,14 +448,15 @@ FROM ubuntu:jammy as python_context
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Pinned versions of stuff we pull in
-ENV AUTOPEP8_VERSION=1.4.4
-ENV YAMLLINT_VERSION=1.29.0
-ENV PIP_INSTALL_VERSION=21.0.1
-ENV REQUESTS_VERSION=2.22.0
-ENV PYTHON_PROTOBUF_VERSION=3.11.2
-ENV PYYAML_VERSION=5.3.1
-ENV JWCRYPTO_VERSION=0.7
-ENV PYGITHUB_VERSION=1.57
+ENV AUTOPEP8_VERSION=2.0.2
+ENV PYCODESTYLE_VERSION=2.10.0
+ENV JWCRYPTO_VERSION=1.5.0
+ENV PIP_INSTALL_VERSION=23.1.2
+ENV PYGITHUB_VERSION=1.58.2
+ENV PYTHON_PROTOBUF_VERSION=4.23.2
+ENV PYYAML_VERSION=6.0
+ENV REQUESTS_VERSION=2.31.0
+ENV YAMLLINT_VERSION=1.32.0
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -465,6 +471,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python stuff
 RUN python3 -m pip install --no-cache-dir --upgrade pip==${PIP_INSTALL_VERSION}
+# FIXME: Pycodestyle had a breaking change in 2.11.0 and broke autopep8.
+# Pin pycodestyle version until autopep8 is updated.
+# https://github.com/hhatto/autopep8/issues/689
+RUN python3 -m pip install --no-cache-dir pycodestyle==${PYCODESTYLE_VERSION}
 RUN python3 -m pip install --no-cache-dir --no-binary :all: autopep8==${AUTOPEP8_VERSION}
 RUN python3 -m pip install --no-cache-dir yamllint==${YAMLLINT_VERSION}
 RUN python3 -m pip install --no-cache-dir requests==${REQUESTS_VERSION}
@@ -481,9 +491,10 @@ FROM ubuntu:jammy as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV DOCKER_VERSION=5:20.10.23~3-0~ubuntu-jammy
-ENV CONTAINERD_VERSION=1.6.21-1
-ENV RUST_VERSION=1.70.0
+ENV CONTAINERD_VERSION=1.6.22-1
+ENV DOCKER_VERSION=5:24.0.5-1~ubuntu.22.04~jammy
+ENV DOCKER_BUILDX_VERSION=0.11.2-1~ubuntu.22.04~jammy
+ENV RUST_VERSION=1.72.0
 
 ENV OUTDIR=/out
 
@@ -541,7 +552,7 @@ RUN apt-key add /tmp/docker-key
 ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu $(lsb_release -sc) stable"
 RUN apt-get update
-RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}"
+RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}" docker-buildx-plugin="${DOCKER_BUILDX_VERSION}"
 
 ENV CARGO_HOME=/home/.cargo
 ENV RUSTUP_HOME=/home/.rustup
@@ -595,6 +606,8 @@ ENV GOROOT=/usr/local/go
 ENV GOPATH=/go
 ENV GOCACHE=/gocache
 ENV GOBIN=/gobin
+# Go sleeps for 1s after tests with out this, see https://github.com/golang/go/issues/61852
+ENV GORACE="atexit_sleep_ms=0"
 ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby support
@@ -634,6 +647,7 @@ RUN mkdir -p /go && \
     mkdir -p /config-copy && \
     mkdir -p /home/.cache && \
     mkdir -p /home/.cargo/registry && \
+    mkdir -p /home/.cargo/git && \
     mkdir -p /home/.helm && \
     mkdir -p /home/.gsutil
 
@@ -651,6 +665,7 @@ RUN chmod 777 /go && \
     chmod 777 /home/.cache && \
     chmod 777 /home/.cargo && \
     chmod 777 /home/.cargo/registry && \
+    chmod 777 /home/.cargo/git && \
     chmod 777 /home/.helm && \
     chmod 777 /home/.gsutil
 
