@@ -48,4 +48,3 @@ Once the deployments are complete, run the tests with `make run`.
 This will create graphs in the `graphs/` directory and put intermediate files in `results/` by default.
 
 For more configuration options, see `scripts/run.sh`.
-
