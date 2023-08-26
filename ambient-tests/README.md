@@ -31,7 +31,7 @@ I don't automate this process because there are many installation methods and yo
 To install the latest release of Istio Ambient [install `istioctl`](https://istio.io/latest/docs/setup/getting-started/#download) and run
 
 ```bash
-istioclt install --set profile=ambient
+istioctl install --set profile=ambient
 ```
 
 ## Building
