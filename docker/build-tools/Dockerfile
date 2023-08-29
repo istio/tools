@@ -923,15 +923,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     virtualenv
 
-# Python 3.10
-RUN add-apt-repository ppa:deadsnakes/ppa
-# hadolint ignore=DL3008,DL3009
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.10 python3.10-dev python3.10-distutils
-# hadolint ignore=DL4001
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
-
 COPY --from=binary_tools_context /out/ /
 COPY --from=binary_tools_context /usr/local/go /usr/local/go
 COPY --from=gn_context /gn/gn /usr/local/bin/gn
@@ -940,6 +931,9 @@ COPY --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
 COPY --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
 COPY --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
 COPY --from=clang_context /opt/libcxx_tsan /opt/libcxx_tsan
+
+COPY install-python.sh install-python.sh
+RUN ./install-python.sh
 
 RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
