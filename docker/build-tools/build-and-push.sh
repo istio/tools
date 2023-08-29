@@ -49,6 +49,14 @@ ARCH="${TARGET_ARCH:-amd64}"
 # Generally, this should always be set even with a single architecture build or we will end up with only an image with a `-{arch}` suffix.
 MANIFEST_ARCH="${MANIFEST_ARCH-amd64}"
 
+# CACHE_FROM_TAG, if present, defines an image tag which is used in the build --cache-from option.
+CACHE_FROM_TAG=":${BRANCH}-latest-${ARCH}"
+# The podman build --cache-from option value must contain neither a tag nor digest.
+# Overriding of the CACHE_FROM_TAG by setting an empty string when running podman build.
+if [[ "${CONTAINER_CLI}" == "podman" ]]; then
+  CACHE_FROM_TAG=""
+fi
+
 # The docker image runs `go get istio.io/tools@${SHA}`
 # In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
 # In presubmit, this SHA does not exist, so we should just pull from the head of the branch (eg master)
@@ -68,7 +76,7 @@ fi
 ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools \
   ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --cache-from "${HUB}/build-tools:${BRANCH}-latest-${ARCH}" \
+  --cache-from "${HUB}/build-tools${CACHE_FROM_TAG}" \
   -t "${HUB}/build-tools:${BRANCH}-latest-${ARCH}" \
   -t "${HUB}/build-tools:${VERSION}-${ARCH}" \
   .
@@ -77,31 +85,13 @@ ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools \
 ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_env_proxy \
   ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --cache-from "${HUB}/build-tools-proxy:${BRANCH}-latest-${ARCH}" \
+  --cache-from "${HUB}/build-tools-proxy${CACHE_FROM_TAG}" \
   -t "${HUB}/build-tools-proxy:${BRANCH}-latest-${ARCH}" \
   -t "${HUB}/build-tools-proxy:${VERSION}-${ARCH}" \
   .
 
-if [[ "$(uname -m)" == "x86_64" ]]; then
-  # Multi arch is not supported for CentOS, since its legacy and multi-arch is new.
-  # shellcheck disable=SC2086
-  ${CONTAINER_CLI} ${CONTAINER_BUILDER} \
-    ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
-    --build-arg BUILDKIT_INLINE_CACHE=1 \
-    --cache-from "${HUB}/build-tools-centos:${BRANCH}-latest" \
-    -t "${HUB}/build-tools-centos:${BRANCH}-latest" \
-    -t "${HUB}/build-tools-centos:${VERSION}" \
-    -f Dockerfile.centos \
-    .
-fi
 
 if [[ -z "${DRY_RUN:-}" ]]; then
-  # CentOS images images are special, handle first
-  if [[ "$(uname -m)" == "x86_64" ]]; then
-    ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${VERSION}"
-    ${CONTAINER_CLI} push "${HUB}/build-tools-centos:${BRANCH}-latest"
-  fi
-
   TO_PUSH=(
     "${HUB}/build-tools:${VERSION}"
     "${HUB}/build-tools:${BRANCH}-latest"

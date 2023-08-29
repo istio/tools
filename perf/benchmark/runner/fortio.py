@@ -140,6 +140,7 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output="", 
     cnt = 0
 
     data = []
+    data_dict = None
     for filename in os.listdir(temp_dir_path):
         print(filename)
         with open(os.path.join(temp_dir_path, filename), 'r') as f:
@@ -157,7 +158,8 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output="", 
                         print("file finished!")
                         break
                 print(e)
-
+            if data_dict is None:
+                continue
             gd = convert_data(data_dict)
             if gd is None:
                 continue

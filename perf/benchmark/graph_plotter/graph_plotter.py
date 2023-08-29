@@ -38,8 +38,14 @@ def plotter(args):
 
     dpi = 100
     plt.figure(figsize=(1138 / dpi, 871 / dpi), dpi=dpi)
+    fig = plt.figure(figsize=(1138 / dpi, 871 / dpi), dpi=dpi)
+    ax = fig.add_subplot(111)
+    ax.set_ylim(0, 1.5)
     for key, val in telemetry_modes_y_data.items():
         plt.plot(args.query_list, val, marker='o', label=key)
+        for i, j in zip(args.query_list, val):
+            ax.annotate(str(j), xy=(i, j))
+            print("i=%x,j=%x,args.querylist=%x,val=%x,key=%x", i, j, args.query_list, val, key)
 
     plt.xlabel(get_x_label(args))
     plt.ylabel(get_y_label(args))

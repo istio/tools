@@ -15,7 +15,7 @@
 import os
 from django.shortcuts import render
 
-#current_release = [os.getenv('CUR_RELEASE')]
+# current_release = [os.getenv('CUR_RELEASE')]
 
 
 # Create your views here.
