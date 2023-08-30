@@ -921,6 +921,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ninja-build \
     python \
     unzip \
+    libncurses5 \
     virtualenv
 
 COPY --from=binary_tools_context /out/ /
