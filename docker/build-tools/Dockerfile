@@ -40,7 +40,7 @@ ENV BOM_VERSION=v0.5.1
 ENV BUF_VERSION=v1.26.1
 ENV COSIGN_VERSION=v2.2.0
 ENV CRANE_VERSION=v0.16.1
-ENV GCLOUD_VERSION=444.0.0
+ENV GCLOUD_VERSION=445.0.0
 ENV GCR_AUTH_VERSION=2.1.6
 ENV GH_VERSION=2.34.0
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
@@ -65,6 +65,7 @@ ENV KPT_VERSION=v1.0.0-beta.43
 ENV KUBECTL_VERSION=1.28.1
 ENV KUBECTX_VERSION=0.9.5
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
+ENV ORAS_VERSION=1.1.0
 ENV OTEL_CLI_VERSION=v0.4.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
 ENV PROTOC_GEN_VALIDATE_VERSION=1.0.2
@@ -290,6 +291,14 @@ RUN set -eux; \
     && openssl dgst -sha256 -verify /tmp/cosign-pubkey -signature /tmp/cosign.sig /tmp/cosign \
     && chmod +x /tmp/cosign \
     && mv /tmp/cosign ${OUTDIR}/usr/bin/ || exit 1
+
+# Install ORAS for OCI artifact pushing and pulling
+RUN set -eux; \
+    wget -nv "https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz" \
+    && mkdir -p /tmp/oras-install/ \
+    && tar -zxf oras_${ORAS_VERSION}_*.tar.gz -C /tmp/oras-install/ \
+    &&  mv /tmp/oras-install/oras ${OUTDIR}/usr/bin/ \
+    && rm -rf oras_${ORAS_VERSION}_*.tar.gz /tmp/oras-install/
 
 # Trivy container scanner
 RUN set -eux; \
@@ -779,7 +788,7 @@ FROM bazel_context_${TARGETARCH} AS bazel_context
 
 ARG TARGETARCH
 
-ENV BAZELISK_VERSION="v1.16.0"
+ENV BAZELISK_VERSION="v1.18.0"
 ENV BAZELISK_BASE_URL="https://github.com/bazelbuild/bazelisk/releases/download"
 ENV BAZELISK_BIN="bazelisk-linux-${TARGETARCH}"
 ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
