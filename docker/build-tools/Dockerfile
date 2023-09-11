@@ -779,7 +779,7 @@ FROM bazel_context_${TARGETARCH} AS bazel_context
 
 ARG TARGETARCH
 
-ENV BAZELISK_VERSION="v1.16.0"
+ENV BAZELISK_VERSION="v1.18.0"
 ENV BAZELISK_BASE_URL="https://github.com/bazelbuild/bazelisk/releases/download"
 ENV BAZELISK_BIN="bazelisk-linux-${TARGETARCH}"
 ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
