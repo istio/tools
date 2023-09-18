@@ -499,7 +499,7 @@ FROM ubuntu:jammy as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV CONTAINERD_VERSION=1.6.22-1
+ENV CONTAINERD_VERSION=1.6.24-1
 ENV DOCKER_VERSION=5:24.0.6-1~ubuntu.22.04~jammy
 ENV DOCKER_BUILDX_VERSION=0.11.2-1~ubuntu.22.04~jammy
 ENV RUST_VERSION=1.72.0
@@ -808,8 +808,10 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 
 FROM ubuntu:18.04 AS build_env_proxy_amd64
 ENV UBUNTU_RELEASE_CODE_NAME=bionic
+ENV UBUNTU_RELEASE_VERSION=18.04
 FROM ubuntu:20.04 AS build_env_proxy_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=focal
+ENV UBUNTU_RELEASE_VERSION=20.04
 # hadolint ignore=DL3006
 FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
 
@@ -823,8 +825,8 @@ LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
 # Docker
-ENV DOCKER_VERSION=5:20.10.7~3-0~ubuntu-${UBUNTU_RELEASE_CODE_NAME}
-ENV CONTAINERD_VERSION=1.4.6-1
+ENV DOCKER_VERSION=5:24.0.2-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+ENV CONTAINERD_VERSION=1.6.21-1
 
 # General
 ENV HOME=/home
