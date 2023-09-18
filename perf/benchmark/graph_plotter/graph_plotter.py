@@ -83,7 +83,7 @@ def get_constructed_query_str(args):
     if args.x_axis == "qps":
         return 'ActualQPS==@ql and ' + args.query_str + ' and Labels.str.endswith(@telemetry_mode)'
     elif args.x_axis == "conn":
-        return 'NumThreads==@ql and Labels.str.endswith(@telemetry_mode)' 
+        return 'NumThreads==@ql and Labels.str.endswith(@telemetry_mode)'
     return ""
 
 
