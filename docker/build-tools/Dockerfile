@@ -40,7 +40,7 @@ ENV BOM_VERSION=v0.5.1
 ENV BUF_VERSION=v1.26.1
 ENV COSIGN_VERSION=v2.2.0
 ENV CRANE_VERSION=v0.16.1
-ENV GCLOUD_VERSION=445.0.0
+ENV GCLOUD_VERSION=446.0.1
 ENV GCR_AUTH_VERSION=2.1.6
 ENV GH_VERSION=2.34.0
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
@@ -73,7 +73,7 @@ ENV PROTOC_VERSION=24.2
 ENV PROTOLOCK_VERSION=v0.16.0
 ENV SHELLCHECK_VERSION=v0.9.0
 ENV SU_EXEC_VERSION=0.3.1
-ENV TRIVY_VERSION=0.45.0
+ENV TRIVY_VERSION=0.45.1
 ENV YQ_VERSION=4.35.1
 
 ENV GO111MODULE=on
@@ -499,7 +499,7 @@ FROM ubuntu:jammy as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV CONTAINERD_VERSION=1.6.22-1
+ENV CONTAINERD_VERSION=1.6.24-1
 ENV DOCKER_VERSION=5:24.0.6-1~ubuntu.22.04~jammy
 ENV DOCKER_BUILDX_VERSION=0.11.2-1~ubuntu.22.04~jammy
 ENV RUST_VERSION=1.72.0
@@ -808,10 +808,14 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 
 FROM ubuntu:18.04 AS build_env_proxy_amd64
 ENV UBUNTU_RELEASE_CODE_NAME=bionic
+ENV UBUNTU_RELEASE_VERSION=18.04
 FROM ubuntu:20.04 AS build_env_proxy_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=focal
+ENV UBUNTU_RELEASE_VERSION=20.04
 # hadolint ignore=DL3006
 FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
+
+ENV DOCKER_BUILDX_VERSION=0.10.5-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
 
 WORKDIR /
 
@@ -823,8 +827,8 @@ LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
 # Docker
-ENV DOCKER_VERSION=5:20.10.7~3-0~ubuntu-${UBUNTU_RELEASE_CODE_NAME}
-ENV CONTAINERD_VERSION=1.4.6-1
+ENV DOCKER_VERSION=5:24.0.2-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+ENV CONTAINERD_VERSION=1.6.21-1
 
 # General
 ENV HOME=/home
@@ -898,7 +902,8 @@ RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/lin
 RUN apt-get update && apt-get -y install --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
-    containerd.io="${CONTAINERD_VERSION}"
+    containerd.io="${CONTAINERD_VERSION}" \
+    docker-buildx-plugin="${DOCKER_BUILDX_VERSION}"
 
 # Run dockerd in CI
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
