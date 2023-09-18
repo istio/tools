@@ -815,6 +815,8 @@ ENV UBUNTU_RELEASE_VERSION=20.04
 # hadolint ignore=DL3006
 FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
 
+ENV DOCKER_BUILDX_VERSION=0.10.5-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+
 WORKDIR /
 
 # Version from build arguments
@@ -900,7 +902,8 @@ RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/lin
 RUN apt-get update && apt-get -y install --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
-    containerd.io="${CONTAINERD_VERSION}"
+    containerd.io="${CONTAINERD_VERSION}" \
+    docker-buildx-plugin="${DOCKER_BUILDX_VERSION}"
 
 # Run dockerd in CI
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
