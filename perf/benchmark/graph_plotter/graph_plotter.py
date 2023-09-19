@@ -83,7 +83,7 @@ def get_constructed_query_str(args):
     if args.x_axis == "qps":
         return 'ActualQPS==@ql and ' + args.query_str + ' and Labels.str.endswith(@telemetry_mode)'
     elif args.x_axis == "conn":
-        return args.query_str + ' and NumThreads==@ql and Labels.str.endswith(@telemetry_mode)'
+        return 'NumThreads==@ql and Labels.str.endswith(@telemetry_mode)'
     return ""
 
 
@@ -107,7 +107,7 @@ def get_data_helper(df, query_list, query_str, telemetry_mode, metric_name):
                 if metric_name.startswith('cpu') or metric_name.startswith('mem'):
                     y_series_data.append(data[metric_name].head(1).values[0])
                 else:
-                    y_series_data.append(data[metric_name].head(1).values[0] / 1000)
+                    y_series_data.append(data[metric_name].head(1).values[0] / data["ActualQPS"].head(1).values[0])
             else:
                 y_series_data.append(None)
 
