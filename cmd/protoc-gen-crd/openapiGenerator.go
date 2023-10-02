@@ -549,23 +549,52 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 	}
 	o.Description = g.generateDescription(message)
 
-	oneOfs := make([][]string, len(message.OneofDecl))
+	const CELOneOf = false
+
 	for _, field := range message.Fields {
 		fn := g.fieldName(field)
-		if field.OneofIndex != nil {
-			oneOfs[*field.OneofIndex] = append(oneOfs[*field.OneofIndex], fn)
-		}
 		sr := g.fieldType(field)
 		o.Properties[fn] = *sr
+
+		// Hack: allow "alt names"
 		for _, an := range g.fieldAltNames(field) {
 			o.Properties[an] = *sr
 		}
+
 	}
-	for _, oo := range oneOfs {
-		o.XValidations = append(o.XValidations, apiext.ValidationRule{
-			Rule:    buildCELOneOf(oo),
-			Message: fmt.Sprintf("At most one of %v should be set", oo),
-		})
+	if CELOneOf {
+		oneOfs := make([][]string, len(message.OneofDecl))
+		for _, field := range message.Fields {
+			// Record any oneOfs
+			if field.OneofIndex != nil {
+				oneOfs[*field.OneofIndex] = append(oneOfs[*field.OneofIndex], fn)
+			}
+		}
+		for _, oo := range oneOfs {
+			o.XValidations = append(o.XValidations, apiext.ValidationRule{
+				Rule:    buildCELOneOf(oo),
+				Message: fmt.Sprintf("At most one of %v should be set", oo),
+			})
+		}
+	} else {
+		oneOfs := make([]apiext.JSONSchemaProps, len(message.OneofDecl))
+		for _, field := range message.Fields {
+			// Record any oneOfs
+			if field.OneofIndex != nil {
+				oneOfs[*field.OneofIndex].OneOf = append(oneOfs[*field.OneofIndex].OneOf, apiext.JSONSchemaProps{Required: []string{fn}})
+			}
+		}
+		for i, oo := range oneOfs {
+			oo.OneOf = append([]apiext.JSONSchemaProps{{Not: &apiext.JSONSchemaProps{AnyOf: oo.OneOf}}}, oo.OneOf...)
+			oneOfs[i] = oo
+		}
+		switch len(oneOfs) {
+		case 0:
+		case 1:
+			o.OneOf = oneOfs[0].OneOf
+		default:
+			o.AllOf = oneOfs
+		}
 	}
 	return o
 }
