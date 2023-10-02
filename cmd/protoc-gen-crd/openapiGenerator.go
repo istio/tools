@@ -451,7 +451,7 @@ func (g *openapiGenerator) generateFile(
 	}
 
 	return plugin.CodeGeneratorResponse_File{
-		Name:    proto.String(name + ".yaml"),
+		Name:    proto.String(name),
 		Content: proto.String(bb.String()),
 	}
 }
