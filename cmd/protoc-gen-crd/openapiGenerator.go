@@ -18,6 +18,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
+	"strings"
+
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -28,12 +31,10 @@ import (
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"log"
 	crdmarkers "sigs.k8s.io/controller-tools/pkg/crd/markers"
 	"sigs.k8s.io/controller-tools/pkg/markers"
 	"sigs.k8s.io/yaml"
 	"slices"
-	"strings"
 
 	"istio.io/tools/cmd/protoc-gen-crd/pkg/protomodel"
 )
@@ -560,14 +561,18 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 		for _, an := range g.fieldAltNames(field) {
 			o.Properties[an] = *sr
 		}
-
 	}
+
+	// Generate OneOf
+	// CEL can do this very cleanly but breaks in K8s: https://github.com/kubernetes/kubernetes/issues/120973
+	// OpenAPI can do it with OneOf, but it gets a bit gross to represent "allow none set" as well.
+	// 	 Many oneOfs do end up requiring at least one to be set, though -- perhaps we can simplify these cases.
 	if CELOneOf {
 		oneOfs := make([][]string, len(message.OneofDecl))
 		for _, field := range message.Fields {
 			// Record any oneOfs
 			if field.OneofIndex != nil {
-				oneOfs[*field.OneofIndex] = append(oneOfs[*field.OneofIndex], fn)
+				oneOfs[*field.OneofIndex] = append(oneOfs[*field.OneofIndex], g.fieldName(field))
 			}
 		}
 		for _, oo := range oneOfs {
@@ -581,7 +586,7 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 		for _, field := range message.Fields {
 			// Record any oneOfs
 			if field.OneofIndex != nil {
-				oneOfs[*field.OneofIndex].OneOf = append(oneOfs[*field.OneofIndex].OneOf, apiext.JSONSchemaProps{Required: []string{fn}})
+				oneOfs[*field.OneofIndex].OneOf = append(oneOfs[*field.OneofIndex].OneOf, apiext.JSONSchemaProps{Required: []string{g.fieldName(field)}})
 			}
 		}
 		for i, oo := range oneOfs {
