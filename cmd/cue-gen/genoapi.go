@@ -426,7 +426,7 @@ func (x *builder) genOpenAPI(name string, inst cue.Value) (cue.Value, error) {
 			if doc.Text() == "" {
 				continue
 			}
-			if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
+			if strings.Contains(doc.Text(), "$hide_from_docs") {
 				return ""
 			}
 			if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
