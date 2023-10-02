@@ -18,10 +18,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
-	"slices"
-	"strings"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -32,7 +28,12 @@ import (
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"log"
+	crdmarkers "sigs.k8s.io/controller-tools/pkg/crd/markers"
+	"sigs.k8s.io/controller-tools/pkg/markers"
 	"sigs.k8s.io/yaml"
+	"slices"
+	"strings"
 
 	"istio.io/tools/cmd/protoc-gen-crd/pkg/protomodel"
 )
@@ -202,7 +203,7 @@ func (g *openapiGenerator) generateSingleFileOutput(filesToGen map[*protomodel.F
 		}
 	}
 
-	rf := g.generateFile("openapiv3", messages, enums, descriptions)
+	rf := g.generateFile("kubernetes/customresourcedefinitions.gen.yaml", messages, enums, descriptions)
 	response.File = []*plugin.CodeGeneratorResponse_File{&rf}
 }
 
@@ -711,7 +712,34 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *apiext.
 		schema.Items.Schema.Description = ""
 	}
 
+	applyExtraValidations(schema, field)
+
 	return schema
+}
+
+type SchemaApplier interface {
+	ApplyToSchema(schema *apiext.JSONSchemaProps) error
+}
+
+func applyExtraValidations(schema *apiext.JSONSchemaProps, field *protomodel.FieldDescriptor) {
+	for _, line := range strings.Split(field.Location().GetLeadingComments(), "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.Contains(line, "+kubebuilder:validation") && !strings.Contains(line, "+list") {
+			continue
+		}
+
+		def := markerRegistry.Lookup(line, markers.DescribesField)
+		if def == nil {
+			log.Fatalf("unknown validation: %v", line)
+		}
+		a, err := def.Parse(line)
+		if err != nil {
+			log.Fatalf("failed to parse: %v", line)
+		}
+		if err := a.(SchemaApplier).ApplyToSchema(schema); err != nil {
+			log.Fatalf("failed to apply schema: %v", err)
+		}
+	}
 }
 
 func (g *openapiGenerator) fieldName(field *protomodel.FieldDescriptor) string {
@@ -755,3 +783,9 @@ func validateStructural(s *apiext.JSONSchemaProps) error {
 
 	return nil
 }
+
+var markerRegistry = func() *markers.Registry {
+	registry := &markers.Registry{}
+	crdmarkers.Register(registry)
+	return registry
+}()
