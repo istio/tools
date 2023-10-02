@@ -429,12 +429,10 @@ func (x *builder) genOpenAPI(name string, inst cue.Value) (cue.Value, error) {
 			if strings.HasPrefix(doc.Text(), "$hide_from_docs") {
 				return ""
 			}
-			if paras := strings.Split(doc.Text(), "\n"); len(paras) > 0 {
-				words := strings.Split(paras[0], " ")
-				for i, w := range words {
-					if strings.HasSuffix(w, ".") {
-						return strings.Join(words[:i+1], " ")
-					}
+			words := strings.Fields(doc.Text())
+			for i, w := range words {
+				if strings.HasSuffix(w, ".") {
+					return strings.Join(words[:i+1], " ")
 				}
 			}
 		}
