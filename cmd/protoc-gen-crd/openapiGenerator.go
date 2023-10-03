@@ -26,6 +26,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"golang.org/x/exp/maps"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
 	apiextinternal "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -118,8 +119,8 @@ type openapiGenerator struct {
 
 	messages map[string]*protomodel.MessageDescriptor
 
-	descriptionConfiguration *DescriptionConfiguration
-	enumAsIntOrString bool
+	descriptionConfiguration   *DescriptionConfiguration
+	enumAsIntOrString          bool
 	customSchemasByMessageName map[string]*apiext.JSONSchemaProps
 }
 
@@ -547,6 +548,10 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 		sr := g.fieldType(field)
 		o.Properties[fn] = *sr
 
+		if isRequired(field) {
+			o.Required = append(o.Required, fn)
+		}
+
 		// Hack: allow "alt names"
 		for _, an := range g.fieldAltNames(field) {
 			o.Properties[an] = *sr
@@ -593,7 +598,28 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 	}
 
 	applyExtraValidations(o, message, markers.DescribesType)
+
 	return o
+}
+
+func isRequired(fd *protomodel.FieldDescriptor) bool {
+	if fd.Options == nil {
+		return false
+	}
+	if !proto.HasExtension(fd.Options, annotations.E_FieldBehavior) {
+		return false
+	}
+	ext := proto.GetExtension(fd.Options, annotations.E_FieldBehavior)
+	opts, ok := ext.([]annotations.FieldBehavior)
+	if !ok {
+		return false
+	}
+	for _, o := range opts {
+		if o == annotations.FieldBehavior_REQUIRED {
+			return true
+		}
+	}
+	return false
 }
 
 // buildCELOneOf builds a CEL expression to select oneOf the fields below
