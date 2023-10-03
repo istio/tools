@@ -1,4 +1,4 @@
-// Copyright 2019 Istio Authors
+// Copyright Istio Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this currentFile except in compliance with the License.
@@ -36,7 +36,7 @@ import (
 	"sigs.k8s.io/controller-tools/pkg/markers"
 	"sigs.k8s.io/yaml"
 
-	"istio.io/tools/cmd/protoc-gen-crd/pkg/protomodel"
+	"istio.io/tools/pkg/protomodel"
 )
 
 // Some special types with predefined schemas.

@@ -1,4 +1,4 @@
-// Copyright 2019 Istio Authors
+// Copyright Istio Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 
 	"istio.io/tools/cmd/protoc-gen-crd/pkg/protocgen"
-	"istio.io/tools/cmd/protoc-gen-crd/pkg/protomodel"
+	"istio.io/tools/pkg/protomodel"
 )
 
 // Breaks the comma-separated list of key=value pairs
@@ -72,7 +72,7 @@ func generate(request *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespon
 		}
 	}
 
-	m := protomodel.NewModel(request)
+	m := protomodel.NewModel(request, false)
 
 	filesToGen := make(map[*protomodel.FileDescriptor]bool)
 	for _, fileName := range request.FileToGenerate {
