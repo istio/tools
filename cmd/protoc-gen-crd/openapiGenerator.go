@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -34,7 +35,6 @@ import (
 	crdmarkers "sigs.k8s.io/controller-tools/pkg/crd/markers"
 	"sigs.k8s.io/controller-tools/pkg/markers"
 	"sigs.k8s.io/yaml"
-	"slices"
 
 	"istio.io/tools/cmd/protoc-gen-crd/pkg/protomodel"
 )
@@ -601,6 +601,8 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 			o.AllOf = oneOfs
 		}
 	}
+
+	applyExtraValidations(o, message, markers.DescribesType)
 	return o
 }
 
@@ -746,7 +748,7 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *apiext.
 		schema.Items.Schema.Description = ""
 	}
 
-	applyExtraValidations(schema, field)
+	applyExtraValidations(schema, field, markers.DescribesField)
 
 	return schema
 }
@@ -755,8 +757,8 @@ type SchemaApplier interface {
 	ApplyToSchema(schema *apiext.JSONSchemaProps) error
 }
 
-func applyExtraValidations(schema *apiext.JSONSchemaProps, field *protomodel.FieldDescriptor) {
-	for _, line := range strings.Split(field.Location().GetLeadingComments(), "\n") {
+func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc, t markers.TargetType) {
+	for _, line := range strings.Split(m.Location().GetLeadingComments(), "\n") {
 		line = strings.TrimSpace(line)
 		if !strings.Contains(line, "+kubebuilder:validation") && !strings.Contains(line, "+list") {
 			continue
