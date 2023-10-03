@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"slices"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -35,6 +34,7 @@ import (
 	crdmarkers "sigs.k8s.io/controller-tools/pkg/crd/markers"
 	"sigs.k8s.io/controller-tools/pkg/markers"
 	"sigs.k8s.io/yaml"
+	"slices"
 
 	"istio.io/tools/cmd/protoc-gen-crd/pkg/protomodel"
 )
@@ -764,7 +764,7 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 			continue
 		}
 
-		def := markerRegistry.Lookup(line, markers.DescribesField)
+		def := markerRegistry.Lookup(line, t)
 		if def == nil {
 			log.Fatalf("unknown validation: %v", line)
 		}
@@ -822,6 +822,8 @@ func validateStructural(s *apiext.JSONSchemaProps) error {
 
 var markerRegistry = func() *markers.Registry {
 	registry := &markers.Registry{}
-	crdmarkers.Register(registry)
+	if err := crdmarkers.Register(registry); err != nil {
+		log.Fatal(err)
+	}
 	return registry
 }()
