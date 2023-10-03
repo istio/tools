@@ -825,12 +825,12 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 		}
 	}
 
+	lines = FilterInPlace(lines, skipLine)
 	text = strings.Join(lines, "\n")
 
 	if g.speller != nil {
 		preBlock := false
 		for linenum, line := range lines {
-
 			trimmed := strings.Trim(line, " ")
 			if strings.HasPrefix(trimmed, "```") {
 				preBlock = !preBlock
@@ -857,6 +857,11 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 
 	g.buffer.Write(result)
 	g.buffer.WriteByte('\n')
+}
+
+func skipLine(line string) bool {
+	// Lots of things use +xyz comments to customize types, strip from docs.
+	return !strings.HasPrefix(line, "+")
 }
 
 var (
@@ -1268,3 +1273,15 @@ var htmlStyle = `
 	}
 </style>
 `
+
+func FilterInPlace[E any](s []E, f func(E) bool) []E {
+	n := 0
+	for _, val := range s {
+		if f(val) {
+			s[n] = val
+			n++
+		}
+	}
+	s = s[:n]
+	return s
+}

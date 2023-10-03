@@ -1,6 +1,6 @@
 module istio.io/tools
 
-go 1.18
+go 1.21
 
 require (
 	cloud.google.com/go/spanner v1.47.0
