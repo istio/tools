@@ -40,13 +40,9 @@ import (
 )
 
 // Some special types with predefined schemas.
-// This is to catch cases where solo apis contain recursive definitions
 // Normally these would result in stack-overflow errors when generating the open api schema
 // The imperfect solution, is to just generate an empty object for these types
-var specialSoloTypes = map[string]*apiext.JSONSchemaProps{
-	"core.solo.io.Metadata": {
-		Type: openapi3.TypeObject,
-	},
+var specialTypes = map[string]*apiext.JSONSchemaProps{
 	"google.protobuf.ListValue": {
 		Items: &apiext.JSONSchemaPropsOrArray{Schema: &apiext.JSONSchemaProps{Type: "object"}},
 	},
@@ -122,14 +118,8 @@ type openapiGenerator struct {
 
 	messages map[string]*protomodel.MessageDescriptor
 
-	// @solo.io customizations to limit length of generated descriptions
 	descriptionConfiguration *DescriptionConfiguration
-
-	// @solo.io customization to support enum validation schemas with int or string values
-	// we need to support this since some controllers marshal enums as integers and others as strings
 	enumAsIntOrString bool
-
-	// @solo.io customizations to define schemas for certain messages
 	customSchemasByMessageName map[string]*apiext.JSONSchemaProps
 }
 
@@ -153,12 +143,12 @@ func newOpenAPIGenerator(
 
 // buildCustomSchemasByMessageName name returns a mapping of message name to a pre-defined openapi schema
 // It includes:
-//  1. `specialSoloTypes`, a set of pre-defined schemas
+//  1. `specialTypes`, a set of pre-defined schemas
 func buildCustomSchemasByMessageName() map[string]*apiext.JSONSchemaProps {
 	schemasByMessageName := make(map[string]*apiext.JSONSchemaProps)
 
 	// Initialize the hard-coded values
-	for name, schema := range specialSoloTypes {
+	for name, schema := range specialTypes {
 		schemasByMessageName[name] = schema
 	}
 
