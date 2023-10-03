@@ -21,7 +21,7 @@
         "zxh404.vscode-proto3",
         "ms-azuretools.vscode-docker",
         "redhat.vscode-yaml",
-        "IBM.output-colorizer
+        "IBM.output-colorizer"
       ],
       "settings": {
         "files.eol": "\n",
