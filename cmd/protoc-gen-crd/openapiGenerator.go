@@ -380,6 +380,11 @@ func (g *openapiGenerator) generateFile(
 				}
 			}
 		}
+		if sr, f := cfg["spec"]; f {
+			if sr == "required" {
+				ver.Schema.OpenAPIV3Schema.Required = append(ver.Schema.OpenAPIV3Schema.Required, "spec")
+			}
+		}
 		if _, f := cfg["storageVersion"]; f {
 			ver.Storage = true
 		}
@@ -458,7 +463,7 @@ func mergeSlices(a []string, b []string) []string {
 	return a
 }
 
-// extractkeyValue extracts a string to key value pairs
+// extractKeyValue extracts a string to key value pairs
 // e.g. a=b,b=c to map[a:b b:c]
 // and a=b,c,d,e=f to map[a:b,c,d e:f]
 func extractKeyValue(s string) map[string]string {
