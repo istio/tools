@@ -19,6 +19,9 @@
 TEST_START="$(date -u +%s.%N)"
 GCP_REGISTRIES=${GCP_REGISTRIES:-"gcr.io,us-docker.pkg.dev"}
 
+# Allow to pass a list of [comma-separated] insecure registries to the docker daemon configuration
+DOCKER_INSECURE_REGISTRIES=${DOCKER_INSECURE_REGISTRIES:-}
+
 function read_gcp_secrets() {
   # Prevent calling with -x set
   if [[ $- = *x* ]]; then
@@ -72,6 +75,21 @@ fi
 
 set -x
 
+function generate_docker_config() {
+  local primaryInterface hostMTU
+  # Enable debug logs for docker daemon, and set the MTU to the external NIC MTU
+  # Docker will always use 1500 as the MTU; in environments where the host has <1500 as the MTU
+  # this may cause connectivity issues.
+  mkdir -p /etc/docker
+  primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
+  hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
+
+  # Convert a comma-separated string to a json array; works with empty strings
+  DOCKER_INSECURE_REGISTRIES=$(echo "${DOCKER_INSECURE_REGISTRIES}" | jq -Rc 'split(",")')
+
+  echo "{\"debug\":true, \"mtu\":${hostMTU:-1500}, \"insecure-registries\":${DOCKER_INSECURE_REGISTRIES}}" > /etc/docker/daemon.json
+}
+
 log "Starting test..."
 
 # Always enable IPv6; all tests should function with it enabled so no need to be selective.
@@ -85,13 +103,8 @@ function run_docker() {
 
   if [[ "${ENABLE_DOCKER}" == "true" ]]; then
     log "Enabling docker..."
-    # Enable debug logs for docker daemon, and set the MTU to the external NIC MTU
-    # Docker will always use 1500 as the MTU; in environments where the host has <1500 as the MTU
-    # this may cause connectivity issues.
-    mkdir -p /etc/docker
-    primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
-    hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
-    echo "{\"debug\":true, \"mtu\":${hostMTU:-1500}}" > /etc/docker/daemon.json
+
+    generate_docker_config
 
     # Start docker daemon and wait for dockerd to start
     service docker start
