@@ -989,7 +989,7 @@ RUN chmod 777 /go && \
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/* && \
-    rm -fr /usr/share/python  && \
+    rm -fr /usr/share/python && \
     rm -fr /usr/share/bash-completion && \
     rm -fr /usr/share/bug && \
     rm -fr /usr/share/doc && \
