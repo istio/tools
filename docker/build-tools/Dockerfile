@@ -988,15 +988,15 @@ RUN chmod 777 /go && \
     chmod 777 /home/.gsutil
 
 # Clean up stuff we don't need in the final image
-RUN rm -rf /var/lib/apt/lists/*
-RUN rm -fr /usr/share/python
-RUN rm -fr /usr/share/bash-completion
-RUN rm -fr /usr/share/bug
-RUN rm -fr /usr/share/doc
-RUN rm -fr /usr/share/dh-python
-RUN rm -fr /usr/share/locale
-RUN rm -fr /usr/share/man
-RUN rm -fr /tmp/*
+RUN rm -rf /var/lib/apt/lists/* && \
+    rm -fr /usr/share/python && \
+    rm -fr /usr/share/bash-completion && \
+    rm -fr /usr/share/bug && \
+    rm -fr /usr/share/doc && \
+    rm -fr /usr/share/dh-python && \
+    rm -fr /usr/share/locale  && \
+    rm -fr /usr/share/man && \
+    rm -fr /tmp/*
 
 # Run config setup in local environments
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
