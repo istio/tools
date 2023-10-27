@@ -34,7 +34,7 @@ ARG TARGETARCH
 # Istio tools SHA that we use for this image
 ARG ISTIO_TOOLS_SHA
 
-# Pinned versions of stuff we pull in
+# Pinned versions of stuff we pull in, keep this list sorted alphabetically
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.5.1
 ENV BUF_VERSION=v1.27.2
@@ -65,6 +65,7 @@ ENV KPT_VERSION=v1.0.0-beta.43
 ENV KUBECTL_VERSION=1.28.1
 ENV KUBECTX_VERSION=0.9.5
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
+ENV OC_VERSION=4.13.19
 ENV ORAS_VERSION=1.1.0
 ENV OTEL_CLI_VERSION=v0.4.0
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
@@ -325,6 +326,21 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kubectx
 ADD https://github.com/ahmetb/kubectx/releases/download/v${KUBECTX_VERSION}/kubens /tmp
 RUN mv /tmp/kubens ${OUTDIR}/usr/bin/kubens
 RUN chmod 555 ${OUTDIR}/usr/bin/kubens
+
+# Install oc - OpenShift command line tool
+RUN set -eux; \
+    \
+    case $(uname -m) in \
+        x86_64) OC_BINARY=openshift-client-linux;; \
+        aarch64) OC_BINARY=openshift-client-linux-arm64;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
+    esac; \
+    \
+    wget -nv -O /tmp/oc.tar.gz https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OC_VERSION}/${OC_BINARY}.tar.gz; \
+    tar zxf /tmp/oc.tar.gz -C /tmp oc; \
+    mv /tmp/oc ${OUTDIR}/usr/bin/oc; \
+    chmod +x ${OUTDIR}/usr/bin/oc; \
+    rm -rf /tmp/oc*
 
 # Move Go tools to their final location
 RUN mv /tmp/go/bin/* ${OUTDIR}/usr/bin
