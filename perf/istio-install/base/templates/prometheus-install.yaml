@@ -10,27 +10,6 @@ parameters:
 provisioner: kubernetes.io/gce-pd
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
----
-# IBM cluster storage
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: ssd
-parameters:
-  billingType: hourly
-  classVersion: "2"
-  gidAllocate: "true"
-  sizeIOPSRange: |-
-    "[20-39]Gi:[100-1000]"
-    "[40-79]Gi:[100-2000]"
-    "[80-99]Gi:[100-4000]"
-    "[100-499]Gi:[100-6000]"
-    "[500-999]Gi:[100-10000]"
-    "[1000-1999]Gi:[100-20000]"
-  type: Performance
-provisioner: ibm.io/ibmc-file
-reclaimPolicy: Delete
-volumeBindingMode: Immediate
 {{- end}}
 ---
 # Source: prometheus-operator/templates/prometheus.yaml
