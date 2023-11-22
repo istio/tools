@@ -18,4 +18,5 @@ run_serversidecar: false
 run_clientsidecar: false
 run_baseline: false
 
-jitter: true
+jitter: false
+uniform: true
