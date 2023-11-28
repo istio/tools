@@ -156,7 +156,6 @@ RUN go install -ldflags="-s -w" github.com/equinix-labs/otel-cli@${OTEL_CLI_VERS
 RUN go install -ldflags="-s -w" \
   istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA} \
-  istio.io/tools/cmd/cue-gen@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/protoc-gen-golang-deepcopy@${ISTIO_TOOLS_SHA} \
