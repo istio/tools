@@ -121,6 +121,7 @@ type openapiGenerator struct {
 
 	descriptionConfiguration   *DescriptionConfiguration
 	enumAsIntOrString          bool
+	enumWithDefaultValue       bool
 	customSchemasByMessageName map[string]*apiext.JSONSchemaProps
 }
 
@@ -133,11 +134,13 @@ func newOpenAPIGenerator(
 	model *protomodel.Model,
 	descriptionConfiguration *DescriptionConfiguration,
 	enumAsIntOrString bool,
+	enumWithDefaultValue bool,
 ) *openapiGenerator {
 	return &openapiGenerator{
 		model:                      model,
 		descriptionConfiguration:   descriptionConfiguration,
 		enumAsIntOrString:          enumAsIntOrString,
+		enumWithDefaultValue:       enumWithDefaultValue,
 		customSchemasByMessageName: buildCustomSchemasByMessageName(),
 	}
 }
@@ -391,6 +394,8 @@ func (g *openapiGenerator) generateFile(
 		if err := validateStructural(ver.Schema.OpenAPIV3Schema); err != nil {
 			log.Fatalf("failed to validate %v as structural: %v", kind, err)
 		}
+
+		// if cfg["default"]
 
 		crd, f := crds[name]
 		if !f {
@@ -660,6 +665,10 @@ func (g *openapiGenerator) generateEnumSchema(enum *protomodel.EnumDescriptor) *
 	for _, v := range values {
 		b, _ := json.Marshal(v.GetName())
 		o.Enum = append(o.Enum, apiext.JSON{Raw: b})
+
+		if g.enumWithDefaultValue && v.GetNumber() == 0 {
+			o.Default = &o.Enum[0]
+		}
 	}
 	o.Type = "string"
 

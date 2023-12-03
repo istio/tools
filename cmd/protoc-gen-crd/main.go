@@ -46,6 +46,7 @@ func extractParams(parameter string) map[string]string {
 func generate(request *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	includeDescription := true
 	enumAsIntOrString := false
+	enumWithDefaultValue := true
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
@@ -66,6 +67,15 @@ func generate(request *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespon
 				enumAsIntOrString = false
 			default:
 				return nil, fmt.Errorf("unknown value '%s' for enum_as_int_or_string", v)
+			}
+		} else if k == "enum_with_default_values" {
+			switch strings.ToLower(v) {
+			case "true":
+				enumWithDefaultValue = true
+			case "false":
+				enumWithDefaultValue = false
+			default:
+				return nil, fmt.Errorf("unknown value '%s' for enum_with_default_values", v)
 			}
 		} else {
 			return nil, fmt.Errorf("unknown argument '%s' specified", k)
@@ -90,7 +100,8 @@ func generate(request *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespon
 	g := newOpenAPIGenerator(
 		m,
 		descriptionConfiguration,
-		enumAsIntOrString)
+		enumAsIntOrString,
+		enumWithDefaultValue)
 	return g.generateOutput(filesToGen)
 }
 
