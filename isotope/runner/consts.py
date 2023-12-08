@@ -19,7 +19,7 @@ import datetime
 DEFAULT_NAMESPACE = 'default'
 MONITORING_NAMESPACE = 'monitoring'
 ISTIO_NAMESPACE = 'istio-system'
-SERVICE_GRAPH_NAMESPACE = 'service-graph'
+SERVICE_GRAPH_NAMESPACE = 'default'
 
 DEFAULT_NODE_POOL_NAME = 'default-pool'
 SERVICE_GRAPH_NODE_POOL_NAME = 'service-graph-pool'

@@ -34,7 +34,7 @@ def set_up_if_not_exists(
     output = sh.run_gcloud(
         ['container', 'clusters', 'list', '--zone', zone], check=True).stdout
     # TODO: Also check if the cluster is normal (e.g. not being deleted).
-    if name in output:
+    if name + " " in output:
         logging.debug('%s already exists; bypassing creation', name)
     else:
         logging.debug('%s does not exist yet; creating...', name)

@@ -47,10 +47,8 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
            archive_url: str, values: str) -> None:
     """Installs Istio from the archive URL.
 
-    Requires Helm client to be present.
-
     This downloads and extracts the archive in a temporary directory, then
-    installs the resources via `helm template` and `kubectl apply`.
+    installs the resources via `istioctl install` and `kubectl apply`.
     """
     archive_url = convert_archive(archive_url)
 
@@ -63,22 +61,12 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
         extracted_dir_path = os.path.join(tmp_dir_path, 'istio')
         extracted_istio_path = _extract(archive_path, extracted_dir_path)
 
-        crd_path = os.path.join(extracted_istio_path, 'install',
-                                'kubernetes', 'helm', 'istio-init')
+        istioctl_path = os.path.join(extracted_istio_path, 'bin',
+                                'istioctl')
 
         chart_path = os.path.join(extracted_istio_path, 'install',
                                   'kubernetes', 'helm', 'istio')
-
-        _apply_crds(
-            crd_path,
-            'istio-init',
-            consts.ISTIO_NAMESPACE)
-
-        _install(
-            chart_path,
-            consts.ISTIO_NAMESPACE,
-            intermediate_file_path=resources.ISTIO_GEN_YAML_PATH,
-            values=values)
+        _install_istio(istioctl_path)
 
         _create_ingress_rules(entrypoint_service_name,
                               entrypoint_service_namespace)
@@ -120,52 +108,13 @@ def _extract(archive_path: str, extracted_dir_path: str) -> str:
     return os.path.join(extracted_dir_path, extracted_items[0])
 
 
-def _apply_crds(path: str, name: str, namespace: str) -> None:
-    logging.info('applying crd definitions for Istio')
-    sh.run_kubectl(['create', 'namespace', namespace])
-
-    istio_yaml = sh.run(
-        [
-            'helm',
-            'template',
-            path,
-            '--name',
-            name,
-            '--namespace',
-            namespace
-        ],
-        check=True).stdout
-    kubectl.apply_text(istio_yaml)
-
-    logging.info('sleeping for 30 seconds as an extra buffer')
-    time.sleep(30)
-    wait.until_deployments_are_ready(namespace)
-
-
-def _install(chart_path: str, namespace: str,
-             intermediate_file_path: str, values: str) -> None:
-    logging.info('installing Helm chart for Istio')
-    istio_yaml = sh.run(
-        [
-            'helm',
-            'template',
-            chart_path,
-            '--namespace',
-            namespace,
-            '--values',
-            values
-            # TODO: Use a values file, specified in the TOML configuration.
-            # Consider replacing environments with a list of values files, then
-            # each of those values files represents the environment. This code
-            # can apply those against the chart.
-            # '--set=global.proxy.resources.requests.cpu=1000m',
-            # '--set=global.proxy.resources.requests.memory=256Mi',
-            # '--set=global.defaultResources.requests.cpu=1000m',
-        ],
-        check=True).stdout
-    kubectl.apply_text(
-        istio_yaml, intermediate_file_path=intermediate_file_path)
-    wait.until_deployments_are_ready(namespace)
+def _install_istio(istioctl_path) -> None:
+    logging.info('Running istioctl install')
+    install = sh.run([istioctl_path,
+                     'install',
+                     '--set',
+                      'profile=default',
+                      '--skip-confirmation'])
 
 
 @contextlib.contextmanager

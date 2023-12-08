@@ -96,7 +96,7 @@ def port_forward(label_key: str, label_value: str, target_port: int,
 
     try:
         # proc.communicate waits until the process terminates or timeout.
-        _, stderr_bytes = proc.communicate(timeout=1)
+        stdout, stderr_bytes = proc.communicate(timeout=1)
 
         # If proc terminates after 1 second, assume that an error occurred.
         stderr = stderr_bytes.decode('utf-8') if stderr_bytes else ''
@@ -105,7 +105,8 @@ def port_forward(label_key: str, label_value: str, target_port: int,
             pod_name, target_port, local_port, info)
         raise RuntimeError(msg)
     except subprocess.TimeoutExpired:
-        # If proc is still running after 1 second, assume that proc will
+        # If proc is still running after 1 second, check that it is
+        # forwarding...and assume that proc will
         # continue port forwarding until termination, as expected.
         pass
 

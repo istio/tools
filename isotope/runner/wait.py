@@ -102,19 +102,21 @@ def _namespace_is_deleted(namespace: str = consts.DEFAULT_NAMESPACE) -> bool:
     return proc.returncode != 0
 
 
-def until_service_graph_is_ready() -> None:
+def until_service_graph_is_ready(service_graph_namespaces: list[str]) -> None:
     """Blocks until each node in the service graph reports readiness."""
-    until(_service_graph_is_ready)
+    until(lambda: _service_graph_is_ready(service_graph_namespaces))
 
 
-def _service_graph_is_ready() -> bool:
-    proc = sh.run_kubectl(
-        [
-            '--namespace', consts.SERVICE_GRAPH_NAMESPACE, 'get', 'pods',
-            '--selector', consts.SERVICE_GRAPH_SERVICE_SELECTOR, '-o',
-            'jsonpath={.items[*].status.conditions[?(@.type=="Ready")].status}'
-        ],
-        check=True)
-    out = proc.stdout
-    all_services_ready = out != '' and 'False' not in out
-    return all_services_ready
+def _service_graph_is_ready(service_graph_namespaces: list[str]) -> bool:
+    for ns in service_graph_namespaces:
+        proc = sh.run_kubectl(
+            [
+                '--namespace', ns, 'get', 'pods',
+                '--selector', consts.SERVICE_GRAPH_SERVICE_SELECTOR, '-o',
+                'jsonpath={.items[*].status.conditions[?(@.type=="Ready")].status}'
+            ],
+            check=True)
+        out = proc.stdout
+        if ('False' in out):
+            return False
+    return True

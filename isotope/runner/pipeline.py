@@ -18,6 +18,7 @@ import contextlib
 import logging
 import os
 import time
+import re
 from typing import Dict, Generator, Optional
 
 import requests
@@ -29,6 +30,20 @@ _REPO_ROOT = os.path.join(os.getcwd(),
                           os.path.dirname(os.path.dirname(__file__)))
 _MAIN_GO_PATH = os.path.join(_REPO_ROOT, 'convert', 'main.go')
 
+def _parse_namespace_from_topology_line(line: str) -> str:
+    pattern = r"\s*namespace: (.+)"
+    match = re.search(pattern, line)
+    if match:
+        return match.group(1)
+    return None
+
+def _kubectl_create_namespaces(namespaces: list[str]) -> bool:
+    for ns in namespaces:
+        gen = sh.run(
+            [
+                'kubectl', 'create', 'ns', ns
+            ],
+            check=False)
 
 def run(topology_path: str, env: mesh.Environment, service_image: str,
         client_image: str, istio_archive_url: str, test_qps: Optional[int],
@@ -54,6 +69,20 @@ def run(topology_path: str, env: mesh.Environment, service_image: str,
                               test_num_concurrent_connections, client_image,
                               env.name)
 
+    # Parsing out the namespaces that will be used in the service graph.
+    # Currently do nothing with this except use them to scope the
+    # pod health checks.
+    service_graph_namespaces = ["default"]
+    with open(topology_path, 'r') as f:
+        for line in f:
+            namespace = _parse_namespace_from_topology_line(line)
+            if namespace:
+                service_graph_namespaces.append(namespace)
+    logging.info('topology file contains the following service-graph namespaces: "%s"', service_graph_namespaces)
+
+    #TODO: this should not be necessary, but the namespaces are not part of convert output.
+    _kubectl_create_namespaces(service_graph_namespaces)
+
     topology_name = _get_basename_no_ext(topology_path)
     labels = {
         'environment': env.name,
@@ -72,13 +101,13 @@ def run(topology_path: str, env: mesh.Environment, service_image: str,
 
         _test_service_graph(manifest_path, result_output_path, ingress_url,
                             test_qps, test_duration,
-                            test_num_concurrent_connections)
+                            test_num_concurrent_connections,
+                            service_graph_namespaces)
 
 
 def _get_basename_no_ext(path: str) -> str:
     basename = os.path.basename(path)
     return os.path.splitext(basename)[0]
-
 
 def _gen_yaml(topology_path: str, service_image: str,
               max_idle_connections_per_host: int, client_image: str,
@@ -123,22 +152,20 @@ def _get_gke_node_selector(node_pool_name: str) -> str:
 def _test_service_graph(yaml_path: str, test_result_output_path: str,
                         test_target_url: str, test_qps: Optional[int],
                         test_duration: str,
-                        test_num_concurrent_connections: int) -> None:
+                        test_num_concurrent_connections: int,
+                        service_graph_namespaces: list[str]) -> None:
     """Deploys the service graph at yaml_path and runs a load test on it."""
     # TODO: extract to env.context, with entrypoint hostname as the ingress URL
     with kubectl.manifest(yaml_path):
-        wait.until_deployments_are_ready(consts.SERVICE_GRAPH_NAMESPACE)
-        wait.until_service_graph_is_ready()
+        wait.until_service_graph_is_ready(service_graph_namespaces)
         # TODO: Why is this extra buffer necessary?
-        logging.debug('sleeping for 30 seconds as an extra buffer')
-        time.sleep(30)
+        logging.debug('sleeping for 60 seconds as an extra buffer')
+        time.sleep(60)
 
         _run_load_test(test_result_output_path, test_target_url, test_qps,
                        test_duration, test_num_concurrent_connections)
 
         wait.until_prometheus_has_scraped()
-
-    wait.until_namespace_is_deleted(consts.SERVICE_GRAPH_NAMESPACE)
 
 
 def _run_load_test(result_output_path: str, test_target_url: str,
@@ -175,6 +202,7 @@ def _http_get_json(url: str) -> str:
     response = None
     while response is None:
         try:
+            logging.info('sending request: %s', url)
             response = requests.get(url)
         except (requests.ConnectionError, requests.HTTPError) as e:
             logging.error('%s; retrying request to %s', e, url)
