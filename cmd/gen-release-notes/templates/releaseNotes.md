@@ -17,7 +17,7 @@ This release contains bug fixes to improve robustness. This release note describ
 
 {{< relnote >}}
 
-# Changes
+## Changes
 
 <!-- releaseNotes action:Promoted -->
 <!-- releaseNotes action:Improved -->
@@ -30,6 +30,6 @@ This release contains bug fixes to improve robustness. This release note describ
 <!-- releaseNotes action:Removed -->
 <!-- releaseNotes action:Optimized -->
 
-# Security update
+## Security update
 
 <!-- securityNotes -->
