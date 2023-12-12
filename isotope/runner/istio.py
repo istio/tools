@@ -62,7 +62,7 @@ def set_up(entrypoint_service_name: str, entrypoint_service_namespace: str,
         extracted_istio_path = _extract(archive_path, extracted_dir_path)
 
         istioctl_path = os.path.join(extracted_istio_path, 'bin',
-                                'istioctl')
+                                     'istioctl')
 
         chart_path = os.path.join(extracted_istio_path, 'install',
                                   'kubernetes', 'helm', 'istio')
@@ -112,7 +112,7 @@ def _install_istio(istioctl_path) -> None:
     logging.info('Running istioctl install')
     install = sh.run([istioctl_path,
                      'install',
-                     '--set',
+                      '--set',
                       'profile=default',
                       '--skip-confirmation'])
 

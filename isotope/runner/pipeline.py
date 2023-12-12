@@ -30,12 +30,14 @@ _REPO_ROOT = os.path.join(os.getcwd(),
                           os.path.dirname(os.path.dirname(__file__)))
 _MAIN_GO_PATH = os.path.join(_REPO_ROOT, 'convert', 'main.go')
 
+
 def _parse_namespace_from_topology_line(line: str) -> str:
     pattern = r"\s*namespace: (.+)"
     match = re.search(pattern, line)
     if match:
         return match.group(1)
     return None
+
 
 def _kubectl_create_namespaces(namespaces: list[str]) -> bool:
     for ns in namespaces:
@@ -44,6 +46,7 @@ def _kubectl_create_namespaces(namespaces: list[str]) -> bool:
                 'kubectl', 'create', 'ns', ns
             ],
             check=False)
+
 
 def run(topology_path: str, env: mesh.Environment, service_image: str,
         client_image: str, istio_archive_url: str, test_qps: Optional[int],
@@ -80,7 +83,7 @@ def run(topology_path: str, env: mesh.Environment, service_image: str,
                 service_graph_namespaces.append(namespace)
     logging.info('topology file contains the following service-graph namespaces: "%s"', service_graph_namespaces)
 
-    #TODO: this should not be necessary, but the namespaces are not part of convert output.
+    # TODO: this should not be necessary, but the namespaces are not part of convert output.
     _kubectl_create_namespaces(service_graph_namespaces)
 
     topology_name = _get_basename_no_ext(topology_path)
@@ -108,6 +111,7 @@ def run(topology_path: str, env: mesh.Environment, service_image: str,
 def _get_basename_no_ext(path: str) -> str:
     basename = os.path.basename(path)
     return os.path.splitext(basename)[0]
+
 
 def _gen_yaml(topology_path: str, service_image: str,
               max_idle_connections_per_host: int, client_image: str,
@@ -158,9 +162,6 @@ def _test_service_graph(yaml_path: str, test_result_output_path: str,
     # TODO: extract to env.context, with entrypoint hostname as the ingress URL
     with kubectl.manifest(yaml_path):
         wait.until_service_graph_is_ready(service_graph_namespaces)
-        # TODO: Why is this extra buffer necessary?
-        logging.debug('sleeping for 60 seconds as an extra buffer')
-        time.sleep(60)
 
         _run_load_test(test_result_output_path, test_target_url, test_qps,
                        test_duration, test_num_concurrent_connections)
