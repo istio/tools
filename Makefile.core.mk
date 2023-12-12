@@ -14,6 +14,9 @@
 
 SHELL := /bin/bash -o pipefail
 
+FINDFILES=find . \( -path ./common-protos -o -path ./.git -o -path ./out -o -path ./.github -o -path ./licenses -o -path ./vendor -o -path ./cmd/gen-release-notes/templates \) -prune -o -type f
+export FINDFILES
+
 build:
 	@go build ./...
 
@@ -23,7 +26,7 @@ test:
 check-stability:
 	./metrics/check_metrics.py
 
-MARKDOWN_LINT_ALLOWLIST=mysite.com/mypage.html,github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz,localhost,cmd/gen-release-notes/templates
+MARKDOWN_LINT_ALLOWLIST=mysite.com/mypage.html,github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz,localhost
 
 lint: lint-all
 
