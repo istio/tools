@@ -14,6 +14,9 @@
 
 SHELL := /bin/bash -o pipefail
 
+FINDFILES_IGNORE= -path ./cmd/gen-release-notes/templates
+export FINDFILES_IGNORE
+
 build:
 	@go build ./...
 
