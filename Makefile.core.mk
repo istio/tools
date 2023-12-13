@@ -14,8 +14,8 @@
 
 SHELL := /bin/bash -o pipefail
 
-FINDFILES=find . \( -path ./common-protos -o -path ./.git -o -path ./out -o -path ./.github -o -path ./licenses -o -path ./vendor -o -path ./cmd/gen-release-notes/templates \) -prune -o -type f
-export FINDFILES
+FINDFILES_IGNORE= -path ./cmd/gen-release-notes/templates
+export FINDFILES_IGNORE
 
 build:
 	@go build ./...
