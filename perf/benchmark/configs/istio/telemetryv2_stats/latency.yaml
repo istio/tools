@@ -1,7 +1,7 @@
 # Data: latency
 # Filter: metadata-exchange and stats filters
 # VM mode: nullvm
-telemetry_mode: "v2-stats-nullvm"
+telemetry_mode: "istio_with_stats"
 conn:
     - 2
     - 4
@@ -16,6 +16,6 @@ perf_record: false
 run_bothsidecar: true
 run_serversidecar: false
 run_clientsidecar: false
-run_baseline: false
-
-jitter: true
+run_no_istio: false
+uniform: true
+nocatchup: true
