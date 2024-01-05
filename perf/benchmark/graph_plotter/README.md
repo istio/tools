@@ -18,7 +18,7 @@ Either qps or conn.
 
 --telemetry_modes TELEMETRY_MODES
 This is a list of perf test labels, currently it can be any combinations from the follow supported modes:
-[none_mtls_baseline, none_mtls_both, v2-sd-full-nullvm_both, v2-stats-nullvm_both, v2-stats-wasm_both, v2-sd-nologging-nullvm_both].
+[no_istio, none_mtls_both, v2-sd-full-nullvm_both, istio_with_stats, v2-stats-wasm_both, v2-sd-nologging-nullvm_both].
 
 --query_list QUERY_LIST
 Specify the qps or conn range you want to plot based on the CSV file.
@@ -41,7 +41,7 @@ You can use the example [benchmark.csv](example_plot/benchmark.csv) file to plot
 the following command:
 
 ```bash
-python3 ./graph_plotter.py --graph_type=latency-p50 --x_axis=conn --telemetry_modes=none_mtls_baseline,none_mtls_both,v2-sd-full-nullvm_both,v2-stats-nullvm_both --query_list=2,4,8,16,32,64 --query_str=ActualQPS==1000 --csv_filepath=./example_plot/benchmark.csv --graph_title=./example_plot/plotter_output.png
+python3 ./graph_plotter.py --graph_type=latency-p50 --x_axis=conn --telemetry_modes=no_istio,none_mtls_both,v2-sd-full-nullvm_both,istio_with_stats --query_list=2,4,8,16,32,64 --query_str=ActualQPS==1000 --csv_filepath=./example_plot/benchmark.csv --graph_title=./example_plot/plotter_output.png
 ```
 
 Example Output:
