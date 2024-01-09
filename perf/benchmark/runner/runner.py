@@ -177,7 +177,9 @@ class Fortio:
 
     def compute_uri(self, svc, port_type):
         if self.load_gen_type == "fortio":
-            basestr = "{protocol}://{svc}:{port}/echo".format(svc=svc, port=self.ports[self.protocol_mode][port_type], protocol=self.get_protocol_uri_fragment())
+            basestr = "{protocol}://{svc}:{port}/echo".format(svc=svc,
+                                                              port=self.ports[self.protocol_mode][port_type],
+                                                              protocol=self.get_protocol_uri_fragment())
             if self.protocol_mode == "grpc":
                 basestr = "-payload-size {size} {svc}:{port}"
             elif self.protocol_mode == "tcp":
