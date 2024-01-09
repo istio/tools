@@ -114,14 +114,14 @@ class Fortio:
             frequency=None,
             protocol_mode="http",
             size=None,
-            telemetry_mode="v2-stats-nullvm",
+            telemetry_mode="istio_with_stats",
             perf_record=False,
             server="fortioserver",
             client="fortioclient",
             additional_args=None,
             filter_fn=None,
             extra_labels=None,
-            baseline=False,
+            no_istio=False,
             serversidecar=False,
             clientsidecar=False,
             bothsidecar=True,
@@ -152,7 +152,7 @@ class Fortio:
         self.additional_args = additional_args
         self.filter_fn = filter_fn
         self.extra_labels = extra_labels
-        self.run_baseline = baseline
+        self.run_no_istio = no_istio
         self.run_serversidecar = serversidecar
         self.run_clientsidecar = clientsidecar
         self.run_bothsidecar = bothsidecar
@@ -177,7 +177,9 @@ class Fortio:
 
     def compute_uri(self, svc, port_type):
         if self.load_gen_type == "fortio":
-            basestr = "{protocol}://{svc}:{port}/echo?size={size}"
+            basestr = "{protocol}://{svc}:{port}/echo".format(svc=svc,
+                                                              port=self.ports[self.protocol_mode][port_type],
+                                                              protocol=self.get_protocol_uri_fragment())
             if self.protocol_mode == "grpc":
                 basestr = "-payload-size {size} {svc}:{port}"
             elif self.protocol_mode == "tcp":
@@ -189,18 +191,18 @@ class Fortio:
         else:
             sys.exit("invalid load generator %s, must be fortio or nighthawk", self.load_gen_type)
 
-    # Baseline is no sidecar mode
-    def baseline(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "direct_port")
+    # no sidecar mode
+    def no_istio(self, load_gen_cmd, sidecar_mode):
+        return load_gen_cmd + " " + self.compute_uri(self.server.ip, "direct_port")
 
     def serversidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "port")
+        return load_gen_cmd + " " + self.compute_uri(self.server.ip, "port")
 
     def clientsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "direct_port")
+        return load_gen_cmd + " " + self.compute_uri(self.server.labels["app"], "direct_port")
 
     def bothsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "port")
+        return load_gen_cmd + " " + self.compute_uri(self.server.labels["app"], "port")
 
     def ingress(self, load_gen_cmd):
         url = urlparse(self.run_ingress)
@@ -371,10 +373,10 @@ class Fortio:
                 jitter_uniform = f"{float(0.1 * 1 / qps):.9f}"  # suppress scientific notation
             load_gen_cmd = self.generate_nighthawk_cmd(workers, conn, qps, jitter_uniform, duration, labels)
 
-        if self.run_baseline:
-            perf_label = "baseline_perf"
-            sidecar_mode = "baseline"
-            sidecar_mode_func = self.baseline
+        if self.run_no_istio:
+            perf_label = "no_istio_perf"
+            sidecar_mode = "no_istio"
+            sidecar_mode_func = self.no_istio
             self.execute_sidecar_mode(sidecar_mode, self.load_gen_type, load_gen_cmd,
                                       sidecar_mode_func, labels, perf_label)
 
@@ -465,13 +467,13 @@ def fortio_from_config_file(args):
         fortio.qps = job_config.get('qps', 1000)
         fortio.duration = job_config.get('duration', 240)
         fortio.load_gen_type = os.environ.get("LOAD_GEN_TYPE", "fortio")
-        fortio.telemetry_mode = job_config.get('telemetry_mode', 'v2-stats-nullvm')
+        fortio.telemetry_mode = job_config.get('telemetry_mode', 'istio_with_stats')
         fortio.size = job_config.get('size', 1024)
         fortio.perf_record = job_config.get('perf_record', False)
         fortio.run_serversidecar = job_config.get('run_serversidecar', False)
         fortio.run_clientsidecar = job_config.get('run_clientsidecar', False)
         fortio.run_bothsidecar = job_config.get('run_bothsidecar', True)
-        fortio.run_baseline = job_config.get('run_baseline', False)
+        fortio.run_no_istio = job_config.get('run_no_istio', False)
         fortio.run_ingress = job_config.get('run_ingress', False)
         fortio.mesh = job_config.get('mesh', 'istio')
         fortio.protocol_mode = job_config.get('protocol_mode', 'http')
@@ -508,7 +510,7 @@ def run_perf_test(args):
             size=args.size,
             perf_record=args.perf,
             extra_labels=args.extra_labels,
-            baseline=args.baseline,
+            no_istio=args.no_istio,
             serversidecar=args.serversidecar,
             clientsidecar=args.clientsidecar,
             bothsidecar=args.bothsidecar,
@@ -641,8 +643,8 @@ def get_parser():
         default="istio")
     parser.add_argument(
         "--telemetry_mode",
-        help="run with different telemetry configurations: none, v2-stats-nullvm, v2-sd-full-nullvm, etc.",
-        default="v2-stats-nullvm")
+        help="run with different telemetry configurations: no_istio, istio_with_stats, v2-sd-full-nullvm, etc.",
+        default="istio_with_stats")
     parser.add_argument(
         "--client",
         help="where to run the test from",
@@ -701,7 +703,7 @@ def get_parser():
         default=None
     )
 
-    define_bool(parser, "baseline", "run baseline for all", False)
+    define_bool(parser, "no_istio", "run no_istio for all", False)
     define_bool(parser, "serversidecar",
                 "run serversidecar-only for all", False)
     define_bool(parser, "clientsidecar",
