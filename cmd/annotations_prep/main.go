@@ -145,33 +145,35 @@ weight: 60
 This page presents the various resource <a href="{{ .Collection.ConceptLink }}">{{ .Collection.NameLowercasePlural }}</a> that
 Istio supports to control its behavior.
 </p>
-
+{{- range .Variables -}}
+{{- if not .Hidden }}
+<h2 id="{{ .GoName }}">{{ .Name }}</h2>
 <table class="annotations">
-  <thead>
-    <tr>
-      <th>{{ .Collection.Name }} Name</th>
-      <th>Feature Status</th>
-      <th>Resource Types</th>
-      <th>Description</th>
-    </tr>
-  </thead>
   <tbody>
-  {{- range .Variables -}}
-  {{- if not .Hidden }}
     <tr{{ if .Deprecated }} class="deprecated"{{ end }}>
+      <th>Name</th>
       <td><code>{{ .Name }}</code></td>
+    </tr>
+    <tr>
+      <th>Feature Status</th>
     {{- if .Deprecated }}
       <td>Deprecated</td>
     {{- else }}
       <td>{{ .FeatureStatus }}</td>
     {{- end }}
+    </tr>
+    <tr>
+      <th>Resource Types</th>
       <td>{{ .Resources }}</td>
+    </tr>
+    <tr>
+      <th>Description</th>
       <td>{{ processHTMLDescription .Description }}</td>
     </tr>
-  {{- end -}}
-  {{- end -}}
   </tbody>
 </table>
+{{- end -}}
+{{- end -}}
 `
 )
 
