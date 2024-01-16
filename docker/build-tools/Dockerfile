@@ -118,25 +118,10 @@ ADD https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}
 RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_${TARGETARCH}.deb
 RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
-# Install protoc-gen-validate
-RUN set -eux; \
-    \
-    case $(uname -m) in \
-        x86_64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}_linux_amd64.tar.gz;; \
-        aarch64) PROTOC_GEN_VALIDATE_GZ=protoc-gen-validate_${PROTOC_GEN_VALIDATE_VERSION}_linux_arm64.tar.gz;; \
-        *) echo "unsupported architecture"; exit 1 ;; \
-    esac; \
-    \
-    wget -nv -O "/tmp/${PROTOC_GEN_VALIDATE_GZ}" "https://github.com/bufbuild/protoc-gen-validate/releases/download/v${PROTOC_GEN_VALIDATE_VERSION}/${PROTOC_GEN_VALIDATE_GZ}"; \
-    tar -xzvf "/tmp/${PROTOC_GEN_VALIDATE_GZ}" -C /tmp; \
-    mv /tmp/protoc-gen-validate ${OUTDIR}/usr/bin; \
-    mv /tmp/protoc-gen-validate-go ${OUTDIR}/usr/bin; \
-    chmod +x ${OUTDIR}/usr/bin/protoc-gen-validate; \
-    chmod +x ${OUTDIR}/usr/bin/protoc-gen-validate-go
-
 # Build and install a bunch of Go tools
 RUN go install -ldflags="-s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
 RUN go install -ldflags="-s -w" google.golang.org/grpc/cmd/protoc-gen-go-grpc@${GOLANG_GRPC_PROTOBUF_VERSION}
+RUN go install -ldflags="-s -w" github.com/bufbuild/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
 RUN go install -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
 RUN go install -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN go install -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
