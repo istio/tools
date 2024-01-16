@@ -58,8 +58,8 @@ ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.20.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.29.0
-# From 7/6/2023
-ENV K8S_TEST_INFRA_VERSION=91ecbd6a270f879e309760d65eccc60f466e726b
+# From Jan 16, 2024
+ENV K8S_TEST_INFRA_VERSION=253c5551b06afdd2a06d698d3c81cefb9064c1a6
 ENV KIND_VERSION=v0.20.0
 ENV KPT_VERSION=v1.0.0-beta.48
 ENV KUBECTL_VERSION=1.29.0
@@ -177,20 +177,10 @@ RUN go install -ldflags="-s -w" \
     sigs.k8s.io/kubetest2@${KUBETEST2_VERSION} \
     sigs.k8s.io/kubetest2/kubetest2-gke@${KUBETEST2_VERSION} \
     sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
-
-# Go doesn't like the `replace` directives; need to do manual cloning now.
-# Should be fixed by https://github.com/kubernetes/test-infra/issues/20421
-# hadolint ignore=DL3003
-RUN mkdir -p test-infra && \
-  cd test-infra && \
-  git init && \
-  git remote add origin https://github.com/kubernetes/test-infra.git && \
-  git fetch --depth 1 origin ${K8S_TEST_INFRA_VERSION} && \
-  git checkout FETCH_HEAD && \
-  go install ./robots/pr-creator && \
-  go install ./prow/cmd/peribolos && \
-  go install ./pkg/benchmarkjunit && \
-  cd .. && rm -rf test-infra
+RUN go install -ldflags="-s -w" \
+  k8s.io/test-infra/robots/pr-creator@${K8S_TEST_INFRA_VERSION} \
+  k8s.io/test-infra/prow/cmd/peribolos@${K8S_TEST_INFRA_VERSION} \
+  k8s.io/test-infra/pkg/benchmarkjunit@${K8S_TEST_INFRA_VERSION}
 
 # Add gen-release-notes templates to filesystem
 RUN mkdir -p ${OUTDIR}/usr/share/gen-release-notes
