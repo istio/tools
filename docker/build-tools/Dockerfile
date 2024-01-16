@@ -152,6 +152,7 @@ RUN go install -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@$
 RUN go install -ldflags="-s -w" golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
 RUN go install -ldflags="-s -w" github.com/google/go-containerregistry/cmd/crane@${CRANE_VERSION}
 RUN go install -ldflags="-s -w" github.com/equinix-labs/otel-cli@${OTEL_CLI_VERSION}
+RUN go install -ldflags="-s -w" github.com/mikefarah/yq/v4@v${YQ_VERSION}
 # Install latest version of Istio-owned tools in this release
 RUN go install -ldflags="-s -w" \
   istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA} \
@@ -235,11 +236,6 @@ RUN mkdir /tmp/helm3
 RUN tar -xf /tmp/helm-${HELM3_VERSION}-linux-${TARGETARCH}.tar.gz -C /tmp/helm3
 RUN mv /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm3
 RUN ln ${OUTDIR}/usr/bin/helm3 ${OUTDIR}/usr/bin/helm
-
-# yq doesn't support go modules, so install the binary instead
-ADD https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH} /tmp
-RUN mv /tmp/yq_linux_${TARGETARCH} ${OUTDIR}/usr/bin/yq
-RUN chmod 555 ${OUTDIR}/usr/bin/yq
 
 # Kubectl
 ADD https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl ${OUTDIR}/usr/bin/kubectl
