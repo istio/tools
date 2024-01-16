@@ -69,7 +69,6 @@ ENV OC_VERSION=4.14.6
 ENV ORAS_VERSION=1.1.0
 ENV OTEL_CLI_VERSION=v0.4.1
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
-ENV PROTOC_GEN_VALIDATE_VERSION=v1.0.3
 ENV PROTOC_VERSION=25.2
 ENV PROTOLOCK_VERSION=v0.17.0
 ENV SHELLCHECK_VERSION=v0.9.0
@@ -121,7 +120,6 @@ RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 # Build and install a bunch of Go tools
 RUN go install -ldflags="-s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
 RUN go install -ldflags="-s -w" google.golang.org/grpc/cmd/protoc-gen-go-grpc@${GOLANG_GRPC_PROTOBUF_VERSION}
-RUN go install -ldflags="-s -w" github.com/bufbuild/protoc-gen-validate@${PROTOC_GEN_VALIDATE_VERSION}
 RUN go install -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
 RUN go install -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
 RUN go install -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
