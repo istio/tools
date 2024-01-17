@@ -484,6 +484,7 @@ def fortio_from_config_file(args):
         fortio.nocatchup = job_config.get("nocatchup", False)
         fortio.keepalive = job_config.get("keepalive", True)
         fortio.connection_reuse = job_config.get("connection_reuse", None)
+        fortio.del_perf_record = job_config.get("del_perf_record", False)
 
         return fortio
 
@@ -524,7 +525,17 @@ def run_perf_test(args):
             nocatchup=args.nocatchup,
             load_gen_type=args.load_gen_type,
             keepalive=args.keepalive,
+            del_perf_record=args.del_perf_record,
             connection_reuse=args.connection_reuse)
+
+    if fortio.del_perf_record:
+        print("Deleting previous fortio data, del_perf_record is set to {delete}".format(delete=fortio.del_perf_record))
+        get_fortioclient_pod_cmd = "kubectl -n {namespace} get pods | grep fortioclient".format(namespace=NAMESPACE)
+        fortioclient_pod_name = getoutput(get_fortioclient_pod_cmd).split(" ")[0]
+        rm_fortio_json_cmd = "kubectl exec -it -n {namespace} {fortioclient} -c shell -- bash -c 'rm /var/lib/fortio/*.json'".format(
+            namespace=NAMESPACE, fortioclient=fortioclient_pod_name)
+        print("cmd: %s" % rm_fortio_json_cmd)
+        run_command(rm_fortio_json_cmd)
 
     if fortio.duration <= min_duration:
         print("Duration must be greater than {min_duration}".format(
@@ -702,6 +713,10 @@ def get_parser():
         help="Range min:max for the max number of connections to reuse for each thread, default to unlimited.",
         default=None
     )
+    parser.add_argument(
+        "--del_perf_record",
+        help="delete previous performance results",
+        default=False)
 
     define_bool(parser, "no_istio", "run no_istio for all", False)
     define_bool(parser, "serversidecar",
