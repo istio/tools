@@ -13,6 +13,7 @@ qps:
     - 1000
 duration: 240
 perf_record: false
+del_perf_record: false
 run_bothsidecar: true
 run_serversidecar: false
 run_clientsidecar: false

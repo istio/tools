@@ -13,6 +13,10 @@ qps:
 duration: 240
 size: 1024
 perf_record: false
+
+#if set to true in this file, should be set to false in configs/istio/telemetryv2_stats/latency.yaml and vice-versa. Or both are set to false.
+del_perf_record: false 
+
 run_bothsidecar: true
 run_serversidecar: false
 run_clientsidecar: false
