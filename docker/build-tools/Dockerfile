@@ -441,8 +441,8 @@ FROM ubuntu:jammy as python_context
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Pinned versions of stuff we pull in
-ENV AUTOPEP8_VERSION=2.0.2
-ENV PYCODESTYLE_VERSION=2.10.0
+ENV AUTOPEP8_VERSION=2.0.4
+ENV PYCODESTYLE_VERSION=2.11.1
 ENV JWCRYPTO_VERSION=1.5.0
 ENV PIP_INSTALL_VERSION=23.1.2
 ENV PYGITHUB_VERSION=1.58.2
@@ -464,9 +464,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python stuff
 RUN python3 -m pip install --no-cache-dir --upgrade pip==${PIP_INSTALL_VERSION}
-# FIXME: Pycodestyle had a breaking change in 2.11.0 and broke autopep8.
-# Pin pycodestyle version until autopep8 is updated.
-# https://github.com/hhatto/autopep8/issues/689
 RUN python3 -m pip install --no-cache-dir pycodestyle==${PYCODESTYLE_VERSION}
 RUN python3 -m pip install --no-cache-dir --no-binary :all: autopep8==${AUTOPEP8_VERSION}
 RUN python3 -m pip install --no-cache-dir yamllint==${YAMLLINT_VERSION}
