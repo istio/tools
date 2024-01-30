@@ -23,7 +23,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// GenerateFn is a function definition for encapsulating the ore logic of code generation.
+// GenerateFn is a function definition for encapsulating the core logic of code generation.
 type GenerateFn func(req *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error)
 
 // Generate is a wrapper for a main function of a protoc generator plugin.

@@ -28,6 +28,7 @@ import (
 	"golang.org/x/exp/maps"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/pluginpb"
 	apiextinternal "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
@@ -122,6 +123,7 @@ type openapiGenerator struct {
 	descriptionConfiguration   *DescriptionConfiguration
 	enumAsIntOrString          bool
 	customSchemasByMessageName map[string]*apiext.JSONSchemaProps
+	includeExtendedFields      bool
 }
 
 type DescriptionConfiguration struct {
@@ -133,12 +135,14 @@ func newOpenAPIGenerator(
 	model *protomodel.Model,
 	descriptionConfiguration *DescriptionConfiguration,
 	enumAsIntOrString bool,
+	includeExtendedFields bool,
 ) *openapiGenerator {
 	return &openapiGenerator{
 		model:                      model,
 		descriptionConfiguration:   descriptionConfiguration,
 		enumAsIntOrString:          enumAsIntOrString,
 		customSchemasByMessageName: buildCustomSchemasByMessageName(),
+		includeExtendedFields:      includeExtendedFields,
 	}
 }
 
@@ -154,14 +158,6 @@ func buildCustomSchemasByMessageName() map[string]*apiext.JSONSchemaProps {
 	}
 
 	return schemasByMessageName
-}
-
-func (g *openapiGenerator) generateOutput(filesToGen map[*protomodel.FileDescriptor]bool) (*plugin.CodeGeneratorResponse, error) {
-	response := plugin.CodeGeneratorResponse{}
-
-	g.generateSingleFileOutput(filesToGen, &response)
-
-	return &response, nil
 }
 
 func (g *openapiGenerator) getFileContents(
@@ -184,7 +180,11 @@ func (g *openapiGenerator) getFileContents(
 	}
 }
 
-func (g *openapiGenerator) generateSingleFileOutput(filesToGen map[*protomodel.FileDescriptor]bool, response *plugin.CodeGeneratorResponse) {
+func (g *openapiGenerator) generateSingleFileOutput(
+	filesToGen map[*protomodel.FileDescriptor]bool,
+	fileName string,
+	includeExtendedFields bool,
+) pluginpb.CodeGeneratorResponse_File {
 	messages := make(map[string]*protomodel.MessageDescriptor)
 	enums := make(map[string]*protomodel.EnumDescriptor)
 	descriptions := make(map[string]string)
@@ -195,8 +195,7 @@ func (g *openapiGenerator) generateSingleFileOutput(filesToGen map[*protomodel.F
 		}
 	}
 
-	rf := g.generateFile("kubernetes/customresourcedefinitions.gen.yaml", messages, enums, descriptions)
-	response.File = []*plugin.CodeGeneratorResponse_File{&rf}
+	return g.generateFile(fileName, messages, enums, descriptions, includeExtendedFields)
 }
 
 const (
@@ -233,28 +232,35 @@ func cleanComments(lines []string) []string {
 	return out
 }
 
-func parseGenTags(s string) map[string]string {
+func parseMessageGenTags(s string) map[string]string {
 	lines := cleanComments(strings.Split(s, "\n"))
 	res := map[string]string{}
 	for _, line := range lines {
 		if len(line) == 0 {
 			continue
 		}
+		// +cue-gen:AuthorizationPolicy:groupName:security.istio.io turns into
+		// :AuthorizationPolicy:groupName:security.istio.io
 		_, contents, f := strings.Cut(line, enableCRDGenTag)
 		if !f {
 			continue
 		}
+		// :AuthorizationPolicy:groupName:security.istio.io turns into
+		// ["AuthorizationPolicy", "groupName", "security.istio.io"]
 		spl := strings.SplitN(contents[1:], ":", 3)
 		if len(spl) < 2 {
-			log.Fatalf("invalid tag: %v", line)
+			log.Fatalf("invalid message tag: %v", line)
 		}
 		val := ""
 		if len(spl) > 2 {
+			// val is "security.istio.io"
 			val = spl[2]
 		}
 		if _, f := res[spl[1]]; f {
+			// res["groupName"] is "security.istio.io;;newVal"
 			res[spl[1]] += ";;" + val
 		} else {
+			// res["groupName"] is "security.istio.io"
 			res[spl[1]] = val
 		}
 	}
@@ -270,13 +276,14 @@ func (g *openapiGenerator) generateFile(
 	messages map[string]*protomodel.MessageDescriptor,
 	enums map[string]*protomodel.EnumDescriptor,
 	descriptions map[string]string,
+	includeExtended bool,
 ) plugin.CodeGeneratorResponse_File {
 	g.messages = messages
 
 	allSchemas := make(map[string]*apiext.JSONSchemaProps)
 
 	// Type --> Key --> Value
-	genTags := map[string]map[string]string{}
+	messageGenTags := map[string]map[string]string{}
 
 	for _, message := range messages {
 		// we generate the top-level messages here and the nested messages are generated
@@ -284,8 +291,8 @@ func (g *openapiGenerator) generateFile(
 		if message.Parent == nil {
 			g.generateMessage(message, allSchemas)
 		}
-		if gt := parseGenTags(message.Location().GetLeadingComments()); gt != nil {
-			genTags[g.absoluteName(message)] = gt
+		if gt := parseMessageGenTags(message.Location().GetLeadingComments()); gt != nil {
+			messageGenTags[g.absoluteName(message)] = gt
 		}
 	}
 
@@ -299,7 +306,11 @@ func (g *openapiGenerator) generateFile(
 	// Name -> CRD
 	crds := map[string]*apiext.CustomResourceDefinition{}
 
-	for name, cfg := range genTags {
+	for name, cfg := range messageGenTags {
+		if cfg["releaseChannel"] == "extended" && !includeExtended {
+			log.Printf("Skipping extended resource %s for stable channel", name)
+			continue
+		}
 		log.Println("Generating", name)
 		group := cfg["groupName"]
 		version := cfg["version"]
@@ -556,6 +567,9 @@ func (g *openapiGenerator) generateMessageSchema(message *protomodel.MessageDesc
 	for _, field := range message.Fields {
 		fn := g.fieldName(field)
 		sr := g.fieldType(field)
+		if sr == nil {
+			continue // This field is skipped for whatever reason; check logs
+		}
 		o.Properties[fn] = *sr
 
 		if isRequired(field) {
@@ -697,6 +711,14 @@ func (g *openapiGenerator) generateDescription(desc protomodel.CoreDesc) string 
 }
 
 func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *apiext.JSONSchemaProps {
+	if !g.includeExtendedFields {
+		if gt := parseMessageGenTags(field.Location().GetLeadingComments()); gt != nil {
+			if gt["releaseChannel"] == "extended" {
+				log.Println("Skipping extended field", g.fieldName(field), "for stable channel")
+				return nil
+			}
+		}
+	}
 	schema := &apiext.JSONSchemaProps{}
 	var isMap bool
 	switch *field.Type {
@@ -742,6 +764,9 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *apiext.
 		} else if msg.GetOptions().GetMapEntry() {
 			isMap = true
 			sr := g.fieldType(msg.Fields[1])
+			if sr == nil {
+				return nil
+			}
 			schema = sr
 			schema = &apiext.JSONSchemaProps{
 				Type:                 "object",

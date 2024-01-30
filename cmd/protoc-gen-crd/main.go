@@ -24,6 +24,12 @@ import (
 	"istio.io/tools/pkg/protomodel"
 )
 
+const (
+	extendedChannelFileName = "kubernetes/extended.gen.yaml"
+	// Only GA features are included in the stable channel
+	stableChannelFileName = "kubernetes/stable.gen.yaml"
+)
+
 // Breaks the comma-separated list of key=value pairs
 // in the parameter string into an easy to use map.
 func extractParams(parameter string) map[string]string {
@@ -46,6 +52,11 @@ func extractParams(parameter string) map[string]string {
 func generate(request *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorResponse, error) {
 	includeDescription := true
 	enumAsIntOrString := false
+	type genMetadata struct {
+		shouldGen       bool
+		includeExtended bool
+		fds             []*protomodel.FileDescriptor
+	}
 
 	p := extractParams(request.GetParameter())
 	for k, v := range p {
@@ -72,26 +83,54 @@ func generate(request *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespon
 		}
 	}
 
-	m := protomodel.NewModel(request, true)
+	m := protomodel.NewModel(request, false)
+	channelOutput := map[string]*genMetadata{
+		extendedChannelFileName: {
+			shouldGen:       true,
+			includeExtended: true,
+			fds:             make([]*protomodel.FileDescriptor, 0),
+		},
+		stableChannelFileName: {
+			shouldGen:       true,
+			includeExtended: false,
+			fds:             make([]*protomodel.FileDescriptor, 0),
+		},
+	}
 
-	filesToGen := make(map[*protomodel.FileDescriptor]bool)
 	for _, fileName := range request.FileToGenerate {
 		fd := m.AllFilesByName[fileName]
 		if fd == nil {
 			return nil, fmt.Errorf("unable to find %s", request.FileToGenerate)
 		}
-		filesToGen[fd] = true
+
+		channelOutput[extendedChannelFileName].fds = append(channelOutput[extendedChannelFileName].fds, fd)
+		// We'll later remove the files from the stable channel that are experimental
+		channelOutput[stableChannelFileName].fds = append(channelOutput[stableChannelFileName].fds, fd)
 	}
 
 	descriptionConfiguration := &DescriptionConfiguration{
 		IncludeDescriptionInSchema: includeDescription,
 	}
 
-	g := newOpenAPIGenerator(
-		m,
-		descriptionConfiguration,
-		enumAsIntOrString)
-	return g.generateOutput(filesToGen)
+	response := plugin.CodeGeneratorResponse{}
+	for outputFileName, meta := range channelOutput {
+		meta := meta
+		g := newOpenAPIGenerator(
+			m,
+			descriptionConfiguration,
+			enumAsIntOrString,
+			meta.includeExtended,
+		)
+		filesToGen := map[*protomodel.FileDescriptor]bool{}
+		for _, fd := range meta.fds {
+			// All files will be generated in each channel, as shouldGen is true for all
+			filesToGen[fd] = meta.shouldGen
+		}
+		rf := g.generateSingleFileOutput(filesToGen, outputFileName, meta.includeExtended)
+		response.File = append(response.File, &rf)
+	}
+
+	return &response, nil
 }
 
 func main() {
