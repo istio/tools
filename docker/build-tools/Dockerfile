@@ -36,7 +36,7 @@ ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
 ENV BENCHSTAT_VERSION=9c9101da8316
-ENV BOM_VERSION=v0.5.1
+ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.29.0
 ENV COSIGN_VERSION=v2.2.3
 ENV CRANE_VERSION=v0.19.0
