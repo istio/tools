@@ -482,8 +482,8 @@ FROM ubuntu:jammy as base_os_context
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CONTAINERD_VERSION=1.6.28-1
-ENV DOCKER_VERSION=5:24.0.9-1~ubuntu.22.04~jammy
-ENV DOCKER_BUILDX_VERSION=0.11.2-1~ubuntu.22.04~jammy
+ENV DOCKER_VERSION=5:25.0.2-1~debian.12~bookworm
+ENV DOCKER_BUILDX_VERSION=0.12.1-1~debian.12~bookworm
 ENV RUST_VERSION=1.75.0
 
 ENV OUTDIR=/out
@@ -542,6 +542,7 @@ RUN apt-key add /tmp/docker-key
 ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu $(lsb_release -sc) stable"
 RUN apt-get update
+RUN sed -i 's/ulimit -Hn/# ulimit -Hn/g' /etc/init.d/docker
 RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}" docker-buildx-plugin="${DOCKER_BUILDX_VERSION}"
 
 ENV CARGO_HOME=/home/.cargo
