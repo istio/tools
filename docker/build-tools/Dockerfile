@@ -542,8 +542,8 @@ RUN apt-key add /tmp/docker-key
 ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu $(lsb_release -sc) stable"
 RUN apt-get update
-RUN sed -i 's/ulimit -Hn/# ulimit -Hn/g' /etc/init.d/docker
 RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}" docker-buildx-plugin="${DOCKER_BUILDX_VERSION}"
+RUN sed -i 's/ulimit -Hn/# ulimit -Hn/g' /etc/init.d/docker
 
 ENV CARGO_HOME=/home/.cargo
 ENV RUSTUP_HOME=/home/.rustup
