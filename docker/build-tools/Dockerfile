@@ -482,8 +482,8 @@ FROM ubuntu:jammy as base_os_context
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CONTAINERD_VERSION=1.6.28-1
-ENV DOCKER_VERSION=5:25.0.2-1~debian.12~bookworm
-ENV DOCKER_BUILDX_VERSION=0.12.1-1~debian.12~bookworm
+ENV DOCKER_VERSION=5:25.0.2-1~debian.12~jammy
+ENV DOCKER_BUILDX_VERSION=0.12.1-1~debian.12~jammy
 ENV RUST_VERSION=1.75.0
 
 ENV OUTDIR=/out
