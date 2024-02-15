@@ -20,4 +20,4 @@ kubectl delete DestinationRule -n"${NAMESPACE}" plaintext-dr-twopods
 echo "Restoring original Authn Policy and DestinationRule config..."
 
 [[ -s "${LOCAL_OUTPUT_DIR}/authn-policy.yaml" ]] && kubectl apply -f "${LOCAL_OUTPUT_DIR}/authn-policy.yaml"
-[[ -s "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml" ]] && kubectl apply -f "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml"
+[[ -s "${LOCAL_OUTPUT_DIR}/destination-rule.yaml" ]] && kubectl apply -f "${LOCAL_OUTPUT_DIR}/destination-rule.yaml"
