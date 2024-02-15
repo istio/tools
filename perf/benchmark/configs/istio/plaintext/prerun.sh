@@ -15,7 +15,7 @@
 # limitations under the License.
 
 echo "Saving current mTLS config first"
-kubectl -n "${NAMESPACE}"  get dr -oyaml > "${LOCAL_OUTPUT_DIR}/destionation-rule.yaml" || true
+kubectl -n "${NAMESPACE}"  get dr -oyaml > "${LOCAL_OUTPUT_DIR}/destination-rule.yaml" || true
 kubectl -n "${NAMESPACE}"  get policy -oyaml > "${LOCAL_OUTPUT_DIR}/authn-policy.yaml" || true
 echo "Deleting Authn Policy and DestinationRule"
 kubectl -n "${NAMESPACE}" delete dr --all || true
