@@ -72,7 +72,7 @@ func generate(request *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespon
 		}
 	}
 
-	m := protomodel.NewModel(request, false)
+	m := protomodel.NewModel(request, true)
 
 	filesToGen := make(map[*protomodel.FileDescriptor]bool)
 	for _, fileName := range request.FileToGenerate {
