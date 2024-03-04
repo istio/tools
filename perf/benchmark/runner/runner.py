@@ -193,16 +193,16 @@ class Fortio:
 
     # no sidecar mode
     def no_istio(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + " " + self.compute_uri(self.server.ip, "direct_port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "direct_port")
 
     def serversidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + " " + self.compute_uri(self.server.ip, "port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.ip, "port")
 
     def clientsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + " " + self.compute_uri(self.server.labels["app"], "direct_port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "direct_port")
 
     def bothsidecar(self, load_gen_cmd, sidecar_mode):
-        return load_gen_cmd + " " + self.compute_uri(self.server.labels["app"], "port")
+        return load_gen_cmd + "_" + sidecar_mode + " " + self.compute_uri(self.server.labels["app"], "port")
 
     def ingress(self, load_gen_cmd):
         url = urlparse(self.run_ingress)
@@ -534,6 +534,7 @@ def run_perf_test(args):
         fortioclient_pod_name = getoutput(get_fortioclient_pod_cmd).split(" ")[0]
         rm_fortio_json_cmd = "kubectl exec -it -n {namespace} {fortioclient} -c shell -- bash -c 'rm /var/lib/fortio/*.json'".format(
             namespace=NAMESPACE, fortioclient=fortioclient_pod_name)
+        del_temp_dir = os.system("rm -rf /tmp/fortio_json_data/*.json /tmp/*.json /tmp/*.csv")
         print("cmd: %s" % rm_fortio_json_cmd)
         run_command(rm_fortio_json_cmd)
 
