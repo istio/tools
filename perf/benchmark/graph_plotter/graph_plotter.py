@@ -42,7 +42,7 @@ def plotter(args):
     ax = fig.add_subplot(111)
     ax.set_ylim(0, 1.0)
     for key, val in telemetry_modes_y_data.items():
-        plot_key=key
+        plot_key = key
         match key:
             case "no_istio_mtls_no_istio":
                 plot_key = "no_istio"
