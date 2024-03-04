@@ -388,6 +388,11 @@ func (g *openapiGenerator) generateFile(
 		if _, f := cfg["storageVersion"]; f {
 			ver.Storage = true
 		}
+		if r, f := cfg["deprecationReplacement"]; f {
+			msg := fmt.Sprintf("%v version %q is deprecated, use %q", name, ver.Name, r)
+			ver.Deprecated = true
+			ver.DeprecationWarning = &msg
+		}
 		if err := validateStructural(ver.Schema.OpenAPIV3Schema); err != nil {
 			log.Fatalf("failed to validate %v as structural: %v", kind, err)
 		}

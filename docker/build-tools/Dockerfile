@@ -25,7 +25,7 @@
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.21.6-bullseye
+ARG GOLANG_IMAGE=golang:1.22.0-bullseye
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -36,36 +36,36 @@ ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
 ENV BENCHSTAT_VERSION=9c9101da8316
-ENV BOM_VERSION=v0.5.1
-ENV BUF_VERSION=v1.28.1
-ENV COSIGN_VERSION=v2.2.2
-ENV CRANE_VERSION=v0.17.0
-ENV GCLOUD_VERSION=459.0.0
+ENV BOM_VERSION=v0.6.0
+ENV BUF_VERSION=v1.29.0
+ENV COSIGN_VERSION=v2.2.3
+ENV CRANE_VERSION=v0.19.0
+ENV GCLOUD_VERSION=465.0.0
 ENV GCR_AUTH_VERSION=2.1.21
-ENV GH_VERSION=2.42.0
+ENV GH_VERSION=2.44.1
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.17.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
-ENV GOLANGCI_LINT_VERSION=v1.55.2
+ENV GOLANGCI_LINT_VERSION=v1.56.1
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.3.0
 ENV GOLANG_PROTOBUF_VERSION=v1.32.0
 ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV HADOLINT_VERSION=v2.12.0
-ENV HELM3_VERSION=v3.13.3
-ENV HUGO_VERSION=0.121.2
+ENV HELM3_VERSION=v3.14.2
+ENV HUGO_VERSION=0.123.3
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.20.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
-ENV K8S_CODE_GENERATOR_VERSION=1.29.0
-# From Jan 16, 2024
-ENV K8S_TEST_INFRA_VERSION=253c5551b06afdd2a06d698d3c81cefb9064c1a6
-ENV KIND_VERSION=v0.20.0
+ENV K8S_CODE_GENERATOR_VERSION=1.29.2
+# From Feb 15, 2024
+ENV K8S_TEST_INFRA_VERSION=cf57a1d7fe5f8b7676ae7ebe9098ddbcad3d3023
+ENV KIND_VERSION=v0.22.0
 ENV KPT_VERSION=v1.0.0-beta.49
-ENV KUBECTL_VERSION=1.29.0
+ENV KUBECTL_VERSION=1.29.2
 ENV KUBECTX_VERSION=0.9.5
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
-ENV OC_VERSION=4.14.6
+ENV OC_VERSION=4.14.12
 ENV ORAS_VERSION=1.1.0
 ENV OTEL_CLI_VERSION=v0.4.1
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
@@ -73,8 +73,8 @@ ENV PROTOC_VERSION=25.2
 ENV PROTOLOCK_VERSION=v0.17.0
 ENV SHELLCHECK_VERSION=v0.9.0
 ENV SU_EXEC_VERSION=0.3.1
-ENV TRIVY_VERSION=0.48.3
-ENV YQ_VERSION=4.40.5
+ENV TRIVY_VERSION=0.49.1
+ENV YQ_VERSION=4.42.1
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -335,7 +335,7 @@ ENV BABEL_PRESET_ENV=v7.18.2
 ENV BABEL_PRESET_MINIFY_VERSION=v0.5.2
 ENV LINKINATOR_VERSION=v2.0.5
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
-ENV NODEJS_VERSION=20.9.0
+ENV NODEJS_VERSION=20.11.1
 ENV SASS_LINT_VERSION=v1.13.1
 ENV SASS_VERSION=v1.52.1
 ENV SVGO_VERSION=v1.3.2
@@ -441,8 +441,8 @@ FROM ubuntu:jammy as python_context
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Pinned versions of stuff we pull in
-ENV AUTOPEP8_VERSION=2.0.2
-ENV PYCODESTYLE_VERSION=2.10.0
+ENV AUTOPEP8_VERSION=2.0.4
+ENV PYCODESTYLE_VERSION=2.11.1
 ENV JWCRYPTO_VERSION=1.5.0
 ENV PIP_INSTALL_VERSION=23.1.2
 ENV PYGITHUB_VERSION=1.58.2
@@ -464,9 +464,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python stuff
 RUN python3 -m pip install --no-cache-dir --upgrade pip==${PIP_INSTALL_VERSION}
-# FIXME: Pycodestyle had a breaking change in 2.11.0 and broke autopep8.
-# Pin pycodestyle version until autopep8 is updated.
-# https://github.com/hhatto/autopep8/issues/689
 RUN python3 -m pip install --no-cache-dir pycodestyle==${PYCODESTYLE_VERSION}
 RUN python3 -m pip install --no-cache-dir --no-binary :all: autopep8==${AUTOPEP8_VERSION}
 RUN python3 -m pip install --no-cache-dir yamllint==${YAMLLINT_VERSION}
@@ -484,10 +481,10 @@ FROM ubuntu:jammy as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV CONTAINERD_VERSION=1.6.27-1
-ENV DOCKER_VERSION=5:24.0.7-1~ubuntu.22.04~jammy
-ENV DOCKER_BUILDX_VERSION=0.11.2-1~ubuntu.22.04~jammy
-ENV RUST_VERSION=1.75.0
+ENV CONTAINERD_VERSION=1.6.28-1
+ENV DOCKER_VERSION=5:25.0.3-1~ubuntu.22.04~jammy
+ENV DOCKER_BUILDX_VERSION=0.12.1-1~ubuntu.22.04~jammy
+ENV RUST_VERSION=1.76.0
 
 ENV OUTDIR=/out
 
@@ -546,6 +543,7 @@ ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu $(lsb_release -sc) stable"
 RUN apt-get update
 RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}" docker-buildx-plugin="${DOCKER_BUILDX_VERSION}"
+RUN sed -i 's/ulimit -Hn/# ulimit -Hn/g' /etc/init.d/docker
 
 ENV CARGO_HOME=/home/.cargo
 ENV RUSTUP_HOME=/home/.rustup
