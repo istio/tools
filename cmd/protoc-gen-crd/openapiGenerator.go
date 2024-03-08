@@ -761,7 +761,21 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *apiext.
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
 		enum := field.FieldType.(*protomodel.EnumDescriptor)
 		schema = g.generateEnumSchema(enum)
-		schema.Description = g.generateDescription(field)
+		desc := g.generateDescription(field)
+		// Add all options to the description
+		valid := []string{}
+		for i, v := range enum.Values {
+			n := v.GetName()
+			// Allow skipping the default value if its a bogus value.
+			if i == 0 && (strings.Contains(n, "UNSPECIFIED") ||
+				strings.Contains(n, "UNSET") ||
+				strings.Contains(n, "UNDEFINED") ||
+				strings.Contains(n, "INVALID")) {
+				continue
+			}
+			valid = append(valid, n)
+		}
+		schema.Description = desc + fmt.Sprintf("\n\nValid Options: %v", strings.Join(valid, ", "))
 	}
 
 	if field.IsRepeated() && !isMap {
