@@ -97,6 +97,7 @@ rules:
       - networking.k8s.io
     resources:
       - networkpolicies
+      - ingresses
     verbs:
       - list
       - watch
@@ -105,6 +106,13 @@ rules:
     resources:
       - validatingwebhookconfigurations
       - mutatingwebhookconfigurations
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
     verbs:
       - list
       - watch
@@ -175,7 +183,7 @@ spec:
       serviceAccountName: prometheus-kube-state-metrics
       containers:
         - name: prometheus-kube-state-metrics
-          image: "quay.io/coreos/kube-state-metrics:v1.9.7"
+          image: "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.10.0"
           imagePullPolicy: "IfNotPresent"
           ports:
             - name: metrics
