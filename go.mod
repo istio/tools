@@ -9,7 +9,7 @@ require (
 	github.com/go-enry/go-license-detector/v4 v4.3.1
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/golang/glog v1.2.0
-	github.com/golang/protobuf v1.5.3
+	github.com/golang/protobuf v1.5.4
 	github.com/gomarkdown/markdown v0.0.0-20231222211730-1d6d20845b47
 	github.com/google/go-cmp v0.6.0
 	github.com/prometheus/alertmanager v0.26.0
@@ -21,7 +21,7 @@ require (
 	github.com/yuin/goldmark v1.7.0
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
 	google.golang.org/genproto/googleapis/api v0.0.0-20240205150955-31a09d347014
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v1.20.2
 	k8s.io/apiextensions-apiserver v0.29.1
