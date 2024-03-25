@@ -193,7 +193,9 @@ var AllowedAdmins = sets.New(
 	// Robots
 	"google-admin",
 	"googlebot",
-	"istio-testing")
+	"istio-testing",
+	"thelinuxfoundation",
+)
 
 func ReadConfig(input string) (Organization, error) {
 	dir, err := os.ReadDir(input)
