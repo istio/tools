@@ -25,9 +25,7 @@ import (
 )
 
 const (
-	extendedChannelFileName = "kubernetes/extended.gen.yaml"
-	// Only GA features are included in the stable channel
-	stableChannelFileName = "kubernetes/stable.gen.yaml"
+	extendedChannelFileName = "kubernetes/customresourcedefinitions.gen.yaml"
 )
 
 // Breaks the comma-separated list of key=value pairs
@@ -90,11 +88,6 @@ func generate(request *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespon
 			includeExtended: true,
 			fds:             make([]*protomodel.FileDescriptor, 0),
 		},
-		stableChannelFileName: {
-			shouldGen:       true,
-			includeExtended: false,
-			fds:             make([]*protomodel.FileDescriptor, 0),
-		},
 	}
 
 	for _, fileName := range request.FileToGenerate {
@@ -104,8 +97,6 @@ func generate(request *plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespon
 		}
 
 		channelOutput[extendedChannelFileName].fds = append(channelOutput[extendedChannelFileName].fds, fd)
-		// We'll later remove the files from the stable channel that are experimental
-		channelOutput[stableChannelFileName].fds = append(channelOutput[stableChannelFileName].fds, fd)
 	}
 
 	descriptionConfiguration := &DescriptionConfiguration{
