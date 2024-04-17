@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"slices"
 	"strings"
 
@@ -68,34 +69,35 @@ var specialTypes = map[string]*apiext.JSONSchemaProps{
 	},
 	"google.protobuf.DoubleValue": {
 		Type:     "number",
+		Format:   "double",
 		Nullable: true,
 	},
 	"google.protobuf.Int32Value": {
 		Type:     "integer",
+		Format:   "int32",
 		Nullable: true,
-		// Min: math.MinInt32,
-		// Max: math.MaxInt32,
 	},
 	"google.protobuf.Int64Value": {
 		Type:     "integer",
+		Format:   "int64",
 		Nullable: true,
-		// Min: math.MinInt64,
-		// Max: math.MaxInt64,
 	},
 	"google.protobuf.UInt32Value": {
 		Type:     "integer",
+		Minimum:  Ptr(float64(0)),
+		Maximum:  Ptr(float64(math.MaxUint32)),
 		Nullable: true,
-		// Min: 0,
-		// Max: math.MaxUInt32,
 	},
 	"google.protobuf.UInt64Value": {
-		Type:     "integer",
+		Type:    "integer",
+		Minimum: Ptr(float64(0)),
+		// TODO: this overflows Kubernetes
+		// schema.Maximum = Ptr(float64(uint64(math.MaxUint64)))
 		Nullable: true,
-		// Min: 0,
-		// Max: math.MaxUInt62,
 	},
 	"google.protobuf.FloatValue": {
 		Type:     "number",
+		Format:   "double",
 		Nullable: true,
 	},
 	"google.protobuf.Duration": {
@@ -712,19 +714,26 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *apiext.
 
 	case descriptor.FieldDescriptorProto_TYPE_INT64, descriptor.FieldDescriptorProto_TYPE_SINT64, descriptor.FieldDescriptorProto_TYPE_SFIXED64:
 		schema.Type = "integer"
-		// TODO:
-		// schema.Format = "int64"
+		schema.Format = "int64"
+		// TODO: ideally we could use a string here to avoid https://github.com/istio/api/issues/2818
+		// however, IntOrString is an int32.
 		// schema.XIntOrString = true
 		schema.Description = g.generateDescription(field)
 
 	case descriptor.FieldDescriptorProto_TYPE_UINT64, descriptor.FieldDescriptorProto_TYPE_FIXED64:
 		schema.Type = "integer"
-		// TODO: schema.Format = "int64" schema.XIntOrString = true
+		schema.Minimum = Ptr(float64(0))
+		// TODO: this overflows Kubernetes
+		// schema.Maximum = Ptr(float64(uint64(math.MaxUint64)))
+		// TODO: ideally we could use a string here to avoid https://github.com/istio/api/issues/2818
+		// however, IntOrString is an int32.
+		// schema.XIntOrString = true
 		schema.Description = g.generateDescription(field)
 
 	case descriptor.FieldDescriptorProto_TYPE_UINT32, descriptor.FieldDescriptorProto_TYPE_FIXED32:
 		schema.Type = "integer"
-		// TODO: schema.Format = "int32"
+		schema.Minimum = Ptr(float64(0))
+		schema.Maximum = Ptr(float64(math.MaxUint32))
 		schema.Description = g.generateDescription(field)
 
 	case descriptor.FieldDescriptorProto_TYPE_BOOL:
