@@ -81,6 +81,8 @@ ENV GOPROXY=https://proxy.golang.org
 
 WORKDIR /tmp
 ENV GOPATH=/tmp/go
+# Avoid any attempts to automatically download a new Go version
+ENV GOTOOLCHAIN=local
 
 ENV OUTDIR=/out
 RUN mkdir -p ${OUTDIR}/usr/bin
@@ -591,6 +593,8 @@ ENV LANG=C.UTF-8
 
 # Go support
 ENV GO111MODULE=on
+# Avoid any attempts to automatically download a new Go version
+ENV GOTOOLCHAIN=local
 ENV GOPROXY=https://proxy.golang.org
 ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
@@ -819,6 +823,8 @@ ENV LANG=C.UTF-8
 
 # Go support
 ENV GO111MODULE=on
+# Avoid any attempts to automatically download a new Go version
+ENV GOTOOLCHAIN=local
 ENV GOPROXY=https://proxy.golang.org
 ENV GOSUMDB=sum.golang.org
 ENV GOROOT=/usr/local/go
