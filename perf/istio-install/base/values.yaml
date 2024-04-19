@@ -3,7 +3,7 @@ prometheus:
   deploy: true
   memory: 32Gi
   storage: 500Gi
-
+  storageClassName: ssd
 storageclass:
   deploy: true
 
