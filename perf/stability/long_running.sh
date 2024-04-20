@@ -44,6 +44,7 @@ export INSTANCE="${INSTANCE:-istio-policy-bot}"
 export DBNAME="${DBNAME:-main}"
 export MS_TABLE_NAME="${MS_TABLE_NAME:-MonitorStatus}"
 export TESTID="${TESTID:-default}"
+export HELM_VALUES="${HELM_VALUES:-}"
 
 # setup Istio
 if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then

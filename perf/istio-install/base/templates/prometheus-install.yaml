@@ -1,6 +1,6 @@
 {{- if .Values.prometheus.deploy }}
 {{- if .Values.storageclass.deploy }}
-# GKE cluster storage 
+# GKE cluster storage
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -58,7 +58,7 @@ spec:
         resources:
           requests:
             storage: {{ $.Values.prometheus.storage }}
-        storageClassName: ssd
+        storageClassName: {{ $.Values.prometheus.storageClassName}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
