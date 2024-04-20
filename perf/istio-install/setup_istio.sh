@@ -89,7 +89,7 @@ function install_istioctl() {
 function install_extras() {
   local domain=${DNS_DOMAIN:?"DNS_DOMAIN like v104.qualistio.org"}
   local certmanagerEmail=${CERTMANAGER_EMAIL:-""}
-  local helmValues=${HELM_VALUES:-""}
+  local helmValues=${HELM_VALUES:-}
   kubectl create namespace istio-prometheus || true
   # Deploy the gateways and prometheus operator.
   # Deploy CRDs with create, they are too big otherwise
@@ -99,6 +99,7 @@ function install_extras() {
     kubectl wait --for=condition=Available deployments --all -n cert-manager
     helm template --set domain="${domain}" --set certManager.email="${certmanagerEmail}" --set certManager.enabled=true "${WD}/base" | kubectl apply -f -
   else
+    # shellcheck disable=SC2086
     helm template --set domain="${domain}" ${helmValues} "${WD}/base" | kubectl apply -f -
   fi
 
