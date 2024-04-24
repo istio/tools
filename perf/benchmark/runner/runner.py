@@ -133,7 +133,8 @@ class Fortio:
             nocatchup=False,
             load_gen_type="fortio",
             keepalive=True,
-            connection_reuse=None):
+            connection_reuse=None,
+            del_perf_record=False):
         self.run_id = str(uuid.uuid4()).partition('-')[0]
         self.headers = headers
         self.conn = conn
@@ -164,6 +165,7 @@ class Fortio:
         self.load_gen_type = load_gen_type
         self.keepalive = keepalive
         self.connection_reuse = connection_reuse
+        self.del_perf_record = del_perf_record
 
         if mesh == "linkerd":
             self.mesh = "linkerd"
