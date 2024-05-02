@@ -35,6 +35,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
+ENV APKO_VERSION=v0.13.2
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.31.0
@@ -135,6 +136,7 @@ RUN go install -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
 RUN go install -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
 RUN go install -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
 RUN go install -ldflags="-s -w" golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
+RUN go install -ldflags="-s -w" chainguard.dev/apko@${APKO_VERSION}
 RUN go install -ldflags="-s -w" github.com/google/go-containerregistry/cmd/crane@${CRANE_VERSION}
 RUN go install -ldflags="-s -w" github.com/equinix-labs/otel-cli@${OTEL_CLI_VERSION}
 RUN go install -ldflags="-s -w" github.com/mikefarah/yq/v4@v${YQ_VERSION}
