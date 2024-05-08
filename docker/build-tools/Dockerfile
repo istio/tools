@@ -327,7 +327,7 @@ RUN rm -fr /usr/local/go/bin/gofmt
 #############
 # Node.js
 #############
-FROM ubuntu:jammy as nodejs_tools_context
+FROM ubuntu:noble as nodejs_tools_context
 
 WORKDIR /node
 
@@ -390,13 +390,13 @@ RUN rm -rf /usr/local/share
 # Ruby
 #############
 
-FROM ubuntu:jammy as ruby_tools_context
+FROM ubuntu:noble as ruby_tools_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Pinned versions of stuff we pull in
 ENV AWESOMEBOT_VERSION=1.20.0
-ENV FPM_VERSION=v1.15.1
+ENV FPM_VERSION=1.15.1
 ENV HTMLPROOFER_VERSION=3.19.4
 ENV LICENSEE_VERSION=9.16.0
 ENV MDL_VERSION=0.12.0
@@ -417,8 +417,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ruby3.0 \
-    ruby3.0-dev
+    ruby3.2 \
+    ruby3.2-dev
 
 # Install istio.io verification tools
 RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
@@ -426,21 +426,13 @@ RUN gem install --no-wrappers --no-document nokogiri -v ${NOKOGIRI_VERSION}
 RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
 RUN gem install --no-wrappers --no-document licensee -v ${LICENSEE_VERSION}
-# hadolint ignore=DL3003,DL3028
-RUN mkdir fpm && \
-    cd fpm && \
-    git init && \
-    git remote add origin https://github.com/jordansissel/fpm && \
-    git fetch --depth 1 origin ${FPM_VERSION} && \
-    git checkout FETCH_HEAD && \
-    make install && \
-    cd .. && rm -rf fpm
+RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 
 ##############
 # Python
 ##############
 
-FROM ubuntu:jammy as python_context
+FROM ubuntu:noble as python_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -448,10 +440,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV AUTOPEP8_VERSION=2.0.4
 ENV PYCODESTYLE_VERSION=2.11.1
 ENV JWCRYPTO_VERSION=1.5.0
-ENV PIP_INSTALL_VERSION=23.1.2
 ENV PYGITHUB_VERSION=1.58.2
 ENV PYTHON_PROTOBUF_VERSION=4.23.2
-ENV PYYAML_VERSION=6.0
 ENV REQUESTS_VERSION=2.31.0
 ENV YAMLLINT_VERSION=1.32.0
 
@@ -462,32 +452,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc-dev \
     pkg-config \
     python3 \
-    python3-distutils \
     python3-pip \
-    python3-setuptools
+    python3-setuptools \
+    python3-yaml
 
 # Install Python stuff
-RUN python3 -m pip install --no-cache-dir --upgrade pip==${PIP_INSTALL_VERSION}
-RUN python3 -m pip install --no-cache-dir pycodestyle==${PYCODESTYLE_VERSION}
-RUN python3 -m pip install --no-cache-dir --no-binary :all: autopep8==${AUTOPEP8_VERSION}
-RUN python3 -m pip install --no-cache-dir yamllint==${YAMLLINT_VERSION}
-RUN python3 -m pip install --no-cache-dir requests==${REQUESTS_VERSION}
-RUN python3 -m pip install --no-cache-dir protobuf==${PYTHON_PROTOBUF_VERSION}
-RUN python3 -m pip install --no-cache-dir PyYAML==${PYYAML_VERSION}
-RUN python3 -m pip install --no-cache-dir jwcrypto==${JWCRYPTO_VERSION}
-RUN python3 -m pip install --no-cache-dir PyGithub==${PYGITHUB_VERSION}
+RUN python3 -m pip install --break-system-packages --no-cache-dir pycodestyle==${PYCODESTYLE_VERSION}
+RUN python3 -m pip install --break-system-packages --no-cache-dir --no-binary :all: autopep8==${AUTOPEP8_VERSION}
+RUN python3 -m pip install --break-system-packages --no-cache-dir yamllint==${YAMLLINT_VERSION}
+RUN python3 -m pip install --break-system-packages --no-cache-dir requests==${REQUESTS_VERSION}
+RUN python3 -m pip install --break-system-packages --no-cache-dir protobuf==${PYTHON_PROTOBUF_VERSION}
+RUN python3 -m pip install --break-system-packages --no-cache-dir jwcrypto==${JWCRYPTO_VERSION}
+RUN python3 -m pip install --break-system-packages --no-cache-dir PyGithub==${PYGITHUB_VERSION}
 
 #############
 # Base OS
 #############
 
-FROM ubuntu:jammy as base_os_context
+FROM ubuntu:noble as base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CONTAINERD_VERSION=1.6.31-1
-ENV DOCKER_VERSION=5:26.1.1-1~ubuntu.22.04~jammy
-ENV DOCKER_BUILDX_VERSION=0.14.0-1~ubuntu.22.04~jammy
+ENV DOCKER_VERSION=5:26.1.1-1~ubuntu.24.04~noble
+ENV DOCKER_BUILDX_VERSION=0.14.0-1~ubuntu.24.04~noble
 ENV RUST_VERSION=1.78.0
 
 ENV OUTDIR=/out
