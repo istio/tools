@@ -247,7 +247,7 @@ func parseReleaseNotesFiles(filePath string, files []string) ([]Note, error) {
 		}
 
 		if err := schemavalidation.Validate(contents, schema); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to validate release note %s: %s", file, err.Error())
 		}
 
 		var note Note
