@@ -25,7 +25,7 @@
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.22.2-bullseye
+ARG GOLANG_IMAGE=golang:1.22.2
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -121,27 +121,27 @@ RUN dpkg -i /tmp/gh_${GH_VERSION}_linux_${TARGETARCH}.deb
 RUN mv /usr/bin/gh ${OUTDIR}/usr/bin
 
 # Build and install a bunch of Go tools
-RUN go install -ldflags="-s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
-RUN go install -ldflags="-s -w" google.golang.org/grpc/cmd/protoc-gen-go-grpc@${GOLANG_GRPC_PROTOBUF_VERSION}
-RUN go install -ldflags="-s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
-RUN go install -ldflags="-s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
-RUN go install -ldflags="-s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
-RUN go install -ldflags="-s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
-RUN go install -ldflags="-s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
-RUN go install -ldflags="-s -w" github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
-RUN go install -ldflags="-s -w" github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@${JB_VERSION}
-RUN go install -ldflags="-s -w" github.com/istio/go-junit-report@${GO_JUNIT_REPORT_VERSION}
-RUN go install -ldflags="-s -w" sigs.k8s.io/bom/cmd/bom@${BOM_VERSION}
-RUN go install -ldflags="-s -w" sigs.k8s.io/kind@${KIND_VERSION}
-RUN go install -ldflags="-s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
-RUN go install -ldflags="-s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
-RUN go install -ldflags="-s -w" golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
-RUN go install -ldflags="-s -w" chainguard.dev/apko@${APKO_VERSION}
-RUN go install -ldflags="-s -w" github.com/google/go-containerregistry/cmd/crane@${CRANE_VERSION}
-RUN go install -ldflags="-s -w" github.com/equinix-labs/otel-cli@${OTEL_CLI_VERSION}
-RUN go install -ldflags="-s -w" github.com/mikefarah/yq/v4@v${YQ_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" google.golang.org/protobuf/cmd/protoc-gen-go@${GOLANG_PROTOBUF_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" google.golang.org/grpc/cmd/protoc-gen-go-grpc@${GOLANG_GRPC_PROTOBUF_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/nilslice/protolock/cmd/protolock@${PROTOLOCK_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" golang.org/x/tools/cmd/goimports@${GOIMPORTS_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/go-bindata/go-bindata/go-bindata@${GO_BINDATA_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@${PROTOC_GEN_GRPC_GATEWAY_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/google/go-jsonnet/cmd/jsonnet@${JSONNET_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb@${JB_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/istio/go-junit-report@${GO_JUNIT_REPORT_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" sigs.k8s.io/bom/cmd/bom@${BOM_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" sigs.k8s.io/kind@${KIND_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/imsky/junit-merger/src/junit-merger@${JUNIT_MERGER_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" golang.org/x/perf/cmd/benchstat@${BENCHSTAT_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" chainguard.dev/apko@${APKO_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/google/go-containerregistry/cmd/crane@${CRANE_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/equinix-labs/otel-cli@${OTEL_CLI_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/mikefarah/yq/v4@v${YQ_VERSION}
 # Install latest version of Istio-owned tools in this release
-RUN go install -ldflags="-s -w" \
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
   istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA} \
@@ -153,7 +153,7 @@ RUN go install -ldflags="-s -w" \
   istio.io/tools/cmd/gen-release-notes@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/org-gen@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/protoc-gen-crd@${ISTIO_TOOLS_SHA}
-RUN go install -ldflags="-s -w" \
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
   k8s.io/code-generator/cmd/applyconfiguration-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
   k8s.io/code-generator/cmd/defaulter-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
   k8s.io/code-generator/cmd/client-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
@@ -161,11 +161,11 @@ RUN go install -ldflags="-s -w" \
   k8s.io/code-generator/cmd/informer-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
   k8s.io/code-generator/cmd/deepcopy-gen@kubernetes-${K8S_CODE_GENERATOR_VERSION} \
   k8s.io/code-generator/cmd/go-to-protobuf@kubernetes-${K8S_CODE_GENERATOR_VERSION}
-RUN go install -ldflags="-s -w" \
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
     sigs.k8s.io/kubetest2@${KUBETEST2_VERSION} \
     sigs.k8s.io/kubetest2/kubetest2-gke@${KUBETEST2_VERSION} \
     sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
-RUN go install -ldflags="-s -w" \
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
   k8s.io/test-infra/robots/pr-creator@${K8S_TEST_INFRA_VERSION} \
   k8s.io/test-infra/prow/cmd/peribolos@${K8S_TEST_INFRA_VERSION} \
   k8s.io/test-infra/pkg/benchmarkjunit@${K8S_TEST_INFRA_VERSION}
