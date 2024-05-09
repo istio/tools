@@ -496,6 +496,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     cmake-data \
     gcc \
+    g++ \
     git \
     ssh \
     iptables \
@@ -523,6 +524,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libbpf-dev \
     net-tools \
     ninja-build \
+    python3-yaml \
+    python3-lib2to3 \
     sudo
 
 # Fix Docker issue
