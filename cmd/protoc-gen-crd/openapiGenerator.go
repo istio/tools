@@ -304,7 +304,23 @@ func (g *openapiGenerator) generateFile(
 	for name, cfg := range genTags {
 		log.Println("Generating", name)
 		group := cfg["groupName"]
-		version := cfg["version"]
+
+		versionsString := cfg["versions"]
+		versions := strings.Split(versionsString, ",")
+		var storageVersion string
+		if version := cfg["version"]; version != "" {
+			if len(versions) == 0 {
+				log.Fatal("can only set versions or version")
+			}
+			if _, f := cfg["storageVersion"]; f {
+				// Old way: single version specifies explicitly
+				storageVersion = version
+			}
+			versions = []string{version}
+		} else {
+			// New way: first one is the storage version
+			storageVersion = versions[0]
+		}
 		kind := name[strings.LastIndex(name, ".")+1:]
 		singular := strings.ToLower(kind)
 		plural := singular + "s"
@@ -323,13 +339,6 @@ func (g *openapiGenerator) generateFile(
 			ListKind: kind + "List",
 			Plural:   plural,
 			Singular: singular,
-		}
-		ver := apiext.CustomResourceDefinitionVersion{
-			Name:   version,
-			Served: true,
-			Schema: &apiext.CustomResourceValidation{
-				OpenAPIV3Schema: schema,
-			},
 		}
 
 		if res, f := cfg["resource"]; f {
@@ -351,83 +360,95 @@ func (g *openapiGenerator) generateFile(
 			}
 		}
 		name := names.Plural + "." + group
-		if pk, f := cfg["printerColumn"]; f {
-			pcs := strings.Split(pk, ";;")
-			for _, pc := range pcs {
-				if pc == "" {
-					continue
+		for _, version := range versions {
+			ver := apiext.CustomResourceDefinitionVersion{
+				Name:   version,
+				Served: true,
+				Schema: &apiext.CustomResourceValidation{
+					OpenAPIV3Schema: schema,
+				},
+			}
+			if pk, f := cfg["printerColumn"]; f {
+				pcs := strings.Split(pk, ";;")
+				for _, pc := range pcs {
+					if pc == "" {
+						continue
+					}
+					column := apiext.CustomResourceColumnDefinition{}
+					for n, m := range extractKeyValue(pc) {
+						switch n {
+						case "name":
+							column.Name = m
+						case "type":
+							column.Type = m
+						case "description":
+							column.Description = m
+						case "JSONPath":
+							column.JSONPath = m
+						}
+					}
+					ver.AdditionalPrinterColumns = append(ver.AdditionalPrinterColumns, column)
 				}
-				column := apiext.CustomResourceColumnDefinition{}
-				for n, m := range extractKeyValue(pc) {
-					switch n {
-					case "name":
-						column.Name = m
-					case "type":
-						column.Type = m
-					case "description":
-						column.Description = m
-					case "JSONPath":
-						column.JSONPath = m
+			}
+			if sr, f := cfg["subresource"]; f {
+				if sr == "status" {
+					ver.Subresources = &apiext.CustomResourceSubresources{Status: &apiext.CustomResourceSubresourceStatus{}}
+					ver.Schema.OpenAPIV3Schema.Properties["status"] = apiext.JSONSchemaProps{
+						Type:                   "object",
+						XPreserveUnknownFields: Ptr(true),
 					}
 				}
-				ver.AdditionalPrinterColumns = append(ver.AdditionalPrinterColumns, column)
 			}
-		}
-		if sr, f := cfg["subresource"]; f {
-			if sr == "status" {
-				ver.Subresources = &apiext.CustomResourceSubresources{Status: &apiext.CustomResourceSubresourceStatus{}}
-				ver.Schema.OpenAPIV3Schema.Properties["status"] = apiext.JSONSchemaProps{
-					Type:                   "object",
-					XPreserveUnknownFields: Ptr(true),
+			if sr, f := cfg["spec"]; f {
+				if sr == "required" {
+					ver.Schema.OpenAPIV3Schema.Required = append(ver.Schema.OpenAPIV3Schema.Required, "spec")
 				}
 			}
-		}
-		if sr, f := cfg["spec"]; f {
-			if sr == "required" {
-				ver.Schema.OpenAPIV3Schema.Required = append(ver.Schema.OpenAPIV3Schema.Required, "spec")
+			if version == storageVersion {
+				ver.Storage = true
 			}
-		}
-		if _, f := cfg["storageVersion"]; f {
-			ver.Storage = true
-		}
-		if r, f := cfg["deprecationReplacement"]; f {
-			msg := fmt.Sprintf("%v version %q is deprecated, use %q", name, ver.Name, r)
-			ver.Deprecated = true
-			ver.DeprecationWarning = &msg
-		}
-		if err := validateStructural(ver.Schema.OpenAPIV3Schema); err != nil {
-			log.Fatalf("failed to validate %v as structural: %v", kind, err)
-		}
+			if r, f := cfg["deprecationReplacement"]; f {
+				msg := fmt.Sprintf("%v version %q is deprecated, use %q", name, ver.Name, r)
+				ver.Deprecated = true
+				ver.DeprecationWarning = &msg
+			}
+			if err := validateStructural(ver.Schema.OpenAPIV3Schema); err != nil {
+				log.Fatalf("failed to validate %v as structural: %v", kind, err)
+			}
 
-		crd, f := crds[name]
-		if !f {
-			crd = &apiext.CustomResourceDefinition{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "apiextensions.k8s.io/v1",
-					Kind:       "CustomResourceDefinition",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Annotations: extractKeyValue(cfg["annotations"]),
-					Labels:      extractKeyValue(cfg["labels"]),
-					Name:        name,
-				},
-				Spec: apiext.CustomResourceDefinitionSpec{
-					Group: group,
-					Names: names,
-					Scope: apiext.NamespaceScoped,
-				},
-				Status: apiext.CustomResourceDefinitionStatus{},
+			crd, f := crds[name]
+			if !f {
+				crd = &apiext.CustomResourceDefinition{
+					TypeMeta: metav1.TypeMeta{
+						APIVersion: "apiextensions.k8s.io/v1",
+						Kind:       "CustomResourceDefinition",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Annotations: extractKeyValue(cfg["annotations"]),
+						Labels:      extractKeyValue(cfg["labels"]),
+						Name:        name,
+					},
+					Spec: apiext.CustomResourceDefinitionSpec{
+						Group: group,
+						Names: names,
+						Scope: apiext.NamespaceScoped,
+					},
+					Status: apiext.CustomResourceDefinitionStatus{},
+				}
 			}
-		}
 
-		crd.Spec.Versions = append(crd.Spec.Versions, ver)
-		crds[name] = crd
-		slices.SortFunc(crd.Spec.Versions, func(a, b apiext.CustomResourceDefinitionVersion) int {
-			if a.Name < b.Name {
-				return -1
-			}
-			return 1
-		})
+			crd.Spec.Versions = append(crd.Spec.Versions, ver)
+			crds[name] = crd
+			slices.SortFunc(crd.Spec.Versions, func(a, b apiext.CustomResourceDefinitionVersion) int {
+				if a.Name == b.Name {
+					log.Fatalf("%v has the version %v twice", name, a.Name)
+				}
+				if a.Name < b.Name {
+					return -1
+				}
+				return 1
+			})
+		}
 	}
 
 	// sort the configs so that the order is deterministic.
