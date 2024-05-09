@@ -1,3 +1,0 @@
-namespace: logs-checker
-redeployDays: 1
-kubectlImage: gcr.io/istio-testing/kubectl:latest
