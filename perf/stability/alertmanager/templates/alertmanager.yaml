@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  labels:
+    alertmanager: main
+  name: main
+  namespace: istio-prometheus
+spec:
+  image: {{ .Values.image.hub }}:{{ .Values.image.tag }}
+  nodeSelector:
+    kubernetes.io/os: linux
+  replicas: {{ .Values.replicaCount }}
+  securityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+  serviceAccountName: alertmanager-main
+  version: v0.20.0
+---

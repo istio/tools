@@ -1,0 +1,25 @@
+image:
+  hub: quay.io/prometheus/alertmanager
+  tag: v0.20.0
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+config:
+  global:
+    resolve_timeout: 5m
+  route:
+    group_by: ['alertname', 'cluster']
+    group_wait: 10s
+    group_interval: 10s
+    repeat_interval: 1h
+    receiver: 'test'
+  receivers:
+    - name: 'test'
+      webhook_configs:
+        - url: 'http://am-webhook.istio-prometheus:5001/webhook'
+
+## External URL which can access alertmanager
+baseURL: "http://localhost:9093"
+
+configFileName: alertmanager.yml
+resources: {}
