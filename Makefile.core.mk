@@ -23,9 +23,6 @@ build:
 test:
 	@go test -race ./...
 
-check-stability:
-	./metrics/check_metrics.py
-
 MARKDOWN_LINT_ALLOWLIST=mysite.com/mypage.html,github.com/istio/istio/releases/download/untagged-c41cff3404b8cc79a97e/istio-1.1.0-rc.0-linux.tar.gz,localhost
 
 lint: lint-all
@@ -44,4 +41,3 @@ containers-test:
 	@cd docker/build-tools && DRY_RUN=true ./build-and-push.sh
 
 include common/Makefile.common.mk
-include perf/stability/stability.mk

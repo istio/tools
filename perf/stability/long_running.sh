@@ -37,15 +37,6 @@ if [[ -z "${PROJECT_ID:-}" ]] || [[ -z "${CLUSTER_NAME:-}" ]] ;then
   exit 1
 fi
 
-# envs for spanner connection
-export PROJECT_ID="${PROJECT_ID:-}"
-export CLUSTER_NAME="${CLUSTER_NAME:-}"
-export INSTANCE="${INSTANCE:-istio-policy-bot}"
-export DBNAME="${DBNAME:-main}"
-export MS_TABLE_NAME="${MS_TABLE_NAME:-MonitorStatus}"
-export TESTID="${TESTID:-default}"
-export HELM_VALUES="${HELM_VALUES:-}"
-
 # setup Istio
 if [[ ${SKIP_ISTIO_SETUP} != "true" ]];then
   pushd "${ROOT}/istio-install"
@@ -68,28 +59,8 @@ if [[ -z "${BRANCH}" ]];then
   fi
 fi
 
-DT=$(date +'%Y%m%d%H')
-TESTID="${BRANCH}-${DT}"
-
-HELM_ARGS="--set projectID=${PROJECT_ID} --set clusterName=${CLUSTER_NAME} --set branch=${BRANCH} --set instance=${INSTANCE}\
-             --set dbName=${DBNAME} --set testID=${TESTID} --set msTableName=${MS_TABLE_NAME} --set domain=${DNS_DOMAIN}"
-NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager "${HELM_ARGS}"
+NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager
 kubectl apply -f ./alertmanager/prometheusrule.yaml
-# deploy alertmanager related resources
-if [[ "${AUTOMATED_MODE}" == "true" ]];then
-    # deploy log scanner
-    kubectl create ns logs-checker || true
-    kubectl create configmap logs-checker --from-file=./logs-checker/check_k8s_logs.sh -n logs-checker || true
-    ./setup_test.sh logs-checker
-
-    # This part would be only needed when we run the fully automated jobs on a dedicated cluster
-    # It would upgrade control plane and data plane to newer dev release every 48h.
-    # deploy canary upgrader
-
-    kubectl create ns canary-upgrader || true
-    kubectl create configmap canary-script --from-file=./canary-upgrader/canary_upgrade.sh --from-file=./../istio-install/setup_istio.sh -n canary-upgrader || true
-    ./setup_test.sh canary-upgrader
-fi
 
 # Setup workloads
 pushd "${ROOT}/load"

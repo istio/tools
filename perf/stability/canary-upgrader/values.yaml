@@ -1,3 +1,0 @@
-namespace: canary-upgrader
-redeployDays: 2
-kubectlImage: docker.io/bitnami/kubectl:1.18
