@@ -143,6 +143,7 @@ RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" github.com/mik
 # Install latest version of Istio-owned tools in this release
 RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
   istio.io/tools/cmd/protoc-gen-docs@${ISTIO_TOOLS_SHA} \
+  istio.io/tools/cmd/protoc-gen-alias@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/annotations_prep@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/envvarlinter@${ISTIO_TOOLS_SHA} \
   istio.io/tools/cmd/testlinter@${ISTIO_TOOLS_SHA} \
