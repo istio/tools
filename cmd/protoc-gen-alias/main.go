@@ -74,16 +74,16 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 		processEnums = func(enums []*protogen.Enum) {
 			for _, e := range enums {
 				typeName := e.GoIdent.GoName
-				p.P(`type `, typeName, `= `, file.GoPackageName, ".", e.GoIdent)
+				p.P(e.Comments.Leading, `type `, typeName, `= `, file.GoPackageName, ".", e.GoIdent)
 				for _, v := range e.Values {
-					p.P(`const `, v.GoIdent, " ", typeName, `= `, file.GoPackageName, ".", v.GoIdent)
+					p.P(v.Comments.Leading, `const `, v.GoIdent, " ", typeName, `= `, file.GoPackageName, ".", v.GoIdent)
 				}
 			}
 		}
 		processOneofs = func(oneofs []*protogen.Oneof) {
 			for _, e := range oneofs {
 				for _, f := range e.Fields {
-					p.P(`type `, f.GoIdent, `= `, file.GoPackageName, ".", f.GoIdent)
+					p.P(f.Comments.Leading, `type `, f.GoIdent, `= `, file.GoPackageName, ".", f.GoIdent)
 				}
 			}
 		}
@@ -94,7 +94,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 					continue
 				}
 				typeName := message.GoIdent.GoName
-				p.P(`type `, typeName, "= ", file.GoPackageName, ".", message.GoIdent)
+				p.P(message.Comments.Leading, `type `, typeName, "= ", file.GoPackageName, ".", message.GoIdent)
 				processMessages(message.Messages)
 				processEnums(message.Enums)
 				processOneofs(message.Oneofs)
@@ -102,6 +102,5 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 		}
 		processMessages(file.Messages)
 		processEnums(file.Enums)
-
 	}
 }

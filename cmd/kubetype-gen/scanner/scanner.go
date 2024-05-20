@@ -114,20 +114,25 @@ func (s *Scanner) Scan(c *generator.Context, arguments *args.GeneratorArgs) gene
 					fail = true
 					continue
 				}
+				versions := extractVersions(comments)
+				// The kubegen doesn't natively handle type aliases we use, so hack it in
+				for _, v := range versions {
+					gv := *gv
+					gv.Version = v
+					packageMetadata := metadataStore.MetadataForGV(&gv)
+					if packageMetadata == nil {
+						glog.Errorf("Could not create metadata for type: %s", t)
+						fail = true
+						continue
+					}
 
-				packageMetadata := metadataStore.MetadataForGV(gv)
-				if packageMetadata == nil {
-					glog.Errorf("Could not create metadata for type: %s", t)
-					fail = true
-					continue
-				}
-
-				kubeTypes := s.createKubeTypesForType(t, packageMetadata.TargetPackage())
-				glog.V(5).Infof("Kube types %v will be generated with Group/Version %s, for raw type in %s", kubeTypes, gv, t)
-				err = packageMetadata.AddMetadataForType(t, kubeTypes...)
-				if err != nil {
-					glog.Errorf("Error adding metadata source for %s: %v", t, err)
-					fail = true
+					kubeTypes := s.createKubeTypesForType(t, packageMetadata.TargetPackage())
+					glog.V(5).Infof("Kube types %v will be generated with Group/Version %s, for raw type in %s", kubeTypes, gv, t)
+					err = packageMetadata.AddMetadataForType(t, kubeTypes...)
+					if err != nil {
+						glog.Errorf("Error adding metadata source for %s: %v", t, err)
+						fail = true
+					}
 				}
 			}
 		}
@@ -156,6 +161,23 @@ func (s *Scanner) Scan(c *generator.Context, arguments *args.GeneratorArgs) gene
 		generatorPackages = append(generatorPackages, generators.NewPackageGenerator(source, boilerplate))
 	}
 	return generatorPackages
+}
+
+func extractVersions(comments []string) []string {
+	var versions []string
+	for _, line := range comments {
+		// Looking for something like '+cue-gen:Simple:versions:v1,v1alpha'
+		if strings.HasPrefix(line, "+cue-gen:") {
+			items := strings.Split(line, ":")
+			if len(items) != 4 {
+				continue
+			}
+			if items[2] == "versions" {
+				versions = append(versions, strings.Split(items[3], ",")...)
+			}
+		}
+	}
+	return versions
 }
 
 func (s *Scanner) getGroupVersion(tags map[string][]string, defaultGV *schema.GroupVersion) (*schema.GroupVersion, error) {

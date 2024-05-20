@@ -3,10 +3,18 @@ package v1alpha
 
 import "istio.io/tools/cmd/protoc-gen-alias/test/v1"
 
+// Simple case
+// +cue-gen:Simple:versions:v1,v1alpha
 type Simple = v1.Simple
 type Simple_Name = v1.Simple_Name
 type Simple_Number = v1.Simple_Number
+
+// Simple case with map and map field should not have MarshalJSON/UnmarshalJSON
 type SimpleWithMap = v1.SimpleWithMap
 type SimpleWithMap_Nested = v1.SimpleWithMap_Nested
+
+// verify no MarshalJSON/UnmarshalJSON functions are created for referenced map
 type ReferencedMap = v1.ReferencedMap
+
+// verify no MarshalJSON/UnmarshalJSON functions are created for imported map
 type ImportedReference = v1.ImportedReference
