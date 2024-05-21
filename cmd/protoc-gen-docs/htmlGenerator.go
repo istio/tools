@@ -148,7 +148,10 @@ func (g *htmlGenerator) generatePerPackageOutput(filesToGen map[*protomodel.File
 
 func (g *htmlGenerator) generateOutput(filesToGen map[*protomodel.FileDescriptor]bool) (*plugin.CodeGeneratorResponse, error) {
 	// process each package; we produce one output file per package
-	response := plugin.CodeGeneratorResponse{}
+	supported := uint64(plugin.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
+	response := plugin.CodeGeneratorResponse{
+		SupportedFeatures: &supported,
+	}
 
 	for _, pkg := range g.model.Packages {
 		g.currentPackage = pkg
