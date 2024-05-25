@@ -64,6 +64,7 @@ cd ~/tools/ambient-tests
 ```
 
 ## Running Benchmarks
+
 Now, update `scripts/config.sh` as desired or keep the default values, and from the `~/tools/ambient-tests` directory, run the test
 
 ```bash
