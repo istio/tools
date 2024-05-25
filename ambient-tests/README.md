@@ -45,6 +45,7 @@ CR=docker.io/<YourRepoName> make build
 CR=docker.io/<YourRepoName> make push-cr
 # or `push-local` if running in a kind cluster.
 ```
+
 if you got an error like the below,
 ![alt text](push_error.png)
 you can tag the image locally and push to the image repository;
@@ -53,30 +54,35 @@ you can tag the image locally and push to the image repository;
 docker tag stjinxuan.azurecr.io/ambient-performance:latest docker.io/<YourRepoName>/ambient-performance:latest
 docker push docker.io/<YourRepoName>/ambient-performance:latest
 ```
+
 then update the client and server containers' images in `yaml/deploy.yaml` with your new image. then deploy the pods;
 
 ```bash
 cd ~/tools/ambient-tests
-./scripts/config.sh 
+./scripts/config.sh
 ./scripts/setup.sh
 ```
+
 ## Running Benchmarks
 
 Now, update `scripts/config.sh` as desired or keep the default values, and from the `~/tools/ambient-tests` directory, run the test
 
 ```bash
-./scripts/fortio/run.sh 
+./scripts/fortio/run.sh
 ```
+
 then generate the csv file data;
 
 ```bash
 FORTIO_RESULTS=./result/fortio scripts/fortio/gen-csv.sh
 ```
+
 and finaly get the graph;
 
 ```bash
 python ./scripts/fortio/graphs.py
 ```
+
 This will create graphs in the `graphs/fortio` directory and put intermediate files in `results/fortio` by default.
 
 For more configuration options, see `scripts/run.sh`.
