@@ -827,11 +827,23 @@ type SchemaApplier interface {
 	ApplyToSchema(schema *apiext.JSONSchemaProps) error
 }
 
+const (
+	ValidationPrefix    = "+kubebuilder:validation:"
+	MapValidationPrefix = "+kubebuilder:map-value-validation:"
+)
+
 func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc, t markers.TargetType) {
 	for _, line := range strings.Split(m.Location().GetLeadingComments(), "\n") {
 		line = strings.TrimSpace(line)
-		if !strings.Contains(line, "+kubebuilder:validation") && !strings.Contains(line, "+list") {
+		if !strings.Contains(line, ValidationPrefix) && !strings.Contains(line, "+list") && !strings.Contains(line, MapValidationPrefix) {
 			continue
+		}
+		schema := schema
+
+		// Custom logic to apply validations to map values. In go, they just make a type alias and apply policy there; proto cannot do that.
+		if strings.Contains(line, MapValidationPrefix) {
+			schema = schema.AdditionalProperties.Schema
+			line = strings.ReplaceAll(line, MapValidationPrefix, ValidationPrefix)
 		}
 
 		def := markerRegistry.Lookup(line, t)
