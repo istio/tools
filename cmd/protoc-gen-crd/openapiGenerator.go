@@ -102,6 +102,12 @@ var specialTypes = map[string]*apiext.JSONSchemaProps{
 	},
 	"google.protobuf.Duration": {
 		Type: "string",
+		XValidations: []apiext.ValidationRule{
+			{
+				Rule:    "duration(self) >= duration('1ms')",
+				Message: "must be a valid duration greater than 1ms",
+			},
+		},
 	},
 	"google.protobuf.Empty": {
 		Type:          "object",
