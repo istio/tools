@@ -102,6 +102,12 @@ var specialTypes = map[string]*apiext.JSONSchemaProps{
 	},
 	"google.protobuf.Duration": {
 		Type: "string",
+		XValidations: []apiext.ValidationRule{
+			{
+				Rule:    "duration(self) >= duration('1ms')",
+				Message: "must be a valid duration greater than 1ms",
+			},
+		},
 	},
 	"google.protobuf.Empty": {
 		Type:          "object",
@@ -828,14 +834,18 @@ type SchemaApplier interface {
 }
 
 const (
-	ValidationPrefix    = "+kubebuilder:validation:"
-	MapValidationPrefix = "+kubebuilder:map-value-validation:"
+	ValidationPrefix     = "+kubebuilder:validation:"
+	MapValidationPrefix  = "+kubebuilder:map-value-validation:"
+	ListValidationPrefix = "+kubebuilder:list-value-validation:"
 )
 
 func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc, t markers.TargetType) {
 	for _, line := range strings.Split(m.Location().GetLeadingComments(), "\n") {
 		line = strings.TrimSpace(line)
-		if !strings.Contains(line, ValidationPrefix) && !strings.Contains(line, "+list") && !strings.Contains(line, MapValidationPrefix) {
+		if !strings.Contains(line, ValidationPrefix) &&
+			!strings.Contains(line, "+list") &&
+			!strings.Contains(line, MapValidationPrefix) &&
+			!strings.Contains(line, ListValidationPrefix) {
 			continue
 		}
 		schema := schema
@@ -844,6 +854,10 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 		if strings.Contains(line, MapValidationPrefix) {
 			schema = schema.AdditionalProperties.Schema
 			line = strings.ReplaceAll(line, MapValidationPrefix, ValidationPrefix)
+		}
+		if strings.Contains(line, ListValidationPrefix) {
+			schema = schema.Items.Schema
+			line = strings.ReplaceAll(line, ListValidationPrefix, ValidationPrefix)
 		}
 
 		def := markerRegistry.Lookup(line, t)
