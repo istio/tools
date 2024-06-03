@@ -172,7 +172,7 @@ RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
   k8s.io/test-infra/robots/pr-creator@${K8S_TEST_INFRA_VERSION} \
   k8s.io/test-infra/pkg/benchmarkjunit@${K8S_TEST_INFRA_VERSION}
 RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
-  k8s.io/test-infra/prow/cmd/peribolos@${K8S_TEST_INFRA_VERSION}
+  sigs.k8s.io/prow/cmd/peribolos@${K8S_TEST_INFRA_VERSION}
 
 # Add gen-release-notes templates to filesystem
 RUN mkdir -p ${OUTDIR}/usr/share/gen-release-notes
