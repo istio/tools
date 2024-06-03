@@ -61,6 +61,8 @@ ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.29.4
 # From June 2, 2024
 ENV K8S_TEST_INFRA_VERSION=b3e7e2271ee1c289c159bd5c167f4386110da08b
+# From June 3, 2024
+ENV K8S_PROW_VERSION=8e43f4d085e1940b1ed2c1df4a4d240f0887314d
 ENV KIND_VERSION=v0.23.0
 ENV KPT_VERSION=v1.0.0-beta.50
 ENV KUBECTL_VERSION=1.30.1
@@ -168,8 +170,9 @@ RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
     sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
 RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
   k8s.io/test-infra/robots/pr-creator@${K8S_TEST_INFRA_VERSION} \
-  k8s.io/test-infra/prow/cmd/peribolos@${K8S_TEST_INFRA_VERSION} \
   k8s.io/test-infra/pkg/benchmarkjunit@${K8S_TEST_INFRA_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
+  k8s.io/test-infra/prow/cmd/peribolos@${K8S_TEST_INFRA_VERSION}
 
 # Add gen-release-notes templates to filesystem
 RUN mkdir -p ${OUTDIR}/usr/share/gen-release-notes
