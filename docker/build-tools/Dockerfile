@@ -25,7 +25,7 @@
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.22.3
+ARG GOLANG_IMAGE=golang:1.22.4
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -35,7 +35,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.13.2
+ENV APKO_VERSION=v0.14.7
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.32.2
@@ -45,7 +45,7 @@ ENV GCLOUD_VERSION=478.0.0
 ENV GCR_AUTH_VERSION=2.1.21
 ENV GH_VERSION=2.50.0
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
-ENV GOIMPORTS_VERSION=v0.17.0
+ENV GOIMPORTS_VERSION=v0.21.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v1.57.2
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.3.0
@@ -54,15 +54,17 @@ ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV HADOLINT_VERSION=v2.12.0
 ENV HELM3_VERSION=v3.15.1
-ENV HUGO_VERSION=0.126.1
+ENV HUGO_VERSION=0.126.3
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.20.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
 ENV K8S_CODE_GENERATOR_VERSION=1.29.4
-# From Feb 15, 2024
-ENV K8S_TEST_INFRA_VERSION=cf57a1d7fe5f8b7676ae7ebe9098ddbcad3d3023
+# From June 2, 2024
+ENV K8S_TEST_INFRA_VERSION=b3e7e2271ee1c289c159bd5c167f4386110da08b
+# From June 3, 2024
+ENV K8S_PROW_VERSION=8e43f4d085e1940b1ed2c1df4a4d240f0887314d
 ENV KIND_VERSION=v0.23.0
-ENV KPT_VERSION=v1.0.0-beta.49
+ENV KPT_VERSION=v1.0.0-beta.50
 ENV KUBECTL_VERSION=1.30.1
 ENV KUBECTX_VERSION=0.9.5
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
@@ -74,7 +76,7 @@ ENV PROTOC_VERSION=27.0
 ENV PROTOLOCK_VERSION=v0.17.0
 ENV SHELLCHECK_VERSION=v0.9.0
 ENV SU_EXEC_VERSION=0.3.1
-ENV TRIVY_VERSION=0.51.4
+ENV TRIVY_VERSION=0.52.0
 ENV YQ_VERSION=4.44.1
 
 ENV GO111MODULE=on
@@ -168,8 +170,9 @@ RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
     sigs.k8s.io/kubetest2/kubetest2-tester-exec@${KUBETEST2_VERSION}
 RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
   k8s.io/test-infra/robots/pr-creator@${K8S_TEST_INFRA_VERSION} \
-  k8s.io/test-infra/prow/cmd/peribolos@${K8S_TEST_INFRA_VERSION} \
   k8s.io/test-infra/pkg/benchmarkjunit@${K8S_TEST_INFRA_VERSION}
+RUN CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
+  sigs.k8s.io/prow/cmd/peribolos@${K8S_PROW_VERSION}
 
 # Add gen-release-notes templates to filesystem
 RUN mkdir -p ${OUTDIR}/usr/share/gen-release-notes
