@@ -774,7 +774,8 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *apiext.
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 		msg := field.FieldType.(*protomodel.MessageDescriptor)
 		if customSchema, ok := g.customSchemasByMessageName[g.absoluteName(msg)]; ok {
-			schema = g.generateCustomMessageSchema(msg, customSchema)
+			// Deep copy since it is a shared type we may modify later
+			schema = g.generateCustomMessageSchema(msg, customSchema.DeepCopy())
 		} else if msg.GetOptions().GetMapEntry() {
 			isMap = true
 			sr := g.fieldType(msg.Fields[1])
@@ -869,7 +870,7 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 			log.Fatalf("failed to parse: %v", line)
 		}
 		if err := a.(SchemaApplier).ApplyToSchema(schema); err != nil {
-			log.Fatalf("failed to apply schema: %v", err)
+			log.Fatalf("failed to apply schema %q: %v", schema.Description, err)
 		}
 	}
 }
