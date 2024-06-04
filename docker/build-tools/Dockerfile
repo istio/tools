@@ -667,8 +667,8 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:18.04 AS clang_context_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=bionic
+FROM ubuntu:20.04 AS clang_context_amd64
+ENV UBUNTU_RELEASE_CODE_NAME=focal
 FROM ubuntu:20.04 AS clang_context_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=focal
 # hadolint ignore=DL3006
@@ -762,8 +762,8 @@ RUN set -eux; \
 # Bazel
 ###########
 
-FROM ubuntu:xenial AS bazel_context_amd64
-FROM ubuntu:bionic AS bazel_context_arm64
+FROM ubuntu:focal AS bazel_context_amd64
+FROM ubuntu:focal AS bazel_context_arm64
 # hadolint ignore=DL3006
 FROM bazel_context_${TARGETARCH} AS bazel_context
 
@@ -787,9 +787,9 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:18.04 AS build_env_proxy_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=bionic
-ENV UBUNTU_RELEASE_VERSION=18.04
+FROM ubuntu:20.04 AS build_env_proxy_amd64
+ENV UBUNTU_RELEASE_CODE_NAME=focal
+ENV UBUNTU_RELEASE_VERSION=20.04
 FROM ubuntu:20.04 AS build_env_proxy_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=focal
 ENV UBUNTU_RELEASE_VERSION=20.04
