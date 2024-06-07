@@ -185,7 +185,12 @@ RUN wget -nv -O "${OUTDIR}/usr/bin/buf" "https://github.com/bufbuild/buf/release
     chmod 555 "${OUTDIR}/usr/bin/buf"
 
 # Install su-exec which is a tool that operates like sudo without the overhead
-ADD --chmod=755 https://github.com/NobodyXu/su-exec/releases/download/v${SU_EXEC_VERSION}/su-exec-musl-static ${OUTDIR}/usr/bin/su-exec
+ADD https://github.com/NobodyXu/su-exec/archive/refs/tags/v${SU_EXEC_VERSION}.tar.gz /tmp
+RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
+WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
+# Setting LDFLAGS is needed here, upstream uses '--icf=all' which our linker  doesn't have
+RUN LDFLAGS="-fvisibility=hidden -Wl,-O2 -Wl,--discard-all -Wl,--strip-all -Wl,--as-needed -Wl,--gc-sections" make
+RUN cp -a su-exec ${OUTDIR}/usr/bin
 
 ADD https://github.com/GoogleContainerTools/kpt/releases/download/${KPT_VERSION}/kpt_linux_${TARGETARCH} ${OUTDIR}/usr/bin/kpt
 RUN chmod 555 ${OUTDIR}/usr/bin/kpt
@@ -882,6 +887,7 @@ ENV UBUNTU_RELEASE_VERSION=20.04
 FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
 
 ENV DOCKER_BUILDX_VERSION=0.10.5-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+ENV SU_EXEC_VERSION=0.3.1
 
 WORKDIR /
 
@@ -1006,6 +1012,14 @@ RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
 
 # su-exec is used in place of complex sudo setup operations
+# Build ourselves here since the one from the base has the wrong glibc version
+ADD https://github.com/NobodyXu/su-exec/archive/refs/tags/v${SU_EXEC_VERSION}.tar.gz /tmp
+RUN tar -xzvf v${SU_EXEC_VERSION}.tar.gz
+WORKDIR /tmp/su-exec-${SU_EXEC_VERSION}
+# Setting LDFLAGS is needed here, upstream uses '--icf=all' which our linker  doesn't have
+RUN LDFLAGS="-fvisibility=hidden -Wl,-O2 -Wl,--discard-all -Wl,--strip-all -Wl,--as-needed -Wl,--gc-sections" make
+RUN cp -a su-exec ${OUTDIR}/usr/bin
+
 RUN chmod u+sx /usr/bin/su-exec
 
 COPY bashrc /home/.bashrc
