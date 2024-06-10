@@ -1014,7 +1014,9 @@ RUN ldconfig
 # su-exec is used in place of complex sudo setup operations
 # Build ourselves here since the one from the base has the wrong glibc version
 ADD https://github.com/NobodyXu/su-exec/archive/refs/tags/v${SU_EXEC_VERSION}.tar.gz /tmp
-RUN tar -xzvf /tmp/v${SU_EXEC_VERSION}.tar.gz && \
+# hadolint ignore=DL3003
+RUN cd /tmp && \
+    tar -xzvf /tmp/v${SU_EXEC_VERSION}.tar.gz && \
     cd /tmp/su-exec-${SU_EXEC_VERSION} && \
     LDFLAGS="-fvisibility=hidden -Wl,-O2 -Wl,--discard-all -Wl,--strip-all -Wl,--as-needed -Wl,--gc-sections" make && \
     cp -a su-exec /usr/bin && \
