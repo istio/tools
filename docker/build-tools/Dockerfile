@@ -688,6 +688,7 @@ ENV RUBYOPT="-KU -E utf-8:utf-8"
 # Create the file system
 COPY --link --from=base_os_context / /
 COPY --link --from=binary_tools_context_base /out/ /
+COPY --link --from=binary_tools_context_base /usr/local/go /usr/local/go
 COPY --link --from=go_tools_1 /tmp/go/bin/* /usr/local/go/
 COPY --link --from=go_tools_2 /tmp/go/bin/* /usr/local/go/
 
@@ -996,6 +997,7 @@ RUN set -eux; \
     esac;
 
 COPY --link --from=binary_tools_context_base /out/ /
+COPY --link --from=binary_tools_context_base /usr/local/go /usr/local/go
 COPY --link --from=go_tools_1 /tmp/go/bin/* /usr/local/go/
 COPY --link --from=go_tools_2 /tmp/go/bin/* /usr/local/go/
 COPY --link --from=gn_context /gn/gn /usr/local/bin/gn
