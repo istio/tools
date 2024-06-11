@@ -887,6 +887,7 @@ ENV UBUNTU_RELEASE_VERSION=20.04
 FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
 
 ENV DOCKER_BUILDX_VERSION=0.10.5-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+ENV SU_EXEC_VERSION=0.3.1
 
 WORKDIR /
 
@@ -1011,7 +1012,15 @@ RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
 
 # su-exec is used in place of complex sudo setup operations
-RUN chmod u+sx /usr/bin/su-exec
+# Build ourselves here since the one from the base has the wrong glibc version
+ADD https://github.com/NobodyXu/su-exec/archive/refs/tags/v${SU_EXEC_VERSION}.tar.gz /tmp
+# hadolint ignore=DL3003
+RUN cd /tmp && \
+    tar -xzvf /tmp/v${SU_EXEC_VERSION}.tar.gz && \
+    cd /tmp/su-exec-${SU_EXEC_VERSION} && \
+    LDFLAGS="-fvisibility=hidden -Wl,-O2 -Wl,--discard-all -Wl,--strip-all -Wl,--as-needed -Wl,--gc-sections" make && \
+    cp -a su-exec /usr/bin && \
+    chmod u+sx /usr/bin/su-exec
 
 COPY bashrc /home/.bashrc
 
