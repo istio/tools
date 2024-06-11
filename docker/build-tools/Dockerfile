@@ -689,8 +689,8 @@ ENV RUBYOPT="-KU -E utf-8:utf-8"
 COPY --link --from=base_os_context / /
 COPY --link --from=binary_tools_context_base /out/ /
 COPY --link --from=binary_tools_context_base /usr/local/go /usr/local/go
-COPY --link --from=go_tools_1 /tmp/go/bin/* /usr/local/go/
-COPY --link --from=go_tools_2 /tmp/go/bin/* /usr/local/go/
+COPY --link --from=go_tools_1 /tmp/go/bin/* /usr/bin/
+COPY --link --from=go_tools_2 /tmp/go/bin/* /usr/bin/
 
 COPY --link --from=nodejs_tools_context /usr/local/bin /usr/local/bin
 COPY --link --from=nodejs_tools_context /usr/local/lib/node_modules /usr/local/lib/node_modules
@@ -998,8 +998,8 @@ RUN set -eux; \
 
 COPY --link --from=binary_tools_context_base /out/ /
 COPY --link --from=binary_tools_context_base /usr/local/go /usr/local/go
-COPY --link --from=go_tools_1 /tmp/go/bin/* /usr/local/go/
-COPY --link --from=go_tools_2 /tmp/go/bin/* /usr/local/go/
+COPY --link --from=go_tools_1 /tmp/go/bin/* /usr/bin/
+COPY --link --from=go_tools_2 /tmp/go/bin/* /usr/bin/
 COPY --link --from=gn_context /gn/gn /usr/local/bin/gn
 COPY --link --from=bazel_context /usr/local/bin /usr/local/bin
 COPY --link --from=clang_context ${LLVM_DIRECTORY}/lib ${LLVM_DIRECTORY}/lib
