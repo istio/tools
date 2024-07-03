@@ -16,6 +16,7 @@ package generators
 
 import (
 	"io"
+	"slices"
 
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/namer"
@@ -64,7 +65,7 @@ func (g *typesGenerator) GenerateType(c *generator.Context, t *types.Type, w io.
 		localM := m
 		// ServiceEntry has a unique status type which includes addresses for auto allocated IPs, substitute IstioServiceEntryStatus
 		// for IstioStatus when type is ServiceEntry
-		if kubeType.Type().Name.Name == "ServiceEntry" {
+		if slices.Contains(kubeType.RawType().CommentLines, useIstioServiceEntryStatus) {
 			localM["IstioStatus"] = c.Universe.Type(types.Name{Name: "IstioServiceEntryStatus", Package: "istio.io/api/meta/v1alpha1"})
 		}
 		// make sure local types get imports generated for them to prevent reusing their local name for real imports,
@@ -77,7 +78,9 @@ func (g *typesGenerator) GenerateType(c *generator.Context, t *types.Type, w io.
 	return sw.Error()
 }
 
-const kubeTypeTemplate = `
+const (
+	useIstioServiceEntryStatus = `istiostatus-override: IstioServiceEntryStatus`
+	kubeTypeTemplate           = `
 $- range .RawType.SecondClosestCommentLines $
 // $ . $
 $- end $
@@ -111,3 +114,4 @@ type $.KubeType.Type|public$List struct {
 	Items           []*$.KubeType.Type|raw$ ` + "`" + `json:"items" protobuf:"bytes,2,rep,name=items"` + "`" + `
 }
 `
+)
