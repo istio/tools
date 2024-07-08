@@ -835,9 +835,10 @@ type SchemaApplier interface {
 }
 
 const (
-	ValidationPrefix     = "+kubebuilder:validation:"
-	MapValidationPrefix  = "+kubebuilder:map-value-validation:"
-	ListValidationPrefix = "+kubebuilder:list-value-validation:"
+	ValidationPrefix         = "+kubebuilder:validation:"
+	MapValidationPrefix      = "+kubebuilder:map-value-validation:"
+	ListValidationPrefix     = "+kubebuilder:list-value-validation:"
+	DurationValidationPrefix = "+kubebuilder:duration-validation:"
 )
 
 func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc, t markers.TargetType) {
@@ -846,6 +847,7 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 		if !strings.Contains(line, ValidationPrefix) &&
 			!strings.Contains(line, "+list") &&
 			!strings.Contains(line, MapValidationPrefix) &&
+			!strings.Contains(line, DurationValidationPrefix) &&
 			!strings.Contains(line, ListValidationPrefix) {
 			continue
 		}
@@ -859,6 +861,11 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 		if strings.Contains(line, ListValidationPrefix) {
 			schema = schema.Items.Schema
 			line = strings.ReplaceAll(line, ListValidationPrefix, ValidationPrefix)
+		}
+		// This is a hack to allow a certain field to opt-out of the default "Duration must be non-zero"
+		if strings.Contains(line, DurationValidationPrefix+"none") {
+			schema.XValidations = nil
+			return
 		}
 
 		def := markerRegistry.Lookup(line, t)
