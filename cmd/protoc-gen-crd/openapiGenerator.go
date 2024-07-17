@@ -397,12 +397,27 @@ func (g *openapiGenerator) generateFile(
 				}
 			}
 			if sr, f := cfg["subresource"]; f {
-				if sr == "status" {
-					ver.Subresources = &apiext.CustomResourceSubresources{Status: &apiext.CustomResourceSubresourceStatus{}}
-					ver.Schema.OpenAPIV3Schema.Properties["status"] = apiext.JSONSchemaProps{
-						Type:                   "object",
-						XPreserveUnknownFields: Ptr(true),
+				k, v, ok := strings.Cut(sr, "=")
+				if !ok {
+					k = sr
+				}
+				if k == "status" {
+					if v == "" {
+						// Back compat
+						v = "istio.meta.v1alpha1.IstioStatus"
 					}
+					ver.Subresources = &apiext.CustomResourceSubresources{Status: &apiext.CustomResourceSubresourceStatus{}}
+					status, f := allSchemas[v]
+					if !f {
+						log.Fatalf("Schema %v not found", v)
+					}
+					// Because status can be written by arbitrary third party controllers, allow unknown fields.
+					// These really should be using `conditions`, which is an unstructured list, but they may not be.
+					// For backwards compat, we make this allow unknown fields.
+					schema := *status.DeepCopy()
+					alwaysTrue := true
+					schema.XPreserveUnknownFields = &alwaysTrue
+					ver.Schema.OpenAPIV3Schema.Properties["status"] = schema
 				}
 			}
 			if sr, f := cfg["spec"]; f {
