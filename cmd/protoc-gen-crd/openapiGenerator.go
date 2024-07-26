@@ -882,6 +882,15 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 			schema.XValidations = nil
 			return
 		}
+		// Kubernetes is very particular about the format for XIntOrString, must match exactly this
+		if strings.Contains(line, "+kubebuilder:validation:XIntOrString") {
+			schema.Format = ""
+			schema.Type = ""
+			schema.AnyOf = []apiext.JSONSchemaProps{
+				{Type: "integer"},
+				{Type: "string"},
+			}
+		}
 
 		def := markerRegistry.Lookup(line, t)
 		if def == nil {
