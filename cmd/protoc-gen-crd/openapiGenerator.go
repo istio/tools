@@ -851,9 +851,10 @@ type SchemaApplier interface {
 
 const (
 	ValidationPrefix         = "+kubebuilder:validation:"
-	MapValidationPrefix      = "+kubebuilder:map-value-validation:"
-	ListValidationPrefix     = "+kubebuilder:list-value-validation:"
-	DurationValidationPrefix = "+kubebuilder:duration-validation:"
+	MapValidationPrefix      = "+protoc-gen-crd:map-value-validation:"
+	ListValidationPrefix     = "+protoc-gen-crd:list-value-validation:"
+	DurationValidationPrefix = "+protoc-gen-crd:duration-validation:"
+	IntOrStrValidation       = "+protoc-gen-crd:validation:XIntOrString"
 )
 
 func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc, t markers.TargetType) {
@@ -883,7 +884,7 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 			return
 		}
 		// Kubernetes is very particular about the format for XIntOrString, must match exactly this
-		if strings.Contains(line, "+kubebuilder:validation:XIntOrString") {
+		if strings.Contains(line, IntOrStringValidation) {
 			schema.Format = ""
 			schema.Type = ""
 			schema.AnyOf = []apiext.JSONSchemaProps{
