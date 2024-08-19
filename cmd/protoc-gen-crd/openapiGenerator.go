@@ -34,6 +34,7 @@ import (
 	structuralschema "k8s.io/apiextensions-apiserver/pkg/apiserver/schema"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/controller-tools/pkg/crd"
 	crdmarkers "sigs.k8s.io/controller-tools/pkg/crd/markers"
 	"sigs.k8s.io/controller-tools/pkg/markers"
 	"sigs.k8s.io/yaml"
@@ -850,20 +851,23 @@ type SchemaApplier interface {
 }
 
 const (
-	ValidationPrefix         = "+kubebuilder:validation:"
-	MapValidationPrefix      = "+kubebuilder:map-value-validation:"
-	ListValidationPrefix     = "+kubebuilder:list-value-validation:"
-	DurationValidationPrefix = "+kubebuilder:duration-validation:"
+	KubeBuilderValidationPrefix = "+kubebuilder:validation:"
+	ProtocGenValidationPrefix   = "+protoc-gen-crd:"
+	MapValidationPrefix         = "+protoc-gen-crd:map-value-validation:"
+	ListValidationPrefix        = "+protoc-gen-crd:list-value-validation:"
+	DurationValidationPrefix    = "+protoc-gen-crd:duration-validation:"
+	IntOrStringValidation       = "+protoc-gen-crd:validation:XIntOrString"
+	// IgnoreSubValidation is a custom validation allowing to refer to a type, but remove some validation
+	// This is useful when we are embedding a different type in a different context.
+	IgnoreSubValidation = "+protoc-gen-crd:validation:IgnoreSubValidation:"
 )
 
 func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc, t markers.TargetType) {
 	for _, line := range strings.Split(m.Location().GetLeadingComments(), "\n") {
 		line = strings.TrimSpace(line)
-		if !strings.Contains(line, ValidationPrefix) &&
+		if !strings.Contains(line, KubeBuilderValidationPrefix) &&
 			!strings.Contains(line, "+list") &&
-			!strings.Contains(line, MapValidationPrefix) &&
-			!strings.Contains(line, DurationValidationPrefix) &&
-			!strings.Contains(line, ListValidationPrefix) {
+			!strings.Contains(line, ProtocGenValidationPrefix) {
 			continue
 		}
 		schema := schema
@@ -871,11 +875,11 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 		// Custom logic to apply validations to map values. In go, they just make a type alias and apply policy there; proto cannot do that.
 		if strings.Contains(line, MapValidationPrefix) {
 			schema = schema.AdditionalProperties.Schema
-			line = strings.ReplaceAll(line, MapValidationPrefix, ValidationPrefix)
+			line = strings.ReplaceAll(line, MapValidationPrefix, KubeBuilderValidationPrefix)
 		}
 		if strings.Contains(line, ListValidationPrefix) {
 			schema = schema.Items.Schema
-			line = strings.ReplaceAll(line, ListValidationPrefix, ValidationPrefix)
+			line = strings.ReplaceAll(line, ListValidationPrefix, KubeBuilderValidationPrefix)
 		}
 		// This is a hack to allow a certain field to opt-out of the default "Duration must be non-zero"
 		if strings.Contains(line, DurationValidationPrefix+"none") {
@@ -883,13 +887,24 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 			return
 		}
 		// Kubernetes is very particular about the format for XIntOrString, must match exactly this
-		if strings.Contains(line, "+kubebuilder:validation:XIntOrString") {
+		if strings.Contains(line, IntOrStringValidation) {
 			schema.Format = ""
 			schema.Type = ""
 			schema.AnyOf = []apiext.JSONSchemaProps{
 				{Type: "integer"},
 				{Type: "string"},
 			}
+			line = strings.ReplaceAll(line, ProtocGenValidationPrefix+"validation:", KubeBuilderValidationPrefix)
+		}
+
+		if strings.Contains(line, IgnoreSubValidation) {
+			li := strings.TrimPrefix(line, IgnoreSubValidation)
+			items := []string{}
+			if err := json.Unmarshal([]byte(li), &items); err != nil {
+				log.Fatalf("invalid %v %v: %v", IgnoreSubValidation, line, err)
+			}
+			recursivelyStripValidation(schema, items)
+			continue
 		}
 
 		def := markerRegistry.Lookup(line, t)
@@ -904,6 +919,43 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 			log.Fatalf("failed to apply schema %q: %v", schema.Description, err)
 		}
 	}
+}
+
+type stripVisitor struct {
+	removeMessages sets.Set[string]
+}
+
+func (s stripVisitor) Visit(schema *apiext.JSONSchemaProps) crd.SchemaVisitor {
+	if schema != nil && schema.XValidations != nil {
+		schema.XValidations = FilterInPlace(schema.XValidations, func(rule apiext.ValidationRule) bool {
+			return !s.removeMessages.Has(rule.Message)
+		})
+	}
+	return s
+}
+
+func recursivelyStripValidation(schema *apiext.JSONSchemaProps, items []string) {
+	crd.EditSchema(schema, stripVisitor{sets.New(items...)})
+}
+
+func FilterInPlace[E any](s []E, f func(E) bool) []E {
+	n := 0
+	for _, val := range s {
+		if f(val) {
+			s[n] = val
+			n++
+		}
+	}
+
+	// If those elements contain pointers you might consider zeroing those elements
+	// so that objects they reference can be garbage collected."
+	var empty E
+	for i := n; i < len(s); i++ {
+		s[i] = empty
+	}
+
+	s = s[:n]
+	return s
 }
 
 func (g *openapiGenerator) fieldName(field *protomodel.FieldDescriptor) string {
@@ -942,7 +994,8 @@ func validateStructural(s *apiext.JSONSchemaProps) error {
 	}
 
 	if errs := structuralschema.ValidateStructural(nil, r); len(errs) != 0 {
-		return fmt.Errorf("schema is not structural: %v", errs.ToAggregate().Error())
+		b, _ := yaml.Marshal(s)
+		return fmt.Errorf("schema is not structural: %v (%+v)", errs.ToAggregate().Error(), string(b))
 	}
 
 	return nil
