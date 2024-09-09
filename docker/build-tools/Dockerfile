@@ -45,7 +45,7 @@ ENV COSIGN_VERSION=v2.4.0
 ENV CRANE_VERSION=v0.20.2
 ENV GCLOUD_VERSION=491.0.0
 ENV GCR_AUTH_VERSION=2.1.21
-ENV GH_VERSION=2.55.0
+ENV GH_VERSION=2.56.0
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.24.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
@@ -555,7 +555,7 @@ FROM ubuntu:noble as base_os_context
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CONTAINERD_VERSION=1.7.21-1
-ENV DOCKER_VERSION=5:27.2.0-1~ubuntu.24.04~noble
+ENV DOCKER_VERSION=5:27.2.1-1~ubuntu.24.04~noble
 ENV DOCKER_BUILDX_VERSION=0.16.2-1~ubuntu.24.04~noble
 ENV RUST_VERSION=1.80.0
 
