@@ -630,6 +630,7 @@ ENV RUSTUP_HOME=/home/.rustup
 RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
     sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal --component rustfmt clippy &&\
     /home/.cargo/bin/rustup default ${RUST_VERSION} &&\
+    /home/.cargo/bin/cargo install rustfilt &&\
     mv /home/.cargo/bin/* /usr/bin
 RUN cargo install rustfilt
 
@@ -685,9 +686,6 @@ ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 
 # Ruby support
 ENV RUBYOPT="-KU -E utf-8:utf-8"
-
-# Rust support
-ENV PATH=/home/.cargo/bin/:$PATH
 
 # Create the file system
 COPY --link --from=base_os_context / /
