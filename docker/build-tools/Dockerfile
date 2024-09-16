@@ -173,7 +173,7 @@ RUN mv /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm3
 RUN ln ${OUTDIR}/usr/bin/helm3 ${OUTDIR}/usr/bin/helm
 
 # Kubectl
-ADD https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl ${OUTDIR}/usr/bin/kubectl
+ADD https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl ${OUTDIR}/usr/bin/kubectl
 RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
 
 # GCR docker credential helper
