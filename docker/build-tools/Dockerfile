@@ -37,7 +37,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.14.7
+ENV APKO_VERSION=v0.19.1
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.41.0
@@ -555,7 +555,7 @@ FROM ubuntu:noble as base_os_context
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CONTAINERD_VERSION=1.7.22-1
-ENV DOCKER_VERSION=5:27.3.0-1~ubuntu.24.04~noble
+ENV DOCKER_VERSION=5:27.3.1-1~ubuntu.24.04~noble
 ENV DOCKER_BUILDX_VERSION=0.17.1-1~ubuntu.24.04~noble
 ENV RUST_VERSION=1.80.0
 
