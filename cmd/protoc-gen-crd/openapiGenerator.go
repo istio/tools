@@ -372,7 +372,7 @@ func (g *openapiGenerator) generateFile(
 				Name:   version,
 				Served: true,
 				Schema: &apiext.CustomResourceValidation{
-					OpenAPIV3Schema: schema,
+					OpenAPIV3Schema: schema.DeepCopy(),
 				},
 			}
 			if pk, f := cfg["printerColumn"]; f {
@@ -423,6 +423,7 @@ func (g *openapiGenerator) generateFile(
 			}
 			if sr, f := cfg["spec"]; f {
 				if sr == "required" {
+					log.Println("add req to ", version)
 					ver.Schema.OpenAPIV3Schema.Required = append(ver.Schema.OpenAPIV3Schema.Required, "spec")
 				}
 			}
