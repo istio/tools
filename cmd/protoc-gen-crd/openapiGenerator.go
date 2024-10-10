@@ -23,7 +23,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"golang.org/x/exp/maps"
@@ -50,11 +49,11 @@ var specialTypes = map[string]*apiext.JSONSchemaProps{
 		Items: &apiext.JSONSchemaPropsOrArray{Schema: &apiext.JSONSchemaProps{Type: "object"}},
 	},
 	"google.protobuf.Struct": {
-		Type:                   openapi3.TypeObject,
+		Type:                   "object",
 		XPreserveUnknownFields: Ptr(true),
 	},
 	"google.protobuf.Any": {
-		Type:                   openapi3.TypeObject,
+		Type:                   "object",
 		XPreserveUnknownFields: Ptr(true),
 	},
 	"google.protobuf.Value": {
