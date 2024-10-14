@@ -18,6 +18,7 @@ package kubernetes
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -167,15 +168,12 @@ func validateServices(clusterName string, services []svc.Service, manifest inter
 	return append(header, []byte(fmt.Sprintf("## Number of services included in this manifest for cluster '%s' is: %d\n\n", clusterName, serviceToAppendCounter))...), nil
 }
 
-func combineLabels(a, b map[string]string) map[string]string {
-	c := make(map[string]string, len(a)+len(b))
-	for k, v := range a {
-		c[k] = v
+func combineLabels(labels ...map[string]string) map[string]string {
+	res := map[string]string{}
+	for _, l := range labels {
+		maps.Copy(res, l)
 	}
-	for k, v := range b {
-		c[k] = v
-	}
-	return c
+	return res
 }
 
 func makeConfigMap(
@@ -205,7 +203,8 @@ func makeService(service svc.Service) (k8sService apiv1.Service) {
 		serviceGraphNodeLabels,
 		map[string]string{
 			"app": service.Name,
-		})
+		},
+		service.Labels)
 	timestamp(&k8sService.ObjectMeta)
 	k8sService.Spec.Ports = []apiv1.ServicePort{{Port: consts.ServicePort, Name: consts.ServicePortName}}
 	k8sService.Spec.Selector = map[string]string{"name": service.Name}
@@ -224,7 +223,8 @@ func makeDeployment(
 		serviceGraphNodeLabels,
 		map[string]string{
 			"app": service.Name,
-		})
+		},
+		service.Labels)
 	timestamp(&k8sDeployment.ObjectMeta)
 	k8sDeployment.Spec = appsv1.DeploymentSpec{
 		Replicas: &service.NumReplicas,
@@ -239,7 +239,8 @@ func makeDeployment(
 					serviceGraphNodeLabels,
 					map[string]string{
 						"name": service.Name,
-					}),
+					},
+					service.Labels),
 				Annotations: prometheusScrapeAnnotations,
 			},
 			Spec: apiv1.PodSpec{

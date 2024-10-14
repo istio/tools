@@ -51,4 +51,7 @@ type Service struct {
 
 	// Script is sequentially called each time the service is called.
 	Script script.Script `json:"script,omitempty"`
+
+	// Labels to add to the generated K8S entities.
+	Labels map[string]string `json:"labels,omitempty"`
 }
