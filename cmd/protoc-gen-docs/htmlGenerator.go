@@ -473,12 +473,13 @@ func (g *htmlGenerator) generateSectionHeading(desc protomodel.CoreDesc) {
 		class = desc.Class() + " "
 	}
 
-	heading := "h2"
-	if g.grouping {
-		heading = "h3"
-	}
-
 	name := g.relativeName(desc)
+	depth := 2
+	depth += min(4, strings.Count(name, "."))
+	if g.grouping {
+		depth++
+	}
+	heading := fmt.Sprintf("h%d", depth)
 
 	g.emit("<", heading, " id=\"", normalizeID(name), "\">", name, "</", heading, ">")
 
