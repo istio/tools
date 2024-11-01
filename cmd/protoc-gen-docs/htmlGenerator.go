@@ -548,13 +548,14 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 					}
 				}
 
+				id := normalizeID(g.relativeName(field))
 				if class != "" {
-					g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\" class=\"", class, "\">")
+					g.emit(`<tr id="`, id, `" class="`, class, `">`)
 				} else {
-					g.emit("<tr id=\"", normalizeID(g.relativeName(field)), "\">")
+					g.emit(`<tr id="`, id, `">`)
 				}
-
-				g.emit("<td><code>", fieldName, "</code></td>")
+				fieldLink := `<a href="#` + id + "\">" + fieldName + "</a>"
+				g.emit("<td><code>", fieldLink, "</code></td>")
 				g.emit("<td><code>", g.linkify(field.FieldType, fieldTypeName, true), "</code></td>")
 				g.emit("<td>")
 
@@ -632,12 +633,14 @@ func (g *htmlGenerator) generateEnum(enum *protomodel.EnumDescriptor) {
 					class = class + v.Class() + " "
 				}
 
+				id := normalizeID(g.relativeName(v))
 				if class != "" {
-					g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\" class=\"", class, "\">")
+					g.emit(`<tr id="`, id, `" class="`, class, `">`)
 				} else {
-					g.emit("<tr id=\"", normalizeID(g.relativeName(v)), "\">")
+					g.emit(`<tr id="`, id, `">`)
 				}
-				g.emit("<td><code>", name, "</code></td>")
+				fieldLink := `<a href="#` + id + "\">" + name + "</a>"
+				g.emit("<td><code>", fieldLink, "</code></td>")
 				g.emit("<td>")
 
 				g.generateComment(v.Location(), name)
