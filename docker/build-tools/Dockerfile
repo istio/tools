@@ -56,7 +56,7 @@ ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV HADOLINT_VERSION=v2.12.0
 ENV HELM3_VERSION=v3.16.3
-ENV HUGO_VERSION=0.139.0
+ENV HUGO_VERSION=0.139.3
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.20.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
@@ -156,8 +156,8 @@ RUN set -eux; \
 RUN set -eux; \
     \
     case $(uname -m) in \
-        x86_64) HUGO_TAR=hugo_${HUGO_VERSION}_Linux-64bit.tar.gz;; \
-        aarch64) HUGO_TAR=hugo_${HUGO_VERSION}_Linux-ARM64.tar.gz;; \
+        x86_64) HUGO_TAR=hugo_extended_${HUGO_VERSION}_Linux-64bit.tar.gz;; \
+        aarch64) HUGO_TAR=hugo_extended_${HUGO_VERSION}_Linux-ARM64.tar.gz;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
