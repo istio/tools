@@ -156,8 +156,8 @@ RUN set -eux; \
 RUN set -eux; \
     \
     case $(uname -m) in \
-        x86_64) HUGO_TAR=hugo_${HUGO_VERSION}_Linux-64bit.tar.gz;; \
-        aarch64) HUGO_TAR=hugo_${HUGO_VERSION}_Linux-ARM64.tar.gz;; \
+        x86_64) HUGO_TAR=hugo_extended_${HUGO_VERSION}_Linux-64bit.tar.gz;; \
+        aarch64) HUGO_TAR=hugo_extended_${HUGO_VERSION}_Linux-ARM64.tar.gz;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
