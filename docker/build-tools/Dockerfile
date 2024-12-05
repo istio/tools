@@ -415,6 +415,7 @@ WORKDIR /node
 # Pinned versions of stuff we pull in
 ENV BABEL_CLI_VERSION=v7.17.10
 ENV BABEL_CORE_VERSION=v7.18.2
+ENV BABEL_TRAVERSE_VERSION=v7.25.9
 ENV BABEL_POLYFILL_VERSION=v7.12.1
 ENV BABEL_PRESET_ENV=v7.18.2
 ENV BABEL_PRESET_MINIFY_VERSION=v0.5.2
@@ -454,6 +455,7 @@ RUN npm install --omit=dev --global \
     svgo@"${SVGO_VERSION}" \
     @babel/core@"${BABEL_CORE_VERSION}" \
     @babel/cli@"${BABEL_CLI_VERSION}" \
+    @babel/traverse@"${BABEL_TRAVERSE_VERSION}" \
     @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}" \
     linkinator@"${LINKINATOR_VERSION}"
 
