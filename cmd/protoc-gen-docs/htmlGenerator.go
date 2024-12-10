@@ -587,7 +587,7 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 					}
 				}
 
-				var required bool = false
+				var required = false
 				if field.Options != nil {
 					fb := getFieldBehavior(field.Options)
 					for _, e := range fb {
