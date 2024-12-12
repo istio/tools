@@ -587,7 +587,7 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 					}
 				}
 
-				var required bool = false
+				var required = false
 				if field.Options != nil {
 					fb := getFieldBehavior(field.Options)
 					for _, e := range fb {
@@ -606,16 +606,14 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 				fieldLink := `<a href="#` + id + "\">" + fieldName + "</a>"
 
 				// field
-				g.emit("<td><code>", fieldLink, "</code><br/>")
+				g.emit("<td><div class=\"field\"><div class=\"name\"><code>", fieldLink, "</code></div>")
 				// type
-				g.emit("<em>", g.linkify(field.FieldType, fieldTypeName, true), "</em><br/>")
+				g.emit("<div class=\"type\">", g.linkify(field.FieldType, fieldTypeName, true), "</div>")
 				// required
 				if required {
-					g.emit("Required")
-				} else {
-					g.emit("Optional")
+					g.emit("<div class=\"required\">Required</div>")
 				}
-				g.emit("</td>")
+				g.emit("</div></td>")
 				g.emit("<td>")
 
 				g.generateComment(field.Location(), field.GetName())
