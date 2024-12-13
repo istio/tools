@@ -311,6 +311,40 @@ func (g *htmlGenerator) generateFile(top *protomodel.FileDescriptor, messages []
 		enumMap[name] = enum
 	}
 
+	// Sort the typeList in dotted name order.
+	// For each type, iterate through the rest of the list and add any other
+	// types that start with that prefix. Ignore any that have been seen already.
+	seen := make(map[string]bool)
+	var sortedTypes []string
+
+	// Add a type, and any types that are children of that type
+	// (as expressed as MetricsOverrides.TagOverride.Operation)
+	var addKey func(string)
+	addKey = func(key string) {
+		if seen[key] {
+			return
+		}
+
+		seen[key] = true
+
+		sortedTypes = append(sortedTypes, key)
+
+		// Find any children of this key and add them next
+		for _, name := range typeList {
+			if strings.HasPrefix(name, key+".") {
+				addKey(name)
+			}
+		}
+	}
+
+	// Create sorted version of the typeList
+	for _, name := range typeList {
+		addKey(name)
+	}
+
+	// replace with sorted version
+	typeList = sortedTypes
+
 	servicesMap := map[string]*protomodel.ServiceDescriptor{}
 	for _, svc := range services {
 		if svc.IsHidden() {
@@ -473,14 +507,21 @@ func (g *htmlGenerator) generateSectionHeading(desc protomodel.CoreDesc) {
 		class = desc.Class() + " "
 	}
 
-	heading := "h2"
-	if g.grouping {
-		heading = "h3"
+	name := g.relativeName(desc)
+	shortName := name
+
+	if idx := strings.LastIndex(name, "."); idx != -1 {
+		shortName = name[idx+1:]
 	}
 
-	name := g.relativeName(desc)
+	depth := 2
+	depth += min(4, strings.Count(name, "."))
+	if g.grouping {
+		depth++
+	}
+	heading := fmt.Sprintf("h%d", depth)
 
-	g.emit("<", heading, " id=\"", normalizeID(name), "\">", name, "</", heading, ">")
+	g.emit("<", heading, " id=\"", normalizeID(name), "\">", shortName, "</", heading, ">")
 
 	if class != "" {
 		g.emit("<section class=\"", class, "\">")
@@ -502,9 +543,7 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 		g.emit("<thead>")
 		g.emit("<tr>")
 		g.emit("<th>Field</th>")
-		g.emit("<th>Type</th>")
 		g.emit("<th>Description</th>")
-		g.emit("<th>Required</th>")
 		g.emit("</tr>")
 		g.emit("</thead>")
 		g.emit("<tbody>")
@@ -548,6 +587,16 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 					}
 				}
 
+				required := false
+				if field.Options != nil {
+					fb := getFieldBehavior(field.Options)
+					for _, e := range fb {
+						if e == annotations.FieldBehavior_REQUIRED {
+							required = true
+						}
+					}
+				}
+
 				id := normalizeID(g.relativeName(field))
 				if class != "" {
 					g.emit(`<tr id="`, id, `" class="`, class, `">`)
@@ -555,30 +604,20 @@ func (g *htmlGenerator) generateMessage(message *protomodel.MessageDescriptor) {
 					g.emit(`<tr id="`, id, `">`)
 				}
 				fieldLink := `<a href="#` + id + "\">" + fieldName + "</a>"
-				g.emit("<td><code>", fieldLink, "</code></td>")
-				g.emit("<td><code>", g.linkify(field.FieldType, fieldTypeName, true), "</code></td>")
+
+				// field
+				g.emit("<td><div class=\"field\"><div class=\"name\"><code>", fieldLink, "</code></div>")
+				// type
+				g.emit("<div class=\"type\">", g.linkify(field.FieldType, fieldTypeName, true), "</div>")
+				// required
+				if required {
+					g.emit("<div class=\"required\">Required</div>")
+				}
+				g.emit("</div></td>")
 				g.emit("<td>")
 
 				g.generateComment(field.Location(), field.GetName())
 
-				g.emit("</td>")
-				g.emit("<td>")
-				if field.Options != nil {
-					fb := getFieldBehavior(field.Options)
-					var required bool
-					for _, e := range fb {
-						if e == annotations.FieldBehavior_REQUIRED {
-							required = true
-						}
-					}
-					if required {
-						g.emit("Yes")
-					} else {
-						g.emit("No")
-					}
-				} else {
-					g.emit("No")
-				}
 				g.emit("</td>")
 				g.emit("</tr>")
 			}
@@ -829,6 +868,12 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 				return "*" + linkName + "*"
 			})
 		}
+	}
+
+	// remove "Required. " and "Optional. "
+	for i := 0; i < len(lines); i++ {
+		lines[i] = regexp.MustCompile(`^Required. `).ReplaceAllString(lines[i], "")
+		lines[i] = regexp.MustCompile(`^Optional. `).ReplaceAllString(lines[i], "")
 	}
 
 	lines = FilterInPlace(lines, skipLine)
