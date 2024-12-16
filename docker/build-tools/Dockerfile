@@ -29,7 +29,7 @@
 ################
 ARG GOLANG_IMAGE=golang:1.23.4
 # hadolint ignore=DL3006
-FROM ${GOLANG_IMAGE} as binary_tools_context_base
+FROM ${GOLANG_IMAGE} AS binary_tools_context_base
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
 ARG TARGETARCH
 
@@ -281,7 +281,7 @@ RUN rm -fr /usr/local/go/bin/gofmt
 
 # Go tools: part 1
 # We split these out to get better docker layer caching to avoid needing to pull *everything* down when just one thing changes
-FROM binary_tools_context_base as go_tools_1
+FROM binary_tools_context_base AS go_tools_1
 
 # Build and install a bunch of Go tools
 RUN --mount=type=cache,target=/tmp/go/pkg/mod \
@@ -386,7 +386,7 @@ RUN --mount=type=cache,target=/tmp/go/pkg/mod \
     CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
     sigs.k8s.io/prow/cmd/peribolos@${K8S_PROW_VERSION}
 
-FROM binary_tools_context_base as go_tools_2
+FROM binary_tools_context_base AS go_tools_2
 
 # Install latest version of Istio-owned tools in this release
 RUN --mount=type=cache,target=/tmp/go/pkg/mod \
@@ -408,7 +408,7 @@ RUN --mount=type=cache,target=/tmp/go/pkg/mod \
 #############
 # Node.js
 #############
-FROM ubuntu:noble as nodejs_tools_context
+FROM ubuntu:noble AS nodejs_tools_context
 
 WORKDIR /node
 
@@ -471,7 +471,7 @@ RUN rm -rf /usr/local/share
 # Ruby
 #############
 
-FROM ubuntu:noble as ruby_tools_context
+FROM ubuntu:noble AS ruby_tools_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -513,7 +513,7 @@ RUN gem install --no-wrappers --no-document fpm -v ${FPM_VERSION}
 # Python
 ##############
 
-FROM ubuntu:noble as python_context
+FROM ubuntu:noble AS python_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -550,7 +550,7 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir PyGithub==${PY
 # Base OS
 #############
 
-FROM ubuntu:noble as base_os_context
+FROM ubuntu:noble AS base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -628,7 +628,8 @@ ENV CARGO_HOME=/home/.cargo
 ENV RUSTUP_HOME=/home/.rustup
 # hadolint ignore=DL4006
 RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
-    sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal --component rustfmt clippy &&\
+    sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal \
+    --component rustfmt clippy --component llvm-tools &&\
     /home/.cargo/bin/rustup default ${RUST_VERSION} &&\
     /home/.cargo/bin/cargo install rustfilt &&\
     mv /home/.cargo/bin/* /usr/bin
@@ -657,7 +658,7 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 ##############
 
 # Prepare final output image
-FROM scratch as build_tools
+FROM scratch AS build_tools
 
 # Version from build arguments
 ARG VERSION
