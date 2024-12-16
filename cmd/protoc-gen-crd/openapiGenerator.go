@@ -25,6 +25,8 @@ import (
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/howardjohn/celpp"
+	"github.com/howardjohn/celpp/macros"
 	"golang.org/x/exp/maps"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
@@ -422,7 +424,6 @@ func (g *openapiGenerator) generateFile(
 			}
 			if sr, f := cfg["spec"]; f {
 				if sr == "required" {
-					log.Println("add req to ", version)
 					ver.Schema.OpenAPIV3Schema.Required = append(ver.Schema.OpenAPIV3Schema.Required, "spec")
 				}
 			}
@@ -862,6 +863,14 @@ const (
 	IgnoreSubValidation = "+protoc-gen-crd:validation:IgnoreSubValidation:"
 )
 
+var Celpp = func() *celpp.Preprocessor {
+	p, err := celpp.New(macros.All...)
+	if err != nil {
+		log.Fatalf("failed to build cel preprocessor: %v", err)
+	}
+	return p
+}()
+
 func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc, t markers.TargetType) {
 	for _, line := range strings.Split(m.Location().GetLeadingComments(), "\n") {
 		line = strings.TrimSpace(line)
@@ -905,6 +914,18 @@ func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc
 			}
 			recursivelyStripValidation(schema, items)
 			continue
+		}
+		if strings.Contains(line, "+kubebuilder:validation:XValidation:") {
+			left, right, ok := strings.Cut(line, ",rule=")
+			if !ok {
+				log.Fatalf("failed to parse marker %v", line)
+			}
+			expr := right[1 : len(right)-1]
+			nexpr, err := Celpp.Process(expr)
+			if err != nil {
+				log.Fatalf("failed to pre-process %v: %v", expr, err)
+			}
+			line = left + ",rule=" + fmt.Sprintf("%q", nexpr)
 		}
 
 		def := markerRegistry.Lookup(line, t)
