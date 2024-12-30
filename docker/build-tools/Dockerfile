@@ -52,6 +52,7 @@ ENV GOIMPORTS_VERSION=v0.24.0
 ENV GOLANGCI_LINT_VERSION=v1.62.2
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.5.1
 ENV GOLANG_PROTOBUF_VERSION=v1.35.2
+ENV VT_PROTOBUF_VERSION=v0.6.0
 ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV HADOLINT_VERSION=v2.12.0
@@ -292,6 +293,10 @@ RUN --mount=type=cache,target=/tmp/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
     google.golang.org/grpc/cmd/protoc-gen-go-grpc@${GOLANG_GRPC_PROTOBUF_VERSION}
+RUN --mount=type=cache,target=/tmp/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
+    github.com/planetscale/vtprotobuf/cmd/protoc-gen-go-vtproto@${VT_PROTOBUF_VERSION}
 RUN --mount=type=cache,target=/tmp/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
