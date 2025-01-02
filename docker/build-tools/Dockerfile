@@ -603,6 +603,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     wget \
     rpm \
     jq \
+    moreutils \
     gettext-base \
     locales-all \
     file \
