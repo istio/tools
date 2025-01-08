@@ -22,6 +22,9 @@ GCP_REGISTRIES=${GCP_REGISTRIES:-"gcr.io,us-docker.pkg.dev"}
 # Allow to pass a list of [comma-separated] insecure registries to the docker daemon configuration
 DOCKER_INSECURE_REGISTRIES=${DOCKER_INSECURE_REGISTRIES:-}
 
+# Allow to pass a list of [comma-separated] registry mirrors to the docker daemon configuration
+DOCKER_REGISTRY_MIRRORS=${DOCKER_REGISTRY_MIRRORS:-}
+
 function read_gcp_secrets() {
   # Prevent calling with -x set
   if [[ $- = *x* ]]; then
@@ -86,8 +89,16 @@ function generate_docker_config() {
 
   # Convert a comma-separated string to a json array; works with empty strings
   DOCKER_INSECURE_REGISTRIES=$(echo "${DOCKER_INSECURE_REGISTRIES}" | jq -Rc 'split(",")')
+  DOCKER_REGISTRY_MIRRORS=$(echo "${DOCKER_REGISTRY_MIRRORS}" | jq -Rc 'split(",")')
 
-  echo "{\"debug\":true, \"mtu\":${hostMTU:-1500}, \"insecure-registries\":${DOCKER_INSECURE_REGISTRIES}}" > /etc/docker/daemon.json
+  cat > /etc/docker/daemon.json <<EOF
+{
+  "debug": true,
+  "mtu": ${hostMTU:-1500},
+  "insecure-registries": ${DOCKER_INSECURE_REGISTRIES},
+  "registry-mirrors": ${DOCKER_REGISTRY_MIRRORS}
+}
+EOF
 }
 
 log "Starting test..."
