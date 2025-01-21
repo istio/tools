@@ -628,8 +628,14 @@ ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
 RUN apt-key add /tmp/docker-key
 ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu $(lsb_release -sc) stable"
-RUN apt-get update
-RUN apt-get -y install --no-install-recommends docker-ce="${DOCKER_VERSION}" docker-ce-cli="${DOCKER_VERSION}" containerd.io="${CONTAINERD_VERSION}" docker-buildx-plugin="${DOCKER_BUILDX_VERSION}"
+# hadolint ignore=DL3009
+RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update && apt-get -y install --no-install-recommends \
+    docker-ce="${DOCKER_VERSION}" \
+    docker-ce-cli="${DOCKER_VERSION}" \
+    containerd.io="${CONTAINERD_VERSION}" \
+    docker-buildx-plugin="${DOCKER_BUILDX_VERSION}"
 RUN sed -i 's/ulimit -Hn/# ulimit -Hn/g' /etc/init.d/docker
 
 ENV CARGO_HOME=/home/.cargo
@@ -983,7 +989,9 @@ RUN apt-key add /tmp/docker-key
 ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu ${UBUNTU_RELEASE_CODE_NAME} stable"
 # hadolint ignore=DL3009
-RUN apt-get update && apt-get -y install --no-install-recommends \
+RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update && apt-get -y install --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
     containerd.io="${CONTAINERD_VERSION}" \
