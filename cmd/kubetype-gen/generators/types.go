@@ -123,7 +123,7 @@ type $.KubeType.Type|public$ struct {
 	// +optional
 	Spec $.RawType|raw$ ` + "`" + `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"` + "`" + `
 
-	Status $.IstioStatus|raw$ ` + "`" + `json:"status"` + "`" + `
+	Status $.IstioStatus|raw$ ` + "`" + `json:"status,omitempty"` + "`" + `
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
