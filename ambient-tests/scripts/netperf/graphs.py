@@ -62,7 +62,7 @@ def tcp_rr_graph():
 
 def tcp_crr_graph():
     fig = latency_graph(
-        f"./{NETPERF_RESULTS}/TCP_RR.csv", "TCP CONNECT REQUEST RESPONSE"
+        f"./{NETPERF_RESULTS}/TCP_CRR.csv", "TCP CONNECT REQUEST RESPONSE"
     )
     fig.savefig(f"./{NETPERF_GRAPHS}/TCP_CRR.png")
 

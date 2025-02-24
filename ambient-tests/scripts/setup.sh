@@ -46,7 +46,7 @@ kubectl apply -f "$YAML_PATH" -n "$NS_NO_MESH"
 kubectl apply -f "$YAML_PATH" -n "$NS_SIDECAR"
 kubectl apply -f "$YAML_PATH" -n "$NS_AMBIENT"
 kubectl apply -f "$YAML_PATH" -n "$NS_WAYPOINT"
-istioctl x waypoint apply     -n "$NS_WAYPOINT" -s "$SA_SERVER"
+istioctl x waypoint apply     -n "$NS_WAYPOINT" --as "$SA_SERVER"
 
 # wait for deployments to roll out
 echo "If this takes a really long time, you might have forgotten to label you nodes."
