@@ -594,6 +594,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     libltdl7 \
     libc-dev \
     libcurl4-openssl-dev \
+    libssl-dev \
     less \
     make \
     pkg-config \
