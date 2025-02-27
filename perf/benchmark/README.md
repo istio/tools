@@ -105,8 +105,8 @@ optional arguments:
                         config yaml file
   --cacert CACERT       path to the cacert for the fortio client inside the
                         container
-  --baseline            run baseline for all
-  --no_baseline         do not run baseline for all
+  --no_istio            run baseline for all
+  --no_no_istio         do not run baseline for all
   --serversidecar       run serversidecar-only for all
   --no_serversidecar    do not run serversidecar-only for all
   --clientsidecar       run clientsidecar-only for all
@@ -135,10 +135,10 @@ python runner/runner.py --config_file ./configs/istio/telemetryv2_stats/latency.
 ### Example 2
 
 ```bash
-python runner/runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseline --load_gen_type=fortio --telemetry_mode=v2-nullvm
+python runner/runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --no_istio --load_gen_type=fortio --telemetry_mode=v2-nullvm
 ```
 
-- This will run separate tests for the `both` and `baseline` modes with fortio as the load generator and testing telemetryv2 enabled scenario
+- This will run separate tests for the `both` and `no_istio` (baseline) modes with fortio as the load generator and testing telemetryv2 enabled scenario
 - Separate tests for 2 to 64 concurrent connections
 - All connections will send a total of **1000** QPS
 - Each test will run for **240** seconds
@@ -146,13 +146,13 @@ python runner/runner.py --conn 2,4,8,16,32,64 --qps 1000 --duration 240 --baseli
 ### Example 3
 
 ```bash
-python runner/runner.py --conn 16,64 --qps 1000,4000 --duration 180 --serversidecar --baseline --load_gen_type=nighthawk --telemetry_mode=none
+python runner/runner.py --conn 16,64 --qps 1000,4000 --duration 180 --serversidecar --no_istio --load_gen_type=nighthawk --telemetry_mode=none
 ```
 
 - 12 tests total, each for **180** seconds, with all combinations of:
 - **16** and **64** connections
 - **1000** and **4000** QPS
-- `both`, `serversidecar`, and `baseline` modes
+- `both`, `serversidecar`, and `no_istio` (baseline) modes
 
 ### Example 4
 
