@@ -630,7 +630,7 @@ ENV CARGO_HOME=/home/.cargo
 ENV RUSTUP_HOME=/home/.rustup
 # hadolint ignore=DL4006
 RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
-    sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal --component rustfmt clippy &&\
+    sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal --component rustfmt,clippy &&\
     /home/.cargo/bin/rustup default ${RUST_VERSION} &&\
     /home/.cargo/bin/cargo install rustfilt &&\
     mv /home/.cargo/bin/* /usr/bin
