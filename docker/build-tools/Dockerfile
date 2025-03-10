@@ -487,7 +487,7 @@ ENV AWESOMEBOT_VERSION=1.20.0
 ENV FPM_VERSION=1.15.1
 ENV HTMLPROOFER_VERSION=3.19.4
 ENV LICENSEE_VERSION=9.16.0
-ENV MDL_VERSION=0.12.0
+ENV MARKDOWNLINT_CLI2_VERSION=0.17.2
 ENV NOKOGIRI_VERSION=1.14.5
 
 # hadolint ignore=DL3008
@@ -509,7 +509,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ruby3.2-dev
 
 # Install istio.io verification tools
-RUN gem install --no-wrappers --no-document mdl -v ${MDL_VERSION}
+RUN npm install --global markdownlint-cli2@${MARKDOWNLINT_CLI2_VERSION}
 RUN gem install --no-wrappers --no-document nokogiri -v ${NOKOGIRI_VERSION}
 RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
