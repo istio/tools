@@ -434,6 +434,7 @@ ENV SVGO_VERSION=v1.3.2
 ENV SVGSTORE_CLI_VERSION=v1.3.2
 ENV TSLINT_VERSION=v6.1.3
 ENV TYPESCRIPT_VERSION=v4.7.2
+ENV MARKDOWNLINT_CLI2_VERSION=0.17.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget ca-certificates
@@ -462,7 +463,8 @@ RUN npm install --omit=dev --global \
     @babel/core@"${BABEL_CORE_VERSION}" \
     @babel/cli@"${BABEL_CLI_VERSION}" \
     @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}" \
-    linkinator@"${LINKINATOR_VERSION}"
+    linkinator@"${LINKINATOR_VERSION}" \
+    markdownlint-cli2@"${MARKDOWNLINT_CLI2_VERSION}
 
 RUN npm install --omit=dev --save-dev \
     babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
@@ -487,7 +489,6 @@ ENV AWESOMEBOT_VERSION=1.20.0
 ENV FPM_VERSION=1.15.1
 ENV HTMLPROOFER_VERSION=3.19.4
 ENV LICENSEE_VERSION=9.16.0
-ENV MARKDOWNLINT_CLI2_VERSION=0.17.2
 ENV NOKOGIRI_VERSION=1.14.5
 
 # hadolint ignore=DL3008
@@ -509,7 +510,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ruby3.2-dev
 
 # Install istio.io verification tools
-RUN npm install --global markdownlint-cli2@${MARKDOWNLINT_CLI2_VERSION}
 RUN gem install --no-wrappers --no-document nokogiri -v ${NOKOGIRI_VERSION}
 RUN gem install --no-wrappers --no-document html-proofer -v ${HTMLPROOFER_VERSION}
 RUN gem install --no-wrappers --no-document awesome_bot -v ${AWESOMEBOT_VERSION}
