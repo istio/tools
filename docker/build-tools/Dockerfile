@@ -464,7 +464,7 @@ RUN npm install --omit=dev --global \
     @babel/cli@"${BABEL_CLI_VERSION}" \
     @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}" \
     linkinator@"${LINKINATOR_VERSION}" \
-    markdownlint-cli2@"${MARKDOWNLINT_CLI2_VERSION}
+    markdownlint-cli2@"${MARKDOWNLINT_CLI2_VERSION}"
 
 RUN npm install --omit=dev --save-dev \
     babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
