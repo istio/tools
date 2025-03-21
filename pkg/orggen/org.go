@@ -184,11 +184,11 @@ func WriteConfig(cfg org.FullConfig, output string) error {
 
 var AllowedAdmins = sets.New(
 	// TOC members
-	"ericvn",
+	"keithmattix",
 	"howardjohn",
 	"linsun",
 	"louiscryan",
-	"nrjpoddar",
+	"costinm",
 	"therealmitchconnors",
 	// Robots
 	"google-admin",
