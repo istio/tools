@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
 	github.com/go-enry/go-license-detector/v4 v4.3.1
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang/glog v1.2.4
 	github.com/golang/protobuf v1.5.4
 	github.com/gomarkdown/markdown v0.0.0-20250207164621-7a1f277a159e
