@@ -37,7 +37,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.25.4
+ENV APKO_VERSION=v0.25.5
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.50.1
@@ -49,9 +49,9 @@ ENV GH_VERSION=2.68.1
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.24.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
-ENV GOLANGCI_LINT_VERSION=v1.64.8
+ENV GOLANGCI_LINT_VERSION=v2.0.0
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.5.1
-ENV GOLANG_PROTOBUF_VERSION=v1.36.5
+ENV GOLANG_PROTOBUF_VERSION=v1.36.6
 # From Nov 21, 2024. The latest tagged version at the time (0.6.0) is missing
 # some critical bug fixes.
 ENV VT_PROTOBUF_VERSION=79df5c4772f27b4e08f9612d045e1e1b21ac963a
@@ -561,9 +561,9 @@ FROM ubuntu:noble AS base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV CONTAINERD_VERSION=1.7.25-1
-ENV DOCKER_VERSION=5:28.0.1-1~ubuntu.24.04~noble
-ENV DOCKER_BUILDX_VERSION=0.21.1-1~ubuntu.24.04~noble
+ENV CONTAINERD_VERSION=1.7.26-1
+ENV DOCKER_VERSION=5:28.0.2-1~ubuntu.24.04~noble
+ENV DOCKER_BUILDX_VERSION=0.22.0-1~ubuntu.24.04~noble
 ENV RUST_VERSION=1.85.0
 
 ENV OUTDIR=/out
