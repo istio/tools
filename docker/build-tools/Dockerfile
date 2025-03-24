@@ -458,7 +458,7 @@ RUN npm install --omit=dev --global \
     sass-lint@"${SASS_LINT_VERSION}" \
     typescript@"${TYPESCRIPT_VERSION}" \
     tslint@"${TSLINT_VERSION}" \
-    markdown-spellcheck@"${MARKDOWN_SPELLCHECK_VERSION" \
+    markdown-spellcheck@"${MARKDOWN_SPELLCHECK_VERSION}" \
     cspell@"${CSPELL_VERSION}" \
     svgstore-cli@"${SVGSTORE_CLI_VERSION}" \
     svgo@"${SVGO_VERSION}" \
