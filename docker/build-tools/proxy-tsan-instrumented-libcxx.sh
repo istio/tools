@@ -18,11 +18,11 @@ set -eux
 
 # gcc-11, need to build instrumented LLVM libc++ for tsan testing.
 add-apt-repository -y ppa:ubuntu-toolchain-r/test
-apt-get update && apt-get install -y --no-install-recommends g++-11 libncurses5
+apt-get update && apt-get install -y --no-install-recommends g++-11
 update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 1000
-update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 1000
+# update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 1000
 update-alternatives --config gcc
-update-alternatives --config g++
+# update-alternatives --config g++
 
 # Instrumented libcxx built from LLVM source, used for tsan testing.
 # See envoy dev guide for more info: https://github.com/envoyproxy/envoy/blob/v1.17.0/bazel/README.md#sanitizers

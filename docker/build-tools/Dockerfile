@@ -830,7 +830,7 @@ RUN set -eux; \
             ;; \
         *) echo "skip" ;; \
     esac;
-RUN apt-get update && apt-get install -y --no-install-recommends cmake
+RUN apt-get update && apt-get install -y --no-install-recommends cmake cmake-data ninja-build python3
 
 # TSan instrumented libc++.
 ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
