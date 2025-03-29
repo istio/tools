@@ -39,7 +39,7 @@ cmake \
 -GNinja \
 -B "tsan" \
 -S "runtimes" \
--DLLVM_ENABLE_RUNTIMES="libcxxabi;libcxx" \
+-DLLVM_ENABLE_RUNTIMES="libcxxabi;libcxx;libunwind" \
 -DLLVM_USE_LINKER=lld \
 -DLLVM_USE_SANITIZER=Thread \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
