@@ -37,7 +37,7 @@ pushd tsan || exit
 
 cmake \
 -GNinja \
--DLLVM_ENABLE_PROJECTS="libcxxabi;libcxx" \
+-DLLVM_ENABLE_RUNTIMES="libcxxabi;libcxx" \
 -DLLVM_USE_LINKER=lld \
 -DLLVM_USE_SANITIZER=Thread \
 -DCMAKE_BUILD_TYPE=Release \
