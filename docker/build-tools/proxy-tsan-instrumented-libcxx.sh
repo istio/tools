@@ -16,18 +16,18 @@
 
 set -eux
 
-# gcc-9, need to build instrumented LLVM libc++ for tsan testing.
+# gcc-11, need to build instrumented LLVM libc++ for tsan testing.
 add-apt-repository -y ppa:ubuntu-toolchain-r/test
-apt-get update && apt-get install -y --no-install-recommends g++-9 libncurses5
-update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 1000
-update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1000
-update-alternatives --config gcc
+apt-get update && apt-get install -y --no-install-recommends g++-11
+update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 1000
+# update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 1000
+# update-alternatives --config gcc
 update-alternatives --config g++
 
 # Instrumented libcxx built from LLVM source, used for tsan testing.
 # See envoy dev guide for more info: https://github.com/envoyproxy/envoy/blob/v1.17.0/bazel/README.md#sanitizers
 # should use same llvm version of build env
-LLVM_VERSION=${LLVM_VERSION:-14.0.0}
+LLVM_VERSION=${LLVM_VERSION:-18.1.8}
 LLVM_ARCHIVE=llvmorg-${LLVM_VERSION}.tar.gz
 LLVM_ARCHIVE_URL=https://github.com/llvm/llvm-project/archive/${LLVM_ARCHIVE}
 wget "${LLVM_ARCHIVE_URL}"
@@ -37,15 +37,18 @@ pushd tsan || exit
 
 cmake \
 -GNinja \
--DLLVM_ENABLE_PROJECTS="libcxxabi;libcxx" \
+-B "tsan" \
+-S "runtimes" \
+-DLLVM_ENABLE_RUNTIMES="libcxxabi;libcxx;libunwind" \
 -DLLVM_USE_LINKER=lld \
 -DLLVM_USE_SANITIZER=Thread \
--DCMAKE_BUILD_TYPE=Release \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_C_COMPILER=clang \
 -DCMAKE_CXX_COMPILER=clang++ \
+-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
 -DCMAKE_INSTALL_PREFIX="/opt/libcxx_tsan" "/tmp/llvm-project-llvmorg-${LLVM_VERSION}/llvm"
 
-ninja install-cxx install-cxxabi
+ninja -C tsan install-cxx install-cxxabi
 
 rm -rf /opt/libcxx_tsan/include
 popd || exit
