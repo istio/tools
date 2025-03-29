@@ -813,7 +813,7 @@ RUN set -eux; \
     mkdir -p ${LLVM_DIRECTORY}; \
     mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
 
-# CMake >=3.13.4
+# CMake >=3.20.0
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # ubuntu 18.04 without arm64 version see https://apt.kitware.com/
 # hadolint ignore=DL4001
