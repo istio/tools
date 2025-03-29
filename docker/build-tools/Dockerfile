@@ -792,7 +792,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gpg-agent \
     libtinfo5
 
-ENV LLVM_VERSION=14.0.0
+ENV LLVM_VERSION=18.1.8
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
