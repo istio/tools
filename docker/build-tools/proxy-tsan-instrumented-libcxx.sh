@@ -37,15 +37,18 @@ pushd tsan || exit
 
 cmake \
 -GNinja \
+-B "tsan" \
+-S "runtimes" \
 -DLLVM_ENABLE_RUNTIMES="libcxxabi;libcxx" \
 -DLLVM_USE_LINKER=lld \
 -DLLVM_USE_SANITIZER=Thread \
--DCMAKE_BUILD_TYPE=Release \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_C_COMPILER=clang \
 -DCMAKE_CXX_COMPILER=clang++ \
+-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
 -DCMAKE_INSTALL_PREFIX="/opt/libcxx_tsan" "/tmp/llvm-project-llvmorg-${LLVM_VERSION}/llvm"
 
-ninja install-cxx install-cxxabi
+ninja -C tsan install-cxx install-cxxabi
 
 rm -rf /opt/libcxx_tsan/include
 popd || exit
