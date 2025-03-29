@@ -824,6 +824,10 @@ RUN set -eux; \
             curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - ; \
             apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_RELEASE_CODE_NAME} main"; \
             ;; \
+        aarch64) \
+            curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - ; \
+            apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_RELEASE_CODE_NAME} main"; \
+            ;; \
         *) echo "skip" ;; \
     esac;
 RUN apt-get update && apt-get install -y --no-install-recommends cmake
