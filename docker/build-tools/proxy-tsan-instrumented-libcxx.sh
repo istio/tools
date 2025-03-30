@@ -34,7 +34,7 @@ wget -q -O -  "https://github.com/llvm/llvm-project/archive/llvmorg-${LLVM_VERSI
 sysctl vm.mmap_rnd_bits
 cmake --version
 
-pushd llvm-project-llvmorg-${LLVM_VERSION}
+pushd "llvm-project-llvmorg-${LLVM_VERSION}"
 LIBCXX_PATH=${LIBCXX_PATH:-tsan}
 cmake -GNinja \
     -B "${LIBCXX_PATH}" \
