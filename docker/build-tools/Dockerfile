@@ -792,7 +792,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gpg-agent \
     libtinfo5
 
-ENV LLVM_VERSION=14.0.0
+ENV LLVM_VERSION=18.1.8
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
@@ -813,20 +813,13 @@ RUN set -eux; \
     mkdir -p ${LLVM_DIRECTORY}; \
     mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
 
-# CMake >=3.13.4
+# CMake >=3.20.0
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # ubuntu 18.04 without arm64 version see https://apt.kitware.com/
 # hadolint ignore=DL4001
-RUN set -eux; \
-    \
-    case $(uname -m) in \
-        x86_64) \
-            curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - ; \
-            apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_RELEASE_CODE_NAME} main"; \
-            ;; \
-        *) echo "skip" ;; \
-    esac;
-RUN apt-get update && apt-get install -y --no-install-recommends cmake
+RUN curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
+RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_RELEASE_CODE_NAME} main"
+RUN apt-get update && apt-get install -y --no-install-recommends cmake cmake-data ninja-build python3
 
 # TSan instrumented libc++.
 ENV PATH=${LLVM_DIRECTORY}/bin:$PATH

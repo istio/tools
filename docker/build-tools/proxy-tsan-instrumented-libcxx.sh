@@ -16,36 +16,40 @@
 
 set -eux
 
-# gcc-9, need to build instrumented LLVM libc++ for tsan testing.
+# gcc-11, need to build instrumented LLVM libc++ for tsan testing.
 add-apt-repository -y ppa:ubuntu-toolchain-r/test
-apt-get update && apt-get install -y --no-install-recommends g++-9 libncurses5
-update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 1000
-update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1000
-update-alternatives --config gcc
-update-alternatives --config g++
+apt-get update && apt-get install -y --no-install-recommends g++-11
+update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 1000
 
 # Instrumented libcxx built from LLVM source, used for tsan testing.
-# See envoy dev guide for more info: https://github.com/envoyproxy/envoy/blob/v1.17.0/bazel/README.md#sanitizers
+# See envoy dev guide for more info: https://github.com/envoyproxy/envoy-build-tools
 # should use same llvm version of build env
-LLVM_VERSION=${LLVM_VERSION:-14.0.0}
-LLVM_ARCHIVE=llvmorg-${LLVM_VERSION}.tar.gz
-LLVM_ARCHIVE_URL=https://github.com/llvm/llvm-project/archive/${LLVM_ARCHIVE}
-wget "${LLVM_ARCHIVE_URL}"
-tar -xzf "${LLVM_ARCHIVE}" -C /tmp
-mkdir tsan
-pushd tsan || exit
+LLVM_VERSION=${LLVM_VERSION:-18.1.8}
 
-cmake \
--GNinja \
--DLLVM_ENABLE_PROJECTS="libcxxabi;libcxx" \
--DLLVM_USE_LINKER=lld \
--DLLVM_USE_SANITIZER=Thread \
--DCMAKE_BUILD_TYPE=Release \
--DCMAKE_C_COMPILER=clang \
--DCMAKE_CXX_COMPILER=clang++ \
--DCMAKE_INSTALL_PREFIX="/opt/libcxx_tsan" "/tmp/llvm-project-llvmorg-${LLVM_VERSION}/llvm"
+WORKDIR=$(mktemp -d)
+pushd "${WORKDIR}" || exit
 
-ninja install-cxx install-cxxabi
+wget -q -O -  "https://github.com/llvm/llvm-project/archive/llvmorg-${LLVM_VERSION}.tar.gz" | tar zx
+
+sysctl vm.mmap_rnd_bits
+cmake --version
+
+pushd "llvm-project-llvmorg-${LLVM_VERSION}"
+LIBCXX_PATH=${LIBCXX_PATH:-tsan}
+cmake -GNinja \
+    -B "${LIBCXX_PATH}" \
+    -S "runtimes" \
+    -DLLVM_ENABLE_RUNTIMES="libcxxabi;libcxx;libunwind" \
+    -DLLVM_USE_LINKER=lld \
+    -DLLVM_USE_SANITIZER="Thread" \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_CXX_COMPILER=clang++ \
+    -DCMAKE_INSTALL_PREFIX="/opt/libcxx_${LIBCXX_PATH}" \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+ninja -C "${LIBCXX_PATH}" install-cxx install-cxxabi
 
 rm -rf /opt/libcxx_tsan/include
+popd
+
 popd || exit
