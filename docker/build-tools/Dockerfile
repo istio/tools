@@ -45,7 +45,7 @@ ENV COSIGN_VERSION=v2.5.0
 ENV CRANE_VERSION=v0.20.3
 ENV GCLOUD_VERSION=496.0.0
 ENV GCR_AUTH_VERSION=2.1.21
-ENV GH_VERSION=2.71.1
+ENV GH_VERSION=2.72.0
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.24.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
