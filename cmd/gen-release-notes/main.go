@@ -283,9 +283,17 @@ func populateTemplate(filename string, releaseNotes []Note, oldRelease string, n
 		if err != nil {
 			return "", fmt.Errorf("unable to parse templates: %s", err.Error())
 		}
-		joinedContents := strings.Join(contents, "\n")
-		output = strings.Replace(output, result, joinedContents, -1)
+		if len(contents) > 0 {
+			joinedContents := strings.Join(contents, "\n")
+			output = strings.Replace(output, result, joinedContents, -1)
+		}
 	}
+
+	// Here we get rid of whatever placeholders were left without
+	// any substitutions. Note that we also get rid of the end of line
+	// when it's there.
+	placeholder := regexp.MustCompile("<!--(.*)-->\\s*$?")
+	output = placeholder.ReplaceAllString(output, "")
 
 	return output, nil
 }
