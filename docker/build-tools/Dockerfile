@@ -85,6 +85,8 @@ ENV SU_EXEC_VERSION=0.3.1
 ENV TRIVY_VERSION=0.62.1
 ENV YQ_VERSION=4.45.1
 
+ENV GO_VULNCHECK_VERSION=v1.1.4
+
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
 
@@ -393,7 +395,10 @@ RUN --mount=type=cache,target=/tmp/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
     sigs.k8s.io/prow/cmd/peribolos@${K8S_PROW_VERSION}
-
+RUN --mount=type=cache,target=/tmp/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
+    golang.org/x/vuln/cmd/govulncheck@${GO_VULNCHECK_VERSION}
 FROM binary_tools_context_base AS go_tools_2
 
 # Install latest version of Istio-owned tools in this release
