@@ -79,7 +79,9 @@ func (note Note) getReleaseNotes(kind string, area string, action string) []stri
 		if filterNote(kind, note.Kind) &&
 			filterNote(area, note.Area) &&
 			filterNote(action, releaseNote.Action) {
-			noteEntry := fmt.Sprintf("%s %s %s\n", releaseNote, note.getDocs(), note.getIssues())
+			noteEntry := fmt.Sprintf("%s %s %s", releaseNote, note.getDocs(), note.getIssues())
+			noteEntry = strings.TrimSpace(noteEntry)
+			noteEntry += "\n"
 			if noteEntry != "" {
 				notes = append(notes, noteEntry)
 			}
