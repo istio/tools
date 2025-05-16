@@ -751,25 +751,24 @@ RUN mkdir -p /go && \
     mkdir -p /home/.cargo/registry && \
     mkdir -p /home/.cargo/git && \
     mkdir -p /home/.helm && \
-    mkdir -p /home/.gsutil
+    mkdir -p /home/.gsutil && \
+    mkdir -p /var/run/netns
 
 # TODO must sort out how to use uid mapping in docker so these don't need to be 777
 # They are created as root 755.  As a result they are not writeable, which fails in
 # the developer environment as a volume or bind mount inherits the permissions of
 # the directory mounted rather then overriding with the permission of the volume file.
-RUN chmod 777 /go && \
-    chmod 777 /gocache && \
-    chmod 777 /gobin && \
-    chmod 777 /config && \
-    chmod 777 /config/.docker && \
-    chmod 777 /config/.config/gcloud && \
-    chmod 777 /config/.kube && \
-    chmod 777 /home/.cache && \
-    chmod 777 /home/.cargo && \
-    chmod 777 /home/.cargo/registry && \
-    chmod 777 /home/.cargo/git && \
-    chmod 777 /home/.helm && \
-    chmod 777 /home/.gsutil
+RUN chmod -R 777 /go && \
+    chmod -R 777 /gocache && \
+    chmod -R 777 /gobin && \
+    chmod -R 777 /config && \
+    chmod -R 777 /config/.docker && \
+    chmod -R 777 /config/.config/gcloud && \
+    chmod -R 777 /config/.kube && \
+    chmod -R 777 /home/.cache && \
+    chmod -R 777 /home/.cargo && \
+    chmod -R 777 /home/.helm && \
+    chmod -R 777 /home/.gsutil
 
 WORKDIR /
 
