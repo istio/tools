@@ -578,7 +578,7 @@ ENV RUST_VERSION=1.86.0
 
 ENV OUTDIR=/out
 
-# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7, less
+# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, nftables, libltdl7, less
 # required for general build: make, wget, curl, ssh, rpm
 # required for ruby: libcurl4-openssl-dev
 # required for python: python3, pkg-config
@@ -601,6 +601,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     git \
     ssh \
     iptables \
+    nftables \
     libltdl7 \
     libc-dev \
     libcurl4-openssl-dev \
@@ -947,7 +948,7 @@ ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
 # Avoid interactive input when installing tshark
 ENV DEBIAN_FRONTEND=noninteractive
 
-# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
+# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, nftables, libltdl7
 # required for general build: make, wget, curl, ssh
 # required for python: python3, pkg-config
 # hadolint ignore=DL3008, DL3009
@@ -963,6 +964,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     software-properties-common \
     gcc \
     ssh \
+    nftables \
     libltdl7 \
     libc-dev \
     make \
