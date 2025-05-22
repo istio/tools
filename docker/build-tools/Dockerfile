@@ -42,10 +42,10 @@ ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.54.0
 ENV COSIGN_VERSION=v2.5.0
-ENV CRANE_VERSION=v0.20.3
+ENV CRANE_VERSION=v0.20.4
 ENV GCLOUD_VERSION=496.0.0
 ENV GCR_AUTH_VERSION=2.1.21
-ENV GH_VERSION=2.72.0
+ENV GH_VERSION=2.73.0
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.24.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
@@ -58,7 +58,7 @@ ENV VT_PROTOBUF_VERSION=ba97887b0a2597d20399eb70221c99c95520e8c1
 ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV HADOLINT_VERSION=v2.12.0
-ENV HELM3_VERSION=v3.17.2
+ENV HELM3_VERSION=v3.18.0
 # Consult the Docs WG before bumping Hugo.
 # Specifically, the version here should match netlify.toml in istio/istio.io.
 ENV HUGO_VERSION=0.147.4
@@ -70,12 +70,12 @@ ENV K8S_CODE_GENERATOR_VERSION=1.29.4
 ENV K8S_TEST_INFRA_VERSION=1f0e63447a32a07c0a6cc1ae3b95172438b373c8
 # From March 3, 2025
 ENV K8S_PROW_VERSION=35574334443a5b3dd9f63a71644e6288d9722981
-ENV KIND_VERSION=v0.27.0
+ENV KIND_VERSION=v0.29.0
 ENV KPT_VERSION=v1.0.0-beta.54
-ENV KUBECTL_VERSION=1.33.0
+ENV KUBECTL_VERSION=1.33.1
 ENV KUBECTX_VERSION=0.9.5
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
-ENV OC_VERSION=4.18.11
+ENV OC_VERSION=4.18.13
 ENV ORAS_VERSION=1.2.2
 ENV OTEL_CLI_VERSION=v0.4.1
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
@@ -575,11 +575,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV CONTAINERD_VERSION=1.7.26-1
 ENV DOCKER_VERSION=5:28.1.1-1~ubuntu.24.04~noble
 ENV DOCKER_BUILDX_VERSION=0.23.0-1~ubuntu.24.04~noble
-ENV RUST_VERSION=1.86.0
+ENV RUST_VERSION=1.87.0
 
 ENV OUTDIR=/out
 
-# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7, less
+# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, nftables, libltdl7, less
 # required for general build: make, wget, curl, ssh, rpm
 # required for ruby: libcurl4-openssl-dev
 # required for python: python3, pkg-config
@@ -602,6 +602,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     git \
     ssh \
     iptables \
+    nftables \
     libltdl7 \
     libc-dev \
     libcurl4-openssl-dev \
@@ -948,7 +949,7 @@ ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
 # Avoid interactive input when installing tshark
 ENV DEBIAN_FRONTEND=noninteractive
 
-# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, libltdl7
+# required for binary tools: ca-certificates, gcc, libc-dev, git, iptables, nftables, libltdl7
 # required for general build: make, wget, curl, ssh
 # required for python: python3, pkg-config
 # hadolint ignore=DL3008, DL3009
@@ -964,6 +965,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     software-properties-common \
     gcc \
     ssh \
+    nftables \
     libltdl7 \
     libc-dev \
     make \
