@@ -59,8 +59,9 @@ ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV HADOLINT_VERSION=v2.12.0
 ENV HELM3_VERSION=v3.18.0
-# Please consult the docs team before bumping Hugo.
-ENV HUGO_VERSION=0.145.0
+# Consult the Docs WG before bumping Hugo.
+# Specifically, the version here should match netlify.toml in istio/istio.io.
+ENV HUGO_VERSION=0.147.4
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.20.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
