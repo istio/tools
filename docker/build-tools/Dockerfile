@@ -58,7 +58,7 @@ ENV VT_PROTOBUF_VERSION=ba97887b0a2597d20399eb70221c99c95520e8c1
 ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV HADOLINT_VERSION=v2.12.0
-ENV HELM3_VERSION=v3.18.1
+ENV HELM3_VERSION=v3.18.2
 # Consult the Docs WG before bumping Hugo.
 # Specifically, the version here should match netlify.toml in istio/istio.io.
 ENV HUGO_VERSION=0.147.4
