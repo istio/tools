@@ -61,7 +61,7 @@ ENV HADOLINT_VERSION=v2.12.0
 ENV HELM3_VERSION=v3.18.2
 # Consult the Docs WG before bumping Hugo.
 # Specifically, the version here should match netlify.toml in istio/istio.io.
-ENV HUGO_VERSION=0.147.4
+ENV HUGO_VERSION=0.147.8
 ENV JB_VERSION=v0.3.1
 ENV JSONNET_VERSION=v0.20.0
 ENV JUNIT_MERGER_VERSION=adf1545b49509db1f83c49d1de90bbcb235642a8
