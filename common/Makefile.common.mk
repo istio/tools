@@ -59,7 +59,7 @@ lint-sass:
 	@${FINDFILES} -name '*.scss' -print0 | ${XARGS} sass-lint -c common/config/sass-lint.yml --verbose
 
 lint-typescript:
-	@${FINDFILES} -name '*.ts' -print0 | ${XARGS} tslint -c common/config/tslint.json
+	@${FINDFILES} -name '*.ts' -not -path "./node_modules/*" -print0 | ${XARGS} tslint -c common/config/tslint.json
 
 lint-licenses:
 	@if test -d licenses; then license-lint --config common/config/license-lint.yml; fi
