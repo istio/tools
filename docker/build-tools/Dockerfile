@@ -443,6 +443,7 @@ ENV SVGSTORE_CLI_VERSION=v2.0.1
 ENV TSLINT_VERSION=v6.1.3
 ENV TYPESCRIPT_VERSION=v5.8.3
 ENV MARKDOWNLINT_CLI2_VERSION=v0.17.2
+ENV ESBUILD_VERSION=v0.25.5
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget ca-certificates
@@ -473,7 +474,8 @@ RUN npm install --omit=dev --global \
     @babel/cli@"${BABEL_CLI_VERSION}" \
     @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}" \
     linkinator@"${LINKINATOR_VERSION}" \
-    markdownlint-cli2@"${MARKDOWNLINT_CLI2_VERSION}"
+    markdownlint-cli2@"${MARKDOWNLINT_CLI2_VERSION}" \
+    esbuild@"${ESBUILD_VERSION}"
 
 RUN npm install --omit=dev --save-dev \
     babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
