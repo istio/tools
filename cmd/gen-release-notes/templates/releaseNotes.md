@@ -13,7 +13,7 @@ aliases:
 This is an automatically generated rough draft of the release notes and has not yet been reviewed.
 {{< /warning >}}
 
-This release contains bug fixes to improve robustness. This release note describes what’s different between Istio <!--oldRelease--> and Istio <!--newRelease-->
+This release contains bug fixes to improve robustness. This release note describes what’s different between Istio <!--oldRelease--> and <!--newRelease-->.
 
 {{< relnote >}}
 
