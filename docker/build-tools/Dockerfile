@@ -444,6 +444,7 @@ ENV TSLINT_VERSION=v6.1.3
 ENV TYPESCRIPT_VERSION=v5.8.3
 ENV MARKDOWNLINT_CLI2_VERSION=v0.17.2
 ENV ESBUILD_VERSION=v0.25.5
+ENV SVG_SYMBOL_SPRITE_VERSION=v1.5.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget ca-certificates
@@ -469,6 +470,7 @@ RUN npm install --omit=dev --global \
     markdown-spellcheck@"${MARKDOWN_SPELLCHECK_VERSION}" \
     cspell@"${CSPELL_VERSION}" \
     svgstore-cli@"${SVGSTORE_CLI_VERSION}" \
+    svg-symbol-sprite@"${SVG_SYMBOL_SPRITE_VERSION}" \
     svgo@"${SVGO_VERSION}" \
     @babel/core@"${BABEL_CORE_VERSION}" \
     @babel/cli@"${BABEL_CLI_VERSION}" \
