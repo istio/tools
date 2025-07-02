@@ -634,7 +634,8 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     ninja-build \
     python3-yaml \
     python3-lib2to3 \
-    sudo
+    sudo \
+    gcc-mingw-w64-x86-64
 
 # Fix Docker issue
 RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
@@ -659,7 +660,8 @@ ENV RUSTUP_HOME=/home/.rustup
 # hadolint ignore=DL4006
 RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
     sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal \
-    --component rustfmt --component clippy --component llvm-tools &&\
+    --component rustfmt --component clippy --component llvm-tools \
+    --target x86_64-pc-windows-gnu &&\
     /home/.cargo/bin/rustup default ${RUST_VERSION} &&\
     /home/.cargo/bin/cargo install rustfilt &&\
     mv /home/.cargo/bin/* /usr/bin
