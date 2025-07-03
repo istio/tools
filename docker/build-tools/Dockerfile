@@ -705,6 +705,7 @@ RUN rustup target add x86_64-pc-windows-gnu
 # base_os_context and base_os_contet_with_mingw
 ###############################################
 
+# hadolint ignore=DL3006
 FROM ${BASE_OS_CONTEXT} AS os_context
 
 ##############
