@@ -667,6 +667,12 @@ RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
     mv /home/.cargo/bin/* /usr/bin
 RUN cargo install rustfilt
 
+# We chmod .rustup to 777 in order to allow
+# other users to install other platform targets
+# during the build. This is introduced for the
+# experimental Windows support.
+RUN chmod -R 777 ${RUSTUP_HOME}
+
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/* \
   && rm -fr /usr/share/python \
