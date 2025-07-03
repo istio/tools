@@ -24,6 +24,8 @@
 
 # hadolint global ignore=SC2086
 
+ARG BASE_OS_CONTEXT=base_os_context
+
 ################
 # Binary tools
 ################
@@ -35,6 +37,7 @@ ARG TARGETARCH
 
 # Istio tools SHA that we use for this image
 ARG ISTIO_TOOLS_SHA
+
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
 ENV APKO_VERSION=v0.27.9
@@ -665,12 +668,6 @@ RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
     mv /home/.cargo/bin/* /usr/bin
 RUN cargo install rustfilt
 
-# We chmod .rustup to 777 in order to allow
-# other users to install other platform targets
-# during the build. This is introduced for the
-# experimental Windows support.
-RUN chmod -R 777 ${RUSTUP_HOME}
-
 # Clean up stuff we don't need in the final image
 RUN rm -rf /var/lib/apt/lists/* \
   && rm -fr /usr/share/python \
@@ -688,6 +685,27 @@ RUN chmod +x /usr/local/bin/entrypoint
 
 # Run config setup in local environments
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+
+#########################################
+# Base image for Windows cross copilation
+#########################################
+
+FROM base_os_context AS base_os_context_with_mingw
+
+RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    gcc-mingw-w64-x86-64
+
+RUN rustup target add x86_64-pc-windows-gnu
+
+###############################################
+# This helps the final image to switch between
+# base_os_context and base_os_contet_with_mingw
+###############################################
+
+FROM ${BASE_OS_CONTEXT} AS os_context
 
 ##############
 # Final image
@@ -725,7 +743,7 @@ ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 ENV RUBYOPT="-KU -E utf-8:utf-8"
 
 # Create the file system
-COPY --link --from=base_os_context / /
+COPY --link --from=os_context / /
 COPY --link --from=binary_tools_context_base /out/ /
 COPY --link --from=binary_tools_context_base /usr/local/go /usr/local/go
 COPY --link --from=go_tools_1 /tmp/go/bin/* /usr/bin/
