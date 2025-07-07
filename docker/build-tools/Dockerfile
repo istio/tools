@@ -38,7 +38,6 @@ ARG TARGETARCH
 # Istio tools SHA that we use for this image
 ARG ISTIO_TOOLS_SHA
 
-
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
 ENV APKO_VERSION=v0.27.9
 ENV BENCHSTAT_VERSION=9c9101da8316
