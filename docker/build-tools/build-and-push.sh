@@ -96,8 +96,8 @@ ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg BASE_OS_CONTEXT=base_os_context_with_mingw \
   --cache-from "${HUB}/build-tools${CACHE_FROM_TAG}" \
-  -t "${HUB}/build-tools-mingw:${BRANCH}-latest-${ARCH}" \
-  -t "${HUB}/build-tools-mingw:${VERSION}-${ARCH}" \
+  -t "${HUB}/build-tools-windows:${BRANCH}-latest-${ARCH}" \
+  -t "${HUB}/build-tools-windows:${VERSION}-${ARCH}" \
   .
 
 
@@ -107,8 +107,8 @@ if [[ -z "${DRY_RUN:-}" ]]; then
     "${HUB}/build-tools:${BRANCH}-latest"
     "${HUB}/build-tools-proxy:${VERSION}"
     "${HUB}/build-tools-proxy:${BRANCH}-latest"
-    "${HUB}/build-tools-mingw:${VERSION}"
-    "${HUB}/build-tools-mingw:${BRANCH}-latest"
+    "${HUB}/build-tools-windows:${VERSION}"
+    "${HUB}/build-tools-windows:${BRANCH}-latest"
   )
   # First, push the architecture specific images
   for image in "${TO_PUSH[@]}"; do
