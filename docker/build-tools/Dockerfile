@@ -24,6 +24,8 @@
 
 # hadolint global ignore=SC2086
 
+ARG BASE_OS_CONTEXT=base_os_context
+
 ################
 # Binary tools
 ################
@@ -683,6 +685,28 @@ RUN chmod +x /usr/local/bin/entrypoint
 # Run config setup in local environments
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
+#########################################
+# Base image for Windows cross copilation
+#########################################
+
+FROM base_os_context AS base_os_context_with_mingw
+
+RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    gcc-mingw-w64-x86-64
+
+RUN rustup target add x86_64-pc-windows-gnu
+
+###############################################
+# This helps the final image to switch between
+# base_os_context and base_os_contet_with_mingw
+###############################################
+
+# hadolint ignore=DL3006
+FROM ${BASE_OS_CONTEXT} AS os_context
+
 ##############
 # Final image
 ##############
@@ -719,7 +743,7 @@ ENV PATH=/usr/local/go/bin:/gobin:/usr/local/google-cloud-sdk/bin:$PATH
 ENV RUBYOPT="-KU -E utf-8:utf-8"
 
 # Create the file system
-COPY --link --from=base_os_context / /
+COPY --link --from=os_context / /
 COPY --link --from=binary_tools_context_base /out/ /
 COPY --link --from=binary_tools_context_base /usr/local/go /usr/local/go
 COPY --link --from=go_tools_1 /tmp/go/bin/* /usr/bin/
