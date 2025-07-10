@@ -29,7 +29,7 @@ ARG BASE_OS_CONTEXT=base_os_context
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.24.4
+ARG GOLANG_IMAGE=golang:1.24.5
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} AS binary_tools_context_base
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -39,7 +39,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.29.0
+ENV APKO_VERSION=v0.29.2
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.55.1
@@ -61,7 +61,7 @@ ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV GO_VULNCHECK_VERSION=v1.1.4
 ENV HADOLINT_VERSION=v2.12.0
-ENV HELM3_VERSION=v3.18.2
+ENV HELM3_VERSION=v3.18.4
 # Consult the Docs WG before bumping Hugo.
 # Specifically, the version here should match netlify.toml in istio/istio.io.
 ENV HUGO_VERSION=0.147.8
@@ -78,7 +78,7 @@ ENV KPT_VERSION=v1.0.0-beta.57
 ENV KUBECTL_VERSION=1.33.2
 ENV KUBECTX_VERSION=0.9.5
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
-ENV OC_VERSION=4.19.1
+ENV OC_VERSION=4.19.2
 ENV ORAS_VERSION=1.2.2
 ENV OTEL_CLI_VERSION=v0.4.5
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
