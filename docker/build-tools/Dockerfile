@@ -428,11 +428,6 @@ FROM ubuntu:noble AS nodejs_tools_context
 WORKDIR /node
 
 # Pinned versions of stuff we pull in
-ENV BABEL_CLI_VERSION=v7.27.2
-ENV BABEL_CORE_VERSION=v7.27.4
-ENV BABEL_POLYFILL_VERSION=v7.12.1
-ENV BABEL_PRESET_ENV=v7.27.2
-ENV BABEL_PRESET_MINIFY_VERSION=v0.5.2
 ENV LINKINATOR_VERSION=v2.0.5
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
 ENV CSPELL_VERSION=v8.17.5
@@ -440,7 +435,6 @@ ENV NODEJS_VERSION=22.15.0
 ENV SASS_LINT_VERSION=v1.13.1
 ENV SASS_VERSION=v1.89.1
 ENV SVGO_VERSION=v1.3.2
-ENV SVGSTORE_CLI_VERSION=v2.0.1
 ENV TSLINT_VERSION=v6.1.3
 ENV TYPESCRIPT_VERSION=v5.8.3
 ENV MARKDOWNLINT_CLI2_VERSION=v0.17.2
@@ -470,21 +464,11 @@ RUN npm install --omit=dev --global \
     tslint@"${TSLINT_VERSION}" \
     markdown-spellcheck@"${MARKDOWN_SPELLCHECK_VERSION}" \
     cspell@"${CSPELL_VERSION}" \
-    svgstore-cli@"${SVGSTORE_CLI_VERSION}" \
     svg-symbol-sprite@"${SVG_SYMBOL_SPRITE_VERSION}" \
     svgo@"${SVGO_VERSION}" \
-    @babel/core@"${BABEL_CORE_VERSION}" \
-    @babel/cli@"${BABEL_CLI_VERSION}" \
-    @babel/preset-env@"${BABEL_PRESET_ENV_VERSION}" \
     linkinator@"${LINKINATOR_VERSION}" \
     markdownlint-cli2@"${MARKDOWNLINT_CLI2_VERSION}" \
     esbuild@"${ESBUILD_VERSION}"
-
-RUN npm install --omit=dev --save-dev \
-    babel-preset-minify@${BABEL_PRESET_MINIFY_VERSION}
-
-RUN npm install --save-dev \
-    @babel/polyfill@${BABEL_POLYFILL_VERSION}
 
 # Clean up stuff we don't need in the final image
 RUN rm -rf /usr/local/sbin
@@ -751,7 +735,6 @@ COPY --link --from=go_tools_2 /tmp/go/bin/* /usr/bin/
 
 COPY --link --from=nodejs_tools_context /usr/local/bin /usr/local/bin
 COPY --link --from=nodejs_tools_context /usr/local/lib/node_modules /usr/local/lib/node_modules
-COPY --link --from=nodejs_tools_context /node/node_modules /node_modules
 
 COPY --link --from=ruby_tools_context /usr/bin /usr/bin
 COPY --link --from=ruby_tools_context /usr/lib /usr/lib
