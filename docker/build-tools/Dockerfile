@@ -735,7 +735,6 @@ COPY --link --from=go_tools_2 /tmp/go/bin/* /usr/bin/
 
 COPY --link --from=nodejs_tools_context /usr/local/bin /usr/local/bin
 COPY --link --from=nodejs_tools_context /usr/local/lib/node_modules /usr/local/lib/node_modules
-COPY --link --from=nodejs_tools_context /node/node_modules /node_modules
 
 COPY --link --from=ruby_tools_context /usr/bin /usr/bin
 COPY --link --from=ruby_tools_context /usr/lib /usr/lib
