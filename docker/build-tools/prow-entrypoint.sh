@@ -78,29 +78,6 @@ fi
 
 set -x
 
-function generate_docker_config() {
-  local primaryInterface hostMTU
-  # Enable debug logs for docker daemon, and set the MTU to the external NIC MTU
-  # Docker will always use 1500 as the MTU; in environments where the host has <1500 as the MTU
-  # this may cause connectivity issues.
-  mkdir -p /etc/docker
-  primaryInterface="$(awk '$2 == 00000000 { print $1 }' /proc/net/route)"
-  hostMTU="$(cat "/sys/class/net/${primaryInterface}/mtu")"
-
-  # Convert a comma-separated string to a json array; works with empty strings
-  DOCKER_INSECURE_REGISTRIES=$(echo "${DOCKER_INSECURE_REGISTRIES}" | jq -Rc 'split(",")')
-  DOCKER_REGISTRY_MIRRORS=$(echo "${DOCKER_REGISTRY_MIRRORS}" | jq -Rc 'split(",")')
-
-  cat > /etc/docker/daemon.json <<EOF
-{
-  "debug": true,
-  "mtu": ${hostMTU:-1500},
-  "insecure-registries": ${DOCKER_INSECURE_REGISTRIES},
-  "registry-mirrors": ${DOCKER_REGISTRY_MIRRORS}
-}
-EOF
-}
-
 log "Starting test..."
 
 # Always enable IPv6; all tests should function with it enabled so no need to be selective.
