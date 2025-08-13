@@ -29,7 +29,7 @@ ARG BASE_OS_CONTEXT=base_os_context
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.24.5
+ARG GOLANG_IMAGE=golang:1.25.0
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} AS binary_tools_context_base
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -39,7 +39,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.30.2
+ENV APKO_VERSION=v0.30.4
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.56.0
@@ -53,7 +53,7 @@ ENV GOIMPORTS_VERSION=v0.24.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v2.3.1
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.5.1
-ENV GOLANG_PROTOBUF_VERSION=v1.36.6
+ENV GOLANG_PROTOBUF_VERSION=v1.36.7
 # From May 13, 2025. The latest tagged version at the time (0.6.0) is missing
 # some critical bug fixes.
 ENV VT_PROTOBUF_VERSION=ba97887b0a2597d20399eb70221c99c95520e8c1
@@ -78,7 +78,7 @@ ENV KPT_VERSION=v1.0.0-beta.57
 ENV KUBECTL_VERSION=1.33.2
 ENV KUBECTX_VERSION=0.9.5
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
-ENV OC_VERSION=4.19.6
+ENV OC_VERSION=4.19.7
 ENV ORAS_VERSION=1.2.2
 ENV OTEL_CLI_VERSION=v0.4.5
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
