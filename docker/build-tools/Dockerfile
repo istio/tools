@@ -51,7 +51,7 @@ ENV GH_VERSION=2.76.2
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.24.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
-ENV GOLANGCI_LINT_VERSION=v2.3.1
+ENV GOLANGCI_LINT_VERSION=v2.4.0
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.5.1
 ENV GOLANG_PROTOBUF_VERSION=v1.36.7
 # From May 13, 2025. The latest tagged version at the time (0.6.0) is missing
