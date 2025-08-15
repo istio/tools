@@ -78,6 +78,7 @@ fi
 
 set -x
 
+# shellcheck disable=SC2329
 function generate_docker_config() {
   local primaryInterface hostMTU
   # Enable debug logs for docker daemon, and set the MTU to the external NIC MTU
@@ -107,6 +108,7 @@ log "Starting test..."
 sysctl net.ipv6.conf.all.forwarding=1
 sysctl net.ipv6.conf.all.disable_ipv6=0
 log "Done enabling IPv6 in Docker config."
+# shellcheck disable=SC2329
 function run_docker() {
   # Set ENABLE_DOCKER to what they specify, or otherwise enable if /var/lib/docker is enabled (required for docker)
   [[ -d "/var/lib/docker" ]] && HAS_DOCKER="true"
