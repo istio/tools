@@ -35,6 +35,7 @@ import (
 )
 
 //go:embed release_notes_schema.json
+var embeddedSchema []byte
 var schema []byte
 
 //go:embed templates/*.md
@@ -58,7 +59,7 @@ func (flagString *flagStrings) Set(value string) error {
 }
 
 func main() {
-	var oldBranch, newBranch, outDir, oldRelease, newRelease string
+	var oldBranch, newBranch, outDir, oldRelease, newRelease, customSchema string
 	var validateOnly, checkLabel bool
 	var notesDirs flagStrings
 
@@ -70,11 +71,25 @@ func main() {
 	flag.BoolVar(&checkLabel, "checkLabel", false, "set to true to check PR has release notes OR a release-notes-none label")
 	flag.StringVar(&oldRelease, "oldRelease", "x.y.(z-1)", "old release")
 	flag.StringVar(&newRelease, "newRelease", "x.y.z", "new release")
+	flag.StringVar(&customSchema, "customSchema", "", "the path to the custom release notes schema")
 	flag.Parse()
 
 	if os.Getenv("JOB_TYPE") == "batch" {
 		log.Println("Release notes checker not applicable for batch jobs. Skipping")
 		return
+	}
+
+	if customSchema != "" {
+		// A custom schema path was provided, read the file
+		var err error
+		schema, err = os.ReadFile(customSchema)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Could not read the custom schema file: %s\n", err.Error())
+			os.Exit(1)
+		}
+	} else {
+		// No custom path, use the embedded default schema
+		schema = embeddedSchema
 	}
 
 	// Detect if we are in CI, if so we are checking a single PR...
