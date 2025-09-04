@@ -29,7 +29,7 @@ ARG BASE_OS_CONTEXT=base_os_context
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.25.0-bookworm
+ARG GOLANG_IMAGE=golang:1.25.1-bookworm
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} AS binary_tools_context_base
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -39,7 +39,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.30.6
+ENV APKO_VERSION=v0.30.7
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.57.0
@@ -86,7 +86,7 @@ ENV PROTOC_VERSION=32.0
 ENV PROTOLOCK_VERSION=v0.17.0
 ENV SHELLCHECK_VERSION=v0.11.0
 ENV SU_EXEC_VERSION=0.3.1
-ENV TRIVY_VERSION=0.65.0
+ENV TRIVY_VERSION=0.66.0
 ENV YQ_VERSION=4.45.4
 
 ENV GO111MODULE=on
@@ -562,8 +562,8 @@ FROM ubuntu:noble AS base_os_context
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CONTAINERD_VERSION=1.7.27-1
-ENV DOCKER_VERSION=5:28.3.3-1~ubuntu.24.04~noble
-ENV DOCKER_BUILDX_VERSION=0.26.1-1~ubuntu.24.04~noble
+ENV DOCKER_VERSION=5:28.4.0-1~ubuntu.24.04~noble
+ENV DOCKER_BUILDX_VERSION=0.27.0-1~ubuntu.24.04~noble
 ENV RUST_VERSION=1.89.0
 
 ENV OUTDIR=/out
