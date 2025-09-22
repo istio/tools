@@ -39,7 +39,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.30.11
+ENV APKO_VERSION=v0.30.12
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.57.2
@@ -51,7 +51,7 @@ ENV GH_VERSION=2.79.0
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.24.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
-ENV GOLANGCI_LINT_VERSION=v2.4.0
+ENV GOLANGCI_LINT_VERSION=v2.5.0
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.5.1
 ENV GOLANG_PROTOBUF_VERSION=v1.36.9
 # From May 13, 2025. The latest tagged version at the time (0.6.0) is missing
@@ -563,8 +563,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CONTAINERD_VERSION=1.7.27-1
 ENV DOCKER_VERSION=5:28.4.0-1~ubuntu.24.04~noble
-ENV DOCKER_BUILDX_VERSION=0.27.0-1~ubuntu.24.04~noble
-ENV RUST_VERSION=1.89.0
+ENV DOCKER_BUILDX_VERSION=0.28.0-0~ubuntu.24.04~noble
+ENV RUST_VERSION=1.90.0
 
 ENV OUTDIR=/out
 
