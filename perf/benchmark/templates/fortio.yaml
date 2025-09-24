@@ -375,11 +375,11 @@ spec:
         sidecar.istio.io/proxyCPU: {{ $.Values.proxy.cpu }}
         sidecar.istio.io/proxyMemory: {{ $.Values.proxy.memory }}
 {{- if $.Values.proxy.memLimit }}
-         sidecar.istio.io/proxyMemoryLimit: {{ $.Values.proxy.memLimit }}
+        sidecar.istio.io/proxyMemoryLimit: {{ $.Values.proxy.memLimit }}
 {{- end }}
 
 {{- if $.Values.proxy.cpuLimit }}
-         sidecar.istio.io/proxyCPULimit: {{ $.Values.proxy.cpuLimit }}
+        sidecar.istio.io/proxyCPULimit: {{ $.Values.proxy.cpuLimit }}
 {{- end }}
 
 {{- if $.Values.proxy.image }}
