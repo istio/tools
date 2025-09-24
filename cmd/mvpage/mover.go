@@ -109,7 +109,7 @@ func (m *mover) validate(file string) (absFile string, link string, err error) {
 				link = "/" + lang + strings.TrimPrefix(absDir, contentDir)
 			}
 
-			return
+			return absFile, link, nil
 		}
 	}
 
