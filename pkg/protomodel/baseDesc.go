@@ -81,7 +81,7 @@ const class = "$class: "
 func getClass(com string) (cl string, newCom string) {
 	start := strings.Index(com, class)
 	if start < 0 {
-		return
+		return cl, newCom
 	}
 
 	name := start + len(class)
@@ -95,7 +95,7 @@ func getClass(com string) (cl string, newCom string) {
 		cl = com[name:end]
 	}
 
-	return
+	return cl, newCom
 }
 
 func (bd baseDesc) PackageDesc() *PackageDescriptor {
