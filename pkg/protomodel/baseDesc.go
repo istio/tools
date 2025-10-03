@@ -81,7 +81,7 @@ const class = "$class: "
 func getClass(com string) (cl string, newCom string) {
 	start := strings.Index(com, class)
 	if start < 0 {
-		return "", ""
+		return cl, newCom
 	}
 
 	name := start + len(class)
