@@ -107,7 +107,8 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     gnupg2 \
     software-properties-common \
     unzip \
-    xz-utils
+    xz-utils \
+    vim-tiny
 
 # Install protoc
 RUN set -eux; \
