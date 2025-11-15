@@ -39,7 +39,7 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.30.20
+ENV APKO_VERSION=v0.30.21
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
 ENV BUF_VERSION=v1.59.0
@@ -61,7 +61,7 @@ ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV GO_VULNCHECK_VERSION=v1.1.4
 ENV HADOLINT_VERSION=v2.13.1
-ENV HELM3_VERSION=v3.19.0
+ENV HELM3_VERSION=v3.19.1
 # Consult the Docs WG before bumping Hugo.
 # Specifically, the version here should match netlify.toml in istio/istio.io.
 ENV HUGO_VERSION=0.147.8
@@ -562,10 +562,10 @@ FROM ubuntu:noble AS base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV CONTAINERD_VERSION=1.7.27-1
-ENV DOCKER_VERSION=5:28.5.1-1~ubuntu.24.04~noble
+ENV CONTAINERD_VERSION=2.1.5-1~ubuntu.24.04~noble
+ENV DOCKER_VERSION=5:29.0.0-1~ubuntu.24.04~noble
 ENV DOCKER_BUILDX_VERSION=0.29.1-1~ubuntu.24.04~noble
-ENV RUST_VERSION=1.90.0
+ENV RUST_VERSION=1.91.1
 
 ENV OUTDIR=/out
 
