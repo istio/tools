@@ -39,21 +39,21 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.30.21
+ENV APKO_VERSION=v0.30.31
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.6.0
-ENV BUF_VERSION=v1.59.0
-ENV COSIGN_VERSION=v2.6.1
-ENV CRANE_VERSION=v0.20.6
+ENV BUF_VERSION=v1.61.0
+ENV COSIGN_VERSION=v3.0.3
+ENV CRANE_VERSION=v0.20.7
 ENV GCLOUD_VERSION=531.0.0
 ENV GCR_AUTH_VERSION=2.1.21
-ENV GH_VERSION=2.82.1
+ENV GH_VERSION=2.83.2
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.24.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
-ENV GOLANGCI_LINT_VERSION=v2.6.1
+ENV GOLANGCI_LINT_VERSION=v2.7.2
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.5.1
-ENV GOLANG_PROTOBUF_VERSION=v1.36.10
+ENV GOLANG_PROTOBUF_VERSION=v1.36.11
 # From May 13, 2025. The latest tagged version at the time (0.6.0) is missing
 # some critical bug fixes.
 ENV VT_PROTOBUF_VERSION=ba97887b0a2597d20399eb70221c99c95520e8c1
@@ -61,7 +61,7 @@ ENV GO_BINDATA_VERSION=v3.1.2
 ENV GO_JUNIT_REPORT_VERSION=df0ed838addb0fa189c4d76ad4657f6007a5811c
 ENV GO_VULNCHECK_VERSION=v1.1.4
 ENV HADOLINT_VERSION=v2.13.1
-ENV HELM3_VERSION=v3.19.1
+ENV HELM_VERSION=v4.0.2
 # Consult the Docs WG before bumping Hugo.
 # Specifically, the version here should match netlify.toml in istio/istio.io.
 ENV HUGO_VERSION=0.147.8
@@ -75,19 +75,19 @@ ENV K8S_TEST_INFRA_VERSION=f9b59f56b318c87f01f222dc6fedafdca5f0d4a5
 ENV K8S_PROW_VERSION=d01b8af18f00474804250403f9bc3d8e45852190
 ENV KIND_VERSION=v0.30.0
 ENV KPT_VERSION=v1.0.0-beta.57
-ENV KUBECTL_VERSION=1.34.1
+ENV KUBECTL_VERSION=1.34.3
 ENV KUBECTX_VERSION=0.9.5
 ENV KUBETEST2_VERSION=b019714a389563c9a788f119f801520d059b6533
-ENV OC_VERSION=4.20.0
+ENV OC_VERSION=4.20.6
 ENV ORAS_VERSION=1.3.0
 ENV OTEL_CLI_VERSION=v0.4.5
 ENV PROTOC_GEN_GRPC_GATEWAY_VERSION=v1.16.0
-ENV PROTOC_VERSION=33.0
+ENV PROTOC_VERSION=33.2
 ENV PROTOLOCK_VERSION=v0.17.0
 ENV SHELLCHECK_VERSION=v0.11.0
 ENV SU_EXEC_VERSION=0.3.1
-ENV TRIVY_VERSION=0.67.2
-ENV YQ_VERSION=4.48.1
+ENV TRIVY_VERSION=0.68.1
+ENV YQ_VERSION=4.50.1
 
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
@@ -174,12 +174,12 @@ RUN set -eux; \
     tar -xzvf /tmp/${HUGO_TAR} -C /tmp; \
     mv /tmp/hugo ${OUTDIR}/usr/bin
 
-# Helm version 3
-ADD https://get.helm.sh/helm-${HELM3_VERSION}-linux-${TARGETARCH}.tar.gz /tmp
-RUN mkdir /tmp/helm3
-RUN tar -xf /tmp/helm-${HELM3_VERSION}-linux-${TARGETARCH}.tar.gz -C /tmp/helm3
-RUN mv /tmp/helm3/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm3
-RUN ln ${OUTDIR}/usr/bin/helm3 ${OUTDIR}/usr/bin/helm
+# Helm version 4
+ADD https://get.helm.sh/helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz /tmp
+RUN mkdir /tmp/helm4
+RUN tar -xf /tmp/helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz -C /tmp/helm4
+RUN mv /tmp/helm4/linux-${TARGETARCH}/helm ${OUTDIR}/usr/bin/helm4
+RUN ln ${OUTDIR}/usr/bin/helm4 ${OUTDIR}/usr/bin/helm
 
 # Kubectl
 ADD https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl ${OUTDIR}/usr/bin/kubectl
@@ -224,12 +224,20 @@ RUN set -eux; \
     rm -rf ${OUTDIR}/usr/local/google-cloud-sdk/bin/anthoscli
 
 # Install cosign (for signing build artifacts) and verify signature
+RUN --mount=type=cache,target=/tmp/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go install -v -ldflags="-extldflags -static -s -w" \
+    github.com/theupdateframework/go-tuf/cmd/tuf-client@latest
+RUN find / -name tuf-client
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -eux; \
-    wget -nv -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-${TARGETARCH} \
-    && wget -nv -O - https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-${TARGETARCH}.sig | base64 -d > /tmp/cosign.sig \
-    && wget -nv -O /tmp/cosign-pubkey https://raw.githubusercontent.com/sigstore/cosign/main/release/release-cosign.pub \
-    && openssl dgst -sha256 -verify /tmp/cosign-pubkey -signature /tmp/cosign.sig /tmp/cosign \
+    wget -nv -O /tmp/sigstore-root.json https://raw.githubusercontent.com/sigstore/root-signing/refs/heads/main/metadata/root_history/10.root.json \
+    && /tmp/go/bin/tuf-client init https://tuf-repo-cdn.sigstore.dev /tmp/sigstore-root.json \
+    && /tmp/go/bin/tuf-client get https://tuf-repo-cdn.sigstore.dev artifact.pub > /tmp/artifact.pub \
+    && wget -nv -O /tmp/cosign-kms.sigstore.json https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-${TARGETARCH}.sigstore.json \
+    && cat /tmp/cosign-kms.sigstore.json | jq -r .messageSignature.signature | base64 -d > /tmp/cosign-kms.sig.decoded \
+    && wget -nv -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux \
+    && openssl dgst -sha256 -verify /tmp/artifact.pub -signature /cosign/cosign-kms.sig.decoded /tmp/cosign \
     && chmod +x /tmp/cosign \
     && mv /tmp/cosign ${OUTDIR}/usr/bin/ || exit 1
 
@@ -432,7 +440,7 @@ WORKDIR /node
 ENV LINKINATOR_VERSION=v2.0.5
 ENV MARKDOWN_SPELLCHECK_VERSION=v1.3.1
 ENV CSPELL_VERSION=v8.17.5
-ENV NODEJS_VERSION=22.20.0
+ENV NODEJS_VERSION=22.21.1
 ENV SASS_LINT_VERSION=v1.13.1
 ENV SASS_VERSION=v1.89.1
 ENV SVGO_VERSION=v1.3.2
@@ -562,10 +570,10 @@ FROM ubuntu:noble AS base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV CONTAINERD_VERSION=2.1.5-1~ubuntu.24.04~noble
-ENV DOCKER_VERSION=5:29.0.0-1~ubuntu.24.04~noble
-ENV DOCKER_BUILDX_VERSION=0.29.1-1~ubuntu.24.04~noble
-ENV RUST_VERSION=1.91.1
+ENV CONTAINERD_VERSION=2.2.0-2~ubuntu.24.04~noble
+ENV DOCKER_VERSION=5:29.1.3-1~ubuntu.24.04~noble
+ENV DOCKER_BUILDX_VERSION=0.30.1-1~ubuntu.24.04~noble
+ENV RUST_VERSION=1.92.0
 
 ENV OUTDIR=/out
 
