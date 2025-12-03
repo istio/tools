@@ -809,7 +809,7 @@ func (g *openapiGenerator) fieldType(field *protomodel.FieldDescriptor) *apiext.
 
 	case descriptor.FieldDescriptorProto_TYPE_BYTES:
 		schema.Type = "string"
-		schema.Format = "binary"
+		schema.Format = "byte"
 		schema.Description = g.generateDescription(field)
 
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
