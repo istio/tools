@@ -72,6 +72,8 @@ if [[ -n "${GOLANG_IMAGE:-}" ]]; then
   ADDITIONAL_BUILD_ARGS+=" --build-arg GOLANG_IMAGE=${GOLANG_IMAGE}"
 fi
 
+# The following build commands will produce Manifest Lists tagged as `*-<arch>`.
+
 # shellcheck disable=SC2086
 ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools \
   ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
@@ -127,13 +129,32 @@ if [[ -z "${DRY_RUN:-}" ]]; then
 
     for image in "${TO_PUSH[@]}"; do
       images=()
+      # Extract the base repository path (without the tag)
+      REPO_PATH="${image%:*}"
+
       for arch in "${__arches__[@]}"; do
-        arch_img="${image}-${arch}"
+        arch_img_tag="${image}-${arch}"
+        
         # The other images are pushed by another job, wait for it to be ready
-        wait_for_image "${arch_img}"
-        images+=("${arch_img}")
+        wait_for_image "${arch_img_tag}"
+
+        # Extract the single-architecture manifest digest.
+        ARCH_DIGEST=$(crane manifest "${arch_img_tag}" | \
+          jq -r '.manifests[] | select(.platform.architecture == "'"${arch}"'" and .platform.os == "linux") | .digest')
+
+        if [[ -z "${ARCH_DIGEST}" ]]; then
+            echo "ERROR: Could not find architecture specific digest for ${arch_img_tag}. Manifest List parsing failed."
+            exit 1
+        fi
+        
+        # Append the digest to the REPOSITORY PATH ONLY, omitting the tag.
+        images+=("${REPO_PATH}@${ARCH_DIGEST}")
       done
+      
+      # The final tag is for the list,
+      # so we delete the existing list (if any) before creating the new one.
       docker manifest rm "${image}" || true
+      # Create the new multi-arch manifest using the extracted immutable digests
       docker manifest create "${image}" "${images[@]}"
       docker manifest push "${image}"
     done
