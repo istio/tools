@@ -113,6 +113,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     ca-certificates \
     curl \
     gnupg2 \
+    jq \
     software-properties-common \
     unzip \
     xz-utils \
@@ -234,10 +235,10 @@ RUN set -eux; \
     wget -nv -O /tmp/sigstore-root.json https://raw.githubusercontent.com/sigstore/root-signing/refs/heads/main/metadata/root_history/10.root.json \
     && /tmp/go/bin/tuf-client init https://tuf-repo-cdn.sigstore.dev /tmp/sigstore-root.json \
     && /tmp/go/bin/tuf-client get https://tuf-repo-cdn.sigstore.dev artifact.pub > /tmp/artifact.pub \
-    && wget -nv -O /tmp/cosign-kms.sigstore.json https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-${TARGETARCH}.sigstore.json \
-    && cat /tmp/cosign-kms.sigstore.json | jq -r .messageSignature.signature | base64 -d > /tmp/cosign-kms.sig.decoded \
+    && wget -nv -O /tmp/cosign-linux-${TARGETARCH}.sigstore.json https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-${TARGETARCH}.sigstore.json \
+    && cat /tmp/cosign-linux-${TARGETARCH}.sigstore.json | jq -r .messageSignature.signature | base64 -d > /tmp/cosign-linux-${TARGETARCH}.sig.decoded \
     && wget -nv -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux \
-    && openssl dgst -sha256 -verify /tmp/artifact.pub -signature /cosign/cosign-kms.sig.decoded /tmp/cosign \
+    && openssl dgst -sha256 -verify /tmp/artifact.pub -signature /cosign/cosign-linux-{$TARGETARCH}.sig.decoded /tmp/cosign \
     && chmod +x /tmp/cosign \
     && mv /tmp/cosign ${OUTDIR}/usr/bin/ || exit 1
 
