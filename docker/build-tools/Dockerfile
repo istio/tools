@@ -238,7 +238,7 @@ RUN set -eux; \
     && wget -nv -O /tmp/cosign-linux-${TARGETARCH}-kms.sigstore.json https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-${TARGETARCH}-kms.sigstore.json \
     && cat /tmp/cosign-linux-${TARGETARCH}-kms.sigstore.json | jq -r .messageSignature.signature | base64 -d > /tmp/cosign-linux-${TARGETARCH}.sig.decoded \
     && wget -nv -O /tmp/cosign https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-${TARGETARCH} \
-    && openssl dgst -sha256 -verify /tmp/artifact.pub -signature /cosign/cosign-linux-{$TARGETARCH}.sig.decoded /tmp/cosign \
+    && openssl dgst -sha256 -verify /tmp/artifact.pub -signature /cosign/cosign-linux-${TARGETARCH}.sig.decoded /tmp/cosign \
     && chmod +x /tmp/cosign \
     && mv /tmp/cosign ${OUTDIR}/usr/bin/ || exit 1
 
