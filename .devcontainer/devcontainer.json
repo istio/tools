@@ -18,7 +18,7 @@
         "golang.go",
         "rust-lang.rust-analyzer",
         "eamodio.gitlens",
-        "zxh404.vscode-proto3",
+        "drblury.protobuf-vsc",
         "ms-azuretools.vscode-docker",
         "redhat.vscode-yaml",
         "IBM.output-colorizer"
