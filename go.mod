@@ -1,6 +1,6 @@
 module istio.io/tools
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df
@@ -21,10 +21,10 @@ require (
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v2 v2.4.0
 	istio.io/api v1.28.1
-	k8s.io/apiextensions-apiserver v0.34.3
-	k8s.io/apimachinery v0.34.3
+	k8s.io/apiextensions-apiserver v0.35.0
+	k8s.io/apimachinery v0.35.0
 	k8s.io/gengo v0.0.0-20251215205346-5ee0d033ba5b
-	sigs.k8s.io/controller-tools v0.19.0
+	sigs.k8s.io/controller-tools v0.20.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -62,7 +62,6 @@ require (
 	github.com/go-openapi/swag/yamlutils v0.25.4 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gobuffalo/flect v1.0.3 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/cel-go v0.26.1 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
@@ -111,7 +110,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20251125145642-4e65d59e963e // indirect
-	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4 // indirect
+	k8s.io/utils v0.0.0-20251219084037-98d557b7f1e7 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.1 // indirect
