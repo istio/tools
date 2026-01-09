@@ -225,6 +225,7 @@ RUN set -eux; \
     rm -rf ${OUTDIR}/usr/local/google-cloud-sdk/bin/anthoscli
 
 # Install cosign (for signing build artifacts) and verify signature
+# hadolint ignore=DL3062
 RUN --mount=type=cache,target=/tmp/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go install -v -ldflags="-extldflags -static -s -w" \
