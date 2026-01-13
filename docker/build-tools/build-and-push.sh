@@ -139,11 +139,20 @@ if [[ -z "${DRY_RUN:-}" ]]; then
         wait_for_image "${arch_img_tag}"
 
         # Extract the single-architecture manifest digest.
-        ARCH_DIGEST=$(crane manifest "${arch_img_tag}" | \
-          jq -r '.manifests[] | select(.platform.architecture == "'"${arch}"'" and .platform.os == "linux") | .digest')
+        # Check if this is a manifest list or single-architecture manifest
+        MANIFEST_JSON=$(crane manifest "${arch_img_tag}")
+        if echo "${MANIFEST_JSON}" | jq -e '.manifests' > /dev/null 2>&1; then
+          # This is a manifest list, extract the digest for the specific architecture
+          ARCH_DIGEST=$(echo "${MANIFEST_JSON}" | \
+            jq -r '.manifests[] | select(.platform.architecture == "'"${arch}"'" and .platform.os == "linux") | .digest')
+        else
+          # This is a single-architecture manifest, get its digest directly
+          ARCH_DIGEST=$(crane digest "${arch_img_tag}")
+        fi
 
         if [[ -z "${ARCH_DIGEST}" ]]; then
-            echo "ERROR: Could not find architecture specific digest for ${arch_img_tag}. Manifest List parsing failed."
+            echo "ERROR: Could not find architecture specific digest for ${arch_img_tag}. Manifest parsing failed."
+            echo "Manifest content: ${MANIFEST_JSON}"
             exit 1
         fi
         
