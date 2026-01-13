@@ -39,11 +39,11 @@ ARG TARGETARCH
 ARG ISTIO_TOOLS_SHA
 
 # Pinned versions of stuff we pull in, keep this list sorted alphabetically
-ENV APKO_VERSION=v0.30.34
+ENV APKO_VERSION=v1.0.0
 ENV BENCHSTAT_VERSION=9c9101da8316
 ENV BOM_VERSION=v0.7.1
 ENV BUF_VERSION=v1.62.1
-ENV COSIGN_VERSION=v3.0.3
+ENV COSIGN_VERSION=v3.0.4
 ENV CRANE_VERSION=v0.20.7
 ENV GCLOUD_VERSION=550.0.0
 ENV GCR_AUTH_VERSION=2.1.31
@@ -51,7 +51,7 @@ ENV GH_VERSION=2.83.2
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.40.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
-ENV GOLANGCI_LINT_VERSION=v2.7.2
+ENV GOLANGCI_LINT_VERSION=v2.8.0
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.5.1
 ENV GOLANG_PROTOBUF_VERSION=v1.36.11
 # From May 13, 2025. The latest tagged version at the time (0.6.0) is missing
@@ -225,6 +225,7 @@ RUN set -eux; \
     rm -rf ${OUTDIR}/usr/local/google-cloud-sdk/bin/anthoscli
 
 # Install cosign (for signing build artifacts) and verify signature
+# hadolint ignore=DL3062
 RUN --mount=type=cache,target=/tmp/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go install -v -ldflags="-extldflags -static -s -w" \
@@ -572,7 +573,7 @@ FROM ubuntu:noble AS base_os_context
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CONTAINERD_VERSION=2.2.1-1~ubuntu.24.04~noble
-ENV DOCKER_VERSION=5:29.1.3-1~ubuntu.24.04~noble
+ENV DOCKER_VERSION=5:29.1.4-1~ubuntu.24.04~noble
 ENV DOCKER_BUILDX_VERSION=0.30.1-1~ubuntu.24.04~noble
 ENV RUST_VERSION=1.92.0
 
