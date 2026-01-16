@@ -25,6 +25,10 @@ DOCKER_INSECURE_REGISTRIES=${DOCKER_INSECURE_REGISTRIES:-}
 # Allow to pass a list of [comma-separated] registry mirrors to the docker daemon configuration
 DOCKER_REGISTRY_MIRRORS=${DOCKER_REGISTRY_MIRRORS:-}
 
+# Set to true to enable legacy overlay2 driver
+# overlay2 driver can be used to workaround the https://github.com/docker/cli/issues/6748
+ENABLE_OVERLAY2_STORAGE_DRIVER=${ENABLE_OVERLAY2_STORAGE_DRIVER:-false}
+
 function read_gcp_secrets() {
   # Prevent calling with -x set
   if [[ $- = *x* ]]; then
@@ -92,8 +96,13 @@ function generate_docker_config() {
   DOCKER_INSECURE_REGISTRIES=$(echo "${DOCKER_INSECURE_REGISTRIES}" | jq -Rc 'split(",")')
   DOCKER_REGISTRY_MIRRORS=$(echo "${DOCKER_REGISTRY_MIRRORS}" | jq -Rc 'split(",")')
 
+  if [[ "${ENABLE_OVERLAY2_STORAGE_DRIVER}" = "true" ]]; then
+    storageDriverConfig='"storage-driver": "overlay2",'
+  fi
+
   cat > /etc/docker/daemon.json <<EOF
 {
+  ${storageDriverConfig:-}
   "debug": true,
   "mtu": ${hostMTU:-1500},
   "insecure-registries": ${DOCKER_INSECURE_REGISTRIES},
