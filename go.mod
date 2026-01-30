@@ -1,3 +1,5 @@
+module istio.io/tools
+
 go 1.25.0
 
 require (
