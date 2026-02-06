@@ -27,7 +27,7 @@
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.24.12-bookworm
+ARG GOLANG_IMAGE=golang:1.24.13-bookworm
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} AS binary_tools_context_base
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
