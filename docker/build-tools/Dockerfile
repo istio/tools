@@ -856,9 +856,9 @@ WORKDIR /tmp
 COPY proxy-tsan-instrumented-libcxx.sh proxy-tsan-instrumented-libcxx.sh
 RUN ./proxy-tsan-instrumented-libcxx.sh
 
-###########
+##########
 # GN
-###########
+##########
 
 FROM ubuntu:bionic AS gn_context_amd64
 FROM ubuntu:focal AS gn_context_arm64
