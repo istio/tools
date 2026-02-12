@@ -29,7 +29,7 @@ ARG BASE_OS_CONTEXT=base_os_context
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.25.7-bookworm
+ARG GOLANG_IMAGE=golang:1.26.0-bookworm
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} AS binary_tools_context_base
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -51,7 +51,7 @@ ENV GH_VERSION=2.86.0
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
 ENV GOIMPORTS_VERSION=v0.40.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
-ENV GOLANGCI_LINT_VERSION=v2.8.0
+ENV GOLANGCI_LINT_VERSION=v2.9.0
 ENV GOLANG_GRPC_PROTOBUF_VERSION=v1.5.1
 ENV GOLANG_PROTOBUF_VERSION=v1.36.11
 # From May 13, 2025. The latest tagged version at the time (0.6.0) is missing
