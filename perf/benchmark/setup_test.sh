@@ -33,6 +33,7 @@ RBAC_ENABLED="false"
 SERVER_REPLICA="${SERVER_REPLICA:-1}"
 CLIENT_REPLICA="${CLIENT_REPLICA:-1}"
 ISTIO_INJECT="${ISTIO_INJECT:-false}"
+AMBIENT_ENABLED="${AMBIENT_ENABLED:-false}"
 LINKERD_INJECT="${LINKERD_INJECT:-disabled}"
 INTERCEPTION_MODE="${INTERCEPTION_MODE:-REDIRECT}"
 FORTIO_SERVER_INGRESS_CERT_ENABLED="${FORTIO_SERVER_INGRESS_CERT_ENABLED:-false}"
@@ -55,12 +56,13 @@ function setup_test() {
       --set rbac.enabled="${RBAC_ENABLED}" \
       --set namespace="${NAMESPACE}" \
       --set loadGenType="${LOAD_GEN_TYPE}" \
-      --set excludeOutboundIPRanges=$(pod_ip_range)\
-      --set includeOutboundIPRanges=$(svc_ip_range) \
       --set server.replica="${SERVER_REPLICA}" \
       --set client.replica="${CLIENT_REPLICA}" \
       --set server.inject="${ISTIO_INJECT}"  \
       --set client.inject="${ISTIO_INJECT}" \
+      --set server.waypoint="${WAYPOINT_ENABLED}"  \
+      --set server.ambient="${AMBIENT_ENABLED}"  \
+      --set client.ambient="${AMBIENT_ENABLED}" \
       --set server.injectL="${LINKERD_INJECT}" \
       --set client.injectL="${LINKERD_INJECT}" \
       --set domain="${DNS_DOMAIN}" \
@@ -92,6 +94,10 @@ then
   kubectl label namespace "${NAMESPACE}" istio-injection=enabled --overwrite || true
 fi
 
+if [[ "$AMBIENT_ENABLED" == "true" ]]
+then
+  kubectl label namespace "${NAMESPACE}" istio.io/dataplane-mode=ambient --overwrite || true
+fi
 if [[ "$LINKERD_INJECT" == "enabled" ]]
 then
   kubectl annotate namespace "${NAMESPACE}" linkerd.io/inject=enabled || true

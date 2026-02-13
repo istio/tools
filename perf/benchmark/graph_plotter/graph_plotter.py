@@ -29,6 +29,9 @@ def plotter(args):
 
     df = pd.read_csv(args.csv_filepath)
     telemetry_modes_y_data = {}
+    if not args.telemetry_modes:
+        args.telemetry_modes = df["Labels"].unique()
+
     metric_name = get_metric_name(args)
     constructed_query_str = get_constructed_query_str(args)
 
@@ -41,6 +44,8 @@ def plotter(args):
     fig = plt.figure(figsize=(1138 / dpi, 871 / dpi), dpi=dpi)
     ax = fig.add_subplot(111)
     ax.set_ylim(0, 1.0)
+    if args.title:
+        ax.set_title(args.title)
     for key, val in telemetry_modes_y_data.items():
         plot_key = key
         match key:
@@ -107,15 +112,15 @@ def get_data_helper(df, query_list, query_str, telemetry_mode, metric_name):
         try:
             data[metric_name].head().empty
         except KeyError as e:
-            y_series_data.append(None)
+            y_series_data.append(0)
         else:
             if not data[metric_name].head().empty:
                 if metric_name.startswith('cpu') or metric_name.startswith('mem'):
                     y_series_data.append(data[metric_name].head(1).values[0])
                 else:
-                    y_series_data.append(data[metric_name].head(1).values[0] / data["ActualQPS"].head(1).values[0])
+                    y_series_data.append(data[metric_name].head(1).values[0] / 1000)
             else:
-                y_series_data.append(None)
+                y_series_data.append(0)
 
     return y_series_data
 
@@ -174,7 +179,8 @@ def get_parser():
     parser.add_argument(
         "--query_str",
         help="Specify the qps or conn query_str that will be used to query your y-axis data based on the CSV file."
-             "For example: conn_query_str=ActualQPS==1000, qps_query_str=NumThreads==16."
+             "For example: conn_query_str=ActualQPS==1000, qps_query_str=NumThreads==16.",
+        default=""
     )
     parser.add_argument(
         "--csv_filepath",
@@ -182,7 +188,11 @@ def get_parser():
     )
     parser.add_argument(
         "--graph_title",
-        help="The graph title."
+        help="Output path."
+    )
+    parser.add_argument(
+        "--title",
+        help="Visual title of graph."
     )
     return parser
 
