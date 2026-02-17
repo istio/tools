@@ -62,6 +62,10 @@ fi
 NAMESPACE="istio-prometheus" ./setup_test.sh alertmanager
 kubectl apply -f ./alertmanager/prometheusrule.yaml
 
+# --- APPLY THE TELEMETRY FIX ---
+echo "Applying Telemetry and RBAC fixes (CPU/Memory/Traffic)..."
+kubectl apply -f "${ROOT}/istio-install/addons/telemetry-fix.yaml"
+
 # Setup workloads
 pushd "${ROOT}/load"
 # shellcheck disable=SC1091
