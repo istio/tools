@@ -572,7 +572,7 @@ FROM ubuntu:noble AS base_os_context
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV CONTAINERD_VERSION=2.2.1-1~ubuntu.24.04~noble
+ENV CONTAINERD_VERSION=2.2.2-1~ubuntu.24.04~noble
 ENV DOCKER_VERSION=5:29.3.0-1~ubuntu.24.04~noble
 ENV DOCKER_BUILDX_VERSION=0.31.1-1~ubuntu.24.04~noble
 ENV RUST_VERSION=1.94.0
