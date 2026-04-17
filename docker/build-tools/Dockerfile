@@ -224,6 +224,21 @@ RUN set -eux; \
     rm -rf ${OUTDIR}/usr/local/google-cloud-sdk/.install/.backup \
     rm -rf ${OUTDIR}/usr/local/google-cloud-sdk/bin/anthoscli
 
+# Install AWS CLI v2
+RUN set -eux; \
+    \
+    case $(uname -m) in \
+        x86_64) AWS_CLI_ARCH=x86_64;; \
+        aarch64) AWS_CLI_ARCH=aarch64;; \
+        *) echo "unsupported architecture"; exit 1 ;; \
+    esac; \
+    \
+    wget -nv -O /tmp/awscliv2.zip "https://awscli.amazonaws.com/awscli-exe-linux-${AWS_CLI_ARCH}.zip"; \
+    unzip -q /tmp/awscliv2.zip -d /tmp; \
+    /tmp/aws/install --install-dir /usr/local/aws-cli --bin-dir ${OUTDIR}/usr/bin; \
+    rm -rf /tmp/awscliv2.zip /tmp/aws; \
+    cp -a /usr/local/aws-cli ${OUTDIR}/usr/local/aws-cli
+
 # Install cosign (for signing build artifacts) and verify signature
 # hadolint ignore=DL3062
 RUN --mount=type=cache,target=/tmp/go/pkg/mod \
