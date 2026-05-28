@@ -1000,6 +1000,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     git \
     # Dependencies to build envoy
     autoconf \
+    autoconf-archive \
     automake \
     cmake \
     libtool \
