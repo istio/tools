@@ -24,6 +24,7 @@ import "external.proto";
 message Simple {
     uint32 fieldA = 1;
     string fieldB = 2;
+    optional string optionalField = 5;
     oneof fieldC {
         string name = 3;
         uint32 number = 4;
