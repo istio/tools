@@ -1,0 +1,22 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  hub: istio-spec.hub
+  tag: istio-spec.tag
+  values:
+    global:
+      variant: global.variant
+  components:
+    pilot:
+      enabled: true
+      hub: component.pilot.hub
+      tag: 2
+    cni:
+      enabled: true
+      hub: component.cni.hub
+      tag: v3.3.3
+    ztunnel:
+      enabled: true
+      hub: component.ztunnel.hub
+      tag: 4
+

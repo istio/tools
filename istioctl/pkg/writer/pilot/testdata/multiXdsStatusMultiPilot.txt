@@ -1,0 +1,5 @@
+NAME       CLUSTER      ISTIOD      VERSION     SUBSCRIBED TYPES
+proxy1     cluster1     istiod1     1.20        5 (CDS,LDS,EDS,RDS,ECDS)
+proxy2     cluster2     istiod2     1.19        5 (CDS,LDS,EDS,RDS,ECDS)
+proxy3     cluster3     istiod3     1.20        5 (CDS,LDS,EDS,RDS,ECDS)
+proxy4     cluster4     istiod4     1.20        0

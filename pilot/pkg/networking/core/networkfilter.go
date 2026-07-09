@@ -1,0 +1,445 @@
+// Copyright Istio Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package core
+
+import (
+	"net"
+	"strconv"
+	"time"
+
+	mysql "github.com/envoyproxy/go-control-plane/contrib/envoy/extensions/filters/network/mysql_proxy/v3"
+	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	dfp "github.com/envoyproxy/go-control-plane/envoy/extensions/common/dynamic_forward_proxy/v3"
+	httpdfp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/dynamic_forward_proxy/v3"
+	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	mongo "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/mongo_proxy/v3"
+	redis "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/redis_proxy/v3"
+	snidfp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/sni_dynamic_forward_proxy/v3"
+	tcp "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/tcp_proxy/v3"
+	cares "github.com/envoyproxy/go-control-plane/envoy/extensions/network/dns_resolver/cares/v3"
+	hashpolicy "github.com/envoyproxy/go-control-plane/envoy/type/v3"
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
+
+	extensions "istio.io/api/extensions/v1alpha1"
+	networking "istio.io/api/networking/v1alpha3"
+	"istio.io/istio/pilot/pkg/features"
+	"istio.io/istio/pilot/pkg/model"
+	istionetworking "istio.io/istio/pilot/pkg/networking"
+	"istio.io/istio/pilot/pkg/networking/core/extension"
+	istioroute "istio.io/istio/pilot/pkg/networking/core/route"
+	"istio.io/istio/pilot/pkg/networking/core/tunnelingconfig"
+	"istio.io/istio/pilot/pkg/networking/plugin/authz"
+	"istio.io/istio/pilot/pkg/networking/telemetry"
+	"istio.io/istio/pilot/pkg/networking/util"
+	"istio.io/istio/pilot/pkg/util/protoconv"
+	xdsfilters "istio.io/istio/pilot/pkg/xds/filters"
+	"istio.io/istio/pkg/config"
+	"istio.io/istio/pkg/config/host"
+	"istio.io/istio/pkg/config/protocol"
+	"istio.io/istio/pkg/log"
+	"istio.io/istio/pkg/wellknown"
+)
+
+// redisOpTimeout is the default operation timeout for the Redis proxy filter.
+var redisOpTimeout = 5 * time.Second
+
+func buildMetadataExchangeNetworkFilters() []*listener.Filter {
+	filterstack := make([]*listener.Filter, 0)
+	// We add metadata exchange on inbound only; outbound is handled in cluster filter
+	if features.MetadataExchange {
+		filterstack = append(filterstack, xdsfilters.TCPListenerMx)
+	}
+
+	return filterstack
+}
+
+func buildMetricsNetworkFilters(push *model.PushContext, proxy *model.Proxy, class istionetworking.ListenerClass, svc *model.Service) []*listener.Filter {
+	return push.Telemetry.TCPFilters(proxy, class, svc)
+}
+
+// setAccessLogAndBuildTCPFilter sets the AccessLog configuration in the given
+// TcpProxy instance and builds a TCP filter out of it.
+func setAccessLogAndBuildTCPFilter(push *model.PushContext, node *model.Proxy,
+	config *tcp.TcpProxy, class istionetworking.ListenerClass, svc *model.Service,
+) *listener.Filter {
+	accessLogBuilder.setTCPAccessLog(push, node, config, class, svc)
+
+	tcpFilter := &listener.Filter{
+		Name:       wellknown.TCPProxy,
+		ConfigType: &listener.Filter_TypedConfig{TypedConfig: protoconv.MessageToAny(config)},
+	}
+	return tcpFilter
+}
+
+func buildSNIDFPFilter(port int, svc *model.Service, lookupFamily cluster.Cluster_DnsLookupFamily) *listener.Filter {
+	sniDfp := &snidfp.FilterConfig{
+		DnsCacheConfig: &dfp.DnsCacheConfig{
+			Name:            model.BuildDNSCacheName(svc.Hostname),
+			DnsLookupFamily: lookupFamily,
+		},
+		PortSpecifier: &snidfp.FilterConfig_PortValue{
+			PortValue: uint32(port),
+		},
+	}
+
+	return &listener.Filter{
+		Name:       wellknown.SNIDynamicForwardProxy,
+		ConfigType: &listener.Filter_TypedConfig{TypedConfig: protoconv.MessageToAny(sniDfp)},
+	}
+}
+
+// buildAllowAnyDynamicDNSDNSCacheConfig builds the shared DnsCacheConfig for ALLOW_ANY_DYNAMIC_DNS mode.
+// When DNS_CAPTURE is enabled, the resolver is pointed at the Istio DNS proxy (DNS_PROXY_ADDR).
+// Otherwise no explicit resolver is set and Envoy uses its default DNS resolution.
+func buildAllowAnyDynamicDNSDNSCacheConfig(meta *model.NodeMetadata) *dfp.DnsCacheConfig {
+	cfg := &dfp.DnsCacheConfig{
+		Name: util.AllowAnyDFPDNSCacheName,
+		// Envoy defaults MaxHosts to 1024 when unset. Set it explicitly so the cap is
+		// visible in the generated config and tunable via PILOT_ALLOW_ANY_DYNAMIC_DNS_MAX_HOSTS.
+		MaxHosts: wrappers.UInt32(uint32(features.AllowAnyDynamicDNSMaxHosts)),
+	}
+	if meta != nil {
+		cfg.DnsLookupFamily = util.SelectDNSLookupFamily(meta.InstanceIPs)
+	} else {
+		cfg.DnsLookupFamily = cluster.Cluster_V4_ONLY
+	}
+	if meta == nil || !bool(meta.DNSCapture) {
+		return cfg
+	}
+	addr := meta.DNSProxyAddr
+	host, portStr, err := net.SplitHostPort(addr)
+	if err != nil {
+		log.Warnf("failed to parse DNSProxyAddr %q, falling back to 127.0.0.1:15053: %v", addr, err)
+		host, portStr = "127.0.0.1", "15053"
+	}
+	if host == "localhost" {
+		host = "127.0.0.1"
+	}
+	port, err := strconv.ParseUint(portStr, 10, 32)
+	if err != nil {
+		port = 15053
+	}
+	caresConfig, err := anypb.New(&cares.CaresDnsResolverConfig{
+		Resolvers: []*core.Address{{
+			Address: &core.Address_SocketAddress{
+				SocketAddress: &core.SocketAddress{
+					Address:       host,
+					PortSpecifier: &core.SocketAddress_PortValue{PortValue: uint32(port)},
+				},
+			},
+		}},
+	})
+	if err == nil {
+		cfg.TypedDnsResolverConfig = &core.TypedExtensionConfig{
+			Name:        "envoy.network.dns_resolver.cares",
+			TypedConfig: caresConfig,
+		}
+	}
+	return cfg
+}
+
+// buildAllowAnyDynamicDNSHTTPForwardProxyFilter builds an HTTP dynamic forward proxy filter for
+// ALLOW_ANY_DYNAMIC_DNS mode. It resolves hostnames from the Host/:authority header using the
+// shared DNS cache (Istio DNS proxy).
+func buildAllowAnyDynamicDNSHTTPForwardProxyFilter(meta *model.NodeMetadata) *hcm.HttpFilter {
+	return &hcm.HttpFilter{
+		Name: "envoy.filters.http.dynamic_forward_proxy",
+		ConfigType: &hcm.HttpFilter_TypedConfig{
+			TypedConfig: protoconv.MessageToAny(&httpdfp.FilterConfig{
+				ImplementationSpecifier: &httpdfp.FilterConfig_DnsCacheConfig{
+					DnsCacheConfig: buildAllowAnyDynamicDNSDNSCacheConfig(meta),
+				},
+			}),
+		},
+	}
+}
+
+// buildOutboundNetworkFiltersWithSingleDestination takes a single cluster name
+// and builds a stack of network filters.
+func (lb *ListenerBuilder) buildOutboundNetworkFiltersWithSingleDestination(
+	statPrefix, clusterName, subsetName string, port *model.Port, destinationRule *networking.DestinationRule, applyTunnelingConfig tunnelingconfig.ApplyFunc,
+	includeMx bool, service *model.Service,
+) []*listener.Filter {
+	idleTimeout := destinationRule.GetTrafficPolicy().GetConnectionPool().GetTcp().GetIdleTimeout()
+	if idleTimeout == nil {
+		idleTimeout = parseDuration(lb.node.Metadata.IdleTimeout)
+	}
+	tcpProxy := &tcp.TcpProxy{
+		StatPrefix:                      statPrefix,
+		ClusterSpecifier:                &tcp.TcpProxy_Cluster{Cluster: clusterName},
+		IdleTimeout:                     idleTimeout,
+		MaxDownstreamConnectionDuration: destinationRule.GetTrafficPolicy().GetConnectionPool().GetTcp().GetMaxConnectionDuration(),
+	}
+
+	maybeSetHashPolicy(destinationRule, tcpProxy, subsetName)
+	applyTunnelingConfig(tcpProxy, destinationRule, subsetName)
+	class := model.OutboundListenerClass(lb.node.Type)
+	tcpFilter := setAccessLogAndBuildTCPFilter(lb.push, lb.node, tcpProxy, class, nil)
+	networkFilterStack := buildNetworkFiltersStack(port.Protocol, tcpFilter, statPrefix, clusterName)
+
+	// Only pass service for DYNAMIC_DNS wildcard services that need SNI DFP filtering
+	if service != nil && service.Hostname.IsWildCarded() && service.Resolution == model.DynamicDNS {
+		return lb.buildCompleteNetworkFilters(class, port.Port, networkFilterStack, includeMx, service)
+	}
+	return lb.buildCompleteNetworkFilters(class, port.Port, networkFilterStack, includeMx, nil)
+}
+
+func (lb *ListenerBuilder) buildCompleteNetworkFilters(
+	class istionetworking.ListenerClass,
+	port int,
+	networkFilterStack []*listener.Filter,
+	includeMx bool,
+	policySvc *model.Service,
+) []*listener.Filter {
+	authzCustomBuilder := lb.authzCustomBuilder
+	authzBuilder := lb.authzBuilder
+	if policySvc != nil {
+		useFilterState := lb.node.Type == model.Waypoint
+		authzBuilder = authz.NewBuilderForService(authz.Local, lb.push, lb.node, useFilterState, policySvc)
+		authzCustomBuilder = authz.NewBuilderForService(authz.Custom, lb.push, lb.node, useFilterState, policySvc)
+	}
+
+	var filters []*listener.Filter
+	trafficExtensions := lb.push.TrafficExtensionsByListenerInfo(
+		lb.node, model.ListenerInfo{Port: port, Class: class}.WithService(policySvc),
+		model.FilterChainTypeNetwork,
+	)
+
+	// Metadata exchange goes first, so RBAC failures, etc can access the state. See https://github.com/istio/istio/issues/41066
+	if features.MetadataExchange && includeMx {
+		filters = append(filters, xdsfilters.TCPListenerMx)
+	}
+	// TODO: not sure why it goes here
+	filters = append(filters, authzCustomBuilder.BuildTCP()...)
+
+	// Authn
+	filters = extension.PopAppendNetworkTrafficExtension(filters, trafficExtensions, extensions.TrafficExtension_AUTHN)
+
+	// Authz
+	filters = extension.PopAppendNetworkTrafficExtension(filters, trafficExtensions, extensions.TrafficExtension_AUTHZ)
+	filters = append(filters, authzBuilder.BuildTCP()...)
+
+	// Stats
+	filters = extension.PopAppendNetworkTrafficExtension(filters, trafficExtensions, extensions.TrafficExtension_STATS)
+	filters = extension.PopAppendNetworkTrafficExtension(filters, trafficExtensions, extensions.TrafficExtension_UNSPECIFIED)
+	filters = append(filters, buildMetricsNetworkFilters(lb.push, lb.node, class, policySvc)...)
+
+	// Add SNI DFP filter for sidecar outbound with DYNAMIC_DNS wildcard ServiceEntries (TLS traffic)
+	if class == istionetworking.ListenerClassSidecarOutbound &&
+		policySvc != nil &&
+		policySvc.Hostname.IsWildCarded() &&
+		policySvc.Resolution == model.DynamicDNS {
+		sniDFPFilter := buildSNIDFPFilter(port, policySvc, util.SelectDNSLookupFamily(lb.node.IPAddresses))
+		filters = append(filters, sniDFPFilter)
+	}
+
+	// Terminal filters
+	filters = append(filters, networkFilterStack...)
+	return filters
+}
+
+// buildOutboundNetworkFiltersWithWeightedClusters takes a set of weighted
+// destination routes and builds a stack of network filters.
+func (lb *ListenerBuilder) buildOutboundNetworkFiltersWithWeightedClusters(routes []*networking.RouteDestination,
+	port *model.Port, configMeta config.Meta, destinationRule *networking.DestinationRule,
+	includeMx bool,
+) []*listener.Filter {
+	statPrefix := configMeta.Name + "." + configMeta.Namespace
+	clusterSpecifier := &tcp.TcpProxy_WeightedClusters{
+		WeightedClusters: &tcp.TcpProxy_WeightedCluster{},
+	}
+
+	idleTimeout := destinationRule.GetTrafficPolicy().GetConnectionPool().GetTcp().GetIdleTimeout()
+	if idleTimeout == nil {
+		idleTimeout = parseDuration(lb.node.Metadata.IdleTimeout)
+	}
+	tcpProxy := &tcp.TcpProxy{
+		StatPrefix:                      statPrefix,
+		ClusterSpecifier:                clusterSpecifier,
+		IdleTimeout:                     idleTimeout,
+		MaxDownstreamConnectionDuration: destinationRule.GetTrafficPolicy().GetConnectionPool().GetTcp().GetMaxConnectionDuration(),
+	}
+
+	for _, route := range routes {
+		service := lb.push.ServiceForHostname(lb.node, host.Name(route.Destination.Host))
+		if route.Weight > 0 {
+			clusterName := istioroute.GetDestinationCluster(route.Destination, service, port.Port)
+			clusterSpecifier.WeightedClusters.Clusters = append(clusterSpecifier.WeightedClusters.Clusters, &tcp.TcpProxy_WeightedCluster_ClusterWeight{
+				Name:   clusterName,
+				Weight: uint32(route.Weight),
+			})
+		}
+	}
+
+	// For weighted clusters set hash policy if any of the upstream destinations have sourceIP.
+	maybeSetHashPolicy(destinationRule, tcpProxy, "")
+	// In case of weighted clusters, tunneling config for a subset is ignored,
+	// because it is set on listener, not on a cluster.
+	tunnelingconfig.Apply(tcpProxy, destinationRule, "")
+
+	// TODO: Need to handle multiple cluster names for Redis
+	clusterName := clusterSpecifier.WeightedClusters.Clusters[0].Name
+	class := model.OutboundListenerClass(lb.node.Type)
+	tcpFilter := setAccessLogAndBuildTCPFilter(lb.push, lb.node, tcpProxy, class, nil)
+	networkFilterStack := buildNetworkFiltersStack(port.Protocol, tcpFilter, statPrefix, clusterName)
+
+	return lb.buildCompleteNetworkFilters(class, port.Port, networkFilterStack, includeMx, nil)
+}
+
+func maybeSetHashPolicy(destinationRule *networking.DestinationRule, tcpProxy *tcp.TcpProxy, subsetName string) {
+	if destinationRule != nil {
+		useSourceIP := destinationRule.GetTrafficPolicy().GetLoadBalancer().GetConsistentHash().GetUseSourceIp()
+		for _, subset := range destinationRule.Subsets {
+			if subset.Name != subsetName {
+				continue
+			}
+			// If subset has load balancer - see if it is also consistent hash source IP
+			if subset.TrafficPolicy != nil && subset.TrafficPolicy.LoadBalancer != nil {
+				if subset.TrafficPolicy.LoadBalancer.GetConsistentHash() != nil {
+					useSourceIP = subset.TrafficPolicy.LoadBalancer.GetConsistentHash().GetUseSourceIp()
+				} else {
+					// This means that subset has defined non sourceIP consistent hash load balancer.
+					useSourceIP = false
+				}
+			}
+			break
+		}
+		// If destinationrule has consistent hash source ip set, use it for tcp proxy.
+		if useSourceIP {
+			tcpProxy.HashPolicy = []*hashpolicy.HashPolicy{{PolicySpecifier: &hashpolicy.HashPolicy_SourceIp_{
+				SourceIp: &hashpolicy.HashPolicy_SourceIp{},
+			}}}
+		}
+	}
+}
+
+// buildNetworkFiltersStack builds a slice of network filters based on
+// the protocol in use and the given TCP filter instance.
+func buildNetworkFiltersStack(p protocol.Instance, tcpFilter *listener.Filter, statPrefix string, clusterName string) []*listener.Filter {
+	filterstack := make([]*listener.Filter, 0)
+	switch p {
+	case protocol.Mongo:
+		if features.EnableMongoFilter {
+			filterstack = append(filterstack, buildMongoFilter(statPrefix), tcpFilter)
+		} else {
+			filterstack = append(filterstack, tcpFilter)
+		}
+	case protocol.Redis:
+		if features.EnableRedisFilter {
+			// redis filter has route config, it is a terminating filter, no need append tcp filter.
+			filterstack = append(filterstack, buildRedisFilter(statPrefix, clusterName))
+		} else {
+			filterstack = append(filterstack, tcpFilter)
+		}
+	case protocol.MySQL:
+		if features.EnableMysqlFilter {
+			filterstack = append(filterstack, buildMySQLFilter(statPrefix))
+		}
+		filterstack = append(filterstack, tcpFilter)
+	default:
+		filterstack = append(filterstack, tcpFilter)
+	}
+
+	return filterstack
+}
+
+// buildOutboundNetworkFilters generates a TCP proxy network filter for outbound
+// connections. In addition, it generates protocol specific filters (e.g., Mongo
+// filter).
+func (lb *ListenerBuilder) buildOutboundNetworkFilters(
+	routes []*networking.RouteDestination,
+	port *model.Port, configMeta config.Meta, includeMx bool,
+) []*listener.Filter {
+	push, node := lb.push, lb.node
+	service := push.ServiceForHostname(node, host.Name(routes[0].Destination.Host))
+	var destinationRule *networking.DestinationRule
+	if service != nil {
+		destinationRule = CastDestinationRule(node.SidecarScope.DestinationRule(model.TrafficDirectionOutbound, node, service.Hostname).GetRule())
+	}
+	if len(routes) == 1 {
+		clusterName := istioroute.GetDestinationCluster(routes[0].Destination, service, port.Port)
+		statPrefix := clusterName
+		// If stat name is configured, build the stat prefix from configured pattern.
+		if len(push.Mesh.OutboundClusterStatName) != 0 && service != nil {
+			statPrefix = telemetry.BuildStatPrefix(push.Mesh.OutboundClusterStatName, routes[0].Destination.Host,
+				routes[0].Destination.Subset, port, 0, &service.Attributes)
+		}
+
+		return lb.buildOutboundNetworkFiltersWithSingleDestination(
+			statPrefix, clusterName, routes[0].Destination.Subset, port, destinationRule, tunnelingconfig.Apply, includeMx, nil)
+	}
+	return lb.buildOutboundNetworkFiltersWithWeightedClusters(routes, port, configMeta, destinationRule, includeMx)
+}
+
+// buildMongoFilter builds an outbound Envoy MongoProxy filter.
+func buildMongoFilter(statPrefix string) *listener.Filter {
+	// TODO: add a watcher for /var/lib/istio/mongo/certs
+	// if certs are found use, TLS or mTLS clusters for talking to MongoDB.
+	// User is responsible for mounting those certs in the pod.
+	mongoProxy := &mongo.MongoProxy{
+		StatPrefix: statPrefix, // mongo stats are prefixed with mongo.<statPrefix> by Envoy
+		// TODO enable faults in mongo
+	}
+
+	out := &listener.Filter{
+		Name:       wellknown.MongoProxy,
+		ConfigType: &listener.Filter_TypedConfig{TypedConfig: protoconv.MessageToAny(mongoProxy)},
+	}
+
+	return out
+}
+
+// buildRedisFilter builds an outbound Envoy RedisProxy filter.
+// Currently, if multiple clusters are defined, one of them will be picked for
+// configuring the Redis proxy.
+func buildRedisFilter(statPrefix, clusterName string) *listener.Filter {
+	redisProxy := &redis.RedisProxy{
+		LatencyInMicros: true,       // redis latency stats are captured in micro seconds which is typically the case.
+		StatPrefix:      statPrefix, // redis stats are prefixed with redis.<statPrefix> by Envoy
+		Settings: &redis.RedisProxy_ConnPoolSettings{
+			OpTimeout: durationpb.New(redisOpTimeout),
+		},
+		PrefixRoutes: &redis.RedisProxy_PrefixRoutes{
+			CatchAllRoute: &redis.RedisProxy_PrefixRoutes_Route{
+				Cluster: clusterName,
+			},
+		},
+	}
+
+	out := &listener.Filter{
+		Name:       wellknown.RedisProxy,
+		ConfigType: &listener.Filter_TypedConfig{TypedConfig: protoconv.MessageToAny(redisProxy)},
+	}
+
+	return out
+}
+
+// buildMySQLFilter builds an outbound Envoy MySQLProxy filter.
+func buildMySQLFilter(statPrefix string) *listener.Filter {
+	mySQLProxy := &mysql.MySQLProxy{
+		StatPrefix: statPrefix, // MySQL stats are prefixed with mysql.<statPrefix> by Envoy.
+	}
+
+	out := &listener.Filter{
+		Name:       wellknown.MySQLProxy,
+		ConfigType: &listener.Filter_TypedConfig{TypedConfig: protoconv.MessageToAny(mySQLProxy)},
+	}
+
+	return out
+}

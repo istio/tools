@@ -1,0 +1,299 @@
+// Copyright Istio Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package version
+
+import (
+	"strings"
+	"testing"
+
+	"istio.io/istio/pkg/test/util/assert"
+)
+
+func TestVersion(t *testing.T) {
+	tests := []struct {
+		desc    string
+		input   string
+		want    Version
+		wantErr string
+	}{
+		{
+			desc:  "major success",
+			input: "1",
+			want:  NewVersion(1, 0, 0, ""),
+		},
+		{
+			desc:    "major fail",
+			input:   "1..",
+			wantErr: `malformed version: 1..`,
+		},
+		{
+			desc:    "major fail prefix",
+			input:   ".1",
+			wantErr: `malformed version: .1`,
+		},
+		{
+			desc:  "minor success",
+			input: "1.2",
+			want:  NewVersion(1, 2, 0, ""),
+		},
+		{
+			desc:    "minor fail",
+			input:   "1.1..",
+			wantErr: `malformed version: 1.1..`,
+		},
+		{
+			desc:  "patch success",
+			input: "1.2.3",
+			want:  NewVersion(1, 2, 3, ""),
+		},
+		{
+			desc:    "patch fail",
+			input:   "1.1.-1",
+			wantErr: `malformed version: 1.1.-1`,
+		},
+		{
+			desc:  "suffix success",
+			input: "1.2.3-istio-test",
+			want:  NewVersion(1, 2, 3, "istio-test"),
+		},
+		{
+			desc:    "suffix fail",
+			input:   ".1.1.1-something",
+			wantErr: `malformed version: .1.1.1-something`,
+		},
+		{
+			desc:    "Malformed version fail",
+			input:   "istio-testing-distroless",
+			wantErr: `malformed version: istio-testing-distroless`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			got, err := NewVersionFromString(tt.input)
+			if gotErr, wantErr := errToString(err), tt.wantErr; !strings.Contains(gotErr, wantErr) {
+				t.Fatalf("got error: %s, want error: %s", gotErr, wantErr)
+			}
+			if tt.wantErr == "" {
+				assert.Equal(t, true, got != nil)
+				assert.Equal(t, *got, tt.want)
+			}
+		})
+	}
+}
+
+// errToString returns the string representation of err and the empty string if
+// err is nil.
+func errToString(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
+}
+
+func TestIsVersionString(t *testing.T) {
+	tests := []struct {
+		name string
+		ver  string
+		want bool
+	}{
+		{
+			name: "empty",
+			ver:  "",
+			want: false,
+		},
+		{
+			name: "unknown",
+			ver:  "unknown",
+			want: false,
+		},
+		{
+			name: "release branch dev",
+			ver:  "1.4-dev",
+			want: true,
+		},
+		{
+			name: "release",
+			ver:  "1.4.5",
+			want: true,
+		},
+		{
+			name: "incorrect",
+			ver:  "1.4.xxx",
+			want: false,
+		},
+		{
+			name: "dev sha",
+			ver:  "a3703b76cf4745f3d56bf653ed751509be116351",
+			want: false,
+		},
+		{
+			name: "dev sha digit prefix",
+			ver:  "60023b76cf4745f3d56bf653ed751509be116351",
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsVersionString(tt.ver); got != tt.want {
+				t.Errorf("IsVersionString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTagToVersionString(t *testing.T) {
+	//type args struct {
+	//	path string
+	//}
+	tests := []struct {
+		name string
+		// args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "1.4.3",
+			want:    "1.4.3",
+			wantErr: false,
+		},
+		{
+			name:    "1.4.3-distroless",
+			want:    "1.4.3",
+			wantErr: false,
+		},
+		{
+			name:    "1.5.0-alpha.0",
+			want:    "1.5.0",
+			wantErr: false,
+		},
+		{
+			name:    "1.5.0-alpha.0-distroless",
+			want:    "1.5.0",
+			wantErr: false,
+		},
+		{
+			name:    "1.2.10",
+			want:    "1.2.10",
+			wantErr: false,
+		},
+		{
+			name:    "1.4.0-beta.5",
+			want:    "1.4.0",
+			wantErr: false,
+		},
+		{
+			name:    "1.3.0-rc.3",
+			want:    "1.3.0",
+			wantErr: false,
+		},
+		{
+			name:    "1.3.0-rc.3-distroless",
+			want:    "1.3.0",
+			wantErr: false,
+		},
+		{
+			name:    "1.5-dev",
+			want:    "1.5.0",
+			wantErr: false,
+		},
+		{
+			name:    "1.5-dev-distroless",
+			want:    "1.5.0",
+			wantErr: false,
+		},
+		{
+			name:    "1.5-alpha.f850909d7ac95501bbb2ae91f57df218bcf7c630",
+			want:    "1.5.0",
+			wantErr: false,
+		},
+		{
+			name:    "1.5-alpha.f850909d7ac95501bbb2ae91f57df218bcf7c630-distroless",
+			want:    "1.5.0",
+			wantErr: false,
+		},
+		{
+			name:    "release-1.3-20200108-10-15",
+			want:    "1.3.0",
+			wantErr: false,
+		},
+		{
+			name:    "release-1.3-latest-daily",
+			want:    "1.3.0",
+			wantErr: false,
+		},
+		{
+			name:    "release-1.3-20200108-10-15-distroless",
+			want:    "1.3.0",
+			wantErr: false,
+		},
+		{
+			name:    "release-1.3-latest-daily-distroless",
+			want:    "1.3.0",
+			wantErr: false,
+		},
+		{
+			name:    "latest",
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "latest-distroless",
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "999450fd4add69e26ba04d001b811863cba8175b",
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := TagToVersionString(tt.name)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("TagToVersionString() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("TagToVersionString() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestVersionString(t *testing.T) {
+	tests := map[string]struct {
+		version Version
+		want    string
+	}{
+		"with suffix": {
+			version: NewVersion(1, 2, 3, "xyz"),
+			want:    "1.2.3-xyz",
+		},
+		"without suffix": {
+			version: NewVersion(1, 5, 0, ""),
+			want:    "1.5.0",
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tt.version.String()
+			if got != tt.want {
+				t.Errorf("Version.String(): got: %s, want: %s", got, tt.want)
+			}
+		})
+	}
+}

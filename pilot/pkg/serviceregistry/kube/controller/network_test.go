@@ -1,0 +1,223 @@
+// Copyright Istio Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package controller
+
+import (
+	"testing"
+	"time"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	k8sv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	"istio.io/api/label"
+	meshconfig "istio.io/api/mesh/v1alpha1"
+	"istio.io/istio/pilot/pkg/features"
+	"istio.io/istio/pkg/config/constants"
+	"istio.io/istio/pkg/config/mesh/meshwatcher"
+	"istio.io/istio/pkg/config/schema/gvr"
+	"istio.io/istio/pkg/kube/kclient"
+	"istio.io/istio/pkg/kube/kclient/clienttest"
+	"istio.io/istio/pkg/test"
+	"istio.io/istio/pkg/test/util/assert"
+	"istio.io/istio/pkg/test/util/retry"
+)
+
+func TestNetworkUpdateTriggers(t *testing.T) {
+	test.SetForTest(t, &features.MultiNetworkGatewayAPI, true)
+	meshNetworks := meshwatcher.NewFixedNetworksWatcher(nil)
+	c, _ := NewFakeControllerWithOptions(t, FakeControllerOptions{
+		ClusterID:       constants.DefaultClusterName,
+		NetworksWatcher: meshNetworks,
+		DomainSuffix:    "cluster.local",
+		CRDs:            []schema.GroupVersionResource{gvr.KubernetesGateway},
+	})
+
+	if len(c.NetworkGateways()) != 0 {
+		t.Fatal("did not expect any gateways yet")
+	}
+
+	// Poll the controller's reported state rather than counting notify events.
+	// Counting events races with the informer queue: a SetNetworks call can fire
+	// before the Service Adds are drained, producing a partial notification first
+	// and the full one once the queue catches up. State polling does not care
+	// about the order or how many partial notifications fire.
+	expectGateways := func(t *testing.T, expectedGws int) {
+		assert.EventuallyEqual(t, func() int { return len(c.NetworkGateways()) }, expectedGws,
+			retry.Timeout(30*time.Second), retry.BackoffDelay(5*time.Millisecond))
+	}
+
+	t.Run("add meshnetworks", func(t *testing.T) {
+		addMeshNetworksFromRegistryGateway(t, c, meshNetworks)
+		expectGateways(t, 3)
+	})
+	t.Run("add labeled service", func(t *testing.T) {
+		addLabeledServiceGateway(t, c, "nw0")
+		expectGateways(t, 4)
+	})
+	t.Run("update labeled service network", func(t *testing.T) {
+		addLabeledServiceGateway(t, c, "nw1")
+		expectGateways(t, 4)
+	})
+	t.Run("add kubernetes gateway", func(t *testing.T) {
+		addOrUpdateGatewayResource(t, c, 35443)
+		expectGateways(t, 8)
+	})
+	t.Run("update kubernetes gateway", func(t *testing.T) {
+		addOrUpdateGatewayResource(t, c, 45443)
+		expectGateways(t, 8)
+	})
+	t.Run("remove kubernetes gateway", func(t *testing.T) {
+		removeGatewayResource(t, c)
+		expectGateways(t, 4)
+	})
+	t.Run("remove labeled service", func(t *testing.T) {
+		removeLabeledServiceGateway(t, c)
+		expectGateways(t, 3)
+	})
+	// gateways are created even with out service
+	t.Run("add kubernetes gateway", func(t *testing.T) {
+		addOrUpdateGatewayResource(t, c, 35443)
+		expectGateways(t, 7)
+	})
+	t.Run("remove kubernetes gateway", func(t *testing.T) {
+		removeGatewayResource(t, c)
+		expectGateways(t, 3)
+	})
+	t.Run("remove meshnetworks", func(t *testing.T) {
+		meshNetworks.SetNetworks(nil)
+		expectGateways(t, 0)
+	})
+}
+
+func addLabeledServiceGateway(t *testing.T, c *FakeController, nw string) {
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: "istio-labeled-gw", Namespace: "arbitrary-ns", Labels: map[string]string{
+			label.TopologyNetwork.Name: nw,
+		}},
+		Spec: corev1.ServiceSpec{
+			Type:  corev1.ServiceTypeLoadBalancer,
+			Ports: []corev1.ServicePort{{Port: 15443, Protocol: corev1.ProtocolTCP}},
+		},
+		Status: corev1.ServiceStatus{LoadBalancer: corev1.LoadBalancerStatus{Ingress: []corev1.LoadBalancerIngress{{
+			IP:    "2.3.4.6",
+			Ports: []corev1.PortStatus{{Port: 15443, Protocol: corev1.ProtocolTCP}},
+		}}}},
+	}
+	clienttest.Wrap(t, c.services).CreateOrUpdate(svc)
+}
+
+func removeLabeledServiceGateway(t *testing.T, c *FakeController) {
+	clienttest.Wrap(t, c.services).Delete("istio-labeled-gw", "arbitrary-ns")
+}
+
+// creates a gateway that exposes 2 ports that are valid auto-passthrough ports
+// and it does so on an IP and a hostname
+func addOrUpdateGatewayResource(t *testing.T, c *FakeController, customPort int) {
+	passthroughMode := k8sv1.TLSModePassthrough
+	ipType := k8sv1.IPAddressType
+	hostnameType := k8sv1.HostnameAddressType
+	clienttest.Wrap(t, kclient.New[*k8sv1.Gateway](c.client)).CreateOrUpdate(&k8sv1.Gateway{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "eastwest-gwapi",
+			Namespace: "istio-system",
+			Labels:    map[string]string{label.TopologyNetwork.Name: "nw2"},
+		},
+		Spec: k8sv1.GatewaySpec{
+			GatewayClassName: "istio",
+			Addresses: []k8sv1.GatewaySpecAddress{
+				{Type: &ipType, Value: "1.2.3.4"},
+				{Type: &hostnameType, Value: "some hostname"},
+			},
+			Listeners: []k8sv1.Listener{
+				{
+					Name: "detected-by-options",
+					TLS: &k8sv1.ListenerTLSConfig{
+						Mode: &passthroughMode,
+						Options: map[k8sv1.AnnotationKey]k8sv1.AnnotationValue{
+							constants.ListenerModeOption: constants.ListenerModeAutoPassthrough,
+						},
+					},
+					Port: k8sv1.PortNumber(customPort),
+				},
+				{
+					Name: "detected-by-number",
+					TLS:  &k8sv1.ListenerTLSConfig{Mode: &passthroughMode},
+					Port: 15443,
+				},
+			},
+		},
+		Status: k8sv1.GatewayStatus{},
+	})
+}
+
+func removeGatewayResource(t *testing.T, c *FakeController) {
+	clienttest.Wrap(t, kclient.New[*k8sv1.Gateway](c.client)).Delete("eastwest-gwapi", "istio-system")
+}
+
+func addMeshNetworksFromRegistryGateway(t *testing.T, c *FakeController, watcher meshwatcher.TestNetworksWatcher) {
+	clienttest.Wrap(t, c.services).Create(&corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: "istio-meshnetworks-gw", Namespace: "istio-system"},
+		Spec: corev1.ServiceSpec{
+			Type:  corev1.ServiceTypeLoadBalancer,
+			Ports: []corev1.ServicePort{{Port: 15443, Protocol: corev1.ProtocolTCP}},
+		},
+		Status: corev1.ServiceStatus{LoadBalancer: corev1.LoadBalancerStatus{Ingress: []corev1.LoadBalancerIngress{{
+			IP:    "1.2.3.4",
+			Ports: []corev1.PortStatus{{Port: 15443, Protocol: corev1.ProtocolTCP}},
+		}}}},
+	})
+	clienttest.Wrap(t, c.services).Create(&corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: "istio-meshnetworks-gw-2", Namespace: "istio-system"},
+		Spec: corev1.ServiceSpec{
+			Type:  corev1.ServiceTypeLoadBalancer,
+			Ports: []corev1.ServicePort{{Port: 15443, Protocol: corev1.ProtocolTCP}},
+		},
+		Status: corev1.ServiceStatus{LoadBalancer: corev1.LoadBalancerStatus{Ingress: []corev1.LoadBalancerIngress{{
+			IP:    "1.2.3.5",
+			Ports: []corev1.PortStatus{{Port: 15443, Protocol: corev1.ProtocolTCP}},
+		}}}},
+	})
+	watcher.SetNetworks(&meshconfig.MeshNetworks{Networks: map[string]*meshconfig.Network{
+		"nw0": {
+			Endpoints: []*meshconfig.Network_NetworkEndpoints{{
+				Ne: &meshconfig.Network_NetworkEndpoints_FromRegistry{FromRegistry: "Kubernetes"},
+			}},
+			Gateways: []*meshconfig.Network_IstioNetworkGateway{{
+				Port: 15443,
+				Gw:   &meshconfig.Network_IstioNetworkGateway_RegistryServiceName{RegistryServiceName: "istio-meshnetworks-gw.istio-system.svc.cluster.local"},
+			}},
+		},
+		"nw1": {
+			Endpoints: []*meshconfig.Network_NetworkEndpoints{{
+				Ne: &meshconfig.Network_NetworkEndpoints_FromRegistry{FromRegistry: "Kubernetes"},
+			}},
+			Gateways: []*meshconfig.Network_IstioNetworkGateway{{
+				Port: 15443,
+				Gw:   &meshconfig.Network_IstioNetworkGateway_RegistryServiceName{RegistryServiceName: "istio-meshnetworks-gw.istio-system.svc.cluster.local"},
+			}},
+		},
+		"nw2": {
+			Endpoints: []*meshconfig.Network_NetworkEndpoints{{
+				Ne: &meshconfig.Network_NetworkEndpoints_FromRegistry{FromRegistry: "Kubernetes"},
+			}},
+			Gateways: []*meshconfig.Network_IstioNetworkGateway{{
+				Port: 15443,
+				Gw:   &meshconfig.Network_IstioNetworkGateway_RegistryServiceName{RegistryServiceName: "istio-meshnetworks-gw-2.istio-system.svc.cluster.local"},
+			}},
+		},
+	}})
+}

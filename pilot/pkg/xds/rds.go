@@ -1,0 +1,82 @@
+// Copyright Istio Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package xds
+
+import (
+	"istio.io/istio/pilot/pkg/features"
+	"istio.io/istio/pilot/pkg/model"
+	"istio.io/istio/pilot/pkg/networking/core"
+	"istio.io/istio/pkg/config/schema/kind"
+	"istio.io/istio/pkg/util/sets"
+)
+
+type RdsGenerator struct {
+	ConfigGenerator core.ConfigGenerator
+}
+
+var _ model.XdsResourceGenerator = &RdsGenerator{}
+
+// Map of all configs that do not impact RDS
+var skippedRdsConfigs = func() sets.Set[kind.Kind] {
+	s := sets.New(
+		kind.WorkloadEntry,
+		kind.WorkloadGroup,
+		kind.AuthorizationPolicy,
+		kind.RequestAuthentication,
+		kind.PeerAuthentication,
+		kind.Secret,
+		kind.WasmPlugin,
+		kind.TrafficExtension,
+		kind.Telemetry,
+		kind.ProxyConfig,
+		kind.DNSName,
+		kind.Endpoints,
+	)
+	if features.ScopedAddressPushes {
+		// Sidecar and gateway routes don't depend on ambient Address data; service changes that
+		// affect them arrive as ServiceEntry/Endpoints updates. Waypoints are handled in rdsNeedsPush.
+		s.Insert(kind.Address)
+	}
+	return s
+}()
+
+func rdsNeedsPush(req *model.PushRequest, proxy *model.Proxy) bool {
+	if res, ok := xdsNeedsPush(req, proxy); ok {
+		return res
+	}
+	if proxy.Type == model.Waypoint && waypointNeedsPush(req, proxy) {
+		return true
+	}
+	for config := range req.ConfigsUpdated {
+		if !skippedRdsConfigs.Contains(config.Kind) {
+			if config.Kind == kind.Gateway {
+				if proxy.Type == model.Router || proxy.IsAmbientEastWestGateway() {
+					return true
+				}
+				continue
+			}
+			return true
+		}
+	}
+	return false
+}
+
+func (c RdsGenerator) Generate(proxy *model.Proxy, w *model.WatchedResource, req *model.PushRequest) (model.Resources, model.XdsLogDetails, error) {
+	if !rdsNeedsPush(req, proxy) {
+		return nil, model.DefaultXdsLogDetails, nil
+	}
+	resources, logDetails := c.ConfigGenerator.BuildHTTPRoutes(proxy, req, w.ResourceNames.UnsortedList())
+	return resources, logDetails, nil
+}

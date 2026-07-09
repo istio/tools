@@ -1,0 +1,61 @@
+{% block metas %}
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% endblock %}
+
+{% block styles %}
+<style>
+    table {
+        color: #333;
+        background: white;
+        border: 1px solid grey;
+        font-size: 12pt;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    table thead th,
+    table tfoot th {
+        color: #fff;
+        background: #466BB0;
+    }
+
+    table caption {
+        padding: .5em;
+    }
+
+    table th,
+    table td {
+        padding: .5em;
+        border: 1px solid lightgrey;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="static/tailwind/tailwind.css"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col space-y-5 py-32 mx-auto max-w-7xl">
+        <h3 class="text-2xl">Hello! This is a simple bookstore application consisting of three services as shown below
+        </h3>
+        {% autoescape false %}
+        {{ serviceTable }}
+        {% endautoescape %}
+        <p>
+            Click on one of the links below to auto generate a request to the backend as a real user or a tester
+        </p>
+        <ul>
+            <li>
+                <a href="/productpage?u=normal" class="text-blue-500 hover:text-blue-600">Normal user</a>
+            </li>
+            <li>
+                <a href="/productpage?u=test" class="text-blue-500 hover:text-blue-600">Test user</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

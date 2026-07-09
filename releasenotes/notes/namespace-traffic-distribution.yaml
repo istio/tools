@@ -1,0 +1,9 @@
+apiVersion: release-notes/v2
+kind: feature
+area: traffic-management
+issue:
+  - 58701
+
+releaseNotes:
+- |
+  **Added** namespace-level traffic distribution annotation. Services inherit traffic distribution from namespace annotation when not explicitly set on the service.

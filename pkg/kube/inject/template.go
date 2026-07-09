@@ -1,0 +1,563 @@
+// Copyright Istio Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package inject
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"path"
+	"strconv"
+	"strings"
+	"text/template"
+
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kstrings "k8s.io/utils/strings"
+	"sigs.k8s.io/yaml"
+
+	meshconfig "istio.io/api/mesh/v1alpha1"
+	"istio.io/istio/pkg/config/mesh"
+	"istio.io/istio/pkg/log"
+	"istio.io/istio/pkg/util/protomarshal"
+)
+
+var InjectionFuncmap = createInjectionFuncmap()
+
+func createInjectionFuncmap() template.FuncMap {
+	return template.FuncMap{
+		"formatDuration":         formatDuration,
+		"isset":                  isset,
+		"excludeInboundPort":     excludeInboundPort,
+		"includeInboundPorts":    includeInboundPorts,
+		"kubevirtInterfaces":     kubevirtInterfaces,
+		"excludeInterfaces":      excludeInterfaces,
+		"applicationPorts":       applicationPorts,
+		"annotation":             getAnnotation,
+		"valueOrDefault":         valueOrDefault,
+		"toJSON":                 toJSON,
+		"fromJSON":               fromJSON,
+		"structToJSON":           structToJSON,
+		"protoToJSON":            protoToJSON,
+		"toYaml":                 toYaml,
+		"indent":                 indent,
+		"directory":              directory,
+		"contains":               flippedContains,
+		"toLower":                strings.ToLower,
+		"appendMultusNetwork":    appendMultusNetwork,
+		"env":                    env,
+		"omit":                   omit,
+		"strdict":                strdict,
+		"toJsonMap":              toJSONMap,
+		"mergeMaps":              mergeMaps,
+		"omitNil":                omitNil,
+		"otelResourceAttributes": otelResourceAttributes,
+	}
+}
+
+// Allows the template to use env variables from istiod.
+// Istiod will use a custom template, without 'values.yaml', and the pod will have
+// an optional 'vendor' configmap where additional settings can be defined.
+func env(key string, def string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return def
+	}
+	return val
+}
+
+func formatDuration(in *durationpb.Duration) string {
+	return in.AsDuration().String()
+}
+
+func isset(m map[string]string, key string) bool {
+	_, ok := m[key]
+	return ok
+}
+
+func directory(filepath string) string {
+	dir, _ := path.Split(filepath)
+	return dir
+}
+
+func flippedContains(needle, haystack string) bool {
+	return strings.Contains(haystack, needle)
+}
+
+func excludeInboundPort(port any, excludedInboundPorts string) string {
+	portStr := strings.TrimSpace(fmt.Sprint(port))
+	if len(portStr) == 0 || portStr == "0" {
+		// Nothing to do.
+		return excludedInboundPorts
+	}
+
+	// Exclude the readiness port if not already excluded.
+	ports := splitPorts(excludedInboundPorts)
+	outPorts := make([]string, 0, len(ports))
+	for _, port := range ports {
+		if port == portStr {
+			// The port is already excluded.
+			return excludedInboundPorts
+		}
+		port = strings.TrimSpace(port)
+		if len(port) > 0 {
+			outPorts = append(outPorts, port)
+		}
+	}
+
+	// The port was not already excluded - exclude it now.
+	outPorts = append(outPorts, portStr)
+	return strings.Join(outPorts, ",")
+}
+
+func valueOrDefault(value any, defaultValue any) any {
+	if value == "" || value == nil {
+		return defaultValue
+	}
+	return value
+}
+
+func toJSON(m map[string]string) string {
+	if m == nil {
+		return "{}"
+	}
+
+	ba, err := json.Marshal(m)
+	if err != nil {
+		log.Warnf("Unable to marshal %v", m)
+		return "{}"
+	}
+
+	return string(ba)
+}
+
+func fromJSON(j string) any {
+	var m any
+	err := json.Unmarshal([]byte(j), &m)
+	if err != nil {
+		log.Warnf("Unable to unmarshal %s", j)
+		return "{}"
+	}
+
+	return m
+}
+
+func indent(spaces int, source string) string {
+	res := strings.Split(source, "\n")
+	for i, line := range res {
+		if i > 0 {
+			res[i] = fmt.Sprintf(fmt.Sprintf("%% %ds%%s", spaces), "", line)
+		}
+	}
+	return strings.Join(res, "\n")
+}
+
+func toYaml(value any) string {
+	y, err := yaml.Marshal(value)
+	if err != nil {
+		log.Warnf("Unable to marshal %v", value)
+		return ""
+	}
+
+	return string(y)
+}
+
+func getAnnotation(meta metav1.ObjectMeta, name string, defaultValue any) string {
+	value, ok := meta.Annotations[name]
+	if !ok {
+		value = fmt.Sprint(defaultValue)
+	}
+	return value
+}
+
+func appendMultusNetwork(existingValue, istioCniNetwork string) string {
+	if existingValue == "" {
+		return istioCniNetwork
+	}
+	i := strings.LastIndex(existingValue, "]")
+	isJSON := i != -1
+	if isJSON {
+		networks := []map[string]any{}
+		err := json.Unmarshal([]byte(existingValue), &networks)
+		if err != nil {
+			// existingValue is not valid JSON; nothing we can do but skip injection
+			log.Warnf("Unable to unmarshal Multus Network annotation JSON value: %v", err)
+			return existingValue
+		}
+		istioCniNetworkNs, istioCniNetworkName := kstrings.SplitQualifiedName(istioCniNetwork)
+		for _, net := range networks {
+			if net["name"] == istioCniNetworkName {
+				ns := net["namespace"]
+				if ns == nil {
+					ns = ""
+				}
+				if ns == istioCniNetworkNs {
+					return existingValue
+				}
+			}
+		}
+		var istioCniNetworkJSON string
+		if istioCniNetworkNs == "" {
+			istioCniNetworkJSON = fmt.Sprintf(`, {"name": "%s"}`, istioCniNetworkName)
+		} else {
+			istioCniNetworkJSON = fmt.Sprintf(`, {"name": "%s", "namespace": "%s"}`, istioCniNetworkName, istioCniNetworkNs)
+		}
+		return existingValue[0:i] + istioCniNetworkJSON + existingValue[i:]
+	}
+	for _, net := range strings.Split(existingValue, ",") {
+		if strings.TrimSpace(net) == istioCniNetwork {
+			return existingValue
+		}
+	}
+	return existingValue + ", " + istioCniNetwork
+}
+
+// this function is no longer used by the template but kept around for backwards compatibility
+func applicationPorts(containers []corev1.Container) string {
+	return getContainerPorts(containers, func(c corev1.Container) bool {
+		return c.Name != ProxyContainerName
+	})
+}
+
+func includeInboundPorts(containers []corev1.Container) string {
+	// Include the ports from all containers in the deployment.
+	return getContainerPorts(containers, func(corev1.Container) bool { return true })
+}
+
+func getPortsForContainer(container corev1.Container) []string {
+	parts := make([]string, 0)
+	for _, p := range container.Ports {
+		if p.Protocol == corev1.ProtocolUDP || p.Protocol == corev1.ProtocolSCTP {
+			continue
+		}
+		parts = append(parts, strconv.Itoa(int(p.ContainerPort)))
+	}
+	return parts
+}
+
+func getContainerPorts(containers []corev1.Container, shouldIncludePorts func(corev1.Container) bool) string {
+	parts := make([]string, 0)
+	for _, c := range containers {
+		if shouldIncludePorts(c) {
+			parts = append(parts, getPortsForContainer(c)...)
+		}
+	}
+
+	return strings.Join(parts, ",")
+}
+
+func kubevirtInterfaces(s string) string {
+	return s
+}
+
+func excludeInterfaces(s string) string {
+	return s
+}
+
+func structToJSON(v any) string {
+	if v == nil {
+		return "{}"
+	}
+
+	ba, err := json.Marshal(v)
+	if err != nil {
+		log.Warnf("Unable to marshal %v", v)
+		return "{}"
+	}
+
+	return string(ba)
+}
+
+func protoToJSON(v proto.Message) string {
+	v = cleanProxyConfig(v)
+	if v == nil {
+		return "{}"
+	}
+
+	ba, err := protomarshal.ToJSON(v)
+	if err != nil {
+		log.Warnf("Unable to marshal %v: %v", v, err)
+		return "{}"
+	}
+
+	return ba
+}
+
+// Rather than dump the entire proxy config, we remove fields that are default
+// This makes the pod spec much smaller
+// This is not comprehensive code, but nothing will break if this misses some fields
+func cleanProxyConfig(msg proto.Message) proto.Message {
+	originalProxyConfig, ok := msg.(*meshconfig.ProxyConfig)
+	if !ok || originalProxyConfig == nil {
+		return msg
+	}
+	pc := protomarshal.Clone(originalProxyConfig)
+	defaults := mesh.DefaultProxyConfig()
+	if pc.ConfigPath == defaults.ConfigPath {
+		pc.ConfigPath = ""
+	}
+	if pc.BinaryPath == defaults.BinaryPath {
+		pc.BinaryPath = ""
+	}
+	if pc.ControlPlaneAuthPolicy == defaults.ControlPlaneAuthPolicy {
+		pc.ControlPlaneAuthPolicy = 0
+	}
+	if x, ok := pc.GetClusterName().(*meshconfig.ProxyConfig_ServiceCluster); ok {
+		if x.ServiceCluster == defaults.GetClusterName().(*meshconfig.ProxyConfig_ServiceCluster).ServiceCluster {
+			pc.ClusterName = nil
+		}
+	}
+
+	if proto.Equal(pc.DrainDuration, defaults.DrainDuration) {
+		pc.DrainDuration = nil
+	}
+	if proto.Equal(pc.TerminationDrainDuration, defaults.TerminationDrainDuration) {
+		pc.TerminationDrainDuration = nil
+	}
+	if pc.DiscoveryAddress == defaults.DiscoveryAddress {
+		pc.DiscoveryAddress = ""
+	}
+	if proto.Equal(pc.EnvoyMetricsService, defaults.EnvoyMetricsService) {
+		pc.EnvoyMetricsService = nil
+	}
+	if proto.Equal(pc.EnvoyAccessLogService, defaults.EnvoyAccessLogService) {
+		pc.EnvoyAccessLogService = nil
+	}
+	if proto.Equal(pc.Tracing, defaults.Tracing) {
+		pc.Tracing = nil
+	}
+	if pc.ProxyAdminPort == defaults.ProxyAdminPort {
+		pc.ProxyAdminPort = 0
+	}
+	if pc.StatNameLength == defaults.StatNameLength {
+		pc.StatNameLength = 0
+	}
+	if pc.StatusPort == defaults.StatusPort {
+		pc.StatusPort = 0
+	}
+	if proto.Equal(pc.Concurrency, defaults.Concurrency) {
+		pc.Concurrency = nil
+	}
+	if len(pc.ProxyMetadata) == 0 {
+		pc.ProxyMetadata = nil
+	}
+	return proto.Message(pc)
+}
+
+func toJSONMap(mps ...map[string]string) string {
+	data, err := json.Marshal(mergeMaps(mps...))
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
+func omit(dict map[string]string, keys ...string) map[string]string {
+	res := map[string]string{}
+
+	omit := make(map[string]bool, len(keys))
+	for _, k := range keys {
+		omit[k] = true
+	}
+
+	for k, v := range dict {
+		if _, ok := omit[k]; !ok {
+			res[k] = v
+		}
+	}
+	return res
+}
+
+// strdict is the same as the "dict" function (http://masterminds.github.io/sprig/dicts.html)
+// but returns a map[string]string instead of interface{} types. This allows it to be used
+// in annotations/labels.
+func strdict(v ...string) map[string]string {
+	dict := map[string]string{}
+	lenv := len(v)
+	for i := 0; i < lenv; i += 2 {
+		key := v[i]
+		if i+1 >= lenv {
+			dict[key] = ""
+			continue
+		}
+		dict[key] = v[i+1]
+	}
+	return dict
+}
+
+// Merge maps merges multiple maps. Latter maps take precedence over previous maps on overlapping fields
+func mergeMaps(maps ...map[string]string) map[string]string {
+	if len(maps) == 0 {
+		return nil
+	}
+	res := make(map[string]string, len(maps[0]))
+	for _, m := range maps {
+		for k, v := range m {
+			res[k] = v
+		}
+	}
+	return res
+}
+
+// otelResourceAttributes computes the OTEL_RESOURCE_ATTRIBUTES env var value
+// when any OpenTelemetry tracing provider has ServiceAttributeEnrichment set to
+// OTEL_SEMANTIC_CONVENTIONS. It follows the OTel K8s service attributes spec:
+// https://opentelemetry.io/docs/specs/semconv/non-normative/k8s-attributes/#service-attributes
+//
+// Returns an empty string if no provider has OTEL_SEMANTIC_CONVENTIONS enabled.
+// For service.instance.id, uses $(POD_NAME) placeholder for Kubernetes env var
+// substitution since the pod name is not known at injection time.
+func otelResourceAttributes(mc *meshconfig.MeshConfig, annotations map[string]string,
+	labels map[string]string, namespace string, containers []corev1.Container,
+) string {
+	hasOtelSemConv := false
+	for _, ep := range mc.GetExtensionProviders() {
+		if otel := ep.GetOpentelemetry(); otel != nil {
+			if otel.GetServiceAttributeEnrichment() == meshconfig.MeshConfig_ExtensionProvider_OTEL_SEMANTIC_CONVENTIONS {
+				hasOtelSemConv = true
+				break
+			}
+		}
+	}
+	if !hasOtelSemConv {
+		return ""
+	}
+
+	var attrs []string
+
+	// service.namespace:
+	//   1. resource.opentelemetry.io/service.namespace annotation
+	//   2. Kubernetes namespace
+	if v, ok := annotations["resource.opentelemetry.io/service.namespace"]; ok && v != "" {
+		attrs = append(attrs, "service.namespace="+v)
+	} else if namespace != "" {
+		attrs = append(attrs, "service.namespace="+namespace)
+	}
+
+	// service.version:
+	//   1. resource.opentelemetry.io/service.version annotation
+	//   2. app.kubernetes.io/version label
+	//   3. Container image tag/digest (if single container)
+	if v, ok := annotations["resource.opentelemetry.io/service.version"]; ok && v != "" {
+		attrs = append(attrs, "service.version="+v)
+	} else if v, ok := labels["app.kubernetes.io/version"]; ok && v != "" {
+		attrs = append(attrs, "service.version="+v)
+	} else if len(containers) == 1 {
+		tag, digest := parseImageTagDigest(containers[0].Image)
+		if tag != "" && digest != "" {
+			attrs = append(attrs, "service.version="+tag+"@"+digest)
+		} else if digest != "" {
+			attrs = append(attrs, "service.version="+digest)
+		} else if tag != "" {
+			attrs = append(attrs, "service.version="+tag)
+		}
+	}
+
+	// service.instance.id:
+	//   1. resource.opentelemetry.io/service.instance.id annotation
+	//   2. concat(k8s.namespace.name, k8s.pod.name, k8s.container.name, '.')
+	//      Pod name uses $(POD_NAME) for Kubernetes env var substitution since the
+	//      pod name is not known at injection time for controller-created pods.
+	if v, ok := annotations["resource.opentelemetry.io/service.instance.id"]; ok && v != "" {
+		attrs = append(attrs, "service.instance.id="+v)
+	} else if len(containers) > 0 {
+		attrs = append(attrs, "service.instance.id="+namespace+".$(POD_NAME)."+containers[0].Name)
+	}
+
+	return strings.Join(attrs, ",")
+}
+
+// parseImageTagDigest extracts the tag and digest from a container image reference.
+// Image format: [registry[:port]/]name[:tag][@digest]
+// Examples:
+//
+//	"nginx:1.21"                        → tag="1.21", digest=""
+//	"nginx@sha256:abc123"               → tag="",     digest="sha256:abc123"
+//	"nginx:1.21@sha256:abc123"          → tag="1.21", digest="sha256:abc123"
+//	"registry:5000/nginx:1.21"          → tag="1.21", digest=""
+//	"nginx"                             → tag="",     digest=""
+func parseImageTagDigest(image string) (tag, digest string) {
+	// Split off digest
+	if i := strings.Index(image, "@"); i >= 0 {
+		digest = image[i+1:]
+		image = image[:i]
+	}
+
+	// Find tag: it's the part after the last ":" that comes after the last "/"
+	lastSlash := strings.LastIndex(image, "/")
+	lastColon := strings.LastIndex(image, ":")
+	if lastColon > lastSlash {
+		tag = image[lastColon+1:]
+	}
+
+	return tag, digest
+}
+
+// omitNil recursively removes nil values from maps and slices.
+func omitNil(v any) any {
+	res, _ := omitNilInternal(v)
+	return res
+}
+
+// Two passes: First pass checks if any nils are present.
+// Second pass performs the actual filtering.
+func omitNilInternal(v any) (any, bool) {
+	if v == nil {
+		return nil, true
+	}
+	switch v := v.(type) {
+	case map[string]any:
+		for _, val := range v {
+			if _, changed := omitNilInternal(val); changed {
+				// At least one change found. Perform a full filtering copy.
+				out := make(map[string]any, len(v))
+				for k2, v2 := range v {
+					if f := omitNil(v2); f != nil {
+						out[k2] = f
+					}
+				}
+				if len(out) == 0 {
+					return nil, true
+				}
+				return out, true
+			}
+		}
+		return v, false
+	case []any:
+		for i, val := range v {
+			if _, changed := omitNilInternal(val); changed {
+				// At least one change found. Perform a filtering copy.
+				out := make([]any, 0, len(v))
+				for j := 0; j < i; j++ {
+					out = append(out, v[j])
+				}
+				for j := i; j < len(v); j++ {
+					if f := omitNil(v[j]); f != nil {
+						out = append(out, f)
+					}
+				}
+				if len(out) == 0 {
+					return nil, true
+				}
+				return out, true
+			}
+		}
+		return v, false
+	default:
+		return v, false
+	}
+}

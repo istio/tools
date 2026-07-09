@@ -1,0 +1,16 @@
+# We set up anonymous authentication as this is for demos.
+auth:
+  strategy: anonymous
+deployment:
+  pod_labels:
+    sidecar.istio.io/inject: "false"
+  ingress_enabled: false
+  image_pull_policy: IfNotPresent
+  network_policy:
+    enabled: false
+login_token:
+  signing_key: CHANGEME00000000
+external_services:
+  # Kiali will not start up without tracing service. We don't want to require it.
+  tracing:
+    enabled: false

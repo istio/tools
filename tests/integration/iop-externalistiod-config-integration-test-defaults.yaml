@@ -1,0 +1,27 @@
+# This file provides some defaults for integration testing.
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: install
+spec:
+  components:
+    base:
+      enabled: true
+    pilot:
+      enabled: true
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: false
+    egressGateways:
+    - name: istio-egressgateway
+      enabled: false
+  values:
+    profile: remote
+    # Test overrides of the remote profile
+    global:
+      externalIstiod: true
+      configCluster: true
+    pilot:
+      configMap: true
+    telemetry:
+      enabled: true

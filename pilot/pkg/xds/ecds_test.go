@@ -1,0 +1,428 @@
+// Copyright Istio Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+package xds_test
+
+import (
+	"reflect"
+	"testing"
+	"time"
+
+	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	wasm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/wasm/v3"
+	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+
+	extensions "istio.io/api/extensions/v1alpha1"
+	"istio.io/istio/pilot/pkg/model"
+	v3 "istio.io/istio/pilot/pkg/xds/v3"
+	"istio.io/istio/pilot/test/xds"
+	"istio.io/istio/pkg/config"
+	"istio.io/istio/pkg/config/constants"
+	"istio.io/istio/pkg/config/schema/gvk"
+	"istio.io/istio/pkg/config/schema/kind"
+	"istio.io/istio/pkg/spiffe"
+	"istio.io/istio/pkg/util/sets"
+)
+
+func TestECDS(t *testing.T) {
+	s := xds.NewFakeDiscoveryServer(t, xds.FakeOptions{
+		ConfigString: mustReadFile(t, "./testdata/ecds.yaml"),
+	})
+
+	ads := s.ConnectADS().WithType(v3.ExtensionConfigurationType)
+	wantExtensionConfigName := "extension-config"
+	md := model.NodeMetadata{
+		ClusterID: constants.DefaultClusterName,
+	}
+	res := ads.RequestResponseAck(t, &discovery.DiscoveryRequest{
+		Node: &core.Node{
+			Id:       ads.ID,
+			Metadata: md.ToStruct(),
+		},
+		ResourceNames: []string{wantExtensionConfigName},
+	})
+
+	var ec core.TypedExtensionConfig
+	err := res.Resources[0].UnmarshalTo(&ec)
+	if err != nil {
+		t.Fatal("Failed to unmarshal extension config", err)
+		return
+	}
+	if ec.Name != wantExtensionConfigName {
+		t.Errorf("extension config name got %v want %v", ec.Name, wantExtensionConfigName)
+	}
+}
+
+func makeDockerCredentials(name, namespace string, data map[string]string, secretType corev1.SecretType) *corev1.Secret {
+	bdata := map[string][]byte{}
+	for k, v := range data {
+		bdata[k] = []byte(v)
+	}
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Data: bdata,
+		Type: secretType,
+	}
+}
+
+func makeWasmPlugin(name, namespace, secret string) config.Config {
+	spec := &extensions.WasmPlugin{
+		Phase: extensions.PluginPhase_AUTHN,
+		Url:   "oci://example.com/filter:v1",
+	}
+	if secret != "" {
+		spec.ImagePullSecret = secret
+	}
+	return config.Config{
+		Meta: config.Meta{
+			Name:             name,
+			Namespace:        namespace,
+			GroupVersionKind: gvk.WasmPlugin,
+		},
+		Spec: spec,
+	}
+}
+
+func makeTrafficExtension(name, namespace, secret string) config.Config {
+	wasmConfig := &extensions.WasmConfig{
+		Url:  "oci://example.com/filter:v1",
+		Type: extensions.PluginType_HTTP,
+	}
+	if secret != "" {
+		wasmConfig.ImagePullSecret = secret
+	}
+	spec := &extensions.TrafficExtension{
+		Phase:        extensions.TrafficExtension_AUTHN,
+		FilterConfig: &extensions.TrafficExtension_Wasm{Wasm: wasmConfig},
+	}
+	return config.Config{
+		Meta: config.Meta{
+			Name:             name,
+			Namespace:        namespace,
+			GroupVersionKind: gvk.TrafficExtension,
+		},
+		Spec: spec,
+	}
+}
+
+var (
+	// Secrets
+	defaultPullSecret = makeDockerCredentials("default-pull-secret", "default", map[string]string{
+		corev1.DockerConfigJsonKey: "default-docker-credential",
+	}, corev1.SecretTypeDockerConfigJson)
+	rootPullSecret = makeDockerCredentials("root-pull-secret", "istio-system", map[string]string{
+		corev1.DockerConfigJsonKey: "root-docker-credential",
+	}, corev1.SecretTypeDockerConfigJson)
+	wrongTypeSecret = makeDockerCredentials("wrong-type-pull-secret", "default", map[string]string{
+		corev1.DockerConfigJsonKey: "wrong-type-docker-credential",
+	}, corev1.SecretTypeTLS)
+
+	wasmPlugin             = makeWasmPlugin("default-plugin", "default", "")
+	wasmPluginWithSec      = makeWasmPlugin("default-plugin-with-sec", "default", "default-pull-secret")
+	wasmPluginWrongSec     = makeWasmPlugin("default-plugin-wrong-sec", "default", "wrong-secret")
+	wasmPluginWrongSecType = makeWasmPlugin("default-plugin-wrong-sec-type", "default", "wrong-type-pull-secret")
+	rootWasmPluginWithSec  = makeWasmPlugin("root-plugin", "istio-system", "root-pull-secret")
+
+	trafficExtension             = makeTrafficExtension("default-extension", "default", "")
+	trafficExtensionWithSec      = makeTrafficExtension("default-extension-with-sec", "default", "default-pull-secret")
+	trafficExtensionWrongSec     = makeTrafficExtension("default-extension-wrong-sec", "default", "wrong-secret")
+	trafficExtensionWrongSecType = makeTrafficExtension("default-extension-wrong-sec-type", "default", "wrong-type-pull-secret")
+	rootTrafficExtensionWithSec  = makeTrafficExtension("root-extension", "istio-system", "root-pull-secret")
+)
+
+func TestECDSGenerate(t *testing.T) {
+	cases := []struct {
+		name             string
+		proxyNamespace   string
+		request          *model.PushRequest
+		watchedResources []string
+		wantExtensions   sets.String
+		wantSecrets      sets.String
+	}{
+		{
+			name:             "simple",
+			proxyNamespace:   "default",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-plugin~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-plugin~istio-translated-wasmplugin": {}},
+			wantSecrets:      sets.String{},
+		},
+		{
+			name:             "simple_with_secret",
+			proxyNamespace:   "default",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin": {}},
+			wantSecrets:      sets.String{"default-docker-credential": {}},
+		},
+		{
+			name:             "miss_secret",
+			proxyNamespace:   "default",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-plugin-wrong-sec~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-plugin-wrong-sec~istio-translated-wasmplugin": {}},
+			wantSecrets:      sets.String{},
+		},
+		{
+			name:             "wrong_secret_type",
+			proxyNamespace:   "default",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-plugin-wrong-sec-type~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-plugin-wrong-sec-type~istio-translated-wasmplugin": {}},
+			wantSecrets:      sets.String{},
+		},
+		{
+			name:           "root_and_default",
+			proxyNamespace: "default",
+			request:        &model.PushRequest{Forced: true},
+			watchedResources: []string{
+				"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin",
+				"extensions.istio.io/trafficextension/istio-system.root-plugin~istio-translated-wasmplugin",
+			},
+			wantExtensions: sets.String{
+				"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin": {},
+				"extensions.istio.io/trafficextension/istio-system.root-plugin~istio-translated-wasmplugin":        {},
+			},
+			wantSecrets: sets.String{"default-docker-credential": {}, "root-docker-credential": {}},
+		},
+		{
+			name:             "only_root",
+			proxyNamespace:   "somenamespace",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/istio-system.root-plugin~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/istio-system.root-plugin~istio-translated-wasmplugin": {}},
+			wantSecrets:      sets.String{"root-docker-credential": {}},
+		},
+		{
+			name:           "no_relevant_config_update",
+			proxyNamespace: "default",
+			request: &model.PushRequest{
+				ConfigsUpdated: sets.New(model.ConfigKey{Kind: kind.AuthorizationPolicy}),
+			},
+			watchedResources: []string{
+				"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin",
+				"extensions.istio.io/trafficextension/istio-system.root-plugin~istio-translated-wasmplugin",
+			},
+			wantExtensions: sets.String{},
+			wantSecrets:    sets.String{},
+		},
+		{
+			name:           "has_relevant_config_update",
+			proxyNamespace: "default",
+			request: &model.PushRequest{
+				ConfigsUpdated: sets.New(model.ConfigKey{Kind: kind.AuthorizationPolicy}, model.ConfigKey{Kind: kind.TrafficExtension}),
+			},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin": {}},
+			wantSecrets:      sets.String{"default-docker-credential": {}},
+		},
+		{
+			name:           "non_relevant_secret_update",
+			proxyNamespace: "default",
+			request: &model.PushRequest{
+				ConfigsUpdated: sets.New(model.ConfigKey{Kind: kind.AuthorizationPolicy}, model.ConfigKey{Kind: kind.Secret}),
+			},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{},
+			wantSecrets:      sets.String{},
+		},
+		{
+			name:           "non_relevant_secret_update_and_wasm_plugin",
+			proxyNamespace: "default",
+			request: &model.PushRequest{
+				ConfigsUpdated: sets.New(model.ConfigKey{Kind: kind.TrafficExtension}, model.ConfigKey{Kind: kind.Secret}),
+			},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin": {}},
+			wantSecrets:      sets.String{"default-docker-credential": {}},
+		},
+		{
+			name:           "relevant_secret_update",
+			proxyNamespace: "default",
+			request: &model.PushRequest{
+				ConfigsUpdated: sets.New(model.ConfigKey{Kind: kind.Secret, Name: "default-pull-secret", Namespace: "default"}),
+			},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin": {}},
+			wantSecrets:      sets.String{"default-docker-credential": {}},
+		},
+		{
+			name:           "relevant_secret_update_non_full_push",
+			proxyNamespace: "default",
+			request: &model.PushRequest{
+				ConfigsUpdated: sets.New(model.ConfigKey{Kind: kind.Secret, Name: "default-pull-secret", Namespace: "default"}),
+			},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin": {}},
+			wantSecrets:      sets.String{"default-docker-credential": {}},
+		},
+		// All the credentials should be sent to istio-agent even if one of them is only updated,
+		// because `istio-agent` does not keep the credentials.
+		{
+			name:           "multi_wasmplugin_update_secret",
+			proxyNamespace: "default",
+			request: &model.PushRequest{
+				ConfigsUpdated: sets.New(model.ConfigKey{Kind: kind.Secret, Name: "default-pull-secret", Namespace: "default"}),
+			},
+			watchedResources: []string{
+				"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin",
+				"extensions.istio.io/trafficextension/istio-system.root-plugin~istio-translated-wasmplugin",
+			},
+			wantExtensions: sets.String{
+				"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin": {},
+				"extensions.istio.io/trafficextension/istio-system.root-plugin~istio-translated-wasmplugin":        {},
+			},
+			wantSecrets: sets.String{"default-docker-credential": {}, "root-docker-credential": {}},
+		},
+		// TrafficExtension test cases
+		{
+			name:             "extensionfilter_simple",
+			proxyNamespace:   "default",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-extension"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-extension": {}},
+			wantSecrets:      sets.String{},
+		},
+		{
+			name:             "extensionfilter_simple_with_secret",
+			proxyNamespace:   "default",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-extension-with-sec"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-extension-with-sec": {}},
+			wantSecrets:      sets.String{"default-docker-credential": {}},
+		},
+		{
+			name:             "extensionfilter_miss_secret",
+			proxyNamespace:   "default",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-extension-wrong-sec"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-extension-wrong-sec": {}},
+			wantSecrets:      sets.String{},
+		},
+		{
+			name:             "extensionfilter_wrong_secret_type",
+			proxyNamespace:   "default",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-extension-wrong-sec-type"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-extension-wrong-sec-type": {}},
+			wantSecrets:      sets.String{},
+		},
+		{
+			name:           "extensionfilter_root_and_default",
+			proxyNamespace: "default",
+			request:        &model.PushRequest{Forced: true},
+			watchedResources: []string{
+				"extensions.istio.io/trafficextension/default.default-extension-with-sec",
+				"extensions.istio.io/trafficextension/istio-system.root-extension",
+			},
+			wantExtensions: sets.String{
+				"extensions.istio.io/trafficextension/default.default-extension-with-sec": {},
+				"extensions.istio.io/trafficextension/istio-system.root-extension":        {},
+			},
+			wantSecrets: sets.String{"default-docker-credential": {}, "root-docker-credential": {}},
+		},
+		{
+			name:             "extensionfilter_only_root",
+			proxyNamespace:   "somenamespace",
+			request:          &model.PushRequest{Forced: true},
+			watchedResources: []string{"extensions.istio.io/trafficextension/istio-system.root-extension"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/istio-system.root-extension": {}},
+			wantSecrets:      sets.String{"root-docker-credential": {}},
+		},
+		{
+			name:           "extensionfilter_has_relevant_config_update",
+			proxyNamespace: "default",
+			request: &model.PushRequest{
+				ConfigsUpdated: sets.New(model.ConfigKey{Kind: kind.AuthorizationPolicy}, model.ConfigKey{Kind: kind.TrafficExtension}),
+			},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-extension-with-sec"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-extension-with-sec": {}},
+			wantSecrets:      sets.String{"default-docker-credential": {}},
+		},
+		{
+			name:           "extensionfilter_relevant_secret_update",
+			proxyNamespace: "default",
+			request: &model.PushRequest{
+				ConfigsUpdated: sets.New(model.ConfigKey{Kind: kind.Secret, Name: "default-pull-secret", Namespace: "default"}),
+			},
+			watchedResources: []string{"extensions.istio.io/trafficextension/default.default-extension-with-sec"},
+			wantExtensions:   sets.String{"extensions.istio.io/trafficextension/default.default-extension-with-sec": {}},
+			wantSecrets:      sets.String{"default-docker-credential": {}},
+		},
+		{
+			name:           "mixed_wasmplugin_and_extensionfilter",
+			proxyNamespace: "default",
+			request:        &model.PushRequest{Forced: true},
+			watchedResources: []string{
+				"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin",
+				"extensions.istio.io/trafficextension/default.default-extension-with-sec",
+			},
+			wantExtensions: sets.String{
+				"extensions.istio.io/trafficextension/default.default-plugin-with-sec~istio-translated-wasmplugin": {},
+				"extensions.istio.io/trafficextension/default.default-extension-with-sec":                          {},
+			},
+			wantSecrets: sets.String{"default-docker-credential": {}},
+		},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := xds.NewFakeDiscoveryServer(t, xds.FakeOptions{
+				KubernetesObjects: []runtime.Object{defaultPullSecret, rootPullSecret, wrongTypeSecret},
+				Configs: []config.Config{
+					wasmPlugin, wasmPluginWithSec, wasmPluginWrongSec, wasmPluginWrongSecType, rootWasmPluginWithSec,
+					trafficExtension, trafficExtensionWithSec, trafficExtensionWrongSec, trafficExtensionWrongSecType, rootTrafficExtensionWithSec,
+				},
+			})
+
+			gen := s.Discovery.Generators[v3.ExtensionConfigurationType]
+			tt.request.Start = time.Now()
+			proxy := &model.Proxy{
+				VerifiedIdentity: &spiffe.Identity{Namespace: tt.proxyNamespace},
+				Type:             model.Router,
+				Metadata: &model.NodeMetadata{
+					ClusterID: constants.DefaultClusterName,
+				},
+			}
+			tt.request.Push = s.PushContext()
+			tt.request.Push.Mesh.RootNamespace = "istio-system"
+			resources, _, _ := gen.Generate(s.SetupProxy(proxy),
+				&model.WatchedResource{ResourceNames: sets.New(tt.watchedResources...)}, tt.request)
+			gotExtensions := sets.String{}
+			gotSecrets := sets.String{}
+			for _, res := range resources {
+				gotExtensions.Insert(res.Name)
+				ec := &core.TypedExtensionConfig{}
+				res.Resource.UnmarshalTo(ec)
+				wasm := &wasm.Wasm{}
+				ec.TypedConfig.UnmarshalTo(wasm)
+				gotsecret := wasm.GetConfig().GetVmConfig().GetEnvironmentVariables().GetKeyValues()[model.WasmSecretEnv]
+				if gotsecret != "" {
+					gotSecrets.Insert(gotsecret)
+				}
+			}
+			if !reflect.DeepEqual(gotSecrets, tt.wantSecrets) {
+				t.Errorf("got secrets %v, want secrets %v", gotSecrets, tt.wantSecrets)
+			}
+			if !reflect.DeepEqual(gotExtensions, tt.wantExtensions) {
+				t.Errorf("got extensions %v, want extensions %v", gotExtensions, tt.wantExtensions)
+			}
+		})
+	}
+}

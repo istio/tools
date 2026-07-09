@@ -1,0 +1,1577 @@
+// Copyright Istio Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package serviceentry
+
+import (
+	"encoding/json"
+	"strings"
+	"testing"
+	"time"
+
+	"istio.io/api/label"
+	networking "istio.io/api/networking/v1alpha3"
+	"istio.io/istio/pilot/pkg/features"
+	"istio.io/istio/pilot/pkg/model"
+	"istio.io/istio/pilot/pkg/serviceregistry/provider"
+	labelutil "istio.io/istio/pilot/pkg/serviceregistry/util/label"
+	"istio.io/istio/pilot/test/util"
+	"istio.io/istio/pkg/cluster"
+	"istio.io/istio/pkg/config"
+	"istio.io/istio/pkg/config/constants"
+	"istio.io/istio/pkg/config/host"
+	"istio.io/istio/pkg/config/labels"
+	"istio.io/istio/pkg/config/mesh"
+	"istio.io/istio/pkg/config/mesh/meshwatcher"
+	"istio.io/istio/pkg/config/protocol"
+	"istio.io/istio/pkg/config/schema/gvk"
+	"istio.io/istio/pkg/kube/krt"
+	"istio.io/istio/pkg/network"
+	"istio.io/istio/pkg/spiffe"
+)
+
+var (
+	GlobalTime = time.Now()
+	httpNone   = &config.Config{
+		Meta: config.Meta{
+			GroupVersionKind:  gvk.ServiceEntry,
+			Name:              "httpNone",
+			Namespace:         "httpNone",
+			Domain:            "svc.cluster.local",
+			CreationTimestamp: GlobalTime,
+		},
+		Spec: &networking.ServiceEntry{
+			Hosts: []string{"*.google.com"},
+			Ports: []*networking.ServicePort{
+				{Number: 80, Name: "http-number", Protocol: "http"},
+				{Number: 8080, Name: "http2-number", Protocol: "http2"},
+			},
+			Location:   networking.ServiceEntry_MESH_EXTERNAL,
+			Resolution: networking.ServiceEntry_NONE,
+		},
+	}
+)
+
+var tcpNone = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "tcpNone",
+		Namespace:         "tcpNone",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts:     []string{"tcpnone.com"},
+		Addresses: []string{"172.217.0.0/16"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_NONE,
+	},
+}
+
+var httpStatic = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "httpStatic",
+		Namespace:         "httpStatic",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"*.google.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 80, Name: "http-port", Protocol: "http"},
+			{Number: 8080, Name: "http-alt-port", Protocol: "http"},
+		},
+		Endpoints: []*networking.WorkloadEntry{
+			{
+				Address: "2.2.2.2",
+				Ports:   map[string]uint32{"http-port": 7080, "http-alt-port": 18080},
+				Labels:  map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+			{
+				Address: "3.3.3.3",
+				Ports:   map[string]uint32{"http-port": 1080},
+				Labels:  map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+			{
+				Address: "4.4.4.4",
+				Ports:   map[string]uint32{"http-port": 1080},
+				Labels:  map[string]string{"foo": "bar"},
+			},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_STATIC,
+	},
+}
+
+// Shares the same host as httpStatic, but adds some endpoints. We expect these to be merge
+var httpStaticOverlay = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "httpStaticOverlay",
+		Namespace:         "httpStatic",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"*.google.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 4567, Name: "http-port", Protocol: "http"},
+		},
+		Endpoints: []*networking.WorkloadEntry{
+			{
+				Address: "5.5.5.5",
+				Labels:  map[string]string{"overlay": "bar"},
+			},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_STATIC,
+	},
+}
+
+var httpDNSnoEndpoints = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "httpDNSnoEndpoints",
+		Namespace:         "httpDNSnoEndpoints",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"google.com", "www.wikipedia.org"},
+		Ports: []*networking.ServicePort{
+			{Number: 80, Name: "http-port", Protocol: "http"},
+			{Number: 8080, Name: "http-alt-port", Protocol: "http"},
+		},
+		Location:        networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution:      networking.ServiceEntry_DNS,
+		SubjectAltNames: []string{"google.com"},
+	},
+}
+
+var httpDNSRRnoEndpoints = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "httpDNSRRnoEndpoints",
+		Namespace:         "httpDNSRRnoEndpoints",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"api.istio.io"},
+		Ports: []*networking.ServicePort{
+			{Number: 80, Name: "http-port", Protocol: "http"},
+			{Number: 8080, Name: "http-alt-port", Protocol: "http"},
+		},
+		Location:        networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution:      networking.ServiceEntry_DNS_ROUND_ROBIN,
+		SubjectAltNames: []string{"api.istio.io"},
+	},
+}
+
+var dnsTargetPort = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "dnsTargetPort",
+		Namespace:         "dnsTargetPort",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"google.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 80, Name: "http-port", Protocol: "http", TargetPort: 8080},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_DNS,
+	},
+}
+
+var httpDNS = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "httpDNS",
+		Namespace:         "httpDNS",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"*.google.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 80, Name: "http-port", Protocol: "http"},
+			{Number: 8080, Name: "http-alt-port", Protocol: "http"},
+		},
+		Endpoints: []*networking.WorkloadEntry{
+			{
+				Address: "us.google.com",
+				Ports:   map[string]uint32{"http-port": 7080, "http-alt-port": 18080},
+				Labels:  map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+			{
+				Address: "uk.google.com",
+				Ports:   map[string]uint32{"http-port": 1080},
+				Labels:  map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+			{
+				Address: "de.google.com",
+				Labels:  map[string]string{"foo": "bar", label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_DNS,
+	},
+}
+
+var httpDNSRR = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "httpDNSRR",
+		Namespace:         "httpDNSRR",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"*.istio.io"},
+		Ports: []*networking.ServicePort{
+			{Number: 80, Name: "http-port", Protocol: "http"},
+			{Number: 8080, Name: "http-alt-port", Protocol: "http"},
+		},
+		Endpoints: []*networking.WorkloadEntry{
+			{
+				Address: "api-v1.istio.io",
+				Ports:   map[string]uint32{"http-port": 7080, "http-alt-port": 18080},
+				Labels:  map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_DNS_ROUND_ROBIN,
+	},
+}
+
+var tcpDNS = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "tcpDNS",
+		Namespace:         "tcpDNS",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"tcpdns.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+		},
+		Endpoints: []*networking.WorkloadEntry{
+			{
+				Address: "lon.google.com",
+				Labels:  map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+			{
+				Address: "in.google.com",
+				Labels:  map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_DNS,
+	},
+}
+
+var tcpDNSAutoAssignedSingleHost = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "tcpDNSAutoAssignedSingleHost",
+		Namespace:         "tcpDNSAutoAssignedSingleHost",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"singlehosttcpdns.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_DNS,
+	},
+	Status: &networking.ServiceEntryStatus{
+		Addresses: []*networking.ServiceEntryAddress{
+			{
+				Host:  "singlehosttcpdns.com",
+				Value: "240.240.0.1",
+			},
+			{
+				Host:  "singlehosttcpdns.com",
+				Value: "2001:2::1",
+			},
+		},
+	},
+}
+
+var tcpDNSAutoAssignedMultiHost = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "tcpDNSAutoAssignedMultiHost",
+		Namespace:         "tcpDNSAutoAssignedMultiHost",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"multihosttcpdns.com", "secondhosttcpdns.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_DNS,
+	},
+	Status: &networking.ServiceEntryStatus{
+		Addresses: []*networking.ServiceEntryAddress{
+			{
+				Host:  "multihosttcpdns.com",
+				Value: "240.240.0.1",
+			},
+			{
+				Host:  "multihosttcpdns.com",
+				Value: "2001:2::1",
+			},
+			{
+				Host:  "secondhosttcpdns.com",
+				Value: "240.240.0.2",
+			},
+			{
+				Host:  "secondhosttcpdns.com",
+				Value: "2001:2::2",
+			},
+		},
+	},
+}
+
+var tcpStatic = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "tcpStatic",
+		Namespace:         "tcpStatic",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts:     []string{"tcpstatic.com"},
+		Addresses: []string{"172.217.0.1"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+		},
+		Endpoints: []*networking.WorkloadEntry{
+			{
+				Address: "1.1.1.1",
+				Labels:  map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+			{
+				Address: "2.2.2.2",
+				Labels:  map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+			},
+		},
+		Location:   networking.ServiceEntry_MESH_EXTERNAL,
+		Resolution: networking.ServiceEntry_STATIC,
+	},
+}
+
+var httpNoneInternal = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "httpNoneInternal",
+		Namespace:         "httpNoneInternal",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"*.google.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 80, Name: "http-number", Protocol: "http"},
+			{Number: 8080, Name: "http2-number", Protocol: "http2"},
+		},
+		Location:   networking.ServiceEntry_MESH_INTERNAL,
+		Resolution: networking.ServiceEntry_NONE,
+	},
+}
+
+var tcpNoneInternal = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "tcpNoneInternal",
+		Namespace:         "tcpNoneInternal",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts:     []string{"tcpinternal.com"},
+		Addresses: []string{"172.217.0.0/16"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+		},
+		Location:   networking.ServiceEntry_MESH_INTERNAL,
+		Resolution: networking.ServiceEntry_NONE,
+	},
+}
+
+var multiAddrInternal = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "multiAddrInternal",
+		Namespace:         "multiAddrInternal",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts:     []string{"tcp1.com", "tcp2.com"},
+		Addresses: []string{"1.1.1.0/16", "2.2.2.0/16"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+		},
+		Location:   networking.ServiceEntry_MESH_INTERNAL,
+		Resolution: networking.ServiceEntry_NONE,
+	},
+}
+
+var udsLocal = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "udsLocal",
+		Namespace:         "udsLocal",
+		CreationTimestamp: GlobalTime,
+		Labels:            map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"uds.cluster.local"},
+		Ports: []*networking.ServicePort{
+			{Number: 6553, Name: "grpc-1", Protocol: "grpc"},
+		},
+		Endpoints: []*networking.WorkloadEntry{
+			{Address: "unix:///test/sock", Labels: map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel}},
+		},
+		Resolution: networking.ServiceEntry_STATIC,
+	},
+}
+
+// ServiceEntry DNS with a selector
+var selectorDNS = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "selector",
+		Namespace:         "selector",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"selector.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+			{Number: 445, Name: "http-445", Protocol: "http"},
+		},
+		WorkloadSelector: &networking.WorkloadSelector{
+			Labels: map[string]string{"app": "wle"},
+		},
+		Resolution: networking.ServiceEntry_DNS,
+	},
+}
+
+// ServiceEntry with a selector
+var selector = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "selector",
+		Namespace:         "selector",
+		CreationTimestamp: GlobalTime,
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"selector.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+			{Number: 445, Name: "http-445", Protocol: "http"},
+		},
+		WorkloadSelector: &networking.WorkloadSelector{
+			Labels: map[string]string{"app": "wle"},
+		},
+		Resolution: networking.ServiceEntry_STATIC,
+	},
+}
+
+// DNS ServiceEntry with a selector
+var dnsSelector = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "dns-selector",
+		Namespace:         "dns-selector",
+		CreationTimestamp: GlobalTime,
+		Labels:            map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"dns.selector.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 444, Name: "tcp-444", Protocol: "tcp"},
+			{Number: 445, Name: "http-445", Protocol: "http"},
+		},
+		WorkloadSelector: &networking.WorkloadSelector{
+			Labels: map[string]string{"app": "dns-wle"},
+		},
+		Resolution: networking.ServiceEntry_DNS,
+	},
+}
+
+// Service Entry with DNSRoundRobinLB
+var dnsRoundRobinLBSE1 = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "dns-round-robin-1",
+		Namespace:         "dns",
+		CreationTimestamp: GlobalTime,
+		Labels:            map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"example.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 445, Name: "http-445", Protocol: "http"},
+			{Number: 446, Name: "http-446", Protocol: "http"},
+		},
+		Resolution: networking.ServiceEntry_DNS_ROUND_ROBIN,
+	},
+}
+
+var dnsRoundRobinLBSE2 = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "dns-round-robin-2",
+		Namespace:         "dns",
+		CreationTimestamp: GlobalTime,
+		Labels:            map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"example.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 445, Name: "http-445", Protocol: "http"},
+		},
+		Resolution: networking.ServiceEntry_DNS_ROUND_ROBIN,
+	},
+}
+
+var dnsRoundRobinLBSE3 = &config.Config{
+	Meta: config.Meta{
+		GroupVersionKind:  gvk.ServiceEntry,
+		Name:              "dns-round-robin-1",
+		Namespace:         "dns",
+		CreationTimestamp: GlobalTime,
+		Labels:            map[string]string{label.SecurityTlsMode.Name: model.IstioMutualTLSModeLabel},
+	},
+	Spec: &networking.ServiceEntry{
+		Hosts: []string{"muladdrs.example.com"},
+		Ports: []*networking.ServicePort{
+			{Number: 445, Name: "http-445", Protocol: "http"},
+		},
+		Resolution: networking.ServiceEntry_DNS_ROUND_ROBIN,
+	},
+}
+
+func createWorkloadEntry(name, namespace string, spec *networking.WorkloadEntry) *config.Config {
+	return &config.Config{
+		Meta: config.Meta{
+			GroupVersionKind:  gvk.WorkloadEntry,
+			Name:              name,
+			Namespace:         namespace,
+			CreationTimestamp: GlobalTime,
+		},
+		Spec: spec,
+	}
+}
+
+func convertPortNameToProtocol(name string) protocol.Instance {
+	prefix := name
+	if before, _, ok := strings.Cut(name, "-"); ok {
+		prefix = before
+	}
+	return protocol.Parse(prefix)
+}
+
+func makeService(hostname host.Name, configName, configNamespace string, addresses []string, autoV4, autoV6 string, ports map[string]int,
+	external bool, resolution model.Resolution, serviceAccounts ...string,
+) *model.Service {
+	return makeServiceWithCanonical(hostname, configName, configNamespace, addresses, autoV4, autoV6, ports,
+		external, features.CanonicalServiceForMeshExternalServiceEntry, resolution, serviceAccounts...)
+}
+
+func makeServiceWithCanonical(hostname host.Name, configName, configNamespace string, addresses []string, autoV4, autoV6 string, ports map[string]int,
+	external bool, canonicalServiceForMeshExternal bool, resolution model.Resolution, serviceAccounts ...string,
+) *model.Service {
+	svc := &model.Service{
+		CreationTime:    GlobalTime,
+		Hostname:        hostname,
+		DefaultAddress:  addresses[0],
+		MeshExternal:    external,
+		Resolution:      resolution,
+		ServiceAccounts: serviceAccounts,
+		Attributes: model.ServiceAttributes{
+			ServiceRegistry: provider.External,
+			Name:            string(hostname),
+			Namespace:       configNamespace,
+			K8sAttributes:   model.K8sAttributes{ObjectName: configName},
+		},
+	}
+
+	if autoV4 != "" {
+		svc.AutoAllocatedIPv4Address = autoV4
+	}
+	if autoV6 != "" {
+		svc.AutoAllocatedIPv6Address = autoV6
+	}
+
+	if external && canonicalServiceForMeshExternal {
+		if svc.Attributes.Labels == nil {
+			svc.Attributes.Labels = make(map[string]string)
+		}
+		svc.Attributes.Labels["service.istio.io/canonical-name"] = configNamespace
+		svc.Attributes.Labels["service.istio.io/canonical-revision"] = "latest"
+	}
+
+	svcPorts := make(model.PortList, 0, len(ports))
+	for name, port := range ports {
+		svcPort := &model.Port{
+			Name:     name,
+			Port:     port,
+			Protocol: convertPortNameToProtocol(name),
+		}
+		svcPorts = append(svcPorts, svcPort)
+	}
+
+	sortPorts(svcPorts)
+	svc.Ports = svcPorts
+	return svc
+}
+
+// MTLSMode is the expected instance mtls settings. This is for test setup only
+type MTLSMode int
+
+const (
+	MTLS = iota
+	// Like mTLS, but no label is defined on the endpoint
+	MTLSUnlabelled
+	PlainText
+)
+
+// nolint: unparam
+func makeInstanceWithServiceAccount(cfg *config.Config, workloadName string, addresses []string, port int,
+	svcPort *networking.ServicePort, svcLabels map[string]string, serviceAccount string,
+) *model.ServiceInstance {
+	i := makeInstance(cfg, workloadName, addresses, port, svcPort, svcLabels, MTLSUnlabelled)
+	i.Endpoint.ServiceAccount = spiffe.MustGenSpiffeURIForTrustDomain("cluster.local", i.Service.Attributes.Namespace, serviceAccount)
+	return i
+}
+
+// nolint: unparam
+func makeTarget(cfg *config.Config, address string, port int,
+	svcPort *networking.ServicePort, svcLabels map[string]string, mtlsMode MTLSMode,
+) model.ServiceTarget {
+	services := convertServices(*cfg, nil, false)
+	svc := services[0] // default
+	for _, s := range services {
+		if string(s.Hostname) == address {
+			svc = s
+			break
+		}
+	}
+	if mtlsMode == MTLS {
+		if svcLabels == nil {
+			svcLabels = map[string]string{}
+		}
+		svcLabels[label.SecurityTlsMode.Name] = model.IstioMutualTLSModeLabel
+	}
+	return model.ServiceTarget{
+		Service: svc,
+		Port: model.ServiceInstancePort{
+			ServicePort: &model.Port{
+				Name:     svcPort.Name,
+				Port:     int(svcPort.Number),
+				Protocol: protocol.Parse(svcPort.Protocol),
+			},
+			TargetPort: uint32(port),
+		},
+	}
+}
+
+// nolint: unparam
+func makeInstance(cfg *config.Config, workloadName string, addresses []string, port int,
+	svcPort *networking.ServicePort, svcLabels map[string]string, mtlsMode MTLSMode,
+) *model.ServiceInstance {
+	services := convertServices(*cfg, nil, false)
+	svc := services[0] // default
+	getSvc := false
+	for _, s := range services {
+		for _, address := range addresses {
+			if string(s.Hostname) == address {
+				svc = s
+				getSvc = true
+				break
+			}
+		}
+		if getSvc {
+			break
+		}
+	}
+	tlsMode := model.DisabledTLSModeLabel
+	if mtlsMode == MTLS || mtlsMode == MTLSUnlabelled {
+		tlsMode = model.IstioMutualTLSModeLabel
+	}
+	if mtlsMode == MTLS {
+		if svcLabels == nil {
+			svcLabels = map[string]string{}
+		}
+		svcLabels[label.SecurityTlsMode.Name] = model.IstioMutualTLSModeLabel
+	}
+	return &model.ServiceInstance{
+		Service: svc,
+		Endpoint: &model.IstioEndpoint{
+			Addresses:            addresses,
+			EndpointPort:         uint32(port),
+			ServicePortName:      svcPort.Name,
+			LegacyClusterPortKey: int(svcPort.Number),
+			Labels:               svcLabels,
+			TLSMode:              tlsMode,
+			Namespace:            cfg.Namespace,
+			WorkloadName:         workloadName,
+		},
+		ServicePort: &model.Port{
+			Name:     svcPort.Name,
+			Port:     int(svcPort.Number),
+			Protocol: protocol.Parse(svcPort.Protocol),
+		},
+	}
+}
+
+func TestConvertService(t *testing.T) {
+	testConvertServiceBody(t, false)
+	testConvertServiceBody(t, true)
+}
+
+func testConvertServiceBody(t *testing.T, canonicalServiceForMeshExternal bool) {
+	t.Helper()
+
+	makeService := func(hostname host.Name, configName, configNamespace string, addresses []string, autoV4, autoV6 string, ports map[string]int,
+		external bool, resolution model.Resolution, serviceAccounts ...string,
+	) *model.Service {
+		return makeServiceWithCanonical(hostname, configName, configNamespace, addresses, autoV4, autoV6, ports,
+			external, canonicalServiceForMeshExternal, resolution, serviceAccounts...)
+	}
+
+	serviceTests := []struct {
+		externalSvc *config.Config
+		services    []*model.Service
+	}{
+		{
+			// service entry http
+			externalSvc: httpNone,
+			services: []*model.Service{
+				makeService("*.google.com", "httpNone", "httpNone", []string{constants.UnspecifiedIP}, "", "",
+					map[string]int{"http-number": 80, "http2-number": 8080}, true, model.Passthrough),
+			},
+		},
+		{
+			// service entry tcp
+			externalSvc: tcpNone,
+			services: []*model.Service{
+				makeService("tcpnone.com", "tcpNone", "tcpNone", []string{"172.217.0.0/16"}, "", "",
+					map[string]int{"tcp-444": 444}, true, model.Passthrough),
+			},
+		},
+		{
+			// service entry http  static
+			externalSvc: httpStatic,
+			services: []*model.Service{
+				makeService("*.google.com", "httpStatic", "httpStatic", []string{constants.UnspecifiedIP}, "", "",
+					map[string]int{"http-port": 80, "http-alt-port": 8080}, true, model.ClientSideLB),
+			},
+		},
+		{
+			// service entry DNS with no endpoints
+			externalSvc: httpDNSnoEndpoints,
+			services: []*model.Service{
+				makeService("google.com", "httpDNSnoEndpoints", "httpDNSnoEndpoints", []string{constants.UnspecifiedIP}, "", "",
+					map[string]int{"http-port": 80, "http-alt-port": 8080}, true, model.DNSLB, "google.com"),
+				makeService("www.wikipedia.org", "httpDNSnoEndpoints", "httpDNSnoEndpoints", []string{constants.UnspecifiedIP}, "", "",
+					map[string]int{"http-port": 80, "http-alt-port": 8080}, true, model.DNSLB, "google.com"),
+			},
+		},
+		{
+			// service entry dns
+			externalSvc: httpDNS,
+			services: []*model.Service{
+				makeService("*.google.com", "httpDNS", "httpDNS", []string{constants.UnspecifiedIP}, "", "",
+					map[string]int{"http-port": 80, "http-alt-port": 8080}, true, model.DNSLB),
+			},
+		},
+		{
+			// service entry dns with target port
+			externalSvc: dnsTargetPort,
+			services: []*model.Service{
+				makeService("google.com", "dnsTargetPort", "dnsTargetPort", []string{constants.UnspecifiedIP}, "", "",
+					map[string]int{"http-port": 80}, true, model.DNSLB),
+			},
+		},
+		{
+			// service entry tcp DNS
+			externalSvc: tcpDNS,
+			services: []*model.Service{
+				makeService("tcpdns.com", "tcpDNS", "tcpDNS", []string{constants.UnspecifiedIP}, "", "",
+					map[string]int{"tcp-444": 444}, true, model.DNSLB),
+			},
+		},
+		{
+			// service entry tcp DNS
+			externalSvc: tcpDNSAutoAssignedSingleHost,
+			services: []*model.Service{
+				makeService("singlehosttcpdns.com", "tcpDNSAutoAssignedSingleHost", "tcpDNSAutoAssignedSingleHost",
+					[]string{constants.UnspecifiedIP}, "240.240.0.1", "2001:2::1",
+					map[string]int{"tcp-444": 444}, true, model.DNSLB),
+			},
+		},
+		{
+			// service entry tcp DNS
+			externalSvc: tcpDNSAutoAssignedMultiHost,
+			services: []*model.Service{
+				makeService("multihosttcpdns.com", "tcpDNSAutoAssignedMultiHost", "tcpDNSAutoAssignedMultiHost",
+					[]string{constants.UnspecifiedIP}, "240.240.0.1", "2001:2::1",
+					map[string]int{"tcp-444": 444}, true, model.DNSLB),
+				makeService("secondhosttcpdns.com", "tcpDNSAutoAssignedMultiHost", "tcpDNSAutoAssignedMultiHost",
+					[]string{constants.UnspecifiedIP}, "240.240.0.2", "2001:2::2",
+					map[string]int{"tcp-444": 444}, true, model.DNSLB),
+			},
+		},
+		{
+			// service entry tcp static
+			externalSvc: tcpStatic,
+			services: []*model.Service{
+				makeService("tcpstatic.com", "tcpStatic", "tcpStatic", []string{"172.217.0.1"}, "", "",
+					map[string]int{"tcp-444": 444}, true, model.ClientSideLB),
+			},
+		},
+		{
+			// service entry http internal
+			externalSvc: httpNoneInternal,
+			services: []*model.Service{
+				makeService("*.google.com", "httpNoneInternal", "httpNoneInternal", []string{constants.UnspecifiedIP}, "", "",
+					map[string]int{"http-number": 80, "http2-number": 8080}, false, model.Passthrough),
+			},
+		},
+		{
+			// service entry tcp internal
+			externalSvc: tcpNoneInternal,
+			services: []*model.Service{
+				makeService("tcpinternal.com", "tcpNoneInternal", "tcpNoneInternal", []string{"172.217.0.0/16"}, "", "",
+					map[string]int{"tcp-444": 444}, false, model.Passthrough),
+			},
+		},
+		{
+			// service entry multiAddrInternal
+			externalSvc: multiAddrInternal,
+			services: []*model.Service{
+				makeService("tcp1.com", "multiAddrInternal", "multiAddrInternal", []string{"1.1.1.0/16", "2.2.2.0/16"}, "", "",
+					map[string]int{"tcp-444": 444}, false, model.Passthrough),
+				makeService("tcp1.com", "multiAddrInternal", "multiAddrInternal", []string{"2.2.2.0/16", "1.1.1.0/16"}, "", "",
+					map[string]int{"tcp-444": 444}, false, model.Passthrough),
+				makeService("tcp2.com", "multiAddrInternal", "multiAddrInternal", []string{"1.1.1.0/16", "2.2.2.0/16"}, "", "",
+					map[string]int{"tcp-444": 444}, false, model.Passthrough),
+				makeService("tcp2.com", "multiAddrInternal", "multiAddrInternal", []string{"2.2.2.0/16", "1.1.1.0/16"}, "", "",
+					map[string]int{"tcp-444": 444}, false, model.Passthrough),
+			},
+		},
+	}
+
+	selectorSvc := makeService("selector.com", "selector", "selector", []string{constants.UnspecifiedIP}, "", "",
+		map[string]int{"tcp-444": 444, "http-445": 445}, true, model.ClientSideLB)
+	selectorSvc.Attributes.LabelSelectors = map[string]string{"app": "wle"}
+
+	serviceTests = append(serviceTests, struct {
+		externalSvc *config.Config
+		services    []*model.Service
+	}{
+		externalSvc: selector,
+		services:    []*model.Service{selectorSvc},
+	})
+
+	for _, tt := range serviceTests {
+		services := convertServices(*tt.externalSvc, nil, canonicalServiceForMeshExternal)
+		if err := compare(t, services, tt.services); err != nil {
+			t.Errorf("testcase: %v\n%v ", tt.externalSvc.Name, err)
+		}
+	}
+}
+
+func TestConvertInstances(t *testing.T) {
+	serviceInstanceTests := []struct {
+		externalSvc *config.Config
+		out         []*model.ServiceInstance
+	}{
+		{
+			// single instance with multiple ports
+			externalSvc: httpNone,
+			// DNS type none means service should not have a registered instance
+			out: []*model.ServiceInstance{},
+		},
+		{
+			// service entry tcp
+			externalSvc: tcpNone,
+			// DNS type none means service should not have a registered instance
+			out: []*model.ServiceInstance{},
+		},
+		{
+			// service entry static
+			externalSvc: httpStatic,
+			out: []*model.ServiceInstance{
+				makeInstance(httpStatic, "httpStatic-0", []string{"2.2.2.2"}, 7080,
+					httpStatic.Spec.(*networking.ServiceEntry).Ports[0], nil, MTLS),
+				makeInstance(httpStatic, "httpStatic-0", []string{"2.2.2.2"}, 18080,
+					httpStatic.Spec.(*networking.ServiceEntry).Ports[1], nil, MTLS),
+				makeInstance(httpStatic, "httpStatic-1", []string{"3.3.3.3"}, 1080,
+					httpStatic.Spec.(*networking.ServiceEntry).Ports[0], nil, MTLS),
+				makeInstance(httpStatic, "httpStatic-1", []string{"3.3.3.3"}, 8080,
+					httpStatic.Spec.(*networking.ServiceEntry).Ports[1], nil, MTLS),
+				makeInstance(httpStatic, "httpStatic-2", []string{"4.4.4.4"}, 1080,
+					httpStatic.Spec.(*networking.ServiceEntry).Ports[0], map[string]string{"foo": "bar"}, PlainText),
+				makeInstance(httpStatic, "httpStatic-2", []string{"4.4.4.4"}, 8080,
+					httpStatic.Spec.(*networking.ServiceEntry).Ports[1], map[string]string{"foo": "bar"}, PlainText),
+			},
+		},
+		{
+			// service entry DNS with no endpoints
+			externalSvc: httpDNSnoEndpoints,
+			out: []*model.ServiceInstance{
+				makeInstance(httpDNSnoEndpoints, "httpDNSnoEndpoints", []string{"google.com"}, 80,
+					httpDNSnoEndpoints.Spec.(*networking.ServiceEntry).Ports[0], nil, PlainText),
+				makeInstance(httpDNSnoEndpoints, "httpDNSnoEndpoints", []string{"google.com"}, 8080,
+					httpDNSnoEndpoints.Spec.(*networking.ServiceEntry).Ports[1], nil, PlainText),
+				makeInstance(httpDNSnoEndpoints, "httpDNSnoEndpoints", []string{"www.wikipedia.org"}, 80,
+					httpDNSnoEndpoints.Spec.(*networking.ServiceEntry).Ports[0], nil, PlainText),
+				makeInstance(httpDNSnoEndpoints, "httpDNSnoEndpoints", []string{"www.wikipedia.org"}, 8080,
+					httpDNSnoEndpoints.Spec.(*networking.ServiceEntry).Ports[1], nil, PlainText),
+			},
+		},
+		{
+			// service entry DNS with no endpoints using round robin
+			externalSvc: httpDNSRRnoEndpoints,
+			out: []*model.ServiceInstance{
+				makeInstance(httpDNSRRnoEndpoints, "httpDNSRRnoEndpoints", []string{"api.istio.io"}, 80,
+					httpDNSnoEndpoints.Spec.(*networking.ServiceEntry).Ports[0], nil, PlainText),
+				makeInstance(httpDNSRRnoEndpoints, "httpDNSRRnoEndpoints", []string{"api.istio.io"}, 8080,
+					httpDNSnoEndpoints.Spec.(*networking.ServiceEntry).Ports[1], nil, PlainText),
+			},
+		},
+		{
+			// service entry DNS with workload selector and no endpoints
+			externalSvc: selectorDNS,
+			out:         []*model.ServiceInstance{},
+		},
+		{
+			// service entry dns
+			externalSvc: httpDNS,
+			out: []*model.ServiceInstance{
+				makeInstance(httpDNS, "httpDNS-0", []string{"us.google.com"}, 7080,
+					httpDNS.Spec.(*networking.ServiceEntry).Ports[0], nil, MTLS),
+				makeInstance(httpDNS, "httpDNS-0", []string{"us.google.com"}, 18080,
+					httpDNS.Spec.(*networking.ServiceEntry).Ports[1], nil, MTLS),
+				makeInstance(httpDNS, "httpDNS-1", []string{"uk.google.com"}, 1080,
+					httpDNS.Spec.(*networking.ServiceEntry).Ports[0], nil, MTLS),
+				makeInstance(httpDNS, "httpDNS-1", []string{"uk.google.com"}, 8080,
+					httpDNS.Spec.(*networking.ServiceEntry).Ports[1], nil, MTLS),
+				makeInstance(httpDNS, "httpDNS-2", []string{"de.google.com"}, 80,
+					httpDNS.Spec.(*networking.ServiceEntry).Ports[0], map[string]string{"foo": "bar"}, MTLS),
+				makeInstance(httpDNS, "httpDNS-2", []string{"de.google.com"}, 8080,
+					httpDNS.Spec.(*networking.ServiceEntry).Ports[1], map[string]string{"foo": "bar"}, MTLS),
+			},
+		},
+		{
+			// service entry dns with target port
+			externalSvc: dnsTargetPort,
+			out: []*model.ServiceInstance{
+				makeInstance(dnsTargetPort, "dnsTargetPort", []string{"google.com"}, 8080,
+					dnsTargetPort.Spec.(*networking.ServiceEntry).Ports[0], nil, PlainText),
+			},
+		},
+		{
+			// service entry tcp DNS
+			externalSvc: tcpDNS,
+			out: []*model.ServiceInstance{
+				makeInstance(tcpDNS, "tcpDNS-0", []string{"lon.google.com"}, 444,
+					tcpDNS.Spec.(*networking.ServiceEntry).Ports[0], nil, MTLS),
+				makeInstance(tcpDNS, "tcpDNS-1", []string{"in.google.com"}, 444,
+					tcpDNS.Spec.(*networking.ServiceEntry).Ports[0], nil, MTLS),
+			},
+		},
+		{
+			// service entry tcp static
+			externalSvc: tcpStatic,
+			out: []*model.ServiceInstance{
+				makeInstance(tcpStatic, "tcpStatic-0", []string{"1.1.1.1"}, 444,
+					tcpStatic.Spec.(*networking.ServiceEntry).Ports[0], nil, MTLS),
+				makeInstance(tcpStatic, "tcpStatic-1", []string{"2.2.2.2"}, 444,
+					tcpStatic.Spec.(*networking.ServiceEntry).Ports[0], nil, MTLS),
+			},
+		},
+		{
+			// service entry unix domain socket static
+			externalSvc: udsLocal,
+			out: []*model.ServiceInstance{
+				makeInstance(udsLocal, "udsLocal-0", []string{"/test/sock"}, 0,
+					udsLocal.Spec.(*networking.ServiceEntry).Ports[0], nil, MTLS),
+			},
+		},
+	}
+
+	for _, tt := range serviceInstanceTests {
+		t.Run(strings.Join(tt.externalSvc.Spec.(*networking.ServiceEntry).Hosts, "_"), func(t *testing.T) {
+			s := &Controller{}
+			ss := convertServices(*tt.externalSvc, nil, false)
+			instances := make([]*model.ServiceInstance, 0)
+			for _, service := range ss {
+				instances = append(
+					instances,
+					convertServiceEntryToInstances(krt.TestingDummyContext{}, *tt.externalSvc, service, s.inputs.MeshConfig, s.clusterID, s.networkIDCallback)...,
+				)
+			}
+			sortServiceInstances(instances)
+			sortServiceInstances(tt.out)
+			if err := compare(t, instances, tt.out); err != nil {
+				t.Fatalf("testcase: %v\n%v", tt.externalSvc.Name, err)
+			}
+		})
+	}
+}
+
+func TestConvertWorkloadEntryToServiceInstances(t *testing.T) {
+	labels := map[string]string{
+		"app": "wle",
+	}
+	serviceInstanceTests := []struct {
+		name      string
+		wle       *networking.WorkloadEntry
+		se        *config.Config
+		clusterID cluster.ID
+		out       []*model.ServiceInstance
+	}{
+		{
+			name: "simple",
+			wle: &networking.WorkloadEntry{
+				Address: "1.1.1.1",
+				Labels:  labels,
+			},
+			se: selector,
+			out: []*model.ServiceInstance{
+				makeInstance(selector, "selector", []string{"1.1.1.1"}, 444,
+					selector.Spec.(*networking.ServiceEntry).Ports[0], labels, PlainText),
+				makeInstance(selector, "selector", []string{"1.1.1.1"}, 445,
+					selector.Spec.(*networking.ServiceEntry).Ports[1], labels, PlainText),
+			},
+		},
+		{
+			name: "mtls",
+			wle: &networking.WorkloadEntry{
+				Address:        "1.1.1.1",
+				Labels:         labels,
+				ServiceAccount: "default",
+			},
+			se: selector,
+			out: []*model.ServiceInstance{
+				makeInstanceWithServiceAccount(selector, "selector", []string{"1.1.1.1"}, 444,
+					selector.Spec.(*networking.ServiceEntry).Ports[0], labels, "default"),
+				makeInstanceWithServiceAccount(selector, "selector", []string{"1.1.1.1"}, 445,
+					selector.Spec.(*networking.ServiceEntry).Ports[1], labels, "default"),
+			},
+		},
+		{
+			name: "replace-port",
+			wle: &networking.WorkloadEntry{
+				Address: "1.1.1.1",
+				Labels:  labels,
+				Ports: map[string]uint32{
+					"http-445": 8080,
+				},
+			},
+			se: selector,
+			out: []*model.ServiceInstance{
+				makeInstance(selector, "selector", []string{"1.1.1.1"}, 444,
+					selector.Spec.(*networking.ServiceEntry).Ports[0], labels, PlainText),
+				makeInstance(selector, "selector", []string{"1.1.1.1"}, 8080,
+					selector.Spec.(*networking.ServiceEntry).Ports[1], labels, PlainText),
+			},
+		},
+		{
+			name: "augment label",
+			wle: &networking.WorkloadEntry{
+				Address:        "1.1.1.1",
+				Labels:         labels,
+				Locality:       "region1/zone1/sunzone1",
+				Network:        "network1",
+				ServiceAccount: "default",
+			},
+			se:        selector,
+			clusterID: "fakeCluster",
+			out: []*model.ServiceInstance{
+				makeInstanceWithServiceAccount(selector, "selector", []string{"1.1.1.1"}, 444,
+					selector.Spec.(*networking.ServiceEntry).Ports[0], labels, "default"),
+				makeInstanceWithServiceAccount(selector, "selector", []string{"1.1.1.1"}, 445,
+					selector.Spec.(*networking.ServiceEntry).Ports[1], labels, "default"),
+			},
+		},
+	}
+
+	for _, tt := range serviceInstanceTests {
+		t.Run(tt.name, func(t *testing.T) {
+			services := convertServices(*tt.se, nil, false)
+			s := &Controller{inputs: Inputs{MeshConfig: meshwatcher.NewTestWatcher(mesh.DefaultMeshConfig()).AsCollection()}}
+			meta := config.Meta{
+				Name:      tt.se.Name,
+				Namespace: tt.se.Namespace,
+			}
+			wli := convertWorkloadEntryToWorkloadInstance(
+				krt.TestingDummyContext{},
+				tt.wle,
+				meta,
+				s.inputs.MeshConfig,
+				tt.se.Namespace,
+				tt.clusterID,
+				s.networkIDCallback,
+			)
+			instances := make([]*model.ServiceInstance, 0, len(services))
+			for _, service := range services {
+				instances = append(instances, convertWorkloadInstanceToServiceInstance(wli, service, tt.se.Spec.(*networking.ServiceEntry).Ports)...)
+			}
+			sortServiceInstances(instances)
+			sortServiceInstances(tt.out)
+
+			if tt.wle.Locality != "" || tt.clusterID != "" || tt.wle.Network != "" {
+				for _, serviceInstance := range tt.out {
+					serviceInstance.Endpoint.Locality = model.Locality{
+						Label:     tt.wle.Locality,
+						ClusterID: tt.clusterID,
+					}
+					serviceInstance.Endpoint.Network = network.ID(tt.wle.Network)
+					serviceInstance.Endpoint.Labels = labelutil.AugmentLabels(serviceInstance.Endpoint.Labels, tt.clusterID, tt.wle.Locality, "", network.ID(tt.wle.Network))
+				}
+			}
+
+			if err := compare(t, instances, tt.out); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func TestConvertWorkloadEntryToWorkloadInstance(t *testing.T) {
+	workloadLabel := map[string]string{
+		"app": "wle",
+	}
+
+	clusterID := "fakeCluster"
+	expectedLabel := map[string]string{
+		"app":                       "wle",
+		"topology.istio.io/cluster": clusterID,
+	}
+
+	workloadInstanceTests := []struct {
+		name           string
+		getNetworkIDCb func(IP string, labels labels.Instance) network.ID
+		wle            config.Config
+		out            *model.WorkloadInstance
+	}{
+		{
+			name: "simple",
+			wle: config.Config{
+				Meta: config.Meta{
+					Namespace: "ns1",
+				},
+				Spec: &networking.WorkloadEntry{
+					Address: "1.1.1.1",
+					Labels:  workloadLabel,
+					Ports: map[string]uint32{
+						"http": 80,
+					},
+					ServiceAccount: "scooby",
+				},
+			},
+			out: &model.WorkloadInstance{
+				Namespace: "ns1",
+				Kind:      model.WorkloadEntryKind,
+				Endpoint: &model.IstioEndpoint{
+					Labels:         expectedLabel,
+					Addresses:      []string{"1.1.1.1"},
+					ServiceAccount: "spiffe://cluster.local/ns/ns1/sa/scooby",
+					TLSMode:        "istio",
+					Namespace:      "ns1",
+					Locality: model.Locality{
+						ClusterID: cluster.ID(clusterID),
+					},
+				},
+				PortMap: map[string]uint32{
+					"http": 80,
+				},
+			},
+		},
+		{
+			name: "simple - tls mode disabled",
+			wle: config.Config{
+				Meta: config.Meta{
+					Namespace: "ns1",
+				},
+				Spec: &networking.WorkloadEntry{
+					Address: "1.1.1.1",
+					Labels: map[string]string{
+						"security.istio.io/tlsMode": "disabled",
+					},
+					Ports: map[string]uint32{
+						"http": 80,
+					},
+					ServiceAccount: "scooby",
+				},
+			},
+			out: &model.WorkloadInstance{
+				Namespace: "ns1",
+				Kind:      model.WorkloadEntryKind,
+				Endpoint: &model.IstioEndpoint{
+					Labels: map[string]string{
+						"security.istio.io/tlsMode": "disabled",
+						"topology.istio.io/cluster": clusterID,
+					},
+					Addresses:      []string{"1.1.1.1"},
+					ServiceAccount: "spiffe://cluster.local/ns/ns1/sa/scooby",
+					TLSMode:        "disabled",
+					Namespace:      "ns1",
+					Locality: model.Locality{
+						ClusterID: cluster.ID(clusterID),
+					},
+				},
+				PortMap: map[string]uint32{
+					"http": 80,
+				},
+			},
+		},
+		{
+			name: "unix domain socket",
+			wle: config.Config{
+				Meta: config.Meta{
+					Namespace: "ns1",
+				},
+				Spec: &networking.WorkloadEntry{
+					Address:        "unix://foo/bar",
+					ServiceAccount: "scooby",
+				},
+			},
+			out: &model.WorkloadInstance{
+				Namespace: "ns1",
+				Kind:      model.WorkloadEntryKind,
+				Endpoint: &model.IstioEndpoint{
+					Labels: map[string]string{
+						"topology.istio.io/cluster": clusterID,
+					},
+					Addresses:      []string{"unix://foo/bar"},
+					ServiceAccount: "spiffe://cluster.local/ns/ns1/sa/scooby",
+					TLSMode:        "istio",
+					Namespace:      "ns1",
+					Locality: model.Locality{
+						ClusterID: cluster.ID(clusterID),
+					},
+				},
+				DNSServiceEntryOnly: true,
+			},
+		},
+		{
+			name: "DNS address",
+			wle: config.Config{
+				Meta: config.Meta{
+					Namespace: "ns1",
+				},
+				Spec: &networking.WorkloadEntry{
+					Address:        "scooby.com",
+					ServiceAccount: "scooby",
+				},
+			},
+			out: &model.WorkloadInstance{
+				Namespace: "ns1",
+				Kind:      model.WorkloadEntryKind,
+				Endpoint: &model.IstioEndpoint{
+					Labels: map[string]string{
+						"topology.istio.io/cluster": clusterID,
+					},
+					Addresses:      []string{"scooby.com"},
+					ServiceAccount: "spiffe://cluster.local/ns/ns1/sa/scooby",
+					TLSMode:        "istio",
+					Namespace:      "ns1",
+					Locality: model.Locality{
+						ClusterID: cluster.ID(clusterID),
+					},
+				},
+				DNSServiceEntryOnly: true,
+			},
+		},
+		{
+			name: "metadata labels only",
+			wle: config.Config{
+				Meta: config.Meta{
+					Labels:    workloadLabel,
+					Namespace: "ns1",
+				},
+				Spec: &networking.WorkloadEntry{
+					Address: "1.1.1.1",
+					Ports: map[string]uint32{
+						"http": 80,
+					},
+					ServiceAccount: "scooby",
+				},
+			},
+			out: &model.WorkloadInstance{
+				Namespace: "ns1",
+				Kind:      model.WorkloadEntryKind,
+				Endpoint: &model.IstioEndpoint{
+					Labels:         expectedLabel,
+					Addresses:      []string{"1.1.1.1"},
+					ServiceAccount: "spiffe://cluster.local/ns/ns1/sa/scooby",
+					TLSMode:        "istio",
+					Namespace:      "ns1",
+					Locality: model.Locality{
+						ClusterID: cluster.ID(clusterID),
+					},
+				},
+				PortMap: map[string]uint32{
+					"http": 80,
+				},
+			},
+		},
+		{
+			name: "labels merge",
+			wle: config.Config{
+				Meta: config.Meta{
+					Namespace: "ns1",
+					Labels: map[string]string{
+						"my-label": "bar",
+					},
+				},
+				Spec: &networking.WorkloadEntry{
+					Address: "1.1.1.1",
+					Labels:  workloadLabel,
+					Ports: map[string]uint32{
+						"http": 80,
+					},
+					ServiceAccount: "scooby",
+				},
+			},
+			out: &model.WorkloadInstance{
+				Namespace: "ns1",
+				Kind:      model.WorkloadEntryKind,
+				Endpoint: &model.IstioEndpoint{
+					Labels: map[string]string{
+						"my-label":                  "bar",
+						"app":                       "wle",
+						"topology.istio.io/cluster": clusterID,
+					},
+					Addresses:      []string{"1.1.1.1"},
+					ServiceAccount: "spiffe://cluster.local/ns/ns1/sa/scooby",
+					TLSMode:        "istio",
+					Namespace:      "ns1",
+					Locality: model.Locality{
+						ClusterID: cluster.ID(clusterID),
+					},
+				},
+				PortMap: map[string]uint32{
+					"http": 80,
+				},
+			},
+		},
+		{
+			name: "augment labels",
+			wle: config.Config{
+				Meta: config.Meta{
+					Namespace: "ns1",
+				},
+				Spec: &networking.WorkloadEntry{
+					Address: "1.1.1.1",
+					Labels:  workloadLabel,
+					Ports: map[string]uint32{
+						"http": 80,
+					},
+					Locality:       "region1/zone1/subzone1",
+					Network:        "network1",
+					ServiceAccount: "scooby",
+				},
+			},
+			out: &model.WorkloadInstance{
+				Namespace: "ns1",
+				Kind:      model.WorkloadEntryKind,
+				Endpoint: &model.IstioEndpoint{
+					Labels: map[string]string{
+						"app":                           "wle",
+						"topology.kubernetes.io/region": "region1",
+						"topology.kubernetes.io/zone":   "zone1",
+						"topology.istio.io/subzone":     "subzone1",
+						"topology.istio.io/network":     "network1",
+						"topology.istio.io/cluster":     clusterID,
+					},
+					Addresses: []string{"1.1.1.1"},
+					Network:   "network1",
+					Locality: model.Locality{
+						Label:     "region1/zone1/subzone1",
+						ClusterID: cluster.ID(clusterID),
+					},
+					ServiceAccount: "spiffe://cluster.local/ns/ns1/sa/scooby",
+					TLSMode:        "istio",
+					Namespace:      "ns1",
+				},
+				PortMap: map[string]uint32{
+					"http": 80,
+				},
+			},
+		},
+		{
+			name: "augment labels: networkID get from cb",
+			wle: config.Config{
+				Meta: config.Meta{
+					Namespace: "ns1",
+				},
+				Spec: &networking.WorkloadEntry{
+					Address: "1.1.1.1",
+					Labels:  workloadLabel,
+					Ports: map[string]uint32{
+						"http": 80,
+					},
+					Locality:       "region1/zone1/subzone1",
+					ServiceAccount: "scooby",
+				},
+			},
+			getNetworkIDCb: func(IP string, labels labels.Instance) network.ID {
+				return "cb-network1"
+			},
+			out: &model.WorkloadInstance{
+				Namespace: "ns1",
+				Kind:      model.WorkloadEntryKind,
+				Endpoint: &model.IstioEndpoint{
+					Labels: map[string]string{
+						"app":                           "wle",
+						"topology.kubernetes.io/region": "region1",
+						"topology.kubernetes.io/zone":   "zone1",
+						"topology.istio.io/subzone":     "subzone1",
+						"topology.istio.io/network":     "cb-network1",
+						"topology.istio.io/cluster":     clusterID,
+					},
+					Addresses: []string{"1.1.1.1"},
+					Locality: model.Locality{
+						Label:     "region1/zone1/subzone1",
+						ClusterID: cluster.ID(clusterID),
+					},
+					ServiceAccount: "spiffe://cluster.local/ns/ns1/sa/scooby",
+					TLSMode:        "istio",
+					Namespace:      "ns1",
+				},
+				PortMap: map[string]uint32{
+					"http": 80,
+				},
+			},
+		},
+	}
+
+	for _, tt := range workloadInstanceTests {
+		t.Run(tt.name, func(t *testing.T) {
+			wle := ConvertWorkloadEntry(tt.wle)
+			instance := convertWorkloadEntryToWorkloadInstance(
+				krt.TestingDummyContext{},
+				wle,
+				tt.wle.Meta,
+				meshwatcher.NewTestWatcher(mesh.DefaultMeshConfig()).AsCollection(),
+				tt.wle.Namespace,
+				cluster.ID(clusterID),
+				tt.getNetworkIDCb,
+			)
+			if err := compare(t, instance, tt.out); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func compare[T any](t testing.TB, actual, expected T) error {
+	return util.Compare(jsonBytes(t, actual), jsonBytes(t, expected))
+}
+
+func jsonBytes(t testing.TB, v any) []byte {
+	data, err := json.MarshalIndent(v, "", " ")
+	if err != nil {
+		t.Fatal(t)
+	}
+	return data
+}
+
+func TestConvertServicesNamespaceTrafficDistribution(t *testing.T) {
+	se := &config.Config{
+		Meta: config.Meta{
+			GroupVersionKind:  gvk.ServiceEntry,
+			Name:              "test-se",
+			Namespace:         "test-ns",
+			CreationTimestamp: GlobalTime,
+		},
+		Spec: &networking.ServiceEntry{
+			Hosts:      []string{"test.example.com"},
+			Addresses:  []string{"1.2.3.4"},
+			Ports:      []*networking.ServicePort{{Number: 80, Name: "http", Protocol: "HTTP"}},
+			Resolution: networking.ServiceEntry_STATIC,
+		},
+	}
+
+	seWithAnnotation := &config.Config{
+		Meta: config.Meta{
+			GroupVersionKind:  gvk.ServiceEntry,
+			Name:              "test-se",
+			Namespace:         "test-ns",
+			CreationTimestamp: GlobalTime,
+			Annotations: map[string]string{
+				"networking.istio.io/traffic-distribution": "PreferSameNode",
+			},
+		},
+		Spec: &networking.ServiceEntry{
+			Hosts:      []string{"test.example.com"},
+			Addresses:  []string{"1.2.3.4"},
+			Ports:      []*networking.ServicePort{{Number: 80, Name: "http", Protocol: "HTTP"}},
+			Resolution: networking.ServiceEntry_STATIC,
+		},
+	}
+
+	tests := []struct {
+		name           string
+		cfg            *config.Config
+		nsAnnotations  map[string]string
+		expectedDistro model.TrafficDistribution
+	}{
+		{
+			name:           "no annotations",
+			cfg:            se,
+			nsAnnotations:  nil,
+			expectedDistro: model.TrafficDistributionAny,
+		},
+		{
+			name: "namespace annotation inherited",
+			cfg:  se,
+			nsAnnotations: map[string]string{
+				"networking.istio.io/traffic-distribution": "PreferClose",
+			},
+			expectedDistro: model.TrafficDistributionPreferSameZone,
+		},
+		{
+			name: "serviceentry annotation overrides namespace",
+			cfg:  seWithAnnotation,
+			nsAnnotations: map[string]string{
+				"networking.istio.io/traffic-distribution": "PreferClose",
+			},
+			expectedDistro: model.TrafficDistributionPreferSameNode,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			services := convertServices(*tt.cfg, tt.nsAnnotations, false)
+			if len(services) != 1 {
+				t.Fatalf("expected 1 service, got %d", len(services))
+			}
+			if services[0].Attributes.TrafficDistribution != tt.expectedDistro {
+				t.Errorf("expected traffic distribution %v, got %v",
+					tt.expectedDistro, services[0].Attributes.TrafficDistribution)
+			}
+		})
+	}
+}
