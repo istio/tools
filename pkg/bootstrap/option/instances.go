@@ -61,7 +61,7 @@ func NodeID(value string) Instance {
 }
 
 func NodeType(value string) Instance {
-	ntype := strings.Split(value, "~")[0]
+	ntype, _, _ := strings.Cut(value, "~")
 	return newOption("nodeType", ntype)
 }
 

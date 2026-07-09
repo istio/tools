@@ -35,7 +35,7 @@ import (
 
 func createProxies(n int) []*Connection {
 	proxies := make([]*Connection, 0, n)
-	for p := 0; p < n; p++ {
+	for p := range n {
 		conn := newConnection("", &fakeStream{})
 		conn.SetID(fmt.Sprintf("proxy-%v", p))
 		proxies = append(proxies, conn)
@@ -101,7 +101,7 @@ func TestSendPushesManyPushes(t *testing.T) {
 	go doSendPushes(stopCh, semaphore, queue)
 
 	// Enqueue all pushes without sleeping between rounds.
-	for push := 0; push < numPushRounds; push++ {
+	for range numPushRounds {
 		for _, proxy := range proxies {
 			queue.Enqueue(proxy, &model.PushRequest{Push: &model.PushContext{}, Forced: true})
 		}
@@ -372,19 +372,19 @@ func BenchmarkPushRequest(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		var req *model.PushRequest
-		for i := 0; i < pushesMerged; i++ {
+		for i := range pushesMerged {
 			trigger := allTriggers[i%len(allTriggers)]
 			nreq := &model.PushRequest{
 				ConfigsUpdated: sets.New[model.ConfigKey](),
 				Reason:         model.NewReasonStats(trigger),
 				Forced:         true,
 			}
-			for c := 0; c < configs; c++ {
+			for c := range configs {
 				nreq.ConfigsUpdated.Insert(model.ConfigKey{Kind: kind.ServiceEntry, Name: fmt.Sprintf("%d", c), Namespace: "default"})
 			}
 			req = req.Merge(nreq)
 		}
-		for p := 0; p < proxies; p++ {
+		for range proxies {
 			recordPushTriggers(req.Reason)
 		}
 	}

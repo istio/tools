@@ -226,7 +226,7 @@ func TestSAN(t *testing.T) {
 				assert.Equal(t, sets.SortedList(names), sets.SortedList(sets.New(sans...)))
 			}
 			// Run multiple assertions to verify idempotency; previous versions had issues here.
-			for i := 0; i < 2; i++ {
+			for i := range 2 {
 				clusters := s.Clusters(s.SetupProxy(&model.Proxy{ConfigNamespace: "test"}))
 				assertSANs(t, clusters, "outbound|80||example.default.svc.cluster.local", tt.sans)
 				t.Logf("iteration %d passed", i)

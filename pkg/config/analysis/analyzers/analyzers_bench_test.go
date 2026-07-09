@@ -79,7 +79,7 @@ func benchmarkAnalyzersArtificialBlankData(count int, b *testing.B) {
 	// Generate blank test data
 	store := memory.MakeSkipValidation(collections.All)
 	collections.All.ForEach(func(s resource2.Schema) bool {
-		for i := 0; i < count; i++ {
+		for i := range count {
 			name := resource.NewFullName("default", resource.LocalName(fmt.Sprintf("%s-%d", s.Kind(), i)))
 			_, _ = store.Create(config.Config{
 				Meta: config.Meta{

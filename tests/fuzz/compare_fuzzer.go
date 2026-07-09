@@ -35,7 +35,7 @@ func createIstiodDumps(f *fuzz.ConsumeFuzzer) (map[string][]byte, error) {
 	if noOfEntries == 0 {
 		return m, errors.New("a map of zero-length was created")
 	}
-	for i := 0; i < noOfEntries; i++ {
+	for range noOfEntries {
 		k, err := f.GetString()
 		if err != nil {
 			return m, err

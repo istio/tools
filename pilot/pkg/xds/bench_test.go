@@ -294,7 +294,7 @@ func TestAddressIncrementalGeneration(t *testing.T) {
 
 func createGateways(n int) map[string]*meshconfig.Network {
 	out := make(map[string]*meshconfig.Network, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		out[fmt.Sprintf("network-%d", i)] = &meshconfig.Network{
 			Gateways: []*meshconfig.Network_IstioNetworkGateway{{
 				Gw:   &meshconfig.Network_IstioNetworkGateway_Address{Address: fmt.Sprintf("35.0.0.%d", i)},
@@ -590,9 +590,9 @@ func logDebug(b *testing.B, m model.Resources) {
 
 func createEndpointsConfig(numEndpoints, numServices, numNetworks int) []config.Config {
 	result := make([]config.Config, 0, numServices)
-	for s := 0; s < numServices; s++ {
+	for s := range numServices {
 		endpoints := make([]*networking.WorkloadEntry, 0, numEndpoints)
-		for e := 0; e < numEndpoints; e++ {
+		for e := range numEndpoints {
 			endpoints = append(endpoints, &networking.WorkloadEntry{
 				Labels: map[string]string{
 					"type": "eds-benchmark",
@@ -665,7 +665,7 @@ func makeCacheKey(n int) model.XdsCacheEntry {
 	services := make([]*model.Service, 0, 100)
 	// 100 destinationrules
 	drs := make([]*model.ConsolidatedDestRule, 0, 100)
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		index := strconv.Itoa(i)
 		services = append(services, &model.Service{
 			Hostname:   host.Name(ns + "some" + index + ".example.com"),

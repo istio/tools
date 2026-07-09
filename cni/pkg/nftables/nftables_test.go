@@ -215,7 +215,7 @@ func TestCreateInpodRulesConcurrent(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(workers)
 	start := make(chan struct{})
-	for i := 0; i < workers; i++ {
+	for range workers {
 		go func() {
 			defer wg.Done()
 			<-start

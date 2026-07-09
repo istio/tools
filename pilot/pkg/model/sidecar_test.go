@@ -3047,7 +3047,7 @@ func BenchmarkSelectServicesExact(b *testing.B) {
 		ps.exportToDefaults.service = sets.New(visibility.Public)
 		// Populate the indexes exactly as initServiceRegistry would: every service goes into
 		// HostnameAndNamespace (used by the fast path) and, being public, into public (used by the scan path).
-		for i := 0; i < meshServices; i++ {
+		for i := range meshServices {
 			hostname := host.Name("svc-" + strconv.Itoa(i) + ".ns.svc.cluster.local")
 			s := &Service{
 				Hostname:   hostname,
@@ -3061,7 +3061,7 @@ func BenchmarkSelectServicesExact(b *testing.B) {
 		// Listener imports the first H services as exact, explicitly-namespaced hosts.
 		exact := sets.New[host.Name]()
 		all := make([]host.Name, 0, importedHosts)
-		for i := 0; i < importedHosts; i++ {
+		for i := range importedHosts {
 			h := host.Name("svc-" + strconv.Itoa(i) + ".ns.svc.cluster.local")
 			exact.Insert(h)
 			all = append(all, h)
@@ -3985,7 +3985,7 @@ func BenchmarkConvertIstioListenerToWrapper(b *testing.B) {
 func benchmarkConvertIstioListenerToWrapper(b *testing.B, vsNum int, hostNum int, wildcard string, matchAll bool) {
 	// virtual service
 	cfgs := make([]*config.Config, 0)
-	for i := 0; i < vsNum; i++ {
+	for i := range vsNum {
 		cfgs = append(cfgs, &config.Config{
 			Meta: config.Meta{
 				GroupVersionKind: gvk.VirtualService,
@@ -4002,7 +4002,7 @@ func benchmarkConvertIstioListenerToWrapper(b *testing.B, vsNum int, hostNum int
 
 	// service
 	svcList := make([]*Service, 0, vsNum)
-	for i := 0; i < vsNum; i++ {
+	for i := range vsNum {
 		svcList = append(svcList, &Service{
 			Attributes: ServiceAttributes{Namespace: "default"},
 			Hostname:   host.Name("host-" + strconv.Itoa(i) + ".com"),
@@ -4016,7 +4016,7 @@ func benchmarkConvertIstioListenerToWrapper(b *testing.B, vsNum int, hostNum int
 		hosts = append(hosts, "default/*")
 	} else {
 		// default/xx or default/*.xx
-		for i := 0; i < hostNum; i++ {
+		for i := range hostNum {
 			h := "default/" + wildcard + "host-" + strconv.Itoa(i) + ".com"
 			hosts = append(hosts, h)
 		}
@@ -4136,7 +4136,7 @@ func TestComputeWildcardHostVirtualServiceIndex(t *testing.T) {
 // createBenchmarkService creates a service with realistic attributes for benchmarking
 func createBenchmarkService(numPorts int, numAliases int) *Service {
 	ports := make([]*Port, numPorts)
-	for i := 0; i < numPorts; i++ {
+	for i := range numPorts {
 		ports[i] = &Port{
 			Name:     "http-" + string(rune('0'+i)),
 			Port:     8080 + i,
@@ -4145,7 +4145,7 @@ func createBenchmarkService(numPorts int, numAliases int) *Service {
 	}
 
 	aliases := make([]NamespacedHostname, numAliases)
-	for i := 0; i < numAliases; i++ {
+	for i := range numAliases {
 		aliases[i] = NamespacedHostname{
 			Hostname:  host.Name("alias" + string(rune('0'+i)) + ".example.com"),
 			Namespace: "default",

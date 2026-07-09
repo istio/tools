@@ -60,18 +60,18 @@ func TestXdsCacheToken(t *testing.T) {
 		c.Add(k, req, v)
 	}
 	// 5 round of xds push
-	for vals := 0; vals < 5; vals++ {
+	for range 5 {
 		c.ClearAll()
 		n.Inc()
 		start := time.Now()
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			go work(start, n.Load())
 		}
 		retry.UntilOrFail(t, func() bool {
 			val := c.Get(k)
 			return val != nil && val.Resource.TypeUrl == fmt.Sprint(n.Load())
 		})
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			val := c.Get(k)
 			if val == nil {
 				t.Fatal("no cache found")

@@ -89,7 +89,7 @@ type Config struct {
 func (cfg Config) toTemplateParams() (map[string]any, error) {
 	opts := make([]option.Instance, 0)
 
-	discHost := strings.Split(cfg.Metadata.ProxyConfig.DiscoveryAddress, ":")[0]
+	discHost, _, _ := strings.Cut(cfg.Metadata.ProxyConfig.DiscoveryAddress, ":")
 
 	xdsType := "GRPC"
 	if features.DeltaXds {

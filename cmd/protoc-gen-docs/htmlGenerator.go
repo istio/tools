@@ -894,8 +894,8 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 
 			line := sanitize(line)
 
-			words := g.speller.Split(line)
-			for _, word := range words {
+			words := strings.SplitSeq(line, " ")
+			for word := range words {
 				if !g.speller.Spell(word) {
 					g.warn(loc, -(len(lines) - linenum), "%s is misspelled", word)
 				}

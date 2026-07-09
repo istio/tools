@@ -107,7 +107,7 @@ func verifySyncStatus(t *testing.T, s *xds.DiscoveryServer, nodeID string, wantS
 	// This is a mostly horrible hack because the single pilot instance is shared across multiple tests
 	// This makes this test contaminated by others and gives it horrible timing windows
 	attempts := 5
-	for i := 0; i < attempts; i++ {
+	for i := range attempts {
 		gotStatus := getSyncStatus(t, s)
 		var errorHandler func(string, ...any)
 		if i == attempts-1 {

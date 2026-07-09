@@ -224,7 +224,7 @@ spec:
 	retry.UntilSuccessOrFail(tt.T, func() error {
 		cw := tt.dialEcho("xds:///echo-app.default.svc.cluster.local:7070")
 		distribution := map[string]int{}
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			res, err := cw.Echo(context.Background(), &proto.EchoRequest{Message: "needle"})
 			if err != nil {
 				return err
@@ -288,7 +288,7 @@ spec:
 	// ensure we can make 10 consecutive successful requests
 	retry.UntilSuccessOrFail(tt.T, func() error {
 		cw := tt.dialEcho("xds:///echo-app.default.svc.cluster.local:7070")
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			_, err := cw.Echo(context.Background(), &proto.EchoRequest{Message: "needle"})
 			if err != nil {
 				return err

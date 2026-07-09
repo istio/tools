@@ -2390,7 +2390,7 @@ func TestConcurrentBuildLocalityLbEndpoints(t *testing.T) {
 	wg.Add(5)
 	var actual []*endpoint.LocalityLbEndpoints
 	mu := sync.Mutex{}
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		go func() {
 			eb := endpoints.NewCDSEndpointBuilder(
 				proxy, cb.req.Push,
@@ -2613,7 +2613,7 @@ func TestConcurrentBuildLocalityLbEndpointsWithMulAddrs(t *testing.T) {
 	wg.Add(5)
 	var actual []*endpoint.LocalityLbEndpoints
 	mu := sync.Mutex{}
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		go func() {
 			eb := endpoints.NewCDSEndpointBuilder(
 				proxy, cb.req.Push,

@@ -58,7 +58,7 @@ func FuzzMetadataListMatcher(data []byte) int {
 	}
 	maxKeys := number % 100
 	keys := make([]string, 0, maxKeys)
-	for i := 0; i < maxKeys; i++ {
+	for range maxKeys {
 		key, err := f.GetString()
 		if err != nil {
 			return 0

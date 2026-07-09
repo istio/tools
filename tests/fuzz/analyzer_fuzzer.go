@@ -60,7 +60,7 @@ func createRandomConfigFiles(f *fuzz.ConsumeFuzzer) ([]local.ReaderSource, error
 	maxFiles := numberOfFiles % 10
 
 	// Gather test files
-	for i := 0; i < maxFiles; i++ {
+	for range maxFiles {
 		name, err := f.GetString()
 		if err != nil {
 			return files, err

@@ -800,7 +800,7 @@ func expectFileUnchanged(t *testing.T, files ...string) {
 	for _, f := range files {
 		initials = append(initials, testutil.ReadFile(t, f))
 	}
-	for attempt := 0; attempt < 10; attempt++ {
+	for range 10 {
 		time.Sleep(time.Millisecond * 10)
 		for i, f := range files {
 			now := testutil.ReadFile(t, f)

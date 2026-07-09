@@ -23,7 +23,7 @@ import (
 // for dual-use certificates.
 func DualUseCommonName(host string) (string, error) {
 	// cn uses one hostname, drop the rest
-	first := strings.SplitN(host, ",", 2)[0]
+	first, _, _ := strings.Cut(host, ",")
 
 	// cn max length is 64 (ub-common-name @ https://tools.ietf.org/html/rfc5280)
 	if l := len(first); l > 64 {

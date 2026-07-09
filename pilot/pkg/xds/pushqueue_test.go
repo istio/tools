@@ -76,7 +76,7 @@ func ExpectDequeue(t *testing.T, p *PushQueue, expected *Connection) {
 
 func TestProxyQueue(t *testing.T) {
 	proxies := make([]*Connection, 0, 100)
-	for p := 0; p < 100; p++ {
+	for p := range 100 {
 		conn := newConnection("", nil)
 		conn.SetID(fmt.Sprintf("proxy-%d", p))
 		proxies = append(proxies, conn)
@@ -245,13 +245,13 @@ func TestProxyQueue(t *testing.T) {
 		// We will trigger many pushes for eds services to each proxy. In the end we will expect
 		// all of these to be dequeue, but order is not deterministic.
 		expected := sets.String{}
-		for eds := 0; eds < 100; eds++ {
+		for eds := range 100 {
 			for _, pr := range proxies {
 				expected.Insert(key(pr, fmt.Sprintf("%d", eds)))
 			}
 		}
 		go func() {
-			for eds := 0; eds < 100; eds++ {
+			for eds := range 100 {
 				for _, pr := range proxies {
 					p.Enqueue(pr, &model.PushRequest{
 						ConfigsUpdated: sets.New(model.ConfigKey{
@@ -303,12 +303,12 @@ func TestProxyQueue(t *testing.T) {
 		// We will trigger many pushes for eds services to the proxy. In the end we will expect
 		// all of these to be dequeue, but order is deterministic.
 		expected := make([]string, 100)
-		for eds := 0; eds < 100; eds++ {
+		for eds := range 100 {
 			expected[eds] = fmt.Sprintf("%d", eds)
 		}
 		go func() {
 			// send to pushQueue
-			for eds := 0; eds < 100; eds++ {
+			for eds := range 100 {
 				p.Enqueue(con, &model.PushRequest{
 					ConfigsUpdated: sets.New(model.ConfigKey{
 						Kind: kind.Kind(eds),

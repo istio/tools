@@ -147,7 +147,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 		}
 
 		if customWordList != "" {
-			_, err = s.AddWordListFile(customWordList)
+			_, err = s.AddDictionaryFile(customWordList)
 			if err != nil {
 				return nil, fmt.Errorf("unable to load custom word list: %v", err)
 			}

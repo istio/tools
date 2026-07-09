@@ -105,7 +105,7 @@ func (c *Config) fillDefaults(ctx resource.Context) error {
 	configs := c.Configs.Get()
 
 	if c.ServiceNamePrefix != "" {
-		for i := 0; i < len(configs); i++ {
+		for i := range configs {
 			configs[i].Service = c.ServiceNamePrefix + configs[i].Service
 		}
 	}

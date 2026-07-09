@@ -66,7 +66,7 @@ func FuzzExtractIDs(data []byte) int {
 		return 0
 	}
 	extensions := make([]pkix.Extension, 0)
-	for i := 0; i < noOfExtensions; i++ {
+	for range noOfExtensions {
 		newExtension := pkix.Extension{}
 		err = f.GenerateStruct(&newExtension)
 		if err != nil {

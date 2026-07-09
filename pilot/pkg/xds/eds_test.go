@@ -1100,7 +1100,7 @@ func multipleRequest(s *xdsfake.FakeDiscoveryServer, inc bool, nclients,
 	wgConnect.Add(n)
 	rcvPush := uatomic.NewInt32(0)
 	rcvClients := uatomic.NewInt32(0)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		current := i
 		go func(id int) {
 			defer wg.Done()
@@ -1159,7 +1159,7 @@ func multipleRequest(s *xdsfake.FakeDiscoveryServer, inc bool, nclients,
 	log.Info("Done connecting")
 
 	// All clients are connected - this can start pushing changes.
-	for j := 0; j < nPushes; j++ {
+	for j := range nPushes {
 		if inc {
 			// This will be throttled - we want to trigger a single push
 			s.Discovery.AdsPushAll(&model.PushRequest{
