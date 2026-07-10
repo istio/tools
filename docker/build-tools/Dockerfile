@@ -29,7 +29,7 @@ ARG BASE_OS_CONTEXT=base_os_context
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.26.2-bookworm
+ARG GOLANG_IMAGE=golang:1.26.5-bookworm
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} AS binary_tools_context_base
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -1015,6 +1015,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     git \
     # Dependencies to build envoy
     autoconf \
+    autoconf-archive \
     automake \
     cmake \
     libtool \
