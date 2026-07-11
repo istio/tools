@@ -670,12 +670,7 @@ func isRequired(fd *protomodel.FieldDescriptor) bool {
 	if !ok {
 		return false
 	}
-	for _, o := range opts {
-		if o == annotations.FieldBehavior_REQUIRED {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(opts, annotations.FieldBehavior_REQUIRED)
 }
 
 // buildCELOneOf builds a CEL expression to select oneOf the fields below
