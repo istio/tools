@@ -31,15 +31,15 @@ import (
 // in the parameter string into an easy to use map.
 func extractParams(parameter string) map[string]string {
 	m := make(map[string]string)
-	for p := range strings.SplitSeq(parameter, ",") {
+	for _, p := range strings.Split(parameter, ",") {
 		if p == "" {
 			continue
 		}
 
-		if before, after, ok := strings.Cut(p, "="); !ok {
+		if i := strings.Index(p, "="); i < 0 {
 			m[p] = ""
 		} else {
-			m[before] = after
+			m[p[0:i]] = p[i+1:]
 		}
 	}
 
@@ -147,7 +147,7 @@ func generate(request plugin.CodeGeneratorRequest) (*plugin.CodeGeneratorRespons
 		}
 
 		if customWordList != "" {
-			_, err = s.AddDictionaryFile(customWordList)
+			_, err = s.AddWordListFile(customWordList)
 			if err != nil {
 				return nil, fmt.Errorf("unable to load custom word list: %v", err)
 			}
