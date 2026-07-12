@@ -1,6 +1,6 @@
 # Gateway config, and associated virtual services
 
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
   name: istio-gateway
@@ -35,7 +35,7 @@ spec:
     - "tracing.local"
     - "*"
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: grafana
@@ -55,7 +55,7 @@ spec:
         port:
           number: 3000
 ---
-apiVersion: "networking.istio.io/v1alpha3"
+apiVersion: "networking.istio.io/v1"
 kind: "DestinationRule"
 metadata:
   name: "grafana"
@@ -66,7 +66,7 @@ spec:
     tls:
       mode: DISABLE
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: kiali
@@ -86,7 +86,7 @@ spec:
         port:
           number: 20001
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: prom
@@ -106,7 +106,7 @@ spec:
         port:
           number: 9090
 ---
-apiVersion: "networking.istio.io/v1alpha3"
+apiVersion: "networking.istio.io/v1"
 kind: "DestinationRule"
 metadata:
   name: "prom"
@@ -117,7 +117,7 @@ spec:
     tls:
       mode: DISABLE
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: tracing
@@ -137,7 +137,7 @@ spec:
         port:
           number: 80
 ---
-apiVersion: "networking.istio.io/v1alpha3"
+apiVersion: "networking.istio.io/v1"
 kind: "DestinationRule"
 metadata:
   name: "tracing"

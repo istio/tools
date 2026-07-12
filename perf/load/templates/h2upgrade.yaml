@@ -1,5 +1,5 @@
 {{- define "h2upgrade" }}
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: EnvoyFilter
 metadata:
   name: {{ .serviceNamePrefix }}{{ .serviceName }}-h2upgrade

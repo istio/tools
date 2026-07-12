@@ -24,7 +24,7 @@ function deploy_virtualservice() {
     local host="httpbin-${id}.example.com"
 
     cat <<EOF | kubectl apply -n "${ns}" --cluster "${cs}" -f -
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: "${gateway_name}"

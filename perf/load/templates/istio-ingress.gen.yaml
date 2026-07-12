@@ -1,4 +1,4 @@
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
   name: entrypoint-gateway
@@ -26,7 +26,7 @@ spec:
     - {{ .Values.serviceNamePrefix }}0.{{ .Values.domain }}
 {{- end }}
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: entrypoint
@@ -51,7 +51,7 @@ spec:
           number: 8080
       weight: 70
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: {{ .Values.serviceNamePrefix }}0

@@ -50,7 +50,7 @@ writer = csv.DictWriter(
 writer.writeheader()
 
 for run in runs:
-    row = dict()
+    row = {}
     run = run.strip()
     run = run.split("\n")
 

@@ -20,14 +20,14 @@ TEST_RUN_SEPARATOR = sys.argv[1]
 
 fieldnames: Set[str] = set()
 rows: List[Dict[str, str]] = []
-row: Dict[str, str] = dict()
+row: Dict[str, str] = {}
 
 for line in sys.stdin:
     line = line.strip()
     if line.strip() == TEST_RUN_SEPARATOR:
         fieldnames.update(row.keys())
         rows.append(row)
-        row = dict()
+        row = {}
         continue
 
     line = line.split("=")

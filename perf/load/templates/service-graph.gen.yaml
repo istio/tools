@@ -1651,7 +1651,7 @@ spec:
   selector:
     app: {{ .Values.serviceNamePrefix }}0-9
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: WorkloadGroup
 metadata:
   name: {{ .Values.serviceNamePrefix }}0-9
@@ -1665,7 +1665,7 @@ spec:
     {{ toJson .Values.readinessProbe }}
   {{- end}}
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: WorkloadGroup
 metadata:
   name: {{ .Values.serviceNamePrefix }}0-9-0
