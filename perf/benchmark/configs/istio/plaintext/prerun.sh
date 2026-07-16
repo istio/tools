@@ -22,7 +22,7 @@ kubectl -n "${NAMESPACE}" delete dr --all || true
 kubectl -n "${NAMESPACE}" delete policy --all || true
 echo "Configure plaintext..."
 cat <<EOF | kubectl apply -f -
-apiVersion: security.istio.io/v1beta1
+apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
   name: default
