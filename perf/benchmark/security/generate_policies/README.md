@@ -83,7 +83,7 @@ go run generate_policies.go generate.go jwt.go -configFile="config.json"
 This will create an Authorization Policy as follows and print it out to the stdout.
 
 ```yaml
-apiVersion: security.istio.io/v1beta1
+apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: test-AuthorizationPolicy-1
@@ -141,7 +141,7 @@ go run generate_policies.go generate.go jwt.go -configFile="config.json"
 This will create a PeerAuthentication policy as follows and print it out to the stdout.
 
 ```yaml
-apiVersion: security.istio.io/v1beta1
+apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
   name: test-PeerAuthentication-1
@@ -189,7 +189,7 @@ go run generate_policies.go generate.go jwt.go -configFile="config.json"
 This will create a RequestAuthentication Policy as follows and print it out to the stdout. When creating a jwks rule each key is formed of a public key of an RSA256 public/private key pair. This key pair is generated at random and created a new pair every time generate_policies are run.
 
 ```yaml
-apiVersion: security.istio.io/v1beta1
+apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
   name: test-requestauthentication-1
@@ -243,7 +243,7 @@ go run generate_policies.go generate.go jwt.go -configFile="twoPolicies.json"
 Which outputs the following yaml:
 
 ```yaml
-apiVersion: security.istio.io/v1beta1
+apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
   name: test-AuthorizationPolicy-1
@@ -256,7 +256,7 @@ spec:
        principals:
        - cluster.local/ns/twopods-istio/sa/Invalid-0
 ---
-apiVersion: security.istio.io/v1beta1
+apiVersion: security.istio.io/v1
 kind: PeerAuthentication
 metadata:
   name: test-PeerAuthentication-1
