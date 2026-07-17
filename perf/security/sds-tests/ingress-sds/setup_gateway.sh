@@ -25,7 +25,7 @@ function deploy_gateway() {
     local host="httpbin-${id}.example.com"
 
     cat <<-EOF | kubectl apply -n "${ns}" --cluster "${cs}" -f -
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
   name: "${gateway_name}"

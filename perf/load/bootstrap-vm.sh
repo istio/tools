@@ -55,7 +55,7 @@ kubectl get cm -n "${VM_NAMESPACE}" service-graph-config -ojsonpath='{.data.serv
 
 istioctl x workload group create --name "${VM_APP}" --namespace "${VM_NAMESPACE}" --labels app="${VM_APP}" --serviceAccount "${SERVICE_ACCOUNT}" >  "${WORK_DIR}"/workloadgroup.yaml
 cat <<EOF > "${WORK_DIR}"/workloadgroup.yaml
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: WorkloadGroup
 metadata:
   name: "${VM_APP}"

@@ -1,4 +1,4 @@
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: EnvoyFilter
 metadata:
   name: jwt-reject-lua-filter

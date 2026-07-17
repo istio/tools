@@ -1,6 +1,6 @@
 # Gateway config, and associated virtual services
 
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
   name: entrypoint-gateway
@@ -15,7 +15,7 @@ spec:
     hosts:
     - "*"
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: grafana
@@ -31,7 +31,7 @@ spec:
         port:
           number: 3000
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: prom
@@ -47,7 +47,7 @@ spec:
         port:
           number: 9090
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: client
@@ -63,7 +63,7 @@ spec:
         port:
           number: 8080
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: client
@@ -74,7 +74,7 @@ spec:
       mode: DISABLE
       #mode: ISTIO_MUTUAL
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: grafana
@@ -84,7 +84,7 @@ spec:
     tls:
       mode: DISABLE
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: prometheus

@@ -558,7 +558,7 @@ spec:
 {{ toYaml $.Values.appresources1 | indent 10 }}
 {{- end }}
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: {{ $.name }}
@@ -582,7 +582,7 @@ spec:
 
 ---
 {{- if or $.Values.server.inject $.Values.client.inject }}
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
   name: {{ .Values.gateway }}

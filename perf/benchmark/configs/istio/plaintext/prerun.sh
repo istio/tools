@@ -33,7 +33,7 @@ spec:
 EOF
   # Explicitly disable mTLS by DestinationRule to avoid potential auto mTLS effect.
 cat <<EOF | kubectl apply -f -
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: plaintext-dr-twopods

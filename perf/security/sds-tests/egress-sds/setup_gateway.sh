@@ -27,7 +27,7 @@ function setup_gateways() {
     local host_nginx="my-nginx-${id}.mesh-external.svc.cluster.local"
 
     cat <<-EOF | kubectl apply -n "${ns}" --cluster "${cs}" -f -
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: Gateway
 metadata:
   name: "${gateway_name}"
@@ -44,7 +44,7 @@ spec:
     tls:
       mode: ISTIO_MUTUAL
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: "${gateway_dr}"

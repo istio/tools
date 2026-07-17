@@ -24,7 +24,7 @@ function setup_destinationrules() {
     local credential_name="client-credential-${id}"
 
     cat <<-EOF | kubectl apply -n istio-system --cluster "${cs}" -f -
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: "${dr_name}"
