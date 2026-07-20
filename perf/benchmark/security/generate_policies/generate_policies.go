@@ -32,7 +32,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"sigs.k8s.io/yaml"
 
-	authzpb "istio.io/api/security/v1beta1"
+	authzpb "istio.io/api/security/v1"
 )
 
 type ruleGenerator struct {
@@ -264,7 +264,7 @@ func createPolicyHeader(namespace, name, kind string, dryRun bool) *MyPolicy {
 		namespace = "twopods-istio"
 	}
 	ret := &MyPolicy{
-		APIVersion: "security.istio.io/v1beta1",
+		APIVersion: "security.istio.io/v1",
 		Kind:       kind,
 		Metadata:   MetadataStruct{Namespace: namespace, Name: name},
 	}

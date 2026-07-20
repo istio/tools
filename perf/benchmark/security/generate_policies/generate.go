@@ -17,7 +17,7 @@ package main
 import (
 	"fmt"
 
-	authzpb "istio.io/api/security/v1beta1"
+	authzpb "istio.io/api/security/v1"
 )
 
 type generator interface {
