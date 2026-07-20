@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"slices"
 
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/namer"
@@ -79,7 +80,7 @@ func (g registerGenerator) Finalize(c *generator.Context, w io.Writer) error {
 	sw := generator.NewSnippetWriter(w, c, "$", "$")
 	var lowerCaseSchemeKubeTypes, camelCaseSchemeKubeTypes []metadata.KubeType
 	for _, k := range g.source.AllKubeTypes() {
-		if isLowerCaseScheme(k.Tags()) {
+		if slices.Contains(k.Tags(), "kubetype-gen:lowerCaseScheme") {
 			lowerCaseSchemeKubeTypes = append(lowerCaseSchemeKubeTypes, k)
 		} else {
 			camelCaseSchemeKubeTypes = append(camelCaseSchemeKubeTypes, k)
@@ -96,17 +97,6 @@ func (g registerGenerator) Finalize(c *generator.Context, w io.Writer) error {
 	sw.Do(addKnownTypesFuncTemplate, m)
 
 	return sw.Error()
-}
-
-// isLowerCaseScheme checks if the kubetype is reflected as lower case in Kubernetes scheme.
-// This is a workaround as Istio CRDs should have CamelCase scheme in Kubernetes, e.g. `VirtualService` instead of `virtualservice`
-func isLowerCaseScheme(tags []string) bool {
-	for _, s := range tags {
-		if s == "kubetype-gen:lowerCaseScheme" {
-			return true
-		}
-	}
-	return false
 }
 
 const resourceFuncTemplate = `
