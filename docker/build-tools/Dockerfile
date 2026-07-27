@@ -817,12 +817,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:bionic AS clang_context_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=bionic
-FROM ubuntu:focal AS clang_context_arm64
-ENV UBUNTU_RELEASE_CODE_NAME=focal
-# hadolint ignore=DL3006
-FROM clang_context_${TARGETARCH} AS clang_context
+FROM ubuntu:noble AS clang_context
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -833,9 +828,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ninja-build \
     gpg-agent \
-    libtinfo5
+    cmake \
+    python3 \
+    libxml2
 
-ENV LLVM_VERSION=18.1.8
+ENV LLVM_VERSION=22.1.8
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
 ENV LLVM_DIRECTORY=/usr/lib/llvm
 
@@ -843,26 +840,16 @@ RUN set -eux; \
     \
     case $(uname -m) in \
         x86_64) \
-               LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-18.04 \
-               LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-18.04;; \
+               LLVM_ARTIFACT=LLVM-${LLVM_VERSION}-Linux-X64;; \
         aarch64)  \
-               LLVM_ARCHIVE=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu \
-               LLVM_ARTIFACT=clang+llvm-${LLVM_VERSION}-aarch64-linux-gnu;; \
+               LLVM_ARTIFACT=LLVM-${LLVM_VERSION}-Linux-ARM64;; \
         *) echo "unsupported architecture"; exit 1 ;; \
     esac; \
     \
     wget -nv ${LLVM_BASE_URL}/${LLVM_ARTIFACT}.tar.xz; \
     tar -xJf ${LLVM_ARTIFACT}.tar.xz -C /tmp; \
     mkdir -p ${LLVM_DIRECTORY}; \
-    mv /tmp/${LLVM_ARCHIVE}/* ${LLVM_DIRECTORY}/
-
-# CMake >=3.20.0
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-# ubuntu 18.04 without arm64 version see https://apt.kitware.com/
-# hadolint ignore=DL4001
-RUN curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
-RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_RELEASE_CODE_NAME} main"
-RUN apt-get update && apt-get install -y --no-install-recommends cmake cmake-data ninja-build python3
+    mv /tmp/${LLVM_ARTIFACT}/* ${LLVM_DIRECTORY}/
 
 # TSan instrumented libc++.
 ENV PATH=${LLVM_DIRECTORY}/bin:$PATH
@@ -914,7 +901,7 @@ FROM bazel_context_${TARGETARCH} AS bazel_context
 
 ARG TARGETARCH
 
-ENV BAZELISK_VERSION="v1.24.0"
+ENV BAZELISK_VERSION="v1.29.0"
 ENV BAZELISK_BASE_URL="https://github.com/bazelbuild/bazelisk/releases/download"
 ENV BAZELISK_BIN="bazelisk-linux-${TARGETARCH}"
 ENV BAZELISK_URL="${BAZELISK_BASE_URL}/${BAZELISK_VERSION}/${BAZELISK_BIN}"
@@ -936,16 +923,10 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:bionic AS build_env_proxy_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=bionic
-ENV UBUNTU_RELEASE_VERSION=18.04
-FROM ubuntu:focal AS build_env_proxy_arm64
-ENV UBUNTU_RELEASE_CODE_NAME=focal
-ENV UBUNTU_RELEASE_VERSION=20.04
-# hadolint ignore=DL3006
-FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
+FROM ubuntu:noble AS build_env_proxy
 
-ENV DOCKER_BUILDX_VERSION=0.10.5-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+ENV UBUNTU_RELEASE_CODE_NAME=noble
+ENV UBUNTU_RELEASE_VERSION=24.04
 ENV SU_EXEC_VERSION=0.3.1
 
 WORKDIR /
@@ -958,8 +939,9 @@ LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
 # Docker
-ENV DOCKER_VERSION=5:24.0.2-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
-ENV CONTAINERD_VERSION=1.6.21-1
+ENV DOCKER_VERSION=5:29.6.2-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+ENV CONTAINERD_VERSION=2.2.6-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+ENV DOCKER_BUILDX_VERSION=0.35.0-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
 
 # General
 ENV HOME=/home
@@ -1020,17 +1002,16 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     cmake \
     libtool \
     ninja-build \
-    python \
     unzip \
-    libncurses5 \
-    libtinfo5 \
     virtualenv
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
+RUN install -m 0755 -d /etc/apt/keyrings
 ADD https://download.docker.com/linux/ubuntu/gpg /tmp/docker-key
-RUN apt-key add /tmp/docker-key
+RUN gpg --dearmor -o /etc/apt/keyrings/docker.gpg < /tmp/docker-key && chmod a+r /etc/apt/keyrings/docker.gpg
 ARG TARGETARCH
-RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu ${UBUNTU_RELEASE_CODE_NAME} stable"
+RUN echo "deb [arch=${TARGETARCH} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu ${UBUNTU_RELEASE_CODE_NAME} stable" \
+    > /etc/apt/sources.list.d/docker.list
 # hadolint ignore=DL3009
 RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -1044,20 +1025,6 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
 COPY prow-entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 
-# CMake
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-# ubuntu 18.04 without arm64 version see https://apt.kitware.com/
-# hadolint ignore=DL4001
-RUN set -eux; \
-    \
-    case $(uname -m) in \
-        x86_64) \
-            curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - ; \
-            apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_RELEASE_CODE_NAME} main"; \
-            ;; \
-        *) echo "skip" ;; \
-    esac;
-
 COPY --link --from=binary_tools_context_base /out/ /
 COPY --link --from=binary_tools_context_base /usr/local/go /usr/local/go
 COPY --link --from=go_tools_1 /tmp/go/bin/* /usr/bin/
@@ -1069,9 +1036,7 @@ COPY --link --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
 COPY --link --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
 COPY --link --from=clang_context /opt/libcxx_tsan /opt/libcxx_tsan
 
-COPY install-python.sh install-python.sh
-RUN ./install-python.sh
-
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "${LLVM_DIRECTORY}/lib" | tee /etc/ld.so.conf.d/llvm.conf
 RUN ldconfig
 
