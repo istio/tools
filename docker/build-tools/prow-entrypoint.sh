@@ -55,7 +55,37 @@ function read_gcp_secrets() {
   done
 }
 
-read_gcp_secrets
+function read_aws_secrets() {
+  # Prevent calling with -x set
+  if [[ $- = *x* ]]; then
+    echo "Execution tracing must be disabled to call read_aws_secrets"
+    exit 1
+  fi
+  { set +x; } 2>/dev/null
+  readarray -t secrets < <(<<<"${GCP_SECRETS}" jq -c '.[]')
+  for item in "${secrets[@]}"; do
+    secret="$(<<<"$item" jq .secret -r)"
+    env="$(<<<"$item" jq -r '.env // ""')"
+    file="$(<<<"$item" jq -r '.file // ""')"
+    echo "Fetching secret '${secret}' from AWS Secrets Manager"
+    value="$(aws secretsmanager get-secret-value --secret-id "${secret}" --query SecretString --output text)"
+    if [[ "${env}" != "" ]]; then
+      export "$env=$value"
+    fi
+    if [[ "${file}" != "" ]]; then
+      mkdir -p "$(dirname "${file}")"
+      echo "$value" > "${file}"
+    fi
+  done
+}
+
+# EKS Pod Identity injects this endpoint. GKE does not, so it unambiguously
+# selects AWS Secrets Manager while retaining the existing GCP behavior.
+if [[ -n "${AWS_CONTAINER_CREDENTIALS_FULL_URI:-}" ]]; then
+  read_aws_secrets
+else
+  read_gcp_secrets
+fi
 
 # Output a message, with a timestamp matching istio log format
 function log() {
