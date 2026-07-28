@@ -16,15 +16,13 @@
 
 set -eux
 
-# gcc-11, need to build instrumented LLVM libc++ for tsan testing.
-add-apt-repository -y ppa:ubuntu-toolchain-r/test
-apt-get update && apt-get install -y --no-install-recommends g++-11
-update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 1000
+# gcc, need to build instrumented LLVM libc++ for tsan testing.
+apt-get update && apt-get install -y --no-install-recommends g++
 
 # Instrumented libcxx built from LLVM source, used for tsan testing.
 # See envoy dev guide for more info: https://github.com/envoyproxy/envoy-build-tools
 # should use same llvm version of build env
-LLVM_VERSION=${LLVM_VERSION:-18.1.8}
+LLVM_VERSION=${LLVM_VERSION:-22.1.8}
 
 WORKDIR=$(mktemp -d)
 pushd "${WORKDIR}" || exit
