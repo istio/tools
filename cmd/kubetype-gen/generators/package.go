@@ -16,6 +16,7 @@ package generators
 
 import (
 	"fmt"
+	"slices"
 
 	"k8s.io/gengo/generator"
 	"k8s.io/gengo/types"
@@ -36,12 +37,7 @@ func NewPackageGenerator(source metadata.PackageMetadata, boilerplate []byte) ge
 // +groupName=%s
 `, source.GroupVersion().Group)),
 		FilterFunc: func(c *generator.Context, t *types.Type) bool {
-			for _, it := range source.RawTypes() {
-				if t == it {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(source.RawTypes(), t)
 		},
 		GeneratorList: []generator.Generator{
 			// generate types.go
