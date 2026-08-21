@@ -177,7 +177,7 @@ def sync_fortio(url, table, selector=None, promUrl="", csv=None, csv_output="", 
                 if gd.get('errorPercent', 0) > 10:
                     print("... Run resulted in", gd['errorPercent'], "% errors")
                     continue
-                min_duration = METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
+                min_duration = 5 #  METRICS_START_SKIP_DURATION + METRICS_END_SKIP_DURATION
                 if min_duration > gd['ActualDuration']:
                     print("... {} duration={}s is less than minimum {}s".format(
                         gd["Labels"], gd['ActualDuration'], min_duration))

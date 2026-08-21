@@ -31,6 +31,8 @@ server:  # server overrides
   #tlsmode: DISABLE
   tlsmode: ISTIO_MUTUAL
   expose: false
+  waypoint: false
+  ambient: false
   inject: "false"
   injectL: "disabled" # "enabled" or "disabled"
   replica: 1    # default value
@@ -39,6 +41,7 @@ client: # client overrides
   #tlsmode: DISABLE
   tlsmode: ISTIO_MUTUAL
   expose: true
+  ambient: false
   inject: "false"
   injectL: "disabled" # "enabled" or "disabled"
   replica: 1    # default value
