@@ -99,6 +99,41 @@ function log() {
   fi
 }
 
+function load_cf_secrets() {
+    # Loads secrets from a cloudflare secret file into environment variables.
+    # The secret file is expected to be a JSON file with the following structure:
+    # {
+    #   "endpoint": "https://accountid.r2.cloudflarestorage.com",
+    #   "access_key": "your_access_key",
+    #   "secret_key": "your_secret_key",
+    #   "region": "auto",
+    #   "session_token": "your_session_token"
+    # }
+    #
+    # disable x for this function to avoid leaking secrets in logs
+    # 
+    { [[ $- = *x* ]] && was_execution_trace=1 || was_execution_trace=0; } 2>/dev/null
+    { set +x; } 2>/dev/null
+
+    # check arg count
+    if [[ $# -ne 1 ]]; then
+        echo "Usage: load_cf_secrets <secret_file>"
+        exit 1
+    fi
+
+    secret_file=$1
+    ENDPOINT="$(jq -r '.endpoint' < "${secret_file}" | tr -d '\n')"
+    AWS_ACCESS_KEY_ID="$(jq -r '.access_key' < "${secret_file}" | tr -d '\n')"
+    AWS_SECRET_ACCESS_KEY="$(jq -r '.secret_key' < "${secret_file}" | tr -d '\n')"
+    AWS_REGION="$(jq -r '.region' < "${secret_file}" | tr -d '\n')"
+    AWS_SESSION_TOKEN="$(jq -r '.session_token' < "${secret_file}" | tr -d '\n')"
+    export ENDPOINT AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION AWS_SESSION_TOKEN
+
+    if [[ $was_execution_trace == 1 ]]; then
+      { set -x; } 2>/dev/null
+    fi
+}
+
 function tracing::run() {
   # Setup a default implementation that just logs May be overridden if the repo has tracing support.
   log "Running ${1}"
