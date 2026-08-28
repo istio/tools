@@ -26,9 +26,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/golang/protobuf/jsonpb" // nolint: depguard // We need the deprecated module since the jsonpb replacement is not backwards compatible.
-	// nolint: staticcheck
-	legacyproto "github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/jsonpb"            // nolint: depguard,staticcheck // We need the deprecated module since the jsonpb replacement is not backwards compatible.
+	legacyproto "github.com/golang/protobuf/proto" // nolint:staticcheck // We need the deprecated module since the jsonpb replacement is not backwards compatible.
 	"google.golang.org/protobuf/proto"
 	"sigs.k8s.io/yaml"
 

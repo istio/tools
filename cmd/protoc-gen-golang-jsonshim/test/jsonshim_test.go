@@ -20,9 +20,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/golang/protobuf/jsonpb" // nolint: depguard // We need the deprecated module since the jsonpb replacement is not backwards compatible.
-	// nolint: staticcheck
-	legacyproto "github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/jsonpb"            // nolint: depguard,staticcheck // We need the deprecated module since the jsonpb replacement is not backwards compatible.
+	legacyproto "github.com/golang/protobuf/proto" // nolint:staticcheck // We need the deprecated module since the jsonpb replacement is not backwards compatible.
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
 
