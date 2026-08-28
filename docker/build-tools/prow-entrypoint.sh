@@ -99,6 +99,7 @@ function log() {
   fi
 }
 
+# shellcheck disable=SC2329
 function load_cf_secrets() {
     # Loads secrets from a cloudflare secret file into environment variables.
     # The secret file is expected to be a JSON file with the following structure:
