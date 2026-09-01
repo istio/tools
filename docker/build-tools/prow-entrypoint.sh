@@ -219,9 +219,6 @@ function run_docker() {
   }
 
   trap cleanup EXIT
-
-  # Always try to authenticate to GCR and AR.
-  gcloud auth configure-docker "${GCP_REGISTRIES}" -q || true
 }
 
 tracing::run "docker" run_docker
