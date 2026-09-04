@@ -57,6 +57,22 @@ if [[ "${CONTAINER_CLI}" == "podman" ]]; then
   CACHE_FROM_TAG=""
 fi
 
+CACHE_FROM_BUILD_TOOLS=""
+CACHE_FROM_BUILD_TOOLS_PROXY=""
+if [[ -n "${CACHE_FROM_TAG}" ]]; then
+  if crane manifest "${HUB}/build-tools${CACHE_FROM_TAG}" > /dev/null 2>&1; then
+    CACHE_FROM_BUILD_TOOLS="--cache-from ${HUB}/build-tools${CACHE_FROM_TAG}"
+  else
+    echo "Build cache ${HUB}/build-tools${CACHE_FROM_TAG} not found; building without it."
+  fi
+
+  if crane manifest "${HUB}/build-tools-proxy${CACHE_FROM_TAG}" > /dev/null 2>&1; then
+    CACHE_FROM_BUILD_TOOLS_PROXY="--cache-from ${HUB}/build-tools-proxy${CACHE_FROM_TAG}"
+  else
+    echo "Build cache ${HUB}/build-tools-proxy${CACHE_FROM_TAG} not found; building without it."
+  fi
+fi
+
 # The docker image runs `go get istio.io/tools@${SHA}`
 # In postsubmit, if we pull from the head of the branch, we get a race condition and usually will pull and old version
 # In presubmit, this SHA does not exist, so we should just pull from the head of the branch (eg master)
@@ -78,7 +94,7 @@ fi
 ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools \
   ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --cache-from "${HUB}/build-tools${CACHE_FROM_TAG}" \
+  ${CACHE_FROM_BUILD_TOOLS} \
   -t "${HUB}/build-tools:${BRANCH}-latest-${ARCH}" \
   -t "${HUB}/build-tools:${VERSION}-${ARCH}" \
   .
@@ -87,7 +103,7 @@ ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools \
 ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_env_proxy \
   ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --cache-from "${HUB}/build-tools-proxy${CACHE_FROM_TAG}" \
+  ${CACHE_FROM_BUILD_TOOLS_PROXY} \
   -t "${HUB}/build-tools-proxy:${BRANCH}-latest-${ARCH}" \
   -t "${HUB}/build-tools-proxy:${VERSION}-${ARCH}" \
   .
@@ -97,7 +113,7 @@ ${CONTAINER_CLI} ${CONTAINER_BUILDER} --target build_tools \
   ${ADDITIONAL_BUILD_ARGS} --build-arg "ISTIO_TOOLS_SHA=${SHA}" --build-arg "VERSION=${VERSION}" \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg BASE_OS_CONTEXT=base_os_context_with_mingw \
-  --cache-from "${HUB}/build-tools${CACHE_FROM_TAG}" \
+  ${CACHE_FROM_BUILD_TOOLS} \
   -t "${HUB}/build-tools-windows:${BRANCH}-latest-${ARCH}" \
   -t "${HUB}/build-tools-windows:${VERSION}-${ARCH}" \
   .

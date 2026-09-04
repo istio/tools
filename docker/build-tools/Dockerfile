@@ -45,6 +45,7 @@ ENV BOM_VERSION=v0.7.1
 ENV BUF_VERSION=v1.66.1
 ENV COSIGN_VERSION=v3.0.5
 ENV CRANE_VERSION=v0.21.3
+ENV ECR_CREDENTIAL_HELPER_VERSION=v0.12.0
 ENV GCLOUD_VERSION=558.0.0
 ENV GCR_AUTH_VERSION=2.1.32
 ENV GH_VERSION=2.88.1
@@ -190,6 +191,11 @@ RUN chmod 555 ${OUTDIR}/usr/bin/kubectl
 ADD https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v${GCR_AUTH_VERSION}/docker-credential-gcr_linux_${TARGETARCH}-${GCR_AUTH_VERSION}.tar.gz /tmp
 RUN tar -xzf /tmp/docker-credential-gcr_linux_${TARGETARCH}-${GCR_AUTH_VERSION}.tar.gz -C /tmp
 RUN mv /tmp/docker-credential-gcr ${OUTDIR}/usr/bin
+
+# ECR docker credential helper
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
+    go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@${ECR_CREDENTIAL_HELPER_VERSION} \
+    && mv ${GOPATH}/bin/docker-credential-ecr-login ${OUTDIR}/usr/bin
 
 RUN wget -nv -O "${OUTDIR}/usr/bin/buf" "https://github.com/bufbuild/buf/releases/download/${BUF_VERSION}/buf-Linux-$(uname -m)" && \
     chmod 555 "${OUTDIR}/usr/bin/buf"

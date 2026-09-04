@@ -177,6 +177,23 @@ function generate_docker_config() {
 EOF
 }
 
+# shellcheck disable=SC2329
+function configure_ecr_credential_helper() {
+  local docker_config docker_config_dir
+  docker_config_dir="${DOCKER_CONFIG:-${HOME}/.docker}"
+  docker_config="${docker_config_dir}/config.json"
+  mkdir -p "$(dirname "${docker_config}")"
+
+  if [[ ! -f "${docker_config}" ]]; then
+    echo '{}' > "${docker_config}"
+  fi
+
+  jq --arg registry "${ECR_REGISTRY}" \
+    '.credHelpers = (.credHelpers // {}) | .credHelpers[$registry] = "ecr-login"' \
+    "${docker_config}" > "${docker_config}.tmp"
+  mv "${docker_config}.tmp" "${docker_config}"
+}
+
 log "Starting test..."
 
 # Always enable IPv6; all tests should function with it enabled so no need to be selective.
@@ -207,6 +224,10 @@ function run_docker() {
       fi
       sleep 1
     done
+
+    if [[ -n "${ECR_REGISTRY:-}" ]]; then
+      configure_ecr_credential_helper
+    fi
   fi
   function cleanup() {
     if [[ "${ENABLE_DOCKER}" == "true" ]]; then
