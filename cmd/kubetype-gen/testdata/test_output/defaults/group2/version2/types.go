@@ -17,13 +17,11 @@
 package version2
 
 import (
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	v1alpha1 "istio.io/api/meta/v1alpha1"
 	defaults "istio.io/tools/cmd/kubetype-gen/testdata/test_input/positive/defaults"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // AllOverridden is for test
@@ -39,7 +37,7 @@ type AllOverridden struct {
 	// +optional
 	Spec defaults.AllOverridden `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
-	Status v1alpha1.IstioStatus `json:",inline"`
+	Status v1alpha1.IstioStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -49,5 +47,5 @@ type AllOverriddenList struct {
 	v1.TypeMeta `json:",inline"`
 	// +optional
 	v1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
-	Items       []AllOverridden `json:"items" protobuf:"bytes,2,rep,name=items"`
+	Items       []*AllOverridden `json:"items" protobuf:"bytes,2,rep,name=items"`
 }
