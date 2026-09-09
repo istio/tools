@@ -16,6 +16,7 @@ package scanner
 
 import (
 	"fmt"
+	gotypes "go/types"
 	"os"
 	"path/filepath"
 	"strings"
@@ -117,10 +118,31 @@ func (s *Scanner) Targets(c *generator.Context) []generator.Target {
 		}
 
 		for _, t := range pkg.Types {
+			// Skip Go type aliases (type X = Y). Alias packages (v1, v1beta1)
+			// re-export types from another package (v1alpha3); the original type
+			// already carries the kubetype-gen tag and cue-gen version list that
+			// generate for all target versions, so processing aliases here would
+			// produce duplicate output types.
+			//
+			// gengo v2 represents aliases as types.Alias normally, but falls
+			// back to types.Unsupported (with GoType == *go/types.Alias) when
+			// compiled without Go 1.22+ alias support.
+			if t.Kind == types.Alias {
+				continue
+			}
+			if _, isAlias := t.GoType.(*gotypes.Alias); isAlias {
+				continue
+			}
+			// Only examine CommentLines (immediate doc comment) for the kubetype-gen
+			// enable tag. SecondClosestCommentLines can be polluted in gengo v2 when
+			// an alias type with no doc comment sits immediately after a tagged type
+			// in the same file, causing gengo v2 to attribute the tagged type's
+			// comment block as the alias's "second closest" comment, which then
+			// propagates to the underlying (aliased) type in the universe.
+			typeTags := codetags.Extract("+", t.CommentLines)
 			comments := make([]string, 0, len(t.CommentLines)+len(t.SecondClosestCommentLines))
 			comments = append(comments, t.CommentLines...)
 			comments = append(comments, t.SecondClosestCommentLines...)
-			typeTags := codetags.Extract("+", comments)
 			if _, exists := typeTags[enabledTagName]; exists {
 				var gv *schema.GroupVersion
 				gv, err = getGroupVersion(typeTags, defaultGV)
