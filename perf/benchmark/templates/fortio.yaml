@@ -20,13 +20,32 @@ spec:
     kind: ServiceRole
     name: "{{ $ruleName }}"
 {{- end }}
-
 {{- define "fortio" }}
+
+---
+{{- if and .Values.server.waypoint .Values.server.ambient }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $.name }}-wp
+  labels:
+    istio.io/waypoint-for: service
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+  - name: mesh
+    port: 15008
+    protocol: HBONE
+{{- end }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ $.name }}
+{{- if and .Values.server.waypoint .Values.server.ambient }}
+  labels:
+    istio.io/use-waypoint: {{ $.name }}-wp
+{{- end }}
 spec:
   ports:
   - name: http-echo
@@ -388,6 +407,7 @@ spec:
       labels:
         app: {{ $.name }}
     spec:
+      terminationGracePeriodSeconds: 0
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -509,6 +529,9 @@ spec:
         - /var/lib/fortio/
 {{- else }}
         image: {{ $.Values.fortioImage }}
+        volumeMounts:
+        - name: shared-data
+          mountPath: /var/lib/fortio
         args:
         - report
         - -http-port
