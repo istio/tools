@@ -28,15 +28,15 @@ import (
 // in the parameter string into an easy to use map.
 func extractParams(parameter string) map[string]string {
 	m := make(map[string]string)
-	for _, p := range strings.Split(parameter, ",") {
+	for p := range strings.SplitSeq(parameter, ",") {
 		if p == "" {
 			continue
 		}
 
-		if i := strings.Index(p, "="); i < 0 {
+		if before, after, ok := strings.Cut(p, "="); !ok {
 			m[p] = ""
 		} else {
-			m[p[0:i]] = p[i+1:]
+			m[before] = after
 		}
 	}
 

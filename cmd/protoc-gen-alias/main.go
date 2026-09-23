@@ -38,7 +38,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 	ourVersion := filepath.Base(filepath.Dir(file.Desc.Path()))
 	var versions []string
 	for _, msg := range file.Messages {
-		for _, line := range strings.Split(msg.Comments.Leading.String(), "\n") {
+		for line := range strings.SplitSeq(msg.Comments.Leading.String(), "\n") {
 			// Looking for something like '// +cue-gen:Simple:versions:v1,v1alpha'
 			if strings.HasPrefix(line, "// +cue-gen:") {
 				items := strings.Split(line, ":")
@@ -46,7 +46,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 					continue
 				}
 				if items[2] == "versions" {
-					for _, v := range strings.Split(items[3], ",") {
+					for v := range strings.SplitSeq(items[3], ",") {
 						if v != ourVersion {
 							versions = append(versions, v)
 						}
