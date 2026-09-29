@@ -314,9 +314,6 @@ func populateTemplate(filename string, releaseNotes []Note, oldRelease string, n
 }
 
 type prView struct {
-	Files []struct {
-		Path string `json:"path"`
-	} `json:"files"`
 	Labels []struct {
 		Name string `json:"name"`
 	} `json:"labels"`
@@ -325,13 +322,15 @@ type prView struct {
 	} `json:"author"`
 }
 
+var prURLRegexp = regexp.MustCompile(`github\.com/([^/]+)/([^/]+)/pull/(\d+)`)
+
 func ReadGithubPR(path string, pullRequest string, notesSubpath string) (PRInfo, error) {
 	c := exec.Command(
 		"gh",
 		"pr",
 		"view",
 		pullRequest,
-		"--json=files,labels,author",
+		"--json=labels,author",
 	)
 	c.Dir = path
 	log.Printf("Executing: %s\n", strings.Join(c.Args, " "))
@@ -345,12 +344,17 @@ func ReadGithubPR(path string, pullRequest string, notesSubpath string) (PRInfo,
 		return PRInfo{}, fmt.Errorf("failed to parse GH results: %s", err.Error())
 	}
 
+	files, err := readPRFiles(path, pullRequest)
+	if err != nil {
+		return PRInfo{}, err
+	}
+
 	var results []string
-	for _, val := range prResults.Files {
-		if strings.Contains(val.Path, notesSubpath) {
+	for _, f := range files {
+		if strings.Contains(f, notesSubpath) {
 			// Only add file if it exists. May have been deleted in this PR.
-			if _, err := os.Stat(val.Path); !os.IsNotExist(err) {
-				results = append(results, val.Path)
+			if _, err := os.Stat(f); !os.IsNotExist(err) {
+				results = append(results, f)
 			}
 		}
 	}
@@ -368,6 +372,36 @@ func ReadGithubPR(path string, pullRequest string, notesSubpath string) (PRInfo,
 	}
 
 	return info, nil
+}
+
+func readPRFiles(path, pullRequest string) ([]string, error) {
+	m := prURLRegexp.FindStringSubmatch(pullRequest)
+	if m == nil {
+		return nil, fmt.Errorf("could not parse owner/repo/number from pull request URL %q", pullRequest)
+	}
+	owner, repo, number := m[1], m[2], m[3]
+
+	c := exec.Command(
+		"gh", "api",
+		fmt.Sprintf("repos/%s/%s/pulls/%s/files", owner, repo, number),
+		"--paginate",
+		"-f", "per_page=100",
+		"--jq", ".[].filename",
+	)
+	c.Dir = path
+	log.Printf("Executing: %s\n", strings.Join(c.Args, " "))
+	out, err := c.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("received error running GH: %s", err.Error())
+	}
+
+	var files []string
+	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		if line != "" {
+			files = append(files, line)
+		}
+	}
+	return files, nil
 }
 
 const ReleaseNoteNone = "release-notes-none"
