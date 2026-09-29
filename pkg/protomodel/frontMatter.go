@@ -67,8 +67,8 @@ func extractFrontMatter(name string, loc *descriptor.SourceCodeInfo_Location, fi
 	var extra []string
 
 	for _, para := range loc.LeadingDetachedComments {
-		lines := strings.Split(para, "\n")
-		for _, l := range lines {
+		lines := strings.SplitSeq(para, "\n")
+		for l := range lines {
 			l = strings.Trim(l, " ")
 
 			if strings.HasPrefix(l, "$") {
