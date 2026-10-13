@@ -102,7 +102,6 @@ function log() {
 # shellcheck disable=SC2329
 function load_cf_secrets() {
     # Loads Cloudflare credentials from stdin into environment variables.
-    # Exported for job scripts; use load_cf_secrets <<< "${CF_CREDENTIALS}".
     # The input is expected to be JSON with the following structure:
     # {
     #   "endpoint": "https://accountid.r2.cloudflarestorage.com",
