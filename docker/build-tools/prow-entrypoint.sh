@@ -101,8 +101,9 @@ function log() {
 
 # shellcheck disable=SC2329
 function load_cf_secrets() {
-    # Loads secrets from a cloudflare secret file into environment variables.
-    # The secret file is expected to be a JSON file with the following structure:
+    # Loads Cloudflare credentials from stdin into environment variables.
+    # Exported for job scripts; use load_cf_secrets <<< "${CF_CREDENTIALS}".
+    # The input is expected to be JSON with the following structure:
     # {
     #   "endpoint": "https://accountid.r2.cloudflarestorage.com",
     #   "access_key": "your_access_key",
@@ -113,27 +114,31 @@ function load_cf_secrets() {
     #
     # disable x for this function to avoid leaking secrets in logs
     # 
+    local was_execution_trace credentials result=0
     { [[ $- = *x* ]] && was_execution_trace=1 || was_execution_trace=0; } 2>/dev/null
     { set +x; } 2>/dev/null
 
-    # check arg count
-    if [[ $# -ne 1 ]]; then
-        echo "Usage: load_cf_secrets <secret_file>"
-        exit 1
+    if [[ $# -ne 0 ]]; then
+      echo "Usage: load_cf_secrets < credentials.json" >&2
+      result=1
+    elif credentials="$(cat)" &&
+       ENDPOINT="$(jq -er '.endpoint' <<< "${credentials}")" &&
+       AWS_ACCESS_KEY_ID="$(jq -er '.access_key' <<< "${credentials}")" &&
+       AWS_SECRET_ACCESS_KEY="$(jq -er '.secret_key' <<< "${credentials}")" &&
+       AWS_REGION="$(jq -er '.region' <<< "${credentials}")" &&
+       AWS_SESSION_TOKEN="$(jq -r '.session_token // ""' <<< "${credentials}")"; then
+      export ENDPOINT AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION AWS_SESSION_TOKEN
+    else
+      echo "Failed to load Cloudflare credentials from stdin" >&2
+      result=1
     fi
-
-    secret_file=$1
-    ENDPOINT="$(jq -r '.endpoint' < "${secret_file}" | tr -d '\n')"
-    AWS_ACCESS_KEY_ID="$(jq -r '.access_key' < "${secret_file}" | tr -d '\n')"
-    AWS_SECRET_ACCESS_KEY="$(jq -r '.secret_key' < "${secret_file}" | tr -d '\n')"
-    AWS_REGION="$(jq -r '.region' < "${secret_file}" | tr -d '\n')"
-    AWS_SESSION_TOKEN="$(jq -r '.session_token' < "${secret_file}" | tr -d '\n')"
-    export ENDPOINT AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION AWS_SESSION_TOKEN
 
     if [[ $was_execution_trace == 1 ]]; then
       { set -x; } 2>/dev/null
     fi
+    return "${result}"
 }
+export -f load_cf_secrets
 
 function tracing::run() {
   # Setup a default implementation that just logs May be overridden if the repo has tracing support.
