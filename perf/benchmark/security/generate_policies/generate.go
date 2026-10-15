@@ -32,7 +32,7 @@ func (operationGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 
 	if numPaths := policyData.AuthZ.NumPaths; numPaths > 0 {
 		paths := make([]string, numPaths)
-		for i := 0; i < numPaths; i++ {
+		for i := range numPaths {
 			paths[i] = fmt.Sprintf("/invalid-path-%d", i)
 		}
 		operation := &authzpb.Rule_To{
@@ -54,7 +54,7 @@ func (conditionGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 
 	if numValues := policyData.AuthZ.NumValues; numValues > 0 {
 		values := make([]string, numValues)
-		for i := 0; i < numValues; i++ {
+		for i := range numValues {
 			if i == numValues-1 && policyData.AuthZ.Action == "ALLOW" {
 				values[i] = "admin"
 			} else {
@@ -79,7 +79,7 @@ func (sourceGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 
 	if numSourceIP := policyData.AuthZ.NumSourceIP; numSourceIP > 0 {
 		sourceIPList := make([]string, numSourceIP)
-		for i := 0; i < numSourceIP; i++ {
+		for i := range numSourceIP {
 			sourceIPList[i] = fmt.Sprintf("0.0.%d.%d", i/256, i%256)
 		}
 		source := &authzpb.Rule_From{
@@ -92,7 +92,7 @@ func (sourceGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 
 	if numNamepaces := policyData.AuthZ.NumNamespaces; numNamepaces > 0 {
 		namespaces := make([]string, numNamepaces)
-		for i := 0; i < numNamepaces; i++ {
+		for i := range numNamepaces {
 			namespaces[i] = fmt.Sprintf("invalid-namespace-%d", i)
 		}
 		source := &authzpb.Rule_From{
@@ -105,7 +105,7 @@ func (sourceGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 
 	if numPrincipals := policyData.AuthZ.NumPrincipals; numPrincipals > 0 {
 		principals := make([]string, numPrincipals)
-		for i := 0; i < numPrincipals; i++ {
+		for i := range numPrincipals {
 			principals[i] = fmt.Sprintf("cluster.local/ns/twopods-istio/sa/Invalid-%d", i)
 		}
 		source := &authzpb.Rule_From{
@@ -118,7 +118,7 @@ func (sourceGenerator) generate(policyData SecurityPolicy) *authzpb.Rule {
 
 	if numRequestPrincipals := policyData.AuthZ.NumRequestPrincipals; numRequestPrincipals > 0 {
 		requestPrincipals := make([]string, numRequestPrincipals)
-		for i := 0; i < numRequestPrincipals; i++ {
+		for i := range numRequestPrincipals {
 			principalValue := "invalid-issuer/subject"
 			if i == numRequestPrincipals-1 {
 				principalValue = fmt.Sprintf("issuer-%d/subject", policyData.RequestAuthN.NumJwks)
