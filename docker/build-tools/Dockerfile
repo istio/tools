@@ -49,6 +49,8 @@ ENV GCLOUD_VERSION=550.0.0
 ENV GCR_AUTH_VERSION=2.1.31
 ENV GH_VERSION=2.83.2
 ENV GOCOVMERGE_VERSION=b5bfa59ec0adc420475f97f89b58045c721d761c
+# gocovmerge has no go.mod, so pin its transitive dependency for Go 1.25 compatibility.
+ENV GOCOVMERGE_TOOLS_VERSION=v0.49.0
 ENV GOIMPORTS_VERSION=v0.40.0
 # When updating the golangci version, you may want to update the common-files config/.golangci* files as well.
 ENV GOLANGCI_LINT_VERSION=v2.8.0
@@ -355,10 +357,17 @@ RUN --mount=type=cache,target=/tmp/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
     sigs.k8s.io/kind@${KIND_VERSION}
+# hadolint ignore=DL3062
 RUN --mount=type=cache,target=/tmp/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
-    github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION}
+    mkdir /tmp/gocovmerge && \
+    go -C /tmp/gocovmerge mod init istio.io/gocovmerge && \
+    go -C /tmp/gocovmerge get github.com/wadey/gocovmerge@${GOCOVMERGE_VERSION} golang.org/x/tools@${GOCOVMERGE_TOOLS_VERSION}
+# The version comes from the temporary module's explicitly pinned dependency graph.
+# hadolint ignore=DL3062
+RUN --mount=type=cache,target=/tmp/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go -C /tmp/gocovmerge install -ldflags="-extldflags -static -s -w" github.com/wadey/gocovmerge
 RUN --mount=type=cache,target=/tmp/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go install -ldflags="-extldflags -static -s -w" \
