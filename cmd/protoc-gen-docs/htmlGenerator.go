@@ -822,6 +822,9 @@ func (g *htmlGenerator) generateComment(loc protomodel.LocationDescriptor, name 
 
 			commentEnd := strings.Index(lines[i][commentStart+3:], "-->")
 			if commentEnd >= 0 {
+				// commentEnd is relative to commentStart+3, make it absolute
+				commentEnd += commentStart + 3
+
 				// strip out the commented portion
 				lines[i] = lines[i][:commentStart] + lines[i][commentEnd+3:]
 				i-- // run the line through the check again
