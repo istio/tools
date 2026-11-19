@@ -377,8 +377,8 @@ func (g *openapiGenerator) generateFile(
 				},
 			}
 			if pk, f := cfg["printerColumn"]; f {
-				pcs := strings.Split(pk, ";;")
-				for _, pc := range pcs {
+				pcs := strings.SplitSeq(pk, ";;")
+				for pc := range pcs {
 					if pc == "" {
 						continue
 					}
@@ -670,12 +670,7 @@ func isRequired(fd *protomodel.FieldDescriptor) bool {
 	if !ok {
 		return false
 	}
-	for _, o := range opts {
-		if o == annotations.FieldBehavior_REQUIRED {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(opts, annotations.FieldBehavior_REQUIRED)
 }
 
 // buildCELOneOf builds a CEL expression to select oneOf the fields below
@@ -872,7 +867,7 @@ var Celpp = func() *celpp.Preprocessor {
 }()
 
 func applyExtraValidations(schema *apiext.JSONSchemaProps, m protomodel.CoreDesc, t markers.TargetType) {
-	for _, line := range strings.Split(m.Location().GetLeadingComments(), "\n") {
+	for line := range strings.SplitSeq(m.Location().GetLeadingComments(), "\n") {
 		line = strings.TrimSpace(line)
 		if !strings.Contains(line, KubeBuilderValidationPrefix) &&
 			!strings.Contains(line, "+list") &&
